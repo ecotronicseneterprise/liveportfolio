@@ -3,8 +3,6 @@ import { createHmac, timingSafeEqual } from 'crypto'
 import { supabaseAdmin } from '@/lib/supabase'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 function verifySignature(payload: string, signature: string, secret: string): boolean {
   try {
     const hash = createHmac('sha256', secret).update(payload).digest('hex')
@@ -20,6 +18,10 @@ function verifySignature(payload: string, signature: string, secret: string): bo
 export async function POST(req: NextRequest) {
   // Always return 200 — Lemon Squeezy retries on non-200
   try {
+    if (process.env.DISABLE_WEBHOOK === 'true') {
+      return NextResponse.json({ received: true }, { status: 200 })
+    }
+
     const payload = await req.text()
     const signature = req.headers.get('x-signature') || ''
     const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET || ''
@@ -91,9 +93,14 @@ export async function POST(req: NextRequest) {
         amount_cents: amountCents,
       })
 
-    // Send confirmation email via Resend
-    const portfolioUrl = `https://${userData.slug}.liveportfolio.site`
-    await resend.emails.send({
+    // Send confirmation email via Resend (optional)
+    const resendApiKey = process.env.RESEND_API_KEY
+    if (!resendApiKey) {
+      console.warn('RESEND_API_KEY is not set; skipping confirmation email')
+    } else {
+      const resend = new Resend(resendApiKey)
+      const portfolioUrl = `https://${userData.slug}.liveportfolio.site`
+      await resend.emails.send({
       from: 'liveportfolio.site <hello@liveportfolio.site>',
       to: userEmail,
       subject: `Your portfolio is live at ${portfolioUrl}`,
@@ -119,6 +126,7 @@ export async function POST(req: NextRequest) {
         </div>
       `,
     }).catch(() => {}) // Don't fail the webhook if email fails
+    }
 
     return NextResponse.json({ received: true }, { status: 200 })
   } catch (err) {
