@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac, timingSafeEqual } from 'crypto'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 import { Resend } from 'resend'
 
 function verifySignature(payload: string, signature: string, secret: string): boolean {
@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true }, { status: 200 })
     }
 
+    const supabaseAdmin = getSupabaseAdmin()
     const payload = await req.text()
     const signature = req.headers.get('x-signature') || ''
     const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET || ''

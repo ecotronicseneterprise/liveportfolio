@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
 import type { PortfolioContent } from '@/components/templates/Minimal'
@@ -12,6 +12,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
+  const supabaseAdmin = getSupabaseAdmin()
 
   const { data } = await supabaseAdmin
     .from('users')
@@ -48,6 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PortfolioPage({ params }: Props) {
   const { slug } = await params
+  const supabaseAdmin = getSupabaseAdmin()
 
   // supabaseAdmin bypasses RLS — required for public portfolio rendering
   const { data, error } = await supabaseAdmin

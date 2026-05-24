@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 import { Resend } from 'resend'
 
 // NOTE: instantiate Resend lazily inside the handler so missing env vars
@@ -7,6 +7,7 @@ import { Resend } from 'resend'
 
 export async function POST(req: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const { email, user_id, source, portfolio_og_url } = await req.json()
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {

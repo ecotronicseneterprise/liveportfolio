@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 
 interface UserProfile {
@@ -49,6 +49,22 @@ function HealthScore({ score }: { score: number }) {
 
 export default function DashboardPage() {
   const router = useRouter()
+  let supabase: ReturnType<typeof getSupabaseClient>
+  try {
+    supabase = getSupabaseClient()
+  } catch {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+        <div className="max-w-lg w-full bg-white border border-gray-100 rounded-2xl p-6">
+          <h1 className="text-lg font-semibold text-gray-900 mb-2">Setup required</h1>
+          <p className="text-sm text-gray-600">
+            Supabase env vars are missing. Set <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
+            <code className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> on your deployment, then reload.
+          </p>
+        </div>
+      </div>
+    )
+  }
   const [user, setUser] = useState<UserProfile | null>(null)
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null)
   const [loading, setLoading] = useState(true)

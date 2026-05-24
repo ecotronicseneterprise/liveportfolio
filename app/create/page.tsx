@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 interface Project {
   title: string
@@ -64,6 +64,22 @@ function ProgressBar({ step, total }: { step: number; total: number }) {
 
 export default function CreatePage() {
   const router = useRouter()
+  let supabase: ReturnType<typeof getSupabaseClient>
+  try {
+    supabase = getSupabaseClient()
+  } catch {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+        <div className="max-w-lg w-full bg-white border border-gray-100 rounded-2xl p-6">
+          <h1 className="text-lg font-semibold text-gray-900 mb-2">Setup required</h1>
+          <p className="text-sm text-gray-600">
+            Supabase env vars are missing. Set <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
+            <code className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> on your deployment, then reload.
+          </p>
+        </div>
+      </div>
+    )
+  }
   // Redirect to preview if user already has a portfolio
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {

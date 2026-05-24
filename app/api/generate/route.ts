@@ -116,7 +116,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { supabaseAdmin } = await import('@/lib/supabase')
+  const { getSupabaseAdmin } = await import('@/lib/supabase')
+  const supabaseAdmin = getSupabaseAdmin()
 
   // ONE GENERATION PER USER — check if portfolio already exists
   const { data: existing } = await supabaseAdmin

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
 import type { PortfolioContent } from '@/components/templates/Minimal'
@@ -76,6 +76,22 @@ function calculateHealth(content: PortfolioContent): { score: number; items: Hea
 export default function PreviewPage() {
   const { portfolioId } = useParams() as { portfolioId: string }
   const router = useRouter()
+  let supabase: ReturnType<typeof getSupabaseClient>
+  try {
+    supabase = getSupabaseClient()
+  } catch {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+        <div className="max-w-lg w-full bg-white border border-gray-100 rounded-2xl p-6">
+          <h1 className="text-lg font-semibold text-gray-900 mb-2">Setup required</h1>
+          <p className="text-sm text-gray-600">
+            Supabase env vars are missing. Set <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
+            <code className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> on your deployment, then reload.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   const [content, setContent] = useState<PortfolioContent | null>(null)
   const [template, setTemplate] = useState<'minimal' | 'bold'>('minimal')

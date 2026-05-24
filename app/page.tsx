@@ -9,11 +9,11 @@ const EXAMPLE_PORTFOLIOS = [
 const FAQ_ITEMS = [
   {
     q: 'Can I preview before paying?',
-    a: 'Yes. You see your full AI-generated portfolio before paying a cent. The preview is the point — it\'s where the purchase decision happens.',
+    a: 'Yes. You can build and preview your portfolio before deciding to publish it.',
   },
   {
     q: 'Is hosting permanent?',
-    a: 'Yes. One payment, permanent hosting. No monthly fees, no expiry. Your portfolio stays live at slug.liveportfolio.site forever.',
+    a: 'Yes. Once published, your portfolio stays live with no monthly fee.',
   },
   {
     q: 'Can I edit my portfolio after publishing?',
@@ -25,11 +25,11 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Who is this for?',
-    a: 'Tech and creative professionals — developers, data scientists, designers, engineers — who need a professional portfolio link to include in job applications.',
+    a: 'Anyone who wants to present their work more clearly — developers, designers, analysts, and freelancers.',
   },
   {
     q: 'Do I need design or coding skills?',
-    a: 'None at all. Fill the form, AI writes the copy, pick a template, and it\'s live. The whole process takes under 5 minutes.',
+    a: 'None at all. Add your experience, pick a template, and publish when you’re ready.',
   },
 ]
 
@@ -54,17 +54,17 @@ export default function LandingPage() {
       <section className="max-w-4xl mx-auto px-5 pt-20 pb-20 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#f0fdf8] border border-[#1D9E75]/20 rounded-full text-sm text-[#1D9E75] font-medium mb-8">
           <span className="w-2 h-2 bg-[#1D9E75] rounded-full animate-pulse" />
-          Used by 200+ tech professionals across Africa
+          Built for early-career professionals, freelancers, and job seekers.
         </div>
 
         <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-[#0A0A0A] mb-6 leading-tight">
-          Your professional portfolio.<br />
-          <span className="text-[#1D9E75]">Live in 5 minutes.</span>
+          Your work deserves to be seen properly.<br />
+          <span className="text-[#1D9E75]">Not buried in PDFs or forgotten posts.</span>
         </h1>
 
         <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-          Fill in your info. AI writes the copy. Your portfolio goes live permanently
-          at <span className="text-gray-700 font-medium">yourname.liveportfolio.site</span> — one payment, no subscriptions.
+          You bring the experience. We turn it into a clean, recruiter-ready portfolio in minutes.
+          No design skills. No writing stress. No ongoing fees.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -72,9 +72,9 @@ export default function LandingPage() {
             href="/create"
             className="w-full sm:w-auto px-8 py-4 bg-[#1D9E75] text-white text-base font-bold rounded-full hover:bg-[#178a64] transition-colors shadow-lg shadow-[#1D9E75]/20"
           >
-            Create My Portfolio →
+            Create My Portfolio
           </Link>
-          <span className="text-sm text-gray-400">No design skills needed · See results before paying</span>
+          <span className="text-sm text-gray-400">One-time payment. Yours forever.</span>
         </div>
 
         {/* Example portfolios */}
@@ -112,20 +112,20 @@ export default function LandingPage() {
             {[
               {
                 step: '01',
-                title: 'Fill in your info',
-                desc: 'Your name, role, projects, and a short bio. Takes 3 minutes. Upload your CV to auto-fill everything.',
+                title: 'Tell us about your work',
+                desc: 'Add your experience, projects, or upload your CV. Takes about 3 minutes.',
                 icon: '✍️',
               },
               {
                 step: '02',
-                title: 'AI writes the copy',
-                desc: 'One AI call transforms your raw info into professional portfolio copy — no buzzwords, no filler. Sounds like you, written better.',
+                title: 'We turn it into something clear',
+                desc: 'We rewrite everything into clean, professional language that sounds like you — just more structured and easier to read.',
                 icon: '⚡',
               },
               {
                 step: '03',
-                title: 'Pay once, go live forever',
-                desc: 'Your portfolio publishes at yourname.liveportfolio.site permanently. No subscription, no expiry. Edit anytime from the dashboard.',
+                title: 'Go live instantly',
+                desc: 'Your portfolio goes live at yourname.liveportfolio.site. No subscription. No expiry. You stay in control.',
                 icon: '🚀',
               },
             ].map((item) => (
@@ -164,7 +164,7 @@ export default function LandingPage() {
             </div>
             <div className="p-5">
               <p className="font-semibold text-gray-900 mb-1">Minimal</p>
-              <p className="text-xs text-gray-400">Editorial minimalism. Playfair Display + DM Sans. White background, teal accent. Trusted by hiring managers.</p>
+              <p className="text-xs text-gray-400">Clean, focused, and recruiter-friendly. Designed for clarity over decoration.</p>
             </div>
           </div>
 
@@ -188,7 +188,7 @@ export default function LandingPage() {
             </div>
             <div className="p-5">
               <p className="font-semibold text-gray-900 mb-1">Bold</p>
-              <p className="text-xs text-gray-400">Dark engineering showcase. Space Mono + Sora. GitHub-style dark theme with blue accents. Built for developers.</p>
+              <p className="text-xs text-gray-400">Dark, confident, developer-style layout. Built for engineers, builders, and technical roles.</p>
             </div>
           </div>
         </div>
@@ -204,6 +204,7 @@ export default function LandingPage() {
             <div className="bg-white border border-gray-100 rounded-2xl p-6">
               <div className="mb-6">
                 <p className="font-bold text-gray-900 text-lg mb-1">Launch</p>
+                <p className="text-sm text-gray-500">For getting online fast</p>
                 <p className="text-4xl font-bold text-gray-900">$9 <span className="text-base font-normal text-gray-400">one-time</span></p>
               </div>
               <ul className="space-y-3 mb-6 text-sm text-gray-600">
@@ -234,6 +235,7 @@ export default function LandingPage() {
               </div>
               <div className="mb-6">
                 <p className="font-bold text-gray-900 text-lg mb-1">Professional</p>
+                <p className="text-sm text-gray-500">For serious job seekers and freelancers</p>
                 <p className="text-4xl font-bold text-gray-900">$19 <span className="text-base font-normal text-gray-400">one-time</span></p>
               </div>
               <ul className="space-y-3 mb-6 text-sm text-gray-600">
@@ -279,10 +281,11 @@ export default function LandingPage() {
       {/* Final CTA */}
       <section className="bg-[#0A0A0A] py-20 text-center px-5">
         <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-          The fastest way to look hireable online.
+          Your work is already valuable.
+          It just needs a better way to be seen.
         </h2>
         <p className="text-gray-400 mb-8 text-lg">
-          5 minutes. AI-generated copy. Live permanently.
+          Create a recruiter-ready portfolio link you can share with confidence.
         </p>
         <Link
           href="/create"

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 
 const RESERVED = new Set([
   'api', 'www', 'app', 'admin', 'blog', 'help', 'dashboard', 'status',
@@ -26,6 +26,7 @@ function isRateLimited(ip: string): boolean {
 }
 
 export async function GET(req: NextRequest) {
+  const supabaseAdmin = getSupabaseAdmin()
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
   if (isRateLimited(ip)) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 
 function calculateHealthScore(content: Record<string, unknown>): number {
   let score = 0
@@ -23,6 +23,7 @@ function calculateHealthScore(content: Record<string, unknown>): number {
 }
 
 export async function PATCH(req: NextRequest) {
+  const supabaseAdmin = getSupabaseAdmin()
   const authHeader = req.headers.get('authorization')
   const token = authHeader?.replace('Bearer ', '')
 

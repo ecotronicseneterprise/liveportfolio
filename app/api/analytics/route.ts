@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 
 // In-memory deduplication: IP+slug → timestamp
 const seen = new Map<string, number>()
@@ -19,6 +19,7 @@ function startFlushTimer() {
     batch.clear()
 
     for (const [slug, count] of entries) {
+      const supabaseAdmin = getSupabaseAdmin()
       const { data: user } = await supabaseAdmin
         .from('users')
         .select('id, portfolios(id, view_count)')
