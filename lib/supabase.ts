@@ -5,15 +5,19 @@ function requireEnv(name: string, value: string | undefined): string {
   return value
 }
 
+// Singleton — one instance per browser context, prevents GoTrueClient warnings.
+let _clientInstance: ReturnType<typeof createClient> | null = null
+
 // Client-side instance — uses anon key, respects Row Level Security.
-// Use a getter so missing env vars don't crash the module at import/build time.
 export function getSupabaseClient() {
+  if (_clientInstance) return _clientInstance
   const supabaseUrl = requireEnv('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL)
   const supabaseAnonKey = requireEnv(
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )
-  return createClient(supabaseUrl, supabaseAnonKey)
+  _clientInstance = createClient(supabaseUrl, supabaseAnonKey)
+  return _clientInstance
 }
 
 // Server-side admin instance — uses service role key, bypasses RLS.

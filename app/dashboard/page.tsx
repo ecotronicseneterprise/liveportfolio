@@ -83,7 +83,9 @@ export default function DashboardPage() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { router.push('/create'); return }
 
-    const { data: userData } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sb = supabase as any
+    const { data: userData } = await sb
       .from('users')
       .select('id, email, slug, plan, published_at, custom_domain')
       .eq('id', session.user.id)
@@ -92,7 +94,7 @@ export default function DashboardPage() {
     if (!userData) { router.push('/create'); return }
     setUser(userData)
 
-    const { data: portfolioData } = await supabase
+    const { data: portfolioData } = await sb
       .from('portfolios')
       .select('id, template, content, health_score, view_count, last_viewed_at, updated_at')
       .eq('user_id', session.user.id)

@@ -143,8 +143,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Name, role, and email are required' }, { status: 400 })
   }
 
-  if (input.projects.length === 0) {
-    return NextResponse.json({ error: 'At least one project is required' }, { status: 400 })
+  const titledProjects = input.projects.filter((p) => p.title)
+  if (titledProjects.length === 0 && !input.github_url) {
+    return NextResponse.json({ error: 'Add at least one project or a GitHub URL' }, { status: 400 })
   }
 
   // Reject if estimated input tokens exceed 2500

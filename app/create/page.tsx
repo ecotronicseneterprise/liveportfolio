@@ -89,7 +89,7 @@ export default function CreatePage() {
         .select('id')
         .eq('user_id', session.user.id)
         .single()
-      if (portfolio) router.replace(`/preview/${portfolio.id}`)
+      if (portfolio && 'id' in portfolio) router.replace(`/preview/${(portfolio as { id: string }).id}`)
     })
   }, [router])
 
@@ -101,6 +101,7 @@ export default function CreatePage() {
   const [slugSuggestion, setSlugSuggestion] = useState('')
   const [uploadingCv, setUploadingCv] = useState(false)
   const [slugTimer, setSlugTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
+  const [showAccountForm, setShowAccountForm] = useState(false)
 
   const [form, setForm] = useState<FormData>({
     name: '', role: '', email: '', location: '', bio: '',
@@ -130,9 +131,8 @@ export default function CreatePage() {
       if (data.email) update('email', data.email)
       if (data.location) update('location', data.location)
       if (data.bio) update('bio', data.bio.slice(0, 500))
-      if (data.skills?.length) {
-        // Pre-fill first project stack with skills
-      }
+      if (data.github_url) update('github_url', data.github_url.slice(0, 200))
+      if (data.linkedin_url) update('linkedin_url', data.linkedin_url.slice(0, 200))
       if (data.projects?.length) {
         update('projects', data.projects.slice(0, 4).map((p: { title?: string; description?: string; stack?: string[] }) => ({
           title: p.title || '',
@@ -215,14 +215,18 @@ export default function CreatePage() {
       if (!form.email.trim() || !form.email.includes('@')) return 'Valid email is required'
     }
     if (step === 2) {
-      if (form.projects.some((p) => !p.title.trim())) return 'All projects need a title'
-      if (form.projects.some((p) => !p.description.trim())) return 'All projects need a description'
+      const hasProjects = form.projects.some((p) => p.title.trim())
+      const hasGithub = form.github_url.trim()
+      if (!hasProjects && !hasGithub) return 'Add at least one project, or enter your GitHub URL in Step 1'
+      if (form.projects.some((p) => p.title.trim() === '' && p.description.trim() !== '')) return 'Projects with a description need a title'
     }
     if (step === 4) {
       if (!form.slug.trim()) return 'Please choose a URL slug'
       if (slugStatus !== 'available') return 'Please choose an available slug'
-      if (!form.password || form.password.length < 8) return 'Password must be at least 8 characters'
-      if (!form.agreeTerms) return 'Please agree to the terms'
+      if (showAccountForm) {
+        if (!form.password || form.password.length < 8) return 'Password must be at least 8 characters'
+        if (!form.agreeTerms) return 'Please agree to the terms'
+      }
     }
     return ''
   }
@@ -257,10 +261,11 @@ export default function CreatePage() {
       })
 
       if (signUpError) throw new Error(signUpError.message)
-      if (!authData.session) throw new Error('No session after signup — check your email for verification')
+      if (!authData.session) throw new Error('Check your email for a verification link, then come back to generate your portfolio. (To skip this: Supabase → Authentication → Providers → Email → disable "Confirm email")')
 
       // 2. Create user record with slug
-      const { error: userError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: userError } = await (supabase as any)
         .from('users')
         .insert({ id: authData.user!.id, email: form.email, slug: form.slug })
 
@@ -524,6 +529,11 @@ export default function CreatePage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Your projects</h1>
               <p className="text-gray-500 text-sm">Add 1–4 projects. Keep descriptions short — AI expands them into case studies.</p>
+              {form.github_url && form.projects.every((p) => !p.title.trim()) && (
+                <p className="text-xs text-[#1D9E75] mt-2 bg-[#f0fdf8] px-3 py-2 rounded-lg">
+                  You have a GitHub URL — you can skip projects and AI will work from your bio and role. Or add projects for a stronger portfolio.
+                </p>
+              )}
             </div>
 
             {form.projects.map((project, i) => (
@@ -553,8 +563,8 @@ export default function CreatePage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    What it does <span className="text-red-400">*</span>
-                    <span className="text-gray-400 font-normal"> — AI will expand this into a full case study</span>
+                    What it does
+                    <span className="text-gray-400 font-normal"> — AI writes the case study (optional)</span>
                   </label>
                   <textarea
                     value={project.description}
@@ -684,7 +694,7 @@ export default function CreatePage() {
           </div>
         )}
 
-        {/* Step 4: Claim URL + Signup */}
+        {/* Step 4: Claim URL */}
         {step === 4 && (
           <div className="space-y-6">
             <div>
@@ -714,7 +724,6 @@ export default function CreatePage() {
                 </span>
               </div>
 
-              {/* Slug status */}
               {form.slug.length >= 3 && (
                 <div className="mt-2">
                   {slugStatus === 'checking' && (
@@ -742,16 +751,20 @@ export default function CreatePage() {
               )}
             </div>
 
-            <div className="border-t border-gray-100 pt-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Create your account</h2>
-              <div className="space-y-4">
+            {/* Account creation — appears after clicking Generate */}
+            {showAccountForm && (
+              <div className="border border-gray-100 rounded-xl p-5 space-y-4 bg-gray-50">
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900 mb-1">Create your account</h2>
+                  <p className="text-xs text-gray-400">Your portfolio will be saved to this account.</p>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                   <input
                     type="email"
                     value={form.email}
                     disabled
-                    className="w-full border border-gray-100 rounded-xl px-4 py-3 text-sm bg-gray-50 text-gray-500"
+                    className="w-full border border-gray-100 rounded-xl px-4 py-3 text-sm bg-white text-gray-500"
                   />
                 </div>
                 <div>
@@ -763,7 +776,8 @@ export default function CreatePage() {
                     value={form.password}
                     onChange={(e) => update('password', e.target.value)}
                     placeholder="Min 8 characters"
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+                    autoFocus
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent bg-white"
                   />
                 </div>
                 <label className="flex items-start gap-3 cursor-pointer">
@@ -781,7 +795,7 @@ export default function CreatePage() {
                   </span>
                 </label>
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -803,12 +817,24 @@ export default function CreatePage() {
             >
               Continue →
             </button>
+          ) : !showAccountForm ? (
+            <button
+              onClick={() => {
+                if (!form.slug.trim()) { setError('Please choose a URL slug'); return }
+                if (slugStatus !== 'available') { setError('Please choose an available slug'); return }
+                setError('')
+                setShowAccountForm(true)
+              }}
+              className="px-6 py-3 bg-[#1D9E75] text-white text-sm font-semibold rounded-full hover:bg-[#178a64] transition-colors"
+            >
+              Generate my portfolio →
+            </button>
           ) : (
             <button
               onClick={handleSubmit}
               className="px-6 py-3 bg-[#1D9E75] text-white text-sm font-semibold rounded-full hover:bg-[#178a64] transition-colors"
             >
-              Generate my portfolio →
+              Create account &amp; generate →
             </button>
           )}
         </div>

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { Resend } from 'resend'
 
-// NOTE: instantiate Resend lazily inside the handler so missing env vars
-// don't crash the module at build/import time.
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,6 +38,7 @@ export async function POST(req: NextRequest) {
     if (!resendApiKey) {
       console.warn('RESEND_API_KEY is not set; skipping confirmation email')
     } else {
+      const { Resend } = await import('resend')
       const resend = new Resend(resendApiKey)
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
       await resend.emails.send({

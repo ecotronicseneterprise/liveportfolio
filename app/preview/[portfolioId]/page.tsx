@@ -109,7 +109,9 @@ export default function PreviewPage() {
   }, [portfolioId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadPortfolio = useCallback(async () => {
-    const { data: portfolio, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sb = supabase as any
+    const { data: portfolio, error } = await sb
       .from('portfolios')
       .select('id, template, content, user_id')
       .eq('id', portfolioId)
@@ -125,7 +127,7 @@ export default function PreviewPage() {
     setPortfolioUserId(portfolio.user_id)
 
     // Check if paid
-    const { data: user } = await supabase
+    const { data: user } = await sb
       .from('users')
       .select('plan, slug')
       .eq('id', portfolio.user_id)

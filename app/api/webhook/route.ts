@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { Resend } from 'resend'
+
+export const dynamic = 'force-dynamic'
 
 function verifySignature(payload: string, signature: string, secret: string): boolean {
   try {
@@ -99,6 +100,7 @@ export async function POST(req: NextRequest) {
     if (!resendApiKey) {
       console.warn('RESEND_API_KEY is not set; skipping confirmation email')
     } else {
+      const { Resend } = await import('resend')
       const resend = new Resend(resendApiKey)
       const portfolioUrl = `https://${userData.slug}.liveportfolio.site`
       await resend.emails.send({

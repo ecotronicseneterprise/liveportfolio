@@ -61,7 +61,9 @@ export async function POST(req: NextRequest) {
         {
           role: 'user',
           content: `Extract professional information from this CV text and return a JSON object with these fields:
-{ "name": string, "role": string, "email": string, "location": string, "bio": string (2-3 sentences summary), "skills": string[] (up to 15), "projects": [{"title": string, "description": string (1-2 sentences), "stack": string[]}] (up to 4), "experience": [{"company": string, "role": string, "period": string, "bullets": string[]}] }
+{ "name": string, "role": string, "email": string, "location": string, "bio": string (2-3 sentences summary), "github_url": string | null (full GitHub profile URL if present, e.g. https://github.com/username), "linkedin_url": string | null (full LinkedIn profile URL if present, e.g. https://linkedin.com/in/username), "skills": string[] (up to 15), "projects": [{"title": string, "description": string (1-2 sentences), "stack": string[]}] (up to 4), "experience": [{"company": string, "role": string, "period": string, "bullets": string[]}] }
+
+Only include github_url if you see a real GitHub URL or username in the CV. Only include linkedin_url if you see a real LinkedIn URL or profile in the CV. Return null for missing fields.
 
 CV TEXT:
 ${text}`,
