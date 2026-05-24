@@ -43,7 +43,7 @@ export default function LandingPage() {
           <span className="font-bold text-gray-900 tracking-tight">liveportfolio.site</span>
           <Link
             href="/create"
-            className="px-4 py-2 bg-[#1D9E75] text-white text-sm font-semibold rounded-full hover:bg-[#178a64] transition-colors"
+            className="px-4 py-2 bg-[#228B22] text-white text-sm font-semibold rounded-full hover:bg-[#1B6E1B] transition-colors"
           >
             Create My Portfolio
           </Link>
@@ -52,25 +52,24 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-5 pt-20 pb-20 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#f0fdf8] border border-[#1D9E75]/20 rounded-full text-sm text-[#1D9E75] font-medium mb-8">
-          <span className="w-2 h-2 bg-[#1D9E75] rounded-full animate-pulse" />
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#f0fdf8] border border-[#228B22]/20 rounded-full text-sm text-[#228B22] font-medium mb-8">
+          <span className="w-2 h-2 bg-[#228B22] rounded-full animate-pulse" />
           Built for early-career professionals, freelancers, and job seekers.
         </div>
 
-        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-[#0A0A0A] mb-6 leading-tight">
-          Your work deserves to be seen properly.<br />
-          <span className="text-[#1D9E75]">Not buried in PDFs or forgotten posts.</span>
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-[#0A0A0A] mb-6 leading-tight">
+          Turn your experience into a portfolio recruiters can actually read and trust.
         </h1>
 
         <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-          You bring the experience. We turn it into a clean, recruiter-ready portfolio in minutes.
-          No design skills. No writing stress. No ongoing fees.
+          Build a clean, professional portfolio in minutes.<br />
+          No writing skills. No design. No subscription.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             href="/create"
-            className="w-full sm:w-auto px-8 py-4 bg-[#1D9E75] text-white text-base font-bold rounded-full hover:bg-[#178a64] transition-colors shadow-lg shadow-[#1D9E75]/20"
+            className="w-full sm:w-auto px-8 py-4 bg-[#228B22] text-white text-base font-bold rounded-full hover:bg-[#1B6E1B] transition-colors shadow-lg shadow-[#228B22]/20"
           >
             Create My Portfolio
           </Link>
@@ -85,10 +84,10 @@ export default function LandingPage() {
               href={`https://${p.slug}.liveportfolio.site`}
               target="_blank"
               rel="noopener noreferrer"
-              className="group border border-gray-100 rounded-2xl p-5 hover:border-[#1D9E75] hover:shadow-sm transition-all"
+              className="group border border-gray-100 rounded-2xl p-5 hover:border-[#228B22] hover:shadow-sm transition-all"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1D9E75] to-[#0a5c42] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#228B22] to-[#0a3b12] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                   {p.name.charAt(0)}
                 </div>
                 <div className="min-w-0">
@@ -96,7 +95,7 @@ export default function LandingPage() {
                   <p className="text-xs text-gray-400">{p.role}</p>
                 </div>
               </div>
-              <p className="text-xs text-[#1D9E75] group-hover:underline truncate">
+              <p className="text-xs text-[#228B22] group-hover:underline truncate">
                 {p.slug}.liveportfolio.site →
               </p>
             </a>
@@ -131,7 +130,7 @@ export default function LandingPage() {
             ].map((item) => (
               <div key={item.step} className="relative">
                 <div className="text-3xl mb-4">{item.icon}</div>
-                <div className="text-xs font-bold text-[#1D9E75] mb-2 tracking-widest">{item.step}</div>
+                <div className="text-xs font-bold text-[#228B22] mb-2 tracking-widest">{item.step}</div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
               </div>
@@ -216,7 +215,7 @@ export default function LandingPage() {
                   'View count analytics',
                 ].map((f) => (
                   <li key={f} className="flex gap-2 items-start">
-                    <span className="text-[#1D9E75] mt-0.5 flex-shrink-0">✓</span>
+                    <span className="text-[#228B22] mt-0.5 flex-shrink-0">✓</span>
                     {f}
                   </li>
                 ))}
@@ -229,9 +228,9 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <div className="bg-white border-2 border-[#1D9E75] rounded-2xl p-6 relative">
+            <div className="bg-white border-2 border-[#228B22] rounded-2xl p-6 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-[#1D9E75] text-white text-xs font-bold px-3 py-1 rounded-full">Most popular</span>
+                <span className="bg-[#228B22] text-white text-xs font-bold px-3 py-1 rounded-full">Most popular</span>
               </div>
               <div className="mb-6">
                 <p className="font-bold text-gray-900 text-lg mb-1">Professional</p>
@@ -246,14 +245,14 @@ export default function LandingPage() {
                   'Future premium templates included',
                 ].map((f) => (
                   <li key={f} className="flex gap-2 items-start">
-                    <span className="text-[#1D9E75] mt-0.5 flex-shrink-0">✓</span>
+                    <span className="text-[#228B22] mt-0.5 flex-shrink-0">✓</span>
                     {f}
                   </li>
                 ))}
               </ul>
               <Link
                 href="/create"
-                className="block w-full text-center py-3 bg-[#1D9E75] text-white rounded-full text-sm font-bold hover:bg-[#178a64] transition-colors shadow-lg shadow-[#1D9E75]/20"
+                className="block w-full text-center py-3 bg-[#228B22] text-white rounded-full text-sm font-bold hover:bg-[#1B6E1B] transition-colors shadow-lg shadow-[#228B22]/20"
               >
                 Get started →
               </Link>
@@ -289,7 +288,7 @@ export default function LandingPage() {
         </p>
         <Link
           href="/create"
-          className="inline-flex items-center gap-2 px-8 py-4 bg-[#1D9E75] text-white text-base font-bold rounded-full hover:bg-[#178a64] transition-colors"
+          className="inline-flex items-center gap-2 px-8 py-4 bg-[#228B22] text-white text-base font-bold rounded-full hover:bg-[#1B6E1B] transition-colors"
         >
           Create My Portfolio →
         </Link>
