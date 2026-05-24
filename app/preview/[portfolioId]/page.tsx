@@ -104,6 +104,18 @@ export default function PreviewPage() {
   const [isPaid, setIsPaid] = useState(false)
   const [slug, setSlug] = useState('')
   const [paying, setPaying] = useState(false)
+  const [ngnRate, setNgnRate] = useState(1500)
+
+  // Fetch live USD → NGN rate; fall back to 1500 if API is unreachable
+  useEffect(() => {
+    fetch('https://open.er-api.com/v6/latest/USD')
+      .then((r) => r.json())
+      .then((data) => {
+        const rate = data?.rates?.NGN
+        if (typeof rate === 'number' && rate > 100) setNgnRate(Math.round(rate))
+      })
+      .catch(() => {})
+  }, [])
 
   // Load Paystack inline script
   useEffect(() => {
@@ -199,16 +211,16 @@ export default function PreviewPage() {
       return
     }
 
-    const amount = plan === 'professional' ? 1900 : 900 // USD cents
+    const usdPrice = plan === 'professional' ? 19 : 9
+    const amountKobo = Math.round(usdPrice * ngnRate * 100) // NGN kobo
     const reference = `lp-${portfolioId}-${plan}-${Date.now()}`
 
     const handler = PaystackPop.setup({
       key: PAYSTACK_PUBLIC_KEY,
       email: userEmail,
-      amount,
-      currency: 'USD',
+      amount: amountKobo,
+      currency: 'NGN',
       ref: reference,
-      channels: ['card', 'paypal'],
       metadata: {
         user_id: portfolioUserId,
         plan,
