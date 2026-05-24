@@ -9,6 +9,8 @@ interface Project {
   description: string
   stack: string
   url: string
+  imageFile: File | null
+  image_preview: string
 }
 
 interface Experience {
@@ -106,7 +108,7 @@ export default function CreatePage() {
   const [form, setForm] = useState<FormData>({
     name: '', role: '', email: '', location: '', bio: '',
     github_url: '', linkedin_url: '', avatar_url: '', avatarFile: null,
-    projects: [{ title: '', description: '', stack: '', url: '' }],
+    projects: [{ title: '', description: '', stack: '', url: '', imageFile: null, image_preview: '' }],
     template: 'minimal',
     slug: '', password: '', agreeTerms: false,
     experience: [],
@@ -197,8 +199,20 @@ export default function CreatePage() {
 
   const addProject = () => {
     if (form.projects.length < 4) {
-      update('projects', [...form.projects, { title: '', description: '', stack: '', url: '' }])
+      update('projects', [...form.projects, { title: '', description: '', stack: '', url: '', imageFile: null, image_preview: '' }])
     }
+  }
+
+  const handleProjectImageChange = (index: number, file: File) => {
+    if (!file.type.startsWith('image/')) return
+    if (file.size > 3 * 1024 * 1024) {
+      setError('Project image must be under 3MB')
+      return
+    }
+    const preview = URL.createObjectURL(file)
+    const updated = [...form.projects]
+    updated[index] = { ...updated[index], imageFile: file, image_preview: preview }
+    update('projects', updated)
   }
 
   const removeProject = (index: number) => {
@@ -273,7 +287,22 @@ export default function CreatePage() {
         throw new Error('Failed to save user profile')
       }
 
-      // 3. Upload avatar if provided
+      // 3. Upload project images if provided
+      const projectImageUrls: (string | null)[] = await Promise.all(
+        form.projects.map(async (p, i) => {
+          if (!p.imageFile) return null
+          const ext = p.imageFile.type === 'image/png' ? 'png' : p.imageFile.type === 'image/webp' ? 'webp' : 'jpg'
+          const path = `project-images/${authData.user!.id}-${i}.${ext}`
+          const { error: uploadError } = await supabase.storage
+            .from('project-images')
+            .upload(path, p.imageFile, { upsert: true, contentType: p.imageFile.type })
+          if (uploadError) return null
+          const { data: publicData } = supabase.storage.from('project-images').getPublicUrl(path)
+          return publicData.publicUrl
+        })
+      )
+
+      // 4. Upload avatar if provided
       let avatarUrl: string | undefined
       if (form.avatarFile) {
         const ext = form.avatarFile.type === 'image/png' ? 'png' : 'jpg'
@@ -288,7 +317,7 @@ export default function CreatePage() {
         }
       }
 
-      // 4. Generate portfolio
+      // 5. Generate portfolio
       const generatePayload = {
         name: form.name,
         role: form.role,
@@ -301,11 +330,12 @@ export default function CreatePage() {
         skills: form.projects.flatMap((p) =>
           p.stack.split(',').map((s) => s.trim()).filter(Boolean)
         ).slice(0, 15),
-        projects: form.projects.map((p) => ({
+        projects: form.projects.map((p, i) => ({
           title: p.title,
           description: p.description,
           stack: p.stack.split(',').map((s) => s.trim()).filter(Boolean),
           url: p.url || undefined,
+          image_url: projectImageUrls[i] || undefined,
         })),
         experience: form.experience.map((e) => ({
           company: e.company,
@@ -596,6 +626,33 @@ export default function CreatePage() {
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
                     />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Screenshot
+                    <span className="text-gray-400 font-normal"> — optional</span>
+                  </label>
+                  <label className="cursor-pointer block">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleProjectImageChange(i, e.target.files[0])}
+                    />
+                    {project.image_preview ? (
+                      <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={project.image_preview} alt="Project preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                          <span className="text-white text-xs font-medium">Change image</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-200 rounded-xl p-3 text-center hover:border-[#1D9E75] transition-colors">
+                        <p className="text-xs text-gray-400">Add a screenshot · JPEG/PNG/WebP · max 3MB</p>
+                      </div>
+                    )}
+                  </label>
                 </div>
               </div>
             ))}

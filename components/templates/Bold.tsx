@@ -237,7 +237,7 @@ export default function Bold({ content }: { content: PortfolioContent }) {
               className="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-5"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              // About
+              About
             </h3>
             <div className="space-y-4">
               {content.about.split('\n\n').map((para, i) => (
@@ -256,7 +256,7 @@ export default function Bold({ content }: { content: PortfolioContent }) {
               className="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-5"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              // Skills
+              Skills
             </h3>
             <p className="text-xs text-[#8B949E] italic mb-6">{content.skills_narrative}</p>
             {content.skills_grouped && content.skills_grouped.length > 0 ? (
@@ -307,15 +307,27 @@ export default function Bold({ content }: { content: PortfolioContent }) {
               className="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-6"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              // Projects
+              Projects
             </h3>
             <div className="space-y-5">
               {content.projects.map((project, i) => (
                 <div
                   key={i}
-                  className="bg-[#1C2128] border border-[#30363D] rounded-xl p-6 hover:border-[#58A6FF] transition-all group"
+                  className="bg-[#1C2128] border border-[#30363D] rounded-xl overflow-hidden hover:border-[#58A6FF] transition-all group"
                   style={{ borderLeft: '3px solid #58A6FF' }}
                 >
+                  {project.image_url && (
+                    <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                      <Image
+                        src={project.image_url}
+                        alt={project.title}
+                        width={640}
+                        height={360}
+                        className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                      />
+                    </div>
+                  )}
+                  <div className="p-6">
                   <div className="flex items-start justify-between mb-3">
                     <h4
                       className="text-base font-bold text-[#F0F6FF] group-hover:text-[#58A6FF] transition-colors"
@@ -361,6 +373,7 @@ export default function Bold({ content }: { content: PortfolioContent }) {
                       </span>
                     ))}
                   </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -377,7 +390,7 @@ export default function Bold({ content }: { content: PortfolioContent }) {
                 className="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-6"
                 style={{ fontFamily: 'var(--font-space-mono), monospace' }}
               >
-                // Experience
+                Experience
               </h3>
               <div className="space-y-6">
                 {content.experience.map((exp, i) => (
@@ -421,7 +434,7 @@ export default function Bold({ content }: { content: PortfolioContent }) {
               className="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-5"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
-              // Contact
+              Contact
             </h3>
             <p className="text-[#8B949E] text-sm leading-relaxed mb-6">
               Open to new opportunities and interesting conversations.

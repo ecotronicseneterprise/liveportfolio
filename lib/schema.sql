@@ -58,6 +58,9 @@ ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE email_subscribers ENABLE ROW LEVEL SECURITY;
 
 -- Users policies
+CREATE POLICY "users_insert_own" ON users
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
 CREATE POLICY "users_select_own" ON users
   FOR SELECT USING (auth.uid() = id);
 

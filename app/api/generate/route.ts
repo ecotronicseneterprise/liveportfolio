@@ -44,6 +44,7 @@ function fallbackContent(input: ReturnType<typeof parseInput>) {
       outcome: 'Project delivered successfully.',
       stack: p.stack,
       url: p.url || null,
+      image_url: p.image_url || null,
     })),
     experience: input.experience || [],
     seo_title: `${input.name} | ${input.role} Portfolio`,
@@ -60,7 +61,7 @@ interface InputData {
   github_url?: string
   linkedin_url?: string
   skills: string[]
-  projects: Array<{ title: string; description: string; stack: string[]; url?: string }>
+  projects: Array<{ title: string; description: string; stack: string[]; url?: string; image_url?: string }>
   experience?: Array<{ company: string; role: string; period: string; bullets: string[] }>
   template: string
 }
@@ -80,6 +81,7 @@ function parseInput(body: Partial<InputData>) {
       description: stripHtml(p.description || '').slice(0, 200),
       stack: (p.stack || []).slice(0, 10).map((t) => stripHtml(t).slice(0, 30)),
       url: p.url ? stripHtml(p.url).slice(0, 200) : undefined,
+      image_url: typeof p.image_url === 'string' ? p.image_url.slice(0, 500) : undefined,
     })),
     experience: (body.experience || []).map((e) => ({
       company: stripHtml(e.company || '').slice(0, 80),
@@ -209,6 +211,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Preserve project image URLs — AI doesn't generate these
+  const aiProjects = (portfolioContent.projects as Array<Record<string, unknown>>) || []
+  const mergedProjects = aiProjects.map((p, i) => ({
+    ...p,
+    image_url: input.projects[i]?.image_url || null,
+  }))
+
   // Ensure required fields have fallbacks
   const content = {
     ...fallbackContent(input),
@@ -219,6 +228,7 @@ export async function POST(req: NextRequest) {
     location: input.location,
     github_url: input.github_url || null,
     linkedin_url: input.linkedin_url || null,
+    projects: mergedProjects,
   }
 
   const healthScore = calculateHealthScore(content)

@@ -7,8 +7,7 @@ import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 
-const LAUNCH_URL = 'https://app.lemonsqueezy.com/checkout/buy/LAUNCH_PRODUCT_ID'
-const PRO_URL = 'https://app.lemonsqueezy.com/checkout/buy/PRO_PRODUCT_ID'
+const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ''
 
 interface HealthItem {
   label: string
@@ -96,6 +95,7 @@ export default function PreviewPage() {
   const [content, setContent] = useState<PortfolioContent | null>(null)
   const [template, setTemplate] = useState<'minimal' | 'bold'>('minimal')
   const [portfolioUserId, setPortfolioUserId] = useState<string>('')
+  const [userEmail, setUserEmail] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [savingEmail, setSavingEmail] = useState(false)
   const [emailSaved, setEmailSaved] = useState(false)
@@ -103,6 +103,18 @@ export default function PreviewPage() {
   const [showDeferForm, setShowDeferForm] = useState(false)
   const [isPaid, setIsPaid] = useState(false)
   const [slug, setSlug] = useState('')
+  const [paying, setPaying] = useState(false)
+
+  // Load Paystack inline script
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'https://js.paystack.co/v1/inline.js'
+    script.async = true
+    document.head.appendChild(script)
+    return () => {
+      if (document.head.contains(script)) document.head.removeChild(script)
+    }
+  }, [])
 
   useEffect(() => {
     loadPortfolio()
@@ -126,16 +138,17 @@ export default function PreviewPage() {
     setTemplate((portfolio.template as 'minimal' | 'bold') || 'minimal')
     setPortfolioUserId(portfolio.user_id)
 
-    // Check if paid
+    // Check if paid + get email for Paystack
     const { data: user } = await sb
       .from('users')
-      .select('plan, slug')
+      .select('plan, slug, email')
       .eq('id', portfolio.user_id)
       .single()
 
     if (user) {
       setIsPaid(user.plan !== 'unpublished')
       setSlug(user.slug || '')
+      setUserEmail((user as { email?: string }).email || '')
     }
 
     setLoading(false)
@@ -155,6 +168,7 @@ export default function PreviewPage() {
         const newPlan = (payload.new as { plan: string }).plan
         if (newPlan !== 'unpublished') {
           setIsPaid(true)
+          setPaying(false)
         }
       })
       .subscribe()
@@ -175,6 +189,38 @@ export default function PreviewPage() {
         body: JSON.stringify({ template: t }),
       })
     }
+  }
+
+  const handlePaystack = (plan: 'launch' | 'professional') => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const PaystackPop = (window as any).PaystackPop
+    if (!PaystackPop) {
+      alert('Payment is loading — please try again in a moment.')
+      return
+    }
+
+    const amount = plan === 'professional' ? 1900 : 900 // USD cents
+    const reference = `lp-${portfolioId}-${plan}-${Date.now()}`
+
+    const handler = PaystackPop.setup({
+      key: PAYSTACK_PUBLIC_KEY,
+      email: userEmail,
+      amount,
+      currency: 'USD',
+      ref: reference,
+      channels: ['card', 'paypal'],
+      metadata: {
+        user_id: portfolioUserId,
+        plan,
+        portfolio_id: portfolioId,
+      },
+      callback: () => {
+        // Webhook updates the plan; Realtime notifies this page
+        setPaying(true)
+      },
+      onClose: () => {},
+    })
+    handler.openIframe()
   }
 
   const handleSaveEmail = async () => {
@@ -202,6 +248,19 @@ export default function PreviewPage() {
   }
 
   if (!content) return null
+
+  // Payment processing state — waiting for webhook → Realtime
+  if (paying) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-6">
+        <div className="text-center max-w-sm">
+          <div className="w-12 h-12 border-4 border-[#1D9E75] border-t-transparent rounded-full animate-spin mx-auto mb-6" />
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Activating your portfolio…</h2>
+          <p className="text-sm text-gray-500">Payment received. Your portfolio will go live in a few seconds.</p>
+        </div>
+      </div>
+    )
+  }
 
   const { score, items } = calculateHealth(content)
   const missing = items.filter((i) => !i.earned)
@@ -245,16 +304,16 @@ export default function PreviewPage() {
           ) : (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => window.open(PRO_URL, '_blank')}
+                onClick={() => handlePaystack('professional')}
                 className="px-4 py-2 bg-[#1D9E75] text-white text-xs font-bold rounded-full hover:bg-[#178a64] transition-colors whitespace-nowrap"
               >
-                Publish — $19 Professional
+                Publish + Edit later — $19
               </button>
               <button
-                onClick={() => window.open(LAUNCH_URL, '_blank')}
+                onClick={() => handlePaystack('launch')}
                 className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-medium rounded-full hover:border-gray-300 transition-colors whitespace-nowrap"
               >
-                $9 Launch
+                Publish only — $9
               </button>
             </div>
           )}
@@ -315,16 +374,16 @@ export default function PreviewPage() {
       {!isPaid && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 p-4 flex gap-2 sm:hidden">
           <button
-            onClick={() => window.open(PRO_URL, '_blank')}
+            onClick={() => handlePaystack('professional')}
             className="flex-1 py-3 bg-[#1D9E75] text-white text-sm font-bold rounded-full"
           >
-            Publish — $19
+            Publish + Edit — $19
           </button>
           <button
-            onClick={() => window.open(LAUNCH_URL, '_blank')}
+            onClick={() => handlePaystack('launch')}
             className="px-4 py-3 border border-gray-200 text-gray-600 text-sm rounded-full"
           >
-            $9
+            $9 only
           </button>
         </div>
       )}

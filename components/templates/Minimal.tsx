@@ -36,6 +36,7 @@ export interface PortfolioContent {
     outcome: string
     stack: string[]
     url?: string
+    image_url?: string
   }[]
   experience: {
     company: string
@@ -247,9 +248,21 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
               {content.projects.map((project, i) => (
                 <div
                   key={i}
-                  className="border border-gray-100 rounded-xl p-6 hover:border-[#1D9E75] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                  className="border border-gray-100 rounded-xl overflow-hidden hover:border-[#1D9E75] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                   onClick={() => setExpandedProject(expandedProject === i ? null : i)}
                 >
+                  {project.image_url && (
+                    <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                      <Image
+                        src={project.image_url}
+                        alt={project.title}
+                        width={640}
+                        height={360}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-6">
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <h3
@@ -296,6 +309,7 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
                       </div>
                     </div>
                   )}
+                  </div>
                 </div>
               ))}
             </div>

@@ -43,6 +43,19 @@ export async function PATCH(req: NextRequest) {
 
   const { content: contentUpdate, template } = await req.json()
 
+  // Content editing is a Professional-plan feature; template switching is open to all authenticated users
+  if (contentUpdate) {
+    const { data: userRecord } = await supabaseAdmin
+      .from('users')
+      .select('plan')
+      .eq('id', user.id)
+      .single()
+
+    if (!userRecord || userRecord.plan !== 'professional') {
+      return NextResponse.json({ error: 'Editing requires the Professional plan' }, { status: 403 })
+    }
+  }
+
   // Get current portfolio
   const { data: portfolio } = await supabaseAdmin
     .from('portfolios')

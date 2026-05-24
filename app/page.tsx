@@ -21,7 +21,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What\'s the difference between Launch and Professional?',
-    a: 'Launch ($9) gives you a permanent live portfolio. Professional ($19) adds custom domain support so you can use yourname.com instead.',
+    a: 'Launch ($9) gives you a permanent live portfolio. Professional ($19) adds full editing — return to your dashboard anytime to update your bio, projects, and links.',
   },
   {
     q: 'Who is this for?',
@@ -41,12 +41,20 @@ export default function LandingPage() {
       <nav className="border-b border-gray-100 sticky top-0 z-50 bg-white/95 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
           <span className="font-bold text-gray-900 tracking-tight">liveportfolio.site</span>
-          <Link
-            href="/create"
-            className="px-4 py-2 bg-[#228B22] text-white text-sm font-semibold rounded-full hover:bg-[#1B6E1B] transition-colors"
-          >
-            Create My Portfolio
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/create"
+              className="px-4 py-2 bg-[#228B22] text-white text-sm font-semibold rounded-full hover:bg-[#1B6E1B] transition-colors"
+            >
+              Create My Portfolio
+            </Link>
+          </div>
         </div>
       </nav>
 

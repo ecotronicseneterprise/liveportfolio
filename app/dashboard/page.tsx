@@ -279,7 +279,7 @@ export default function DashboardPage() {
                   href={`/preview/${portfolio.id}`}
                   className="text-xs text-[#1D9E75] hover:underline mt-2 block"
                 >
-                  Upgrade to Professional →
+                  Upgrade to edit your portfolio →
                 </a>
               )}
             </div>
@@ -318,7 +318,27 @@ export default function DashboardPage() {
         )}
 
         {/* Edit tab */}
-        {activeTab === 'edit' && (
+        {activeTab === 'edit' && user.plan !== 'professional' && (
+          <div className="bg-white border border-gray-100 rounded-2xl p-10 text-center">
+            <div className="max-w-sm mx-auto">
+              <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                <span className="text-2xl">✏️</span>
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Editing is a Professional feature</h2>
+              <p className="text-sm text-gray-500 mb-6">
+                Upgrade to Professional to edit your bio, projects, and links anytime — your live portfolio updates instantly.
+              </p>
+              <a
+                href={`/preview/${portfolio.id}`}
+                className="inline-block px-6 py-3 bg-[#1D9E75] text-white text-sm font-semibold rounded-full hover:bg-[#178a64] transition-colors"
+              >
+                Upgrade to Professional — $19
+              </a>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'edit' && user.plan === 'professional' && (
           <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Edit your portfolio</h2>
@@ -420,22 +440,9 @@ export default function DashboardPage() {
             </div>
 
             {user.plan === 'professional' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Custom domain
-                  <span className="ml-2 text-xs text-[#1D9E75] bg-[#f0fdf8] px-1.5 py-0.5 rounded">Professional</span>
-                </label>
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={user.custom_domain || ''}
-                    placeholder="yourname.com"
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75]"
-                  />
-                  <p className="text-xs text-gray-400">
-                    Point your domain's CNAME record to <code className="bg-gray-50 px-1 rounded">cname.liveportfolio.site</code>
-                  </p>
-                </div>
+              <div className="bg-[#f0fdf8] border border-[#1D9E75]/20 rounded-xl p-4">
+                <p className="text-xs font-semibold text-[#1D9E75] uppercase tracking-wider mb-1">Professional plan</p>
+                <p className="text-sm text-gray-600">You can edit your portfolio anytime from the Edit tab. Changes go live instantly.</p>
               </div>
             )}
 
