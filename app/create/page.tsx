@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
+import Logo from '@/components/Logo'
 
 interface Project {
   title: string
@@ -277,14 +278,31 @@ export default function CreatePage() {
       if (signUpError) throw new Error(signUpError.message)
       if (!authData.session) throw new Error('Check your email for a verification link, then come back to generate your portfolio. (To skip this: Supabase → Authentication → Providers → Email → disable "Confirm email")')
 
-      // 2. Create user record with slug
+      // 2. Create user record with slug (must be unique)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: userError } = await (supabase as any)
+      const sb = supabase as any
+      const { error: userError } = await sb
         .from('users')
         .insert({ id: authData.user!.id, email: form.email, slug: form.slug })
 
-      if (userError && !userError.message.includes('duplicate')) {
-        throw new Error('Failed to save user profile')
+      if (userError) {
+        // Race-safe handling:
+        // - If the user row already exists for this auth user, continue.
+        // - If slug is taken by someone else, stop and ask for a new slug.
+        const { data: existingUser } = await sb
+          .from('users')
+          .select('id, slug')
+          .eq('id', authData.user!.id)
+          .single()
+
+        if (!existingUser) {
+          const message = (userError.message || '').toLowerCase()
+          const isDuplicate = message.includes('duplicate') || message.includes('unique')
+          if (isDuplicate) {
+            throw new Error('That username is already taken. Please choose another one.')
+          }
+          throw new Error('Failed to save user profile')
+        }
       }
 
       // 3. Upload project images if provided
@@ -401,7 +419,9 @@ export default function CreatePage() {
 
         {/* Header */}
         <div className="mb-8">
-          <a href="/" className="text-sm text-[#0A66C2] hover:underline">← liveportfolio.site</a>
+          <a href="/">
+            <Logo />
+          </a>
         </div>
 
         <ProgressBar step={step} total={4} />

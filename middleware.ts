@@ -19,6 +19,45 @@ export function middleware(req: NextRequest) {
 
   // Main domain: liveportfolio.site or www.liveportfolio.site → route normally
   if (hostname === ROOT_DOMAIN || hostname === `www.${ROOT_DOMAIN}`) {
+    // Allow /{slug} on the main domain as a short link to /portfolio/{slug}
+    // Example: https://liveportfolio.site/benedicta -> /portfolio/benedicta
+    const normalizedPath =
+      pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname
+
+    const isSingleSegment =
+      normalizedPath.startsWith('/') &&
+      normalizedPath.indexOf('/', 1) === -1 &&
+      normalizedPath.length > 1
+
+    if (isSingleSegment) {
+      const slug = normalizedPath.slice(1)
+      const reserved = new Set([
+        'api',
+        'auth',
+        'blog',
+        'create',
+        'dashboard',
+        'login',
+        'portfolio',
+        'preview',
+        'privacy',
+        'terms',
+        'test-templates',
+        '_next',
+        'favicon.ico',
+        'robots.txt',
+        'sitemap.xml',
+      ])
+
+      const looksLikeFile = slug.includes('.')
+
+      if (!reserved.has(slug) && !looksLikeFile) {
+        const url = req.nextUrl.clone()
+        url.pathname = `/portfolio/${slug}`
+        return NextResponse.rewrite(url)
+      }
+    }
+
     return NextResponse.next()
   }
 

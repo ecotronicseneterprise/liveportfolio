@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 
 const EXAMPLE_PORTFOLIOS = [
   { name: 'Amara Osei', role: 'Frontend Developer', slug: 'amara' },
@@ -39,7 +40,10 @@ export default function LandingPage() {
 
       {/* Nav */}
       <nav className="border-b border-gray-100 sticky top-0 z-50 bg-white/95 backdrop-blur-sm">
-        <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-end">
+        <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
+          <Link href="/">
+            <Logo />
+          </Link>
           <div className="flex items-center gap-3">
             <Link
               href="/blog"
@@ -94,7 +98,7 @@ export default function LandingPage() {
           {EXAMPLE_PORTFOLIOS.map((p) => (
             <a
               key={p.slug}
-              href={`/portfolio/${p.slug}`}
+              href={`/${p.slug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="group min-w-[240px] sm:min-w-0 flex-shrink-0 snap-start border border-gray-100 rounded-2xl p-4 sm:p-5 hover:border-[#0A66C2] hover:shadow-sm transition-all"

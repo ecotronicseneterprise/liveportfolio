@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
 import type { PortfolioContent } from '@/components/templates/Minimal'
+import Logo from '@/components/Logo'
 
 interface UserProfile {
   id: string
@@ -23,6 +24,8 @@ interface Portfolio {
   last_viewed_at: string | null
   updated_at: string
 }
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
 
 function HealthScore({ score }: { score: number }) {
   const color = score >= 80 ? '#0A66C2' : score >= 60 ? '#f59e0b' : '#ef4444'
@@ -135,7 +138,7 @@ export default function DashboardPage() {
 
   const copyLink = () => {
     if (!user) return
-    navigator.clipboard.writeText(`https://${user.slug}.liveportfolio.site`)
+    navigator.clipboard.writeText(`${APP_URL}/${user.slug}`)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -143,7 +146,7 @@ export default function DashboardPage() {
   const downloadQr = async () => {
     if (!user) return
     setQrDownloading(true)
-    const portfolioUrl = `https://${user.slug}.liveportfolio.site`
+    const portfolioUrl = `${APP_URL}/${user.slug}`
     const url = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(portfolioUrl)}&color=0A66C2&bgcolor=ffffff&qzone=2&format=png`
     const res = await fetch(url)
     const blob = await res.blob()
@@ -169,7 +172,7 @@ export default function DashboardPage() {
 
   if (!user || !portfolio) return null
 
-  const portfolioUrl = `https://${user.slug}.liveportfolio.site`
+  const portfolioUrl = `${APP_URL}/${user.slug}`
   const isPublished = user.plan !== 'unpublished'
 
   return (
@@ -177,7 +180,7 @@ export default function DashboardPage() {
       {/* Nav */}
       <nav className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
-          <a href="/" className="text-sm font-semibold text-gray-900">liveportfolio.site</a>
+          <a href="/"><Logo /></a>
           <div className="flex items-center gap-4">
             <span className="text-xs text-gray-400 hidden sm:block">{user.email}</span>
             <button onClick={handleSignOut} className="text-xs text-gray-400 hover:text-gray-600">
@@ -204,11 +207,11 @@ export default function DashboardPage() {
                     rel="noopener noreferrer"
                     className="text-lg font-semibold text-[#0A66C2] hover:underline"
                   >
-                    {user.slug}.liveportfolio.site
+                    {new URL(portfolioUrl).host.replace(/^www\./, '')}/{user.slug}
                   </a>
                 ) : (
                   <span className="text-lg font-semibold text-gray-400">
-                    {user.slug}.liveportfolio.site
+                    {new URL(portfolioUrl).host.replace(/^www\./, '')}/{user.slug}
                   </span>
                 )}
                 {isPublished && (
@@ -491,7 +494,7 @@ export default function DashboardPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Portfolio slug</label>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500 bg-gray-50 border border-gray-100 px-3 py-2 rounded-xl">
-                  {user.slug}.liveportfolio.site
+                  {new URL(APP_URL).host.replace(/^www\./, '')}/{user.slug}
                 </span>
               </div>
             </div>

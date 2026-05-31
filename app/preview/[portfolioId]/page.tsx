@@ -6,8 +6,10 @@ import { getSupabaseClient } from '@/lib/supabase'
 import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
 import type { PortfolioContent } from '@/components/templates/Minimal'
+import Logo from '@/components/Logo'
 
 const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ''
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
 
 const CONFETTI = [
   { left: '5%', delay: '0s', dur: '2.5s', color: '#0A66C2', size: 8 },
@@ -42,7 +44,7 @@ function CelebrationOverlay({
   onDashboard: () => void
 }) {
   const [copied, setCopied] = useState(false)
-  const portfolioUrl = `https://${slug}.liveportfolio.site`
+  const portfolioUrl = `${APP_URL}/${slug}`
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(portfolioUrl)}&color=0A66C2&bgcolor=ffffff&qzone=1`
 
   useEffect(() => {
@@ -469,7 +471,8 @@ export default function PreviewPage() {
       <div className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
-            <span className="text-sm font-semibold text-gray-900">Preview</span>
+            <a href="/"><Logo /></a>
+            <span className="text-sm font-semibold text-gray-500">Preview</span>
             {/* Template switcher */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
               {(['minimal', 'bold'] as const).map((t) => (
@@ -490,12 +493,12 @@ export default function PreviewPage() {
             <div className="flex items-center gap-2">
               <span className="text-xs text-[#0A66C2] font-medium">✓ Live at</span>
               <a
-                href={`https://${slug}.liveportfolio.site`}
+                href={`${APP_URL}/${slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-[#0A66C2] hover:underline font-medium"
               >
-                {slug}.liveportfolio.site →
+                {new URL(APP_URL).host.replace(/^www\./, '')}/{slug} →
               </a>
             </div>
           ) : (

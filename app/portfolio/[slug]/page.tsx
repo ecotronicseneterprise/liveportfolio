@@ -207,13 +207,14 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
 
   if (DEMO_PORTFOLIOS[slug]) {
     const { content } = DEMO_PORTFOLIOS[slug]
     return {
       title: `${content.name} — ${content.role}`,
       description: content.headline,
-      alternates: { canonical: `https://${slug}.liveportfolio.site` },
+      alternates: { canonical: `${appUrl}/${slug}` },
     }
   }
 
@@ -234,7 +235,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!portfolio) return {}
 
-  const canonicalUrl = `https://${slug}.liveportfolio.site`
+  const canonicalUrl = `${appUrl}/${slug}`
   return {
     title: portfolio.seo_title,
     description: portfolio.seo_description,

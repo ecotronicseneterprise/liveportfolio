@@ -77,7 +77,8 @@ export async function POST(req: NextRequest) {
         .single()
 
       if (userData) {
-        const portfolioUrl = `https://${userData.slug}.liveportfolio.site`
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
+        const portfolioUrl = `${appUrl}/${userData.slug}`
         await sendEmail({
           to: userData.email,
           ...emailTemplates.portfolioLive(portfolioUrl),

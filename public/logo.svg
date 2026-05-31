@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 36" fill="none">
+  <!-- Blue pill background for icon -->
+  <rect x="0" y="4" width="32" height="28" rx="8" fill="#0A66C2"/>
+  <!-- User icon (white) -->
+  <circle cx="16" cy="14" r="5" fill="white"/>
+  <path d="M7 28c0-4.97 4.03-9 9-9s9 4.03 9 9" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Wordmark -->
+  <text x="40" y="25" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="15" fill="#0A0A0A" letter-spacing="-0.3">live</text>
+  <text x="71" y="25" font-family="system-ui, -apple-system, sans-serif" font-weight="400" font-size="15" fill="#0A66C2" letter-spacing="-0.3">portfolio</text>
+</svg>
