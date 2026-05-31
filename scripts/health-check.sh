@@ -379,37 +379,39 @@ HTML_BODY="<!DOCTYPE html>
 </body></html>"
 
 # ── 8. Send via Resend ────────────────────────────────────────────────────────
-# Escape for JSON
-HTML_ESCAPED=$(echo "$HTML_BODY" | python3 -c "
-import sys, json
-html = sys.stdin.read()
-print(json.dumps(html))
-")
+# Write all parts to temp files to avoid shell escaping issues
+echo "$HTML_BODY"   > /tmp/lp_html.txt
+echo "$PLAIN_TEXT"  > /tmp/lp_plain.txt
+echo "$SUBJECT"     > /tmp/lp_subject.txt
 
-PLAIN_ESCAPED=$(echo "$PLAIN_TEXT" | python3 -c "
-import sys, json
-print(json.dumps(sys.stdin.read()))
-")
-
-PAYLOAD=$(python3 -c "
+# Build JSON payload entirely in Python — no shell string interpolation
+python3 << 'PYEOF'
 import json
-subject = json.dumps('${SUBJECT}')
-print('{\"from\":\"liveportfolio dashboard <${FROM_EMAIL}>\",\"to\":[\"${ALERT_EMAIL}\"],\"subject\":' + subject + ',\"html\":' + ${HTML_ESCAPED} + ',\"text\":' + ${PLAIN_ESCAPED} + '}')
-" 2>/dev/null)
 
-# Fallback: simple payload if python3 JSON building fails
-if [ -z "$PAYLOAD" ]; then
-  PAYLOAD="{\"from\":\"liveportfolio dashboard <${FROM_EMAIL}>\",\"to\":[\"${ALERT_EMAIL}\"],\"subject\":\"liveportfolio daily check ${TIMESTAMP}\",\"text\":\"${PLAIN_TEXT}\"}"
-fi
+html    = open('/tmp/lp_html.txt').read()
+plain   = open('/tmp/lp_plain.txt').read()
+subject = open('/tmp/lp_subject.txt').read().strip()
+
+import os
+payload = {
+    "from": f"liveportfolio dashboard <{os.environ.get('FROM_EMAIL','dashboard@liveportfolio.site')}>",
+    "to": [os.environ.get('ALERT_EMAIL','nwannachumaclifford@gmail.com')],
+    "subject": subject,
+    "html": html,
+    "text": plain,
+}
+with open('/tmp/lp_payload.json', 'w') as f:
+    json.dump(payload, f)
+PYEOF
 
 SEND_RESULT=$(curl -s -w "\n%{http_code}" -X POST "https://api.resend.com/emails" \
   -H "Authorization: Bearer ${RESEND_API_KEY}" \
   -H "Content-Type: application/json" \
-  -d "$PAYLOAD")
+  --data-binary @/tmp/lp_payload.json)
 
 SEND_HTTP=$(echo "$SEND_RESULT" | tail -1)
 SEND_BODY=$(echo "$SEND_RESULT" | head -1)
 
-rm -f /tmp/lp_metrics.json
+rm -f /tmp/lp_metrics.json /tmp/lp_html.txt /tmp/lp_plain.txt /tmp/lp_subject.txt /tmp/lp_payload.json
 
 echo "[${TIMESTAMP}] Status:${APP_STATUS} HTTP:${HTTP_CODE} ${RESPONSE_MS}ms SSL:${SSL_INFO} Users:${USERS_TOTAL} Revenue:\$${REV_TOTAL} Published:${PUB_TOTAL} Subs:${SUBS_TOTAL} | Email:${SEND_HTTP} ${SEND_BODY}"
