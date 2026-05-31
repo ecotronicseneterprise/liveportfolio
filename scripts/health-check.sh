@@ -198,6 +198,7 @@ fi
 # Progress toward $300/mo goal
 GOAL=300
 REV_MONTH_INT=$(echo "$REV_MONTH" | cut -d. -f1)
+[[ "$REV_MONTH_INT" =~ ^[0-9]+$ ]] || REV_MONTH_INT=0
 PROGRESS_PCT=$(( REV_MONTH_INT * 100 / GOAL ))
 [ "$PROGRESS_PCT" -gt 100 ] && PROGRESS_PCT=100
 PROGRESS_COLOR="#0A66C2"
