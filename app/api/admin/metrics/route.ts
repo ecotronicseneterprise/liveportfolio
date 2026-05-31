@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
 
     // Top 5 most viewed
     db.from('portfolios')
-      .select('id, view_count, content->>name, template')
+      .select('id, view_count, content, template')
       .order('view_count', { ascending: false })
       .limit(5),
 
@@ -150,7 +150,7 @@ export async function GET(req: NextRequest) {
       template_bold: templateCounts['bold'] || 0,
     },
     top_viewed: (topViewed.data || []).map(p => ({
-      name: p['content->>name'] || 'Unknown',
+      name: (p.content as Record<string, string> | null)?.name || 'Unknown',
       views: p.view_count || 0,
       template: p.template,
     })),
