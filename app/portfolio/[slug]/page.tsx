@@ -86,6 +86,15 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'creative
           url: '',
           image_url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=640&h=360&fit=crop',
         },
+        {
+          title: 'Kazi Collective — LinkedIn Thought Leadership',
+          problem: 'A pan-African professional community had 800 LinkedIn followers and zero organic reach despite having strong founding members with real stories to tell.',
+          solution: 'Built a 90-day content strategy around founder voices, member spotlights, and data-driven posts on African remote work trends. Ghost-wrote weekly long-form posts for 3 founders and ran a newsletter cross-promotion series.',
+          outcome: 'Grew from 800 to 11,400 LinkedIn followers in 90 days. Two posts crossed 50,000 impressions organically. Newsletter subscribers up 340%.',
+          stack: ['LinkedIn', 'Notion', 'Copywriting', 'Newsletter Strategy', 'Ghost-writing'],
+          url: '',
+          image_url: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=640&h=360&fit=crop',
+        },
       ],
       experience: [
         {

@@ -484,8 +484,13 @@ export default function Creative({ content }: { content: PortfolioContent }) {
             <div className="nt-section-line" />
           </div>
           <div className="nt-projects-grid">
-            {content.projects.map((p, i) => (
-              <div key={i} className={`nt-project-card${i === 0 ? ' nt-featured' : ''}`}>
+            {content.projects.map((p, i) => {
+              // First card: always full-width featured
+              // Remaining cards: if the remaining count is odd and this is the last, span full width
+              const remaining = content.projects.length - 1
+              const isLastOdd = i > 0 && remaining % 2 !== 0 && i === content.projects.length - 1
+              return (
+              <div key={i} className={`nt-project-card${i === 0 ? ' nt-featured' : ''}${isLastOdd ? ' nt-featured' : ''}`}>
                 <div className="nt-p-label">{p.stack.slice(0, 3).join(' · ')}</div>
                 <div className="nt-p-name">{p.title}</div>
                 <div className="nt-p-desc">{p.problem} {p.solution}</div>
@@ -499,7 +504,8 @@ export default function Creative({ content }: { content: PortfolioContent }) {
                   </a>
                 )}
               </div>
-            ))}
+              )
+            })}
           </div>
         </section>
       )}

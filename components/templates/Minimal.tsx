@@ -148,16 +148,23 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-8">Skills</p>
               {content.skills_grouped.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 border border-gray-100 rounded-2xl overflow-hidden">
-                  {content.skills_grouped.map((group, i) => (
-                    <div key={i} className={`p-6 ${i < content.skills_grouped.length - 1 ? 'border-b sm:border-b-0 sm:border-r border-gray-100' : ''}`}>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">{group.category}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {group.items.map((skill) => (
-                          <span key={skill} className="px-2.5 py-1 text-xs bg-gray-50 border border-gray-200 rounded-full text-gray-700">{skill}</span>
-                        ))}
+                  {content.skills_grouped.map((group, i) => {
+                    const total = content.skills_grouped.length
+                    const cols = 4
+                    const lastRowCount = total % cols
+                    const isInLastRow = i >= total - (lastRowCount || cols)
+                    const isLastOdd = lastRowCount !== 0 && i === total - 1
+                    return (
+                      <div key={i} className={`p-6 border-b border-gray-100${isLastOdd ? ' sm:col-span-2' : ''}${!isInLastRow || isLastOdd ? ' sm:border-b-0' : ''} sm:border-r last:border-r-0 last:border-b-0`}>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">{group.category}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {group.items.map((skill) => (
+                            <span key={skill} className="px-2.5 py-1 text-xs bg-gray-50 border border-gray-200 rounded-full text-gray-700">{skill}</span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
@@ -179,7 +186,7 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
                 {content.projects.map((project, i) => (
                   <div
                     key={i}
-                    className="border border-gray-100 rounded-2xl overflow-hidden hover:border-[#0A66C2] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                    className={`border border-gray-100 rounded-2xl overflow-hidden hover:border-[#0A66C2] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer${content.projects.length % 2 !== 0 && i === content.projects.length - 1 ? ' sm:col-span-2' : ''}`}
                     onClick={() => setExpandedProject(expandedProject === i ? null : i)}
                   >
                     {project.image_url && (
@@ -226,7 +233,7 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-8">Experience</p>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {content.experience.map((exp, i) => (
-                  <div key={i} className="relative pl-5 border-l-2 border-gray-100">
+                  <div key={i} className={`relative pl-5 border-l-2 border-gray-100${content.experience.length % 2 !== 0 && i === content.experience.length - 1 ? ' lg:col-span-2' : ''}`}>
                     <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-[#0A66C2]" />
                     <h3 className="font-semibold text-[#0A0A0A] text-base">{exp.role}</h3>
                     <p className="text-[#0A66C2] text-sm font-medium mt-0.5">{exp.company}</p>
