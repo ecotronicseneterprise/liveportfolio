@@ -73,7 +73,7 @@ export default function LoginPage() {
   if (checking) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#1D9E75] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#0A66C2] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -83,7 +83,7 @@ export default function LoginPage() {
       <div className="max-w-xl mx-auto px-6 py-12">
 
         <div className="mb-8">
-          <a href="/" className="text-sm text-[#1D9E75] hover:underline">← liveportfolio.site</a>
+          <a href="/" className="text-sm text-[#0A66C2] hover:underline">← liveportfolio.site</a>
         </div>
 
         <div className="mb-8">
@@ -107,7 +107,7 @@ export default function LoginPage() {
               placeholder="you@example.com"
               required
               autoFocus
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
             />
           </div>
           <div>
@@ -118,13 +118,13 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Your password"
               required
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-[#1D9E75] text-white text-sm font-semibold rounded-full hover:bg-[#178a64] transition-colors disabled:opacity-50"
+            className="w-full py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors disabled:opacity-50"
           >
             {loading ? 'Signing in…' : 'Sign in →'}
           </button>
@@ -132,7 +132,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-gray-400">
           Don't have a portfolio yet?{' '}
-          <a href="/create" className="text-[#1D9E75] hover:underline font-medium">
+          <a href="/create" className="text-[#0A66C2] hover:underline font-medium">
             Build yours in 5 minutes →
           </a>
         </p>

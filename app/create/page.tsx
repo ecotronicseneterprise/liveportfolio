@@ -56,7 +56,7 @@ function ProgressBar({ step, total }: { step: number; total: number }) {
       </div>
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div
-          className="h-full bg-[#1D9E75] rounded-full transition-all duration-500"
+          className="h-full bg-[#0A66C2] rounded-full transition-all duration-500"
           style={{ width: `${(step / total) * 100}%` }}
         />
       </div>
@@ -373,14 +373,14 @@ export default function CreatePage() {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="text-center max-w-sm">
-          <div className="w-12 h-12 border-4 border-[#1D9E75] border-t-transparent rounded-full animate-spin mx-auto mb-8" />
+          <div className="w-12 h-12 border-4 border-[#0A66C2] border-t-transparent rounded-full animate-spin mx-auto mb-8" />
           <div className="space-y-2">
             {GENERATION_LABELS.map((label, i) => (
               <p
                 key={i}
                 className={`text-sm transition-all duration-500 ${
                   i === generationStep
-                    ? 'text-[#1D9E75] font-medium opacity-100'
+                    ? 'text-[#0A66C2] font-medium opacity-100'
                     : i < generationStep
                     ? 'text-gray-300 opacity-50 line-through'
                     : 'text-gray-300 opacity-50'
@@ -401,7 +401,7 @@ export default function CreatePage() {
 
         {/* Header */}
         <div className="mb-8">
-          <a href="/" className="text-sm text-[#1D9E75] hover:underline">← liveportfolio.site</a>
+          <a href="/" className="text-sm text-[#0A66C2] hover:underline">← liveportfolio.site</a>
         </div>
 
         <ProgressBar step={step} total={4} />
@@ -421,7 +421,7 @@ export default function CreatePage() {
             </div>
 
             {/* CV Upload */}
-            <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-[#1D9E75] transition-colors">
+            <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-[#0A66C2] transition-colors">
               <label className="cursor-pointer">
                 <input
                   type="file"
@@ -430,8 +430,8 @@ export default function CreatePage() {
                   onChange={(e) => e.target.files?.[0] && handleCvUpload(e.target.files[0])}
                 />
                 {uploadingCv ? (
-                  <div className="flex items-center justify-center gap-2 text-[#1D9E75]">
-                    <div className="w-4 h-4 border-2 border-[#1D9E75] border-t-transparent rounded-full animate-spin" />
+                  <div className="flex items-center justify-center gap-2 text-[#0A66C2]">
+                    <div className="w-4 h-4 border-2 border-[#0A66C2] border-t-transparent rounded-full animate-spin" />
                     <span className="text-sm">Reading your CV…</span>
                   </div>
                 ) : (
@@ -453,7 +453,7 @@ export default function CreatePage() {
                   className="hidden"
                   onChange={(e) => e.target.files?.[0] && handleAvatarChange(e.target.files[0])}
                 />
-                <div className="w-16 h-16 rounded-full bg-gray-100 border-2 border-dashed border-gray-200 hover:border-[#1D9E75] flex items-center justify-center overflow-hidden transition-colors">
+                <div className="w-16 h-16 rounded-full bg-gray-100 border-2 border-dashed border-gray-200 hover:border-[#0A66C2] flex items-center justify-center overflow-hidden transition-colors">
                   {form.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={form.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
@@ -478,7 +478,7 @@ export default function CreatePage() {
                   value={form.name}
                   onChange={(e) => update('name', e.target.value.slice(0, 80))}
                   placeholder="Adaeze Okonkwo"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
                 />
               </div>
               <div className="col-span-2">
@@ -490,7 +490,7 @@ export default function CreatePage() {
                   value={form.role}
                   onChange={(e) => update('role', e.target.value.slice(0, 80))}
                   placeholder="Data Scientist"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
                 />
               </div>
               <div className="col-span-2 sm:col-span-1">
@@ -502,7 +502,7 @@ export default function CreatePage() {
                   value={form.email}
                   onChange={(e) => update('email', e.target.value.slice(0, 120))}
                   placeholder="adaeze@gmail.com"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
                 />
               </div>
               <div className="col-span-2 sm:col-span-1">
@@ -512,7 +512,7 @@ export default function CreatePage() {
                   value={form.location}
                   onChange={(e) => update('location', e.target.value.slice(0, 80))}
                   placeholder="Lagos, Nigeria"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
                 />
               </div>
               <div className="col-span-2">
@@ -525,7 +525,7 @@ export default function CreatePage() {
                   onChange={(e) => update('bio', e.target.value.slice(0, 500))}
                   placeholder="I'm a data scientist with 3 years of experience building analytics pipelines and ML models for fintech companies…"
                   rows={4}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent resize-none"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none"
                 />
                 <p className="text-xs text-gray-400 mt-1 text-right">{form.bio.length}/500</p>
               </div>
@@ -536,7 +536,7 @@ export default function CreatePage() {
                   value={form.github_url}
                   onChange={(e) => update('github_url', e.target.value.slice(0, 200))}
                   placeholder="https://github.com/..."
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
                 />
               </div>
               <div>
@@ -546,7 +546,7 @@ export default function CreatePage() {
                   value={form.linkedin_url}
                   onChange={(e) => update('linkedin_url', e.target.value.slice(0, 200))}
                   placeholder="https://linkedin.com/in/..."
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
                 />
               </div>
             </div>
@@ -560,7 +560,7 @@ export default function CreatePage() {
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Your projects</h1>
               <p className="text-gray-500 text-sm">Add 1–4 projects. Keep descriptions short — AI expands them into case studies.</p>
               {form.github_url && form.projects.every((p) => !p.title.trim()) && (
-                <p className="text-xs text-[#1D9E75] mt-2 bg-[#f0fdf8] px-3 py-2 rounded-lg">
+                <p className="text-xs text-[#0A66C2] mt-2 bg-[#E8F0F9] px-3 py-2 rounded-lg">
                   You have a GitHub URL — you can skip projects and AI will work from your bio and role. Or add projects for a stronger portfolio.
                 </p>
               )}
@@ -588,7 +588,7 @@ export default function CreatePage() {
                     value={project.title}
                     onChange={(e) => updateProject(i, 'title', e.target.value.slice(0, 80))}
                     placeholder="Analytics Dashboard"
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -601,7 +601,7 @@ export default function CreatePage() {
                     onChange={(e) => updateProject(i, 'description', e.target.value.slice(0, 200))}
                     placeholder="Built a real-time sales dashboard for a fintech startup that reduced reporting time from 2 days to 30 minutes"
                     rows={3}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent resize-none"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none"
                   />
                   <p className="text-xs text-gray-400 mt-1 text-right">{project.description.length}/200</p>
                 </div>
@@ -613,7 +613,7 @@ export default function CreatePage() {
                       value={project.stack}
                       onChange={(e) => updateProject(i, 'stack', e.target.value.slice(0, 150))}
                       placeholder="Python, Pandas, PostgreSQL"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -623,7 +623,7 @@ export default function CreatePage() {
                       value={project.url}
                       onChange={(e) => updateProject(i, 'url', e.target.value.slice(0, 200))}
                       placeholder="https://..."
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -648,7 +648,7 @@ export default function CreatePage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="border-2 border-dashed border-gray-200 rounded-xl p-3 text-center hover:border-[#1D9E75] transition-colors">
+                      <div className="border-2 border-dashed border-gray-200 rounded-xl p-3 text-center hover:border-[#0A66C2] transition-colors">
                         <p className="text-xs text-gray-400">Add a screenshot · JPEG/PNG/WebP · max 3MB</p>
                       </div>
                     )}
@@ -660,7 +660,7 @@ export default function CreatePage() {
             {form.projects.length < 4 && (
               <button
                 onClick={addProject}
-                className="w-full border-2 border-dashed border-gray-200 rounded-xl py-4 text-sm text-gray-400 hover:border-[#1D9E75] hover:text-[#1D9E75] transition-colors"
+                className="w-full border-2 border-dashed border-gray-200 rounded-xl py-4 text-sm text-gray-400 hover:border-[#0A66C2] hover:text-[#0A66C2] transition-colors"
               >
                 + Add another project
               </button>
@@ -729,7 +729,7 @@ export default function CreatePage() {
                   onClick={() => update('template', t.id)}
                   className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${
                     form.template === t.id
-                      ? 'border-[#1D9E75] shadow-sm'
+                      ? 'border-[#0A66C2] shadow-sm'
                       : 'border-gray-100 hover:border-gray-200'
                   }`}
                 >
@@ -740,7 +740,7 @@ export default function CreatePage() {
                       <p className="text-xs text-gray-400 mt-0.5">{t.desc}</p>
                     </div>
                     {form.template === t.id && (
-                      <div className="w-5 h-5 bg-[#1D9E75] rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-5 h-5 bg-[#0A66C2] rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-white text-xs">✓</span>
                       </div>
                     )}
@@ -761,7 +761,7 @@ export default function CreatePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Your portfolio URL</label>
-              <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#1D9E75]">
+              <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#0A66C2]">
                 <span className="px-4 py-3 text-sm text-gray-400 bg-gray-50 border-r border-gray-200 flex-shrink-0">
                   yourname
                 </span>
@@ -787,7 +787,7 @@ export default function CreatePage() {
                     <p className="text-xs text-gray-400">Checking availability…</p>
                   )}
                   {slugStatus === 'available' && (
-                    <p className="text-xs text-[#1D9E75] font-medium">
+                    <p className="text-xs text-[#0A66C2] font-medium">
                       ✓ {form.slug}.liveportfolio.site is available
                     </p>
                   )}
@@ -797,7 +797,7 @@ export default function CreatePage() {
                       {slugSuggestion && (
                         <button
                           onClick={() => { update('slug', slugSuggestion); checkSlug(slugSuggestion) }}
-                          className="text-xs text-[#1D9E75] hover:underline mt-0.5"
+                          className="text-xs text-[#0A66C2] hover:underline mt-0.5"
                         >
                           Try {slugSuggestion}.liveportfolio.site instead →
                         </button>
@@ -834,7 +834,7 @@ export default function CreatePage() {
                     onChange={(e) => update('password', e.target.value)}
                     placeholder="Min 8 characters"
                     autoFocus
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent bg-white"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent bg-white"
                   />
                 </div>
                 <label className="flex items-start gap-3 cursor-pointer">
@@ -842,13 +842,13 @@ export default function CreatePage() {
                     type="checkbox"
                     checked={form.agreeTerms}
                     onChange={(e) => update('agreeTerms', e.target.checked)}
-                    className="mt-0.5 accent-[#1D9E75]"
+                    className="mt-0.5 accent-[#0A66C2]"
                   />
                   <span className="text-sm text-gray-500">
                     I agree to the{' '}
-                    <a href="/terms" className="text-[#1D9E75] hover:underline">terms of service</a>
+                    <a href="/terms" className="text-[#0A66C2] hover:underline">terms of service</a>
                     {' '}and{' '}
-                    <a href="/privacy" className="text-[#1D9E75] hover:underline">privacy policy</a>
+                    <a href="/privacy" className="text-[#0A66C2] hover:underline">privacy policy</a>
                   </span>
                 </label>
               </div>
@@ -870,7 +870,7 @@ export default function CreatePage() {
           {step < 4 ? (
             <button
               onClick={handleNext}
-              className="px-6 py-3 bg-[#1D9E75] text-white text-sm font-semibold rounded-full hover:bg-[#178a64] transition-colors"
+              className="px-6 py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
             >
               Continue →
             </button>
@@ -882,14 +882,14 @@ export default function CreatePage() {
                 setError('')
                 setShowAccountForm(true)
               }}
-              className="px-6 py-3 bg-[#1D9E75] text-white text-sm font-semibold rounded-full hover:bg-[#178a64] transition-colors"
+              className="px-6 py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
             >
               Generate my portfolio →
             </button>
           ) : (
             <button
               onClick={handleSubmit}
-              className="px-6 py-3 bg-[#1D9E75] text-white text-sm font-semibold rounded-full hover:bg-[#178a64] transition-colors"
+              className="px-6 py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
             >
               Create account &amp; generate →
             </button>

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   id         uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email      text UNIQUE NOT NULL,
   slug       text UNIQUE NOT NULL,
-  plan       text NOT NULL DEFAULT 'unpublished',
+  plan       text NOT NULL DEFAULT 'unpublished', -- 'unpublished' | 'pro'
   published_at   timestamptz,
   custom_domain  text,
   ls_customer_id text,

@@ -5,6 +5,201 @@ import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import ClientAnalytics from './ClientAnalytics'
+import AcquisitionBar from './AcquisitionBar'
+import DemoToggle from './DemoToggle'
+
+const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold'; content: PortfolioContent }> = {
+  amara: {
+    template: 'minimal',
+    content: {
+      name: 'Amara Osei',
+      role: 'Frontend Developer',
+      headline: 'Building accessible, fast web interfaces with React and TypeScript.',
+      about: 'I completed the ALX Software Engineering programme in March 2026. I am actively building projects and looking for my first remote role.',
+      location: 'Accra, Ghana',
+      email: 'amara@example.com',
+      github_url: 'https://github.com/amaraosei',
+      linkedin_url: '',
+      avatar_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop&crop=faces&facepad=3',
+      skills: ['React', 'TypeScript', 'HTML', 'CSS', 'Git'],
+      skills_narrative: 'Frontend focused with a strong foundation in React.',
+      skills_grouped: [],
+      projects: [
+        {
+          title: 'Budget Tracker App',
+          problem: 'Students at ALX had no simple way to track monthly expenses.',
+          solution: 'Built a React app with local storage persistence and chart visualisations.',
+          outcome: 'Used by 40+ ALX students within 2 weeks of launch.',
+          stack: ['React', 'Chart.js', 'CSS'],
+          url: 'https://github.com/amaraosei/budget-tracker',
+          image_url: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=640&h=360&fit=crop',
+        },
+      ],
+      experience: [],
+    },
+  },
+  benedicta: {
+    template: 'minimal',
+    content: {
+      name: 'Benedicta Kamau',
+      role: 'Social Media Manager & Content Strategist',
+      headline: 'Helping brands show up consistently, sound human, and turn followers into customers.',
+      about: 'Five years building social presence for consumer brands across East Africa and the diaspora. I started as a copywriter, moved into community management, and now lead end-to-end campaigns from strategy to publishing to reporting.\n\nI care about the numbers but I care more about the story behind them — why an audience engages, what makes them stay, and what turns a casual follower into a loyal customer.',
+      location: 'Nairobi, Kenya',
+      email: 'benedicta@example.com',
+      github_url: '',
+      linkedin_url: 'https://linkedin.com/in/benedictawanjiku',
+      avatar_url: '',
+      skills: ['Instagram', 'TikTok', 'Content Strategy', 'Copywriting', 'Canva', 'Hootsuite', 'Analytics', 'Community Management', 'Brand Voice', 'Paid Social'],
+      skills_narrative: 'Strategy first, execution second — every post has a purpose behind it.',
+      skills_grouped: [
+        { category: 'Platforms', items: ['Instagram', 'TikTok', 'LinkedIn', 'Twitter/X', 'Facebook'] },
+        { category: 'Content', items: ['Copywriting', 'Canva', 'CapCut', 'Notion', 'Brand Voice'] },
+        { category: 'Growth & Analytics', items: ['Meta Business Suite', 'Hootsuite', 'Google Analytics', 'Paid Social'] },
+      ],
+      projects: [
+        {
+          title: 'Zuri Skincare — Brand Launch Campaign',
+          problem: 'A Nairobi skincare startup had a great product but zero social presence and a launch date 6 weeks away.',
+          solution: 'Built the brand voice from scratch, designed a 6-week content calendar across Instagram and TikTok, and ran a micro-influencer seeding campaign with 12 Kenyan creators.',
+          outcome: 'Reached 180,000 accounts in launch week. 4,200 new followers. First product batch sold out in 9 days.',
+          stack: ['Instagram', 'TikTok', 'Canva', 'Hootsuite', 'Influencer Outreach'],
+          url: '',
+          image_url: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=640&h=360&fit=crop',
+        },
+        {
+          title: 'Greenleaf Foods — Community Relaunch',
+          problem: 'An established food brand had a stagnant Instagram of 22k followers with under 0.5% engagement and a feed that looked outdated.',
+          solution: 'Audited 12 months of content, repositioned the brand tone from corporate to warm and local, introduced a weekly recipe series and UGC repost programme.',
+          outcome: 'Engagement rate rose from 0.4% to 3.8% in 3 months. 6,200 new followers. UGC programme generated 400+ tagged posts.',
+          stack: ['Instagram', 'Meta Business Suite', 'Canva', 'Community Management'],
+          url: '',
+          image_url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=640&h=360&fit=crop',
+        },
+        {
+          title: 'AfroFit App — TikTok Growth',
+          problem: 'A fitness app targeting young Africans had no TikTok presence despite their audience spending hours on the platform daily.',
+          solution: 'Launched the TikTok account, developed a content mix of workout snippets, creator collabs, and culturally relevant trending sounds. Posted 5 times per week for 10 weeks.',
+          outcome: 'Grew from 0 to 14,000 TikTok followers in 10 weeks. Two videos crossed 200,000 views organically.',
+          stack: ['TikTok', 'CapCut', 'Trend Research', 'Creator Partnerships'],
+          url: '',
+          image_url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=640&h=360&fit=crop',
+        },
+      ],
+      experience: [
+        {
+          company: 'Sema Digital Agency',
+          role: 'Senior Social Media Manager',
+          period: '2023 – Present',
+          bullets: [
+            'Manage social strategy for 6 active client accounts across FMCG, health, and lifestyle sectors',
+            'Lead a team of 2 junior content creators and 1 paid social specialist',
+            'Grew combined client following by 84,000 in 18 months',
+          ],
+        },
+        {
+          company: 'Jumia Kenya',
+          role: 'Social Media Executive',
+          period: '2021 – 2023',
+          bullets: [
+            'Managed Instagram, Facebook, and Twitter for one of East Africa\'s largest e-commerce platforms',
+            'Co-created the Black Friday 2022 social campaign that drove 23% higher click-through than the previous year',
+            'Handled real-time community management during peak sale periods',
+          ],
+        },
+      ],
+    },
+  },
+  emeka: {
+    template: 'bold',
+    content: {
+      name: 'Chukwuemeka Adeyemi',
+      role: 'Senior Data Scientist & ML Engineer',
+      headline: 'Building production ML systems that move business metrics, not just model benchmarks.',
+      about: '8 years building data products across banking, fintech, and healthtech in Nigeria and remotely for European companies.\n\nI specialise in the gap between ML research and production systems — taking models from notebook to pipeline to revenue impact.',
+      location: 'Lagos, Nigeria',
+      email: 'emeka@example.com',
+      github_url: 'https://github.com/emekaokfor',
+      linkedin_url: 'https://linkedin.com/in/emekaokfor',
+      avatar_url: '',
+      skills: ['Python', 'SQL', 'PyTorch', 'TensorFlow', 'Azure ML', 'Spark', 'dbt', 'Airflow', 'FastAPI', 'Docker', 'Kubernetes', 'PostgreSQL'],
+      skills_narrative: 'End-to-end ML: from feature engineering to production inference pipelines.',
+      skills_grouped: [
+        { category: 'ML & AI', items: ['PyTorch', 'TensorFlow', 'Scikit-learn', 'Azure ML'] },
+        { category: 'Data Engineering', items: ['Spark', 'dbt', 'Airflow', 'PostgreSQL'] },
+        { category: 'Languages', items: ['Python', 'SQL', 'TypeScript'] },
+        { category: 'Infrastructure', items: ['Docker', 'Kubernetes', 'FastAPI', 'Azure'] },
+      ],
+      projects: [
+        {
+          title: 'Corporate Churn Intelligence System',
+          problem: 'Bank losing high-value corporate accounts with no early warning system.',
+          solution: 'Built a monthly ML pipeline on Azure ML scoring 8,000+ corporate accounts for churn risk using random forest with 89% recall.',
+          outcome: 'Recovered 429 customers, reactivated ₦191.5B in turnover in first quarter.',
+          stack: ['Python', 'Azure ML', 'Synapse', 'SQL', 'scikit-learn'],
+          url: '',
+        },
+        {
+          title: 'Conversational Analytics Platform',
+          problem: 'Business analysts spending 4+ hours daily writing SQL reports.',
+          solution: 'GPT-4o powered natural language to SQL system with RLS-enforced data governance and Chart.js visualisations.',
+          outcome: 'Reduced ad-hoc report turnaround from 4 hours to under 2 minutes for 200+ users.',
+          stack: ['Next.js', 'FastAPI', 'Azure OpenAI', 'Azure Synapse', 'Chart.js'],
+          url: '',
+        },
+        {
+          title: 'RFID Attendance SaaS',
+          problem: 'Schools and companies managing attendance with paper registers.',
+          solution: 'ESP32 + MFRC522 RFID hardware nodes syncing to Supabase with captive portal zero-touch provisioning.',
+          outcome: 'Deployed in 3 institutions, processing 500+ daily check-ins with 99.7% uptime.',
+          stack: ['ESP32', 'Supabase', 'Next.js', 'Paystack'],
+          url: 'https://github.com/example/rfid-attendance',
+        },
+        {
+          title: 'AI Job Matching Platform',
+          problem: 'African tech job seekers applying to 50+ roles manually with no targeting.',
+          solution: 'Next.js platform with pgvector semantic matching, GPT-4o-mini match reasoning, and WhatsApp job alerts.',
+          outcome: 'Live product with paying subscribers, 85% reduction in irrelevant applications reported by users.',
+          stack: ['Next.js', 'Supabase', 'pgvector', 'OpenAI', 'WasenderAPI', 'Paystack'],
+          url: 'https://upjobs.co',
+        },
+      ],
+      experience: [
+        {
+          company: 'Wema Bank',
+          role: 'Data Scientist / AI Engineer',
+          period: 'March 2025 – Present',
+          bullets: [
+            'Built and deployed CRIS churn pipeline scoring 8,000+ corporate accounts monthly on Azure ML',
+            'Architected Data Knight conversational analytics platform with GPT-4o and Azure Synapse',
+            'Designed RLS-enforced SQL governance layer preventing unauthorised data access',
+            'Led AI adoption workshop for 50+ relationship managers across retail banking',
+          ],
+        },
+        {
+          company: 'Coscharis Medical',
+          role: 'Service Engineer',
+          period: '2022 – 2025',
+          bullets: [
+            'Maintained and calibrated diagnostic imaging equipment across 12 hospital sites',
+            'Built internal fault tracking dashboard reducing repeat equipment failures by 30%',
+            'Trained 20+ biomedical technicians on preventive maintenance protocols',
+          ],
+        },
+        {
+          company: 'Ecotronics Enterprise',
+          role: 'Founder / Embedded Systems Engineer',
+          period: '2020 – Present',
+          bullets: [
+            'Designed and shipped IoT attendance hardware used in 3 Nigerian institutions',
+            'Built solar monitoring SaaS with real-time telemetry and Paystack subscription billing',
+            'Won 2nd place National and 1st place Regional at CODET engineering competition',
+          ],
+        },
+      ],
+    },
+  },
+}
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -12,6 +207,16 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
+
+  if (DEMO_PORTFOLIOS[slug]) {
+    const { content } = DEMO_PORTFOLIOS[slug]
+    return {
+      title: `${content.name} — ${content.role}`,
+      description: content.headline,
+      alternates: { canonical: `https://${slug}.liveportfolio.site` },
+    }
+  }
+
   const supabaseAdmin = getSupabaseAdmin()
 
   const { data } = await supabaseAdmin
@@ -29,14 +234,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!portfolio) return {}
 
+  const canonicalUrl = `https://${slug}.liveportfolio.site`
   return {
     title: portfolio.seo_title,
     description: portfolio.seo_description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: portfolio.seo_title,
       description: portfolio.seo_description,
       images: portfolio.og_image_url ? [portfolio.og_image_url] : [],
-      url: `https://${slug}.liveportfolio.site`,
+      url: canonicalUrl,
+      type: 'profile',
+      siteName: 'liveportfolio.site',
     },
     twitter: {
       card: 'summary_large_image',
@@ -49,6 +260,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PortfolioPage({ params }: Props) {
   const { slug } = await params
+
+  if (DEMO_PORTFOLIOS[slug]) {
+    const { template, content } = DEMO_PORTFOLIOS[slug]
+    return (
+      <>
+        <DemoToggle content={content} defaultTemplate={template} />
+        <AcquisitionBar />
+      </>
+    )
+  }
+
   const supabaseAdmin = getSupabaseAdmin()
 
   // supabaseAdmin bypasses RLS — required for public portfolio rendering
@@ -82,6 +304,7 @@ export default async function PortfolioPage({ params }: Props) {
     <>
       <Template content={portfolio.content} />
       <ClientAnalytics slug={slug} />
+      <AcquisitionBar />
     </>
   )
 }

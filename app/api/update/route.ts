@@ -43,7 +43,7 @@ export async function PATCH(req: NextRequest) {
 
   const { content: contentUpdate, template } = await req.json()
 
-  // Content editing is a Professional-plan feature; template switching is open to all authenticated users
+  // Content editing requires the Pro plan; template switching is open to all authenticated users
   if (contentUpdate) {
     const { data: userRecord } = await supabaseAdmin
       .from('users')
@@ -51,8 +51,8 @@ export async function PATCH(req: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (!userRecord || userRecord.plan !== 'professional') {
-      return NextResponse.json({ error: 'Editing requires the Professional plan' }, { status: 403 })
+    if (!userRecord || userRecord.plan !== 'pro') {
+      return NextResponse.json({ error: 'Editing requires the Pro plan' }, { status: 403 })
     }
   }
 

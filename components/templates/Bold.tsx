@@ -122,23 +122,27 @@ export default function Bold({ content }: { content: PortfolioContent }) {
                 alt={content.name}
                 width={72}
                 height={72}
-                className="rounded-full object-cover border-2 border-[#1C2128]"
+                className="rounded-full object-cover object-top border-2 border-[#1C2128]"
               />
             </div>
           )}
 
           <h1
-            className="text-xl font-bold text-[#F0F6FF] mb-1 leading-tight"
+            className="text-xl font-bold text-[#F0F6FF] mb-1 leading-tight break-words"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
             {content.name}
           </h1>
-          <p className="text-sm text-[#58A6FF] mb-1">{content.role}</p>
-          <p className="text-xs text-[#8B949E] mb-8">{content.location}</p>
+          <p className={`text-sm text-[#58A6FF] ${content.location ? 'mb-1' : 'mb-8'}`}>
+            {content.role}
+          </p>
+          {content.location && (
+            <p className="text-xs text-[#8B949E] mb-8">{content.location}</p>
+          )}
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#1C2128] border border-[#238636] rounded-full mb-8 w-fit shadow-[0_0_12px_rgba(35,134,54,0.3)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3FB950] animate-pulse" />
-            <span className="text-xs text-[#3FB950]">Open to work</span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#1C2128] border border-[#1a5fa8] rounded-full mb-8 w-fit shadow-[0_0_12px_rgba(10,102,194,0.3)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0A66C2] animate-pulse" />
+            <span className="text-xs text-[#0A66C2]">Open to work</span>
           </div>
 
           <nav className="space-y-1 mb-8">
@@ -207,10 +211,9 @@ export default function Bold({ content }: { content: PortfolioContent }) {
 
           {/* Hero */}
           <div className="mb-16">
-            {/* Available indicator — mobile only (sidebar shows "Open to work" on desktop) */}
             <div className="flex items-center gap-2 mb-6 lg:hidden">
-              <span className="w-2 h-2 rounded-full bg-[#3FB950] animate-pulse" />
-              <span className="text-xs text-[#3FB950] font-medium">Available for opportunities</span>
+              <span className="w-2 h-2 rounded-full bg-[#0A66C2] animate-pulse" />
+              <span className="text-xs text-[#0A66C2] font-medium">Available for opportunities</span>
             </div>
 
             <p
@@ -246,140 +249,160 @@ export default function Bold({ content }: { content: PortfolioContent }) {
             </div>
           </section>
 
-          {/* Skills */}
-          <section
-            id="skills"
-            className={`mb-16 transition-all duration-700 ${visible.has('skills') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-            style={{ transitionDelay: '100ms' }}
-          >
-            <h3
-              className="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-5"
-              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+          {/* Skills — hidden if no skills data */}
+          {(content.skills.length > 0 || content.skills_grouped.length > 0) && (
+            <section
+              id="skills"
+              className={`mb-16 transition-all duration-700 ${visible.has('skills') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              style={{ transitionDelay: '100ms' }}
             >
-              Skills
-            </h3>
-            <p className="text-xs text-[#8B949E] italic mb-6">{content.skills_narrative}</p>
-            {content.skills_grouped && content.skills_grouped.length > 0 ? (
-              <div className="space-y-5">
-                {content.skills_grouped.map((group, i) => (
-                  <div key={i}>
-                    <p
-                      className="text-xs text-[#58A6FF] mb-2"
-                      style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-                    >
-                      {group.category}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {group.items.map((skill) => (
-                        <span
-                          key={skill}
-                          className="px-3 py-1 text-xs bg-[#1C2128] border border-[#30363D] rounded text-[#8B949E] hover:border-[#58A6FF] hover:text-[#58A6FF] hover:scale-105 transition-all cursor-default"
-                          style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {content.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="px-3 py-1 text-xs bg-[#1C2128] border border-[#30363D] rounded text-[#8B949E] hover:border-[#58A6FF] hover:text-[#58A6FF] hover:scale-105 transition-all cursor-default"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Projects */}
-          <section
-            id="projects"
-            className={`mb-16 transition-all duration-700 ${visible.has('projects') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-            style={{ transitionDelay: '150ms' }}
-          >
-            <h3
-              className="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-6"
-              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-            >
-              Projects
-            </h3>
-            <div className="space-y-5">
-              {content.projects.map((project, i) => (
-                <div
-                  key={i}
-                  className="bg-[#1C2128] border border-[#30363D] rounded-xl overflow-hidden hover:border-[#58A6FF] transition-all group"
-                  style={{ borderLeft: '3px solid #58A6FF' }}
-                >
-                  {project.image_url && (
-                    <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
-                      <Image
-                        src={project.image_url}
-                        alt={project.title}
-                        width={640}
-                        height={360}
-                        className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                      />
-                    </div>
-                  )}
-                  <div className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <h4
-                      className="text-base font-bold text-[#F0F6FF] group-hover:text-[#58A6FF] transition-colors"
-                      style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-                    >
-                      {project.title}
-                    </h4>
-                    {project.url && (
-                      <a
-                        href={project.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-[#58A6FF] hover:underline ml-4 flex-shrink-0"
-                      >
-                        View ↗
-                      </a>
-                    )}
-                  </div>
-
-                  <div className="space-y-3 mb-4">
-                    <div>
-                      <span className="text-xs text-[#58A6FF] font-bold" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>Problem: </span>
-                      <span className="text-xs text-[#8B949E] leading-relaxed">{project.problem}</span>
-                    </div>
-                    <div>
-                      <span className="text-xs text-[#58A6FF] font-bold" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>Solution: </span>
-                      <span className="text-xs text-[#8B949E] leading-relaxed">{project.solution}</span>
-                    </div>
-                    <div className="bg-[#0D1117] border border-[#238636] rounded-lg px-3 py-2 shadow-[0_0_8px_rgba(63,185,80,0.15)]">
-                      <span className="text-xs text-[#3FB950] font-bold" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>→ </span>
-                      <span className="text-xs text-[#3FB950] font-medium">{project.outcome}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    {project.stack.map((tech) => (
-                      <span
-                        key={tech}
-                        className="text-xs px-2 py-0.5 bg-[#0D1117] text-[#8B949E] rounded border border-[#30363D]"
+              <h3
+                className="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-5"
+                style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+              >
+                Skills
+              </h3>
+              <p className="text-xs text-[#8B949E] italic mb-6">{content.skills_narrative}</p>
+              {content.skills_grouped.length > 0 ? (
+                <div className="space-y-5">
+                  {content.skills_grouped.map((group, i) => (
+                    <div key={i}>
+                      <p
+                        className="text-xs text-[#58A6FF] mb-2"
                         style={{ fontFamily: 'var(--font-space-mono), monospace' }}
                       >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                  </div>
+                        {group.category}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {group.items.map((skill) => (
+                          <span
+                            key={skill}
+                            className="px-3 py-1 text-xs bg-[#1C2128] border border-[#30363D] rounded text-[#8B949E] hover:border-[#58A6FF] hover:text-[#58A6FF] hover:scale-105 transition-all cursor-default"
+                            style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {content.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="px-3 py-1 text-xs bg-[#1C2128] border border-[#30363D] rounded text-[#8B949E] hover:border-[#58A6FF] hover:text-[#58A6FF] hover:scale-105 transition-all cursor-default"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
-          {/* Experience */}
+          {/* Projects — hidden if empty */}
+          {content.projects.length > 0 && (
+            <section
+              id="projects"
+              className={`mb-16 transition-all duration-700 ${visible.has('projects') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              style={{ transitionDelay: '150ms' }}
+            >
+              <h3
+                className="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-6"
+                style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+              >
+                Projects
+              </h3>
+              <div className="space-y-5">
+                {content.projects.map((project, i) => (
+                  <div
+                    key={i}
+                    className="bg-[#1C2128] border border-[#30363D] rounded-xl overflow-hidden hover:border-[#58A6FF] transition-all group"
+                    style={{ borderLeft: '3px solid #58A6FF' }}
+                  >
+                    {project.image_url && (
+                      <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                        <Image
+                          src={project.image_url}
+                          alt={project.title}
+                          width={640}
+                          height={360}
+                          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                        />
+                      </div>
+                    )}
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-3">
+                        <h4
+                          className="text-base font-bold text-[#F0F6FF] group-hover:text-[#58A6FF] transition-colors"
+                          style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+                        >
+                          {project.title}
+                        </h4>
+                        {project.url && (
+                          <a
+                            href={project.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-[#58A6FF] hover:underline ml-4 flex-shrink-0"
+                          >
+                            View ↗
+                          </a>
+                        )}
+                      </div>
+
+                      <div className="space-y-3 mb-4">
+                        {project.problem && (
+                          <div>
+                            <span className="text-xs text-[#58A6FF] font-bold" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>Problem: </span>
+                            <span className="text-xs text-[#8B949E] leading-relaxed">{project.problem}</span>
+                          </div>
+                        )}
+                        {project.solution && (
+                          <div>
+                            <span className="text-xs text-[#58A6FF] font-bold" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>Solution: </span>
+                            <span className="text-xs text-[#8B949E] leading-relaxed">{project.solution}</span>
+                          </div>
+                        )}
+                        {project.outcome && (
+                          <div className="bg-[#0D1117] border border-[#1a5fa8] rounded-lg px-3 py-2 shadow-[0_0_8px_rgba(10,102,194,0.15)]">
+                            <span className="text-xs text-[#0A66C2] font-bold" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>→ </span>
+                            <span className="text-xs text-[#0A66C2] font-medium">{project.outcome}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {project.stack.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {project.stack.slice(0, 5).map((tech) => (
+                            <span
+                              key={tech}
+                              className="text-xs px-2 py-0.5 bg-[#0D1117] text-[#8B949E] rounded border border-[#30363D]"
+                              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                          {project.stack.length > 5 && (
+                            <span
+                              className="text-xs px-2 py-0.5 text-[#8B949E]"
+                              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+                            >
+                              +{project.stack.length - 5} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Experience — hidden if empty */}
           {content.experience && content.experience.length > 0 && (
             <section
               id="experience"
@@ -410,14 +433,16 @@ export default function Bold({ content }: { content: PortfolioContent }) {
                     >
                       {exp.period}
                     </p>
-                    <ul className="space-y-2">
-                      {exp.bullets.map((bullet, j) => (
-                        <li key={j} className="text-sm text-[#8B949E] leading-relaxed flex gap-2">
-                          <span className="text-[#58A6FF] flex-shrink-0 mt-0.5">▸</span>
-                          <span>{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    {exp.bullets.length > 0 && (
+                      <ul className="space-y-2">
+                        {exp.bullets.map((bullet, j) => (
+                          <li key={j} className="text-sm text-[#8B949E] leading-relaxed flex gap-2">
+                            <span className="text-[#58A6FF] flex-shrink-0 mt-0.5">▸</span>
+                            <span>{bullet}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 ))}
               </div>

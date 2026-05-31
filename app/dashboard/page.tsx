@@ -25,7 +25,7 @@ interface Portfolio {
 }
 
 function HealthScore({ score }: { score: number }) {
-  const color = score >= 80 ? '#1D9E75' : score >= 60 ? '#f59e0b' : '#ef4444'
+  const color = score >= 80 ? '#0A66C2' : score >= 60 ? '#f59e0b' : '#ef4444'
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-5">
       <div className="flex items-center justify-between mb-3">
@@ -74,6 +74,7 @@ export default function DashboardPage() {
   const [editContent, setEditContent] = useState<Partial<PortfolioContent>>({})
   const [activeTab, setActiveTab] = useState<'overview' | 'edit' | 'settings'>('overview')
   const [copied, setCopied] = useState(false)
+  const [qrDownloading, setQrDownloading] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -139,6 +140,20 @@ export default function DashboardPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const downloadQr = async () => {
+    if (!user) return
+    setQrDownloading(true)
+    const portfolioUrl = `https://${user.slug}.liveportfolio.site`
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(portfolioUrl)}&color=0A66C2&bgcolor=ffffff&qzone=2&format=png`
+    const res = await fetch(url)
+    const blob = await res.blob()
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${user.slug}-portfolio-qr.png`
+    a.click()
+    setQrDownloading(false)
+  }
+
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.push('/')
@@ -147,7 +162,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#1D9E75] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#0A66C2] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -187,7 +202,7 @@ export default function DashboardPage() {
                     href={portfolioUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-lg font-semibold text-[#1D9E75] hover:underline"
+                    className="text-lg font-semibold text-[#0A66C2] hover:underline"
                   >
                     {user.slug}.liveportfolio.site
                   </a>
@@ -209,9 +224,9 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3">
               {isPublished ? (
                 <>
-                  <span className="inline-flex items-center gap-1 text-xs text-[#1D9E75] bg-[#f0fdf8] px-2.5 py-1 rounded-full">
-                    <span className="w-1.5 h-1.5 bg-[#1D9E75] rounded-full" />
-                    {user.plan === 'professional' ? 'Professional' : 'Launch'}
+                  <span className="inline-flex items-center gap-1 text-xs text-[#0A66C2] bg-[#E8F0F9] px-2.5 py-1 rounded-full">
+                    <span className="w-1.5 h-1.5 bg-[#0A66C2] rounded-full" />
+                    Pro
                   </span>
                   <a
                     href={portfolioUrl}
@@ -225,7 +240,7 @@ export default function DashboardPage() {
               ) : (
                 <a
                   href={`/preview/${portfolio.id}`}
-                  className="px-4 py-2 bg-[#1D9E75] text-white text-sm font-semibold rounded-full hover:bg-[#178a64] transition-colors"
+                  className="px-4 py-2 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
                 >
                   Publish portfolio →
                 </a>
@@ -274,78 +289,120 @@ export default function DashboardPage() {
                   Published {new Date(user.published_at).toLocaleDateString()}
                 </p>
               )}
-              {user.plan !== 'professional' && isPublished && (
-                <a
-                  href={`/preview/${portfolio.id}`}
-                  className="text-xs text-[#1D9E75] hover:underline mt-2 block"
-                >
-                  Upgrade to edit your portfolio →
-                </a>
-              )}
             </div>
 
-            {/* Quick actions */}
-            <div className="sm:col-span-3 bg-white border border-gray-100 rounded-2xl p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">Quick actions</h3>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => setActiveTab('edit')}
-                  className="text-sm px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300 transition-colors"
-                >
-                  Edit portfolio
-                </button>
-                {isPublished && (
-                  <>
+            {/* Share your portfolio */}
+            {isPublished && (
+              <div className="sm:col-span-3 bg-white border-2 border-[#0A66C2]/20 rounded-2xl p-5">
+                <h3 className="text-sm font-semibold text-gray-700 mb-1">Share your portfolio</h3>
+                <p className="text-xs text-gray-400 mb-5">Add your link to every job application, LinkedIn bio, and email signature.</p>
+
+                <div className="flex flex-col sm:flex-row gap-5">
+                  {/* QR code */}
+                  <div className="flex-shrink-0 flex flex-col items-center gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(portfolioUrl)}&color=0A66C2&bgcolor=ffffff&qzone=1`}
+                      alt="Portfolio QR code"
+                      width={140}
+                      height={140}
+                      className="rounded-xl border border-gray-100"
+                    />
                     <button
-                      onClick={copyLink}
-                      className="text-sm px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300 transition-colors"
+                      onClick={downloadQr}
+                      disabled={qrDownloading}
+                      className="text-xs font-semibold text-[#0A66C2] hover:text-[#084D9A] transition-colors disabled:opacity-50"
                     >
-                      {copied ? '✓ Copied link' : 'Copy portfolio link'}
+                      {qrDownloading ? 'Downloading…' : 'Download QR →'}
                     </button>
-                    <a
-                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(portfolioUrl)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300 transition-colors"
-                    >
-                      Share on LinkedIn
-                    </a>
-                  </>
-                )}
+                  </div>
+
+                  {/* Share buttons */}
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500 mb-3">Print your QR code and add it to your CV, business card, or email signature.</p>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={copyLink}
+                        className="text-sm px-4 py-2 bg-[#0A66C2] text-white rounded-full hover:bg-[#084D9A] transition-colors font-medium"
+                      >
+                        {copied ? '✓ Copied' : 'Copy link'}
+                      </button>
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(`Check out my professional portfolio: ${portfolioUrl}`)}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="text-sm px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300 transition-colors"
+                      >
+                        WhatsApp
+                      </a>
+                      <a
+                        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(portfolioUrl)}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="text-sm px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300 transition-colors"
+                      >
+                        LinkedIn
+                      </a>
+                      <a
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out my professional portfolio at ${portfolioUrl} — built with liveportfolio.site 🚀`)}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="text-sm px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300 transition-colors"
+                      >
+                        X / Twitter
+                      </a>
+                      <a
+                        href={`mailto:?subject=My professional portfolio&body=Hi, check out my portfolio: ${portfolioUrl}`}
+                        className="text-sm px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300 transition-colors"
+                      >
+                        Email
+                      </a>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {!isPublished && (
+              <div className="sm:col-span-3 bg-white border border-gray-100 rounded-2xl p-5 text-center">
+                <p className="text-sm text-gray-500 mb-3">Publish your portfolio to get a shareable link.</p>
+                <a
+                  href={`/preview/${portfolio.id}`}
+                  className="inline-block px-5 py-2 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
+                >
+                  Publish now — $5
+                </a>
+              </div>
+            )}
           </div>
         )}
 
         {/* Edit tab */}
-        {activeTab === 'edit' && user.plan !== 'professional' && (
+        {activeTab === 'edit' && user.plan !== 'pro' && (
           <div className="bg-white border border-gray-100 rounded-2xl p-10 text-center">
             <div className="max-w-sm mx-auto">
               <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-5">
                 <span className="text-2xl">✏️</span>
               </div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Editing is a Professional feature</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Publish to unlock editing</h2>
               <p className="text-sm text-gray-500 mb-6">
-                Upgrade to Professional to edit your bio, projects, and links anytime — your live portfolio updates instantly.
+                Go Pro for $5 to publish your portfolio and edit your bio, projects, and links anytime — changes go live instantly.
               </p>
               <a
                 href={`/preview/${portfolio.id}`}
-                className="inline-block px-6 py-3 bg-[#1D9E75] text-white text-sm font-semibold rounded-full hover:bg-[#178a64] transition-colors"
+                className="inline-block px-6 py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
               >
-                Upgrade to Professional — $19
+                Publish my portfolio — $5
               </a>
             </div>
           </div>
         )}
 
-        {activeTab === 'edit' && user.plan === 'professional' && (
+        {activeTab === 'edit' && user.plan === 'pro' && (
           <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Edit your portfolio</h2>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-4 py-2 bg-[#1D9E75] text-white text-sm font-medium rounded-full hover:bg-[#178a64] transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-[#0A66C2] text-white text-sm font-medium rounded-full hover:bg-[#084D9A] transition-colors disabled:opacity-50"
               >
                 {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
               </button>
@@ -388,7 +445,7 @@ export default function DashboardPage() {
                     type={type}
                     value={(editContent as Record<string, string>)[key] || ''}
                     onChange={(e) => setEditContent((prev) => ({ ...prev, [key]: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
                   />
                 </div>
               ))}
@@ -398,7 +455,7 @@ export default function DashboardPage() {
                   value={editContent.about || ''}
                   onChange={(e) => setEditContent((prev) => ({ ...prev, about: e.target.value }))}
                   rows={5}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent resize-none"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none"
                 />
               </div>
             </div>
@@ -407,7 +464,7 @@ export default function DashboardPage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-6 py-2.5 bg-[#1D9E75] text-white text-sm font-semibold rounded-full hover:bg-[#178a64] transition-colors disabled:opacity-50"
+                className="px-6 py-2.5 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors disabled:opacity-50"
               >
                 {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
               </button>
@@ -439,9 +496,9 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {user.plan === 'professional' && (
-              <div className="bg-[#f0fdf8] border border-[#1D9E75]/20 rounded-xl p-4">
-                <p className="text-xs font-semibold text-[#1D9E75] uppercase tracking-wider mb-1">Professional plan</p>
+            {user.plan === 'pro' && (
+              <div className="bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-xl p-4">
+                <p className="text-xs font-semibold text-[#0A66C2] uppercase tracking-wider mb-1">Pro plan</p>
                 <p className="text-sm text-gray-600">You can edit your portfolio anytime from the Edit tab. Changes go live instantly.</p>
               </div>
             )}

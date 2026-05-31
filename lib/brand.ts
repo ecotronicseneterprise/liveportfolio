@@ -1,7 +1,7 @@
 export const brand = {
-  primary: '#1D9E75',
-  light:   '#E1F5EE',
-  dark:    '#0F6E56',
+  primary: '#0A66C2',
+  light:   '#E8F0F9',
+  dark:    '#084D9A',
   text:    '#0A0A0A',
   gray:    '#555555',
   bold: {
@@ -9,6 +9,6 @@ export const brand = {
     text:   '#F0F6FF',
     accent: '#58A6FF',
     card:   '#1C2128',
-    green:  '#3FB950',
+    green:  '#0A66C2',
   },
 } as const

@@ -8,7 +8,7 @@ export default function PortfolioNotFound() {
         </p>
         <a
           href="https://liveportfolio.site"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1D9E75] text-white text-sm font-medium rounded-full hover:bg-[#178a64] transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0A66C2] text-white text-sm font-medium rounded-full hover:bg-[#084D9A] transition-colors"
         >
           Create your portfolio →
         </a>
