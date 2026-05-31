@@ -209,173 +209,174 @@ PROGRESS_COLOR="#0A66C2"
 HTML_BODY="<!DOCTYPE html>
 <html>
 <head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'></head>
-<body style='margin:0;padding:0;background:#f3f4f6;font-family:system-ui,-apple-system,sans-serif'>
-<div style='max-width:600px;margin:0 auto;padding:24px 16px'>
+<body style='margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif'>
+<table width='100%' cellpadding='0' cellspacing='0' border='0' style='background:#f3f4f6'>
+<tr><td align='center' style='padding:24px 16px'>
+<table width='600' cellpadding='0' cellspacing='0' border='0' style='max-width:600px;width:100%'>
 
   <!-- Header -->
-  <div style='background:#0A66C2;border-radius:12px 12px 0 0;padding:20px 24px;display:flex;align-items:center;gap:12px'>
-    <div style='width:36px;height:36px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0'>
-      <svg width='22' height='22' viewBox='0 0 28 28' fill='none' xmlns='http://www.w3.org/2000/svg'>
-        <circle cx='14' cy='11' r='4.5' fill='%230A66C2'/>
-        <path d='M5 24c0-4.97 4.03-9 9-9s9 4.03 9 9' stroke='%230A66C2' stroke-width='2' stroke-linecap='round'/>
-      </svg>
-    </div>
-    <div>
-      <div style='color:white;font-weight:700;font-size:16px'>liveportfolio.site</div>
-      <div style='color:rgba(255,255,255,0.75);font-size:12px'>${DATE_LABEL} &nbsp;·&nbsp; ${TIMESTAMP}</div>
-    </div>
-    <div style='margin-left:auto;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;background:${APP_STATUS_COLOR};color:white'>
-      ${APP_STATUS_LABEL}
-    </div>
-  </div>
-
-  <!-- Body card -->
-  <div style='background:white;border-radius:0 0 12px 12px;padding:24px;border:1px solid #e5e7eb;border-top:none'>
-
-    <!-- App health row -->
-    <div style='display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap'>
-      <div style='flex:1;min-width:120px;padding:12px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;text-align:center'>
-        <div style='font-size:11px;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px'>Response</div>
-        <div style='font-size:18px;font-weight:700;color:#111827'>${RESPONSE_MS}ms</div>
-      </div>
-      <div style='flex:1;min-width:120px;padding:12px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;text-align:center'>
-        <div style='font-size:11px;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px'>SSL</div>
-        <div style='font-size:18px;font-weight:700;color:#111827'>${SSL_INFO}</div>
-      </div>
-      <div style='flex:1;min-width:120px;padding:12px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;text-align:center'>
-        <div style='font-size:11px;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px'>HTTP</div>
-        <div style='font-size:18px;font-weight:700;color:#111827'>${HTTP_CODE}</div>
-      </div>
-    </div>
-
-    <!-- Monthly goal bar -->
-    <div style='margin-bottom:24px;padding:16px;background:#f0f7ff;border-radius:8px;border:1px solid #bfdbfe'>
-      <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px'>
-        <span style='font-size:13px;font-weight:700;color:#1e40af'>Monthly goal — \$300</span>
-        <span style='font-size:13px;font-weight:700;color:${PROGRESS_COLOR}'>\$${REV_MONTH} / \$300 &nbsp;(${PROGRESS_PCT}%)</span>
-      </div>
-      <div style='height:8px;background:#dbeafe;border-radius:4px;overflow:hidden'>
-        <div style='height:100%;width:${PROGRESS_PCT}%;background:${PROGRESS_COLOR};border-radius:4px;transition:width .3s'></div>
-      </div>
-      <div style='margin-top:8px;font-size:12px;color:#6b7280'>${REV_MO_COUNT} payments this month &nbsp;·&nbsp; target: 16 payments</div>
-    </div>
-
-    <!-- Big metrics grid -->
-    <div style='display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px'>
-
-      <!-- Users -->
-      <div style='padding:16px;border:1px solid #e5e7eb;border-radius:8px'>
-        <div style='font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px'>👥 Signups</div>
-        <div style='font-size:28px;font-weight:800;color:#111827;line-height:1'>${USERS_TOTAL}</div>
-        <div style='font-size:12px;color:#6b7280;margin-top:6px'>
-          +${USERS_TODAY} today &nbsp;·&nbsp; +${USERS_7D} this week &nbsp;·&nbsp; +${USERS_30D} this month
-        </div>
-      </div>
-
-      <!-- Revenue -->
-      <div style='padding:16px;border:1px solid #e5e7eb;border-radius:8px;background:#f0fdf4'>
-        <div style='font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px'>💰 Revenue</div>
-        <div style='font-size:28px;font-weight:800;color:#16a34a;line-height:1'>\$${REV_TOTAL}</div>
-        <div style='font-size:12px;color:#6b7280;margin-top:6px'>
-          ${REV_PAYMENTS} payments &nbsp;·&nbsp; \$${REV_MONTH} this month
-        </div>
-      </div>
-
-      <!-- Published -->
-      <div style='padding:16px;border:1px solid #e5e7eb;border-radius:8px'>
-        <div style='font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px'>🚀 Published</div>
-        <div style='font-size:28px;font-weight:800;color:#111827;line-height:1'>${PUB_TOTAL}</div>
-        <div style='font-size:12px;color:#6b7280;margin-top:6px'>
-          ${CONV_RATE}% conversion &nbsp;·&nbsp; +${PUB_7D} this week
-        </div>
-      </div>
-
-      <!-- Email list -->
-      <div style='padding:16px;border:1px solid #e5e7eb;border-radius:8px'>
-        <div style='font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px'>📧 Email list</div>
-        <div style='font-size:28px;font-weight:800;color:#111827;line-height:1'>${SUBS_TOTAL}</div>
-        <div style='font-size:12px;color:#6b7280;margin-top:6px'>
-          +${SUBS_TODAY} today &nbsp;·&nbsp; +${SUBS_7D} this week
-        </div>
-      </div>
-
-      <!-- Portfolio views -->
-      <div style='padding:16px;border:1px solid #e5e7eb;border-radius:8px'>
-        <div style='font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px'>👁 Portfolio views</div>
-        <div style='font-size:28px;font-weight:800;color:#111827;line-height:1'>${PORT_VIEWS}</div>
-        <div style='font-size:12px;color:#6b7280;margin-top:6px'>
-          across ${PORT_TOTAL} portfolios
-        </div>
-      </div>
-
-      <!-- Avg health score -->
-      <div style='padding:16px;border:1px solid #e5e7eb;border-radius:8px'>
-        <div style='font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px'>❤️ Avg health score</div>
-        <div style='font-size:28px;font-weight:800;color:#111827;line-height:1'>${PORT_HEALTH}<span style='font-size:16px;color:#6b7280'>/100</span></div>
-        <div style='font-size:12px;color:#6b7280;margin-top:6px'>
-          Minimal: ${TPL_MINIMAL} &nbsp;·&nbsp; Bold: ${TPL_BOLD}
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Top viewed portfolios -->
-    <div style='margin-bottom:24px'>
-      <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:8px'>🔥 Top viewed portfolios</div>
-      <table style='width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden'>
-        <thead>
-          <tr style='background:#f9fafb'>
-            <th style='padding:8px 12px;font-size:11px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.5px'>Name</th>
-            <th style='padding:8px 12px;font-size:11px;color:#6b7280;text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:.5px'>Views</th>
-            <th style='padding:8px 12px;font-size:11px;color:#6b7280;text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:.5px'>Template</th>
-          </tr>
-        </thead>
-        <tbody>${TOP_VIEWED_ROWS}</tbody>
+  <tr>
+    <td style='background:#0A66C2;border-radius:12px 12px 0 0;padding:20px 24px'>
+      <table width='100%' cellpadding='0' cellspacing='0' border='0'>
+        <tr>
+          <td width='44' valign='middle'>
+            <table cellpadding='0' cellspacing='0' border='0'>
+              <tr><td style='width:36px;height:36px;background:white;border-radius:8px;text-align:center;vertical-align:middle;font-weight:800;font-size:14px;color:#0A66C2'>LP</td></tr>
+            </table>
+          </td>
+          <td valign='middle' style='padding-left:12px'>
+            <div style='color:white;font-weight:700;font-size:16px;font-family:Arial,sans-serif'>liveportfolio.site</div>
+            <div style='color:#bfdbfe;font-size:12px;font-family:Arial,sans-serif'>${DATE_LABEL} · ${TIMESTAMP}</div>
+          </td>
+          <td align='right' valign='middle'>
+            <span style='background:${APP_STATUS_COLOR};color:white;font-weight:700;font-size:12px;padding:5px 12px;border-radius:12px;font-family:Arial,sans-serif'>${APP_STATUS_LABEL}</span>
+          </td>
+        </tr>
       </table>
-    </div>
+    </td>
+  </tr>
 
-    <!-- Recent signups -->
-    <div style='margin-bottom:24px'>
-      <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:8px'>🆕 Recent signups</div>
-      <table style='width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden'>
-        <thead>
-          <tr style='background:#f9fafb'>
-            <th style='padding:8px 12px;font-size:11px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.5px'>Email</th>
-            <th style='padding:8px 12px;font-size:11px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.5px'>Slug</th>
-            <th style='padding:8px 12px;font-size:11px;color:#6b7280;text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:.5px'>Plan</th>
-            <th style='padding:8px 12px;font-size:11px;color:#6b7280;text-align:right;font-weight:600;text-transform:uppercase;letter-spacing:.5px'>Joined</th>
-          </tr>
-        </thead>
-        <tbody>${RECENT_SIGNUPS_ROWS}</tbody>
+  <!-- Body -->
+  <tr>
+    <td style='background:white;border-radius:0 0 12px 12px;padding:24px;border:1px solid #e5e7eb;border-top:none'>
+
+      <!-- Health stats -->
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:20px'>
+        <tr>
+          <td width='33%' style='padding:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;text-align:center'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif'>Response</div>
+            <div style='font-size:18px;font-weight:700;color:#111827;font-family:Arial,sans-serif'>${RESPONSE_MS}ms</div>
+          </td>
+          <td width='4' style='background:white'></td>
+          <td width='33%' style='padding:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;text-align:center'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif'>SSL</div>
+            <div style='font-size:14px;font-weight:700;color:#111827;font-family:Arial,sans-serif'>${DAYS_LEFT}d left</div>
+          </td>
+          <td width='4' style='background:white'></td>
+          <td width='33%' style='padding:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;text-align:center'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif'>HTTP</div>
+            <div style='font-size:18px;font-weight:700;color:#111827;font-family:Arial,sans-serif'>${HTTP_CODE}</div>
+          </td>
+        </tr>
       </table>
-    </div>
 
-    <!-- Recent payments -->
-    <div style='margin-bottom:24px'>
-      <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:8px'>💳 Recent payments</div>
-      <table style='width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden'>
-        <thead>
-          <tr style='background:#f9fafb'>
-            <th style='padding:8px 12px;font-size:11px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.5px'>Amount</th>
-            <th style='padding:8px 12px;font-size:11px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.5px'>Plan</th>
-            <th style='padding:8px 12px;font-size:11px;color:#6b7280;text-align:right;font-weight:600;text-transform:uppercase;letter-spacing:.5px'>Date</th>
-          </tr>
-        </thead>
-        <tbody>${RECENT_PAYMENTS_ROWS}</tbody>
+      <!-- Monthly goal -->
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:20px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px'>
+        <tr>
+          <td style='padding:14px'>
+            <table width='100%' cellpadding='0' cellspacing='0' border='0'>
+              <tr>
+                <td style='font-size:13px;font-weight:700;color:#1e40af;font-family:Arial,sans-serif'>Monthly goal — \$300</td>
+                <td align='right' style='font-size:13px;font-weight:700;color:${PROGRESS_COLOR};font-family:Arial,sans-serif'>\$${REV_MONTH} / \$300 (${PROGRESS_PCT}%)</td>
+              </tr>
+            </table>
+            <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-top:8px;background:#dbeafe;border-radius:4px;height:8px'>
+              <tr><td width='${PROGRESS_PCT}%' style='background:${PROGRESS_COLOR};height:8px;border-radius:4px;font-size:0'>&nbsp;</td><td></td></tr>
+            </table>
+            <div style='margin-top:6px;font-size:11px;color:#6b7280;font-family:Arial,sans-serif'>${REV_MO_COUNT} payments this month · target: 16 payments</div>
+          </td>
+        </tr>
       </table>
-    </div>
 
-    ${FIX_SECTION}
+      <!-- Metrics grid row 1 -->
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:8px'>
+        <tr>
+          <td width='49%' style='padding:14px;border:1px solid #e5e7eb;border-radius:8px;vertical-align:top'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:6px'>Signups</div>
+            <div style='font-size:28px;font-weight:800;color:#111827;font-family:Arial,sans-serif;line-height:1'>${USERS_TOTAL}</div>
+            <div style='font-size:11px;color:#6b7280;font-family:Arial,sans-serif;margin-top:4px'>+${USERS_TODAY} today · +${USERS_7D} week · +${USERS_30D} month</div>
+          </td>
+          <td width='2%'></td>
+          <td width='49%' style='padding:14px;border:1px solid #e5e7eb;border-radius:8px;background:#f0fdf4;vertical-align:top'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:6px'>Revenue</div>
+            <div style='font-size:28px;font-weight:800;color:#16a34a;font-family:Arial,sans-serif;line-height:1'>\$${REV_TOTAL}</div>
+            <div style='font-size:11px;color:#6b7280;font-family:Arial,sans-serif;margin-top:4px'>${REV_PAYMENTS} payments · \$${REV_MONTH} this month</div>
+          </td>
+        </tr>
+      </table>
 
-    <!-- Footer -->
-    <div style='padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;text-align:center'>
-      Sent daily at 7:00 AM Lagos time &nbsp;·&nbsp;
-      <a href='${APP_URL}' style='color:#0A66C2;text-decoration:none'>liveportfolio.site</a> &nbsp;·&nbsp;
-      <a href='${APP_URL}/dashboard' style='color:#0A66C2;text-decoration:none'>Dashboard</a>
-    </div>
+      <!-- Metrics grid row 2 -->
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:8px'>
+        <tr>
+          <td width='49%' style='padding:14px;border:1px solid #e5e7eb;border-radius:8px;vertical-align:top'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:6px'>Published</div>
+            <div style='font-size:28px;font-weight:800;color:#111827;font-family:Arial,sans-serif;line-height:1'>${PUB_TOTAL}</div>
+            <div style='font-size:11px;color:#6b7280;font-family:Arial,sans-serif;margin-top:4px'>${CONV_RATE}% conversion · +${PUB_7D} this week</div>
+          </td>
+          <td width='2%'></td>
+          <td width='49%' style='padding:14px;border:1px solid #e5e7eb;border-radius:8px;vertical-align:top'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:6px'>Email list</div>
+            <div style='font-size:28px;font-weight:800;color:#111827;font-family:Arial,sans-serif;line-height:1'>${SUBS_TOTAL}</div>
+            <div style='font-size:11px;color:#6b7280;font-family:Arial,sans-serif;margin-top:4px'>+${SUBS_TODAY} today · +${SUBS_7D} this week</div>
+          </td>
+        </tr>
+      </table>
 
-  </div>
-</div>
+      <!-- Metrics grid row 3 -->
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:20px'>
+        <tr>
+          <td width='49%' style='padding:14px;border:1px solid #e5e7eb;border-radius:8px;vertical-align:top'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:6px'>Portfolio views</div>
+            <div style='font-size:28px;font-weight:800;color:#111827;font-family:Arial,sans-serif;line-height:1'>${PORT_VIEWS}</div>
+            <div style='font-size:11px;color:#6b7280;font-family:Arial,sans-serif;margin-top:4px'>across ${PORT_TOTAL} portfolios</div>
+          </td>
+          <td width='2%'></td>
+          <td width='49%' style='padding:14px;border:1px solid #e5e7eb;border-radius:8px;vertical-align:top'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:6px'>Avg health score</div>
+            <div style='font-size:28px;font-weight:800;color:#111827;font-family:Arial,sans-serif;line-height:1'>${PORT_HEALTH}<span style='font-size:14px;color:#6b7280'>/100</span></div>
+            <div style='font-size:11px;color:#6b7280;font-family:Arial,sans-serif;margin-top:4px'>Minimal: ${TPL_MINIMAL} · Bold: ${TPL_BOLD}</div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Top viewed -->
+      <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;font-family:Arial,sans-serif'>Top viewed portfolios</div>
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px'>
+        <tr style='background:#f9fafb'>
+          <th style='padding:8px 12px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Name</th>
+          <th style='padding:8px 12px;font-size:10px;color:#6b7280;text-align:center;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Views</th>
+          <th style='padding:8px 12px;font-size:10px;color:#6b7280;text-align:center;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Template</th>
+        </tr>
+        ${TOP_VIEWED_ROWS}
+      </table>
+
+      <!-- Recent signups -->
+      <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;font-family:Arial,sans-serif'>Recent signups</div>
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px'>
+        <tr style='background:#f9fafb'>
+          <th style='padding:8px 12px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Email</th>
+          <th style='padding:8px 12px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Slug</th>
+          <th style='padding:8px 12px;font-size:10px;color:#6b7280;text-align:center;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Plan</th>
+          <th style='padding:8px 12px;font-size:10px;color:#6b7280;text-align:right;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Joined</th>
+        </tr>
+        ${RECENT_SIGNUPS_ROWS}
+      </table>
+
+      <!-- Recent payments -->
+      <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;font-family:Arial,sans-serif'>Recent payments</div>
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px'>
+        <tr style='background:#f9fafb'>
+          <th style='padding:8px 12px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Amount</th>
+          <th style='padding:8px 12px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Plan</th>
+          <th style='padding:8px 12px;font-size:10px;color:#6b7280;text-align:right;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Date</th>
+        </tr>
+        ${RECENT_PAYMENTS_ROWS}
+      </table>
+
+      ${FIX_SECTION}
+
+      <!-- Footer -->
+      <div style='padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;text-align:center;font-family:Arial,sans-serif'>
+        Sent daily at 7:00 AM Lagos time &nbsp;·&nbsp;
+        <a href='${APP_URL}' style='color:#0A66C2;text-decoration:none'>liveportfolio.site</a> &nbsp;·&nbsp;
+        <a href='${APP_URL}/dashboard' style='color:#0A66C2;text-decoration:none'>Dashboard</a>
+      </div>
+
+    </td>
+  </tr>
+</table>
+</td></tr>
+</table>
 </body></html>"
 
 # ── 8. Send via Resend ────────────────────────────────────────────────────────
