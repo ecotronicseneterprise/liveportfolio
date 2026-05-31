@@ -26,12 +26,11 @@ const css = `
 
   /* Header */
   .nt-header {
-    padding: 32px 40px 20px;
+    padding: 32px 6vw 20px;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    max-width: 1100px;
-    margin: 0 auto;
+    width: 100%;
     border-bottom: 1px solid var(--border);
   }
   .nt-name {
@@ -83,9 +82,9 @@ const css = `
 
   /* Hero */
   .nt-hero {
-    max-width: 1100px;
-    margin: 56px auto 0;
-    padding: 0 40px;
+    width: 100%;
+    margin: 56px 0 0;
+    padding: 0 6vw;
     display: grid;
     grid-template-columns: 1.4fr 1fr;
     gap: 60px;
@@ -137,9 +136,9 @@ const css = `
 
   /* Section */
   .nt-section {
-    max-width: 1100px;
-    margin: 72px auto 0;
-    padding: 0 40px;
+    width: 100%;
+    margin: 72px 0 0;
+    padding: 0 6vw;
   }
   .nt-section-header {
     display: flex;
@@ -304,9 +303,9 @@ const css = `
 
   /* Contact */
   .nt-contact {
-    max-width: 1100px;
-    margin: 72px auto 0;
-    padding: 40px 40px;
+    width: 100%;
+    margin: 72px 0 0;
+    padding: 40px 6vw;
     border-top: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
@@ -345,9 +344,9 @@ const css = `
 
   /* Footer */
   .nt-footer {
-    max-width: 1100px;
-    margin: 0 auto 40px;
-    padding: 20px 40px 0;
+    width: 100%;
+    margin: 0 0 40px;
+    padding: 20px 6vw 0;
     border-top: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
@@ -359,18 +358,18 @@ const css = `
 
   /* Mobile */
   @media (max-width: 700px) {
-    .nt-header { flex-direction: column; gap: 16px; padding: 20px 20px 16px; }
+    .nt-header { flex-direction: column; gap: 16px; padding: 20px 5vw 16px; }
     .nt-header-right { text-align: left; }
     .nt-nav { justify-content: flex-start; }
-    .nt-hero { grid-template-columns: 1fr; padding: 0 20px; gap: 32px; margin-top: 36px; }
+    .nt-hero { grid-template-columns: 1fr; padding: 0 5vw; gap: 32px; margin-top: 36px; }
     .nt-projects-grid { grid-template-columns: 1fr; }
     .nt-project-card.nt-featured { grid-column: 1; }
-    .nt-section { padding: 0 20px; }
+    .nt-section { padding: 0 5vw; }
     .nt-skills-grid { grid-template-columns: 1fr 1fr; }
-    .nt-contact { flex-direction: column; padding: 32px 20px; }
+    .nt-contact { flex-direction: column; padding: 32px 5vw; }
     .nt-contact-links { align-items: flex-start; }
     .nt-exp-item { grid-template-columns: 1fr; gap: 6px; }
-    .nt-footer { flex-direction: column; gap: 4px; padding: 16px 20px 0; }
+    .nt-footer { flex-direction: column; gap: 4px; padding: 16px 5vw 0; }
   }
 `
 

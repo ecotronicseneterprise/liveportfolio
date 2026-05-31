@@ -111,10 +111,10 @@ export default function Bold({ content }: { content: PortfolioContent }) {
         )}
       </div>
 
-      <div className="lg:flex lg:min-h-screen max-w-[900px] mx-auto">
+      <div className="lg:flex lg:min-h-screen w-full">
 
         {/* Sidebar */}
-        <aside className="hidden lg:flex lg:flex-col lg:w-[280px] lg:flex-shrink-0 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto px-8 py-12 border-r border-[#1C2128]">
+        <aside className="hidden lg:flex lg:flex-col lg:w-[320px] lg:flex-shrink-0 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto px-8 py-12 border-r border-[#1C2128]">
           {content.avatar_url && (
             <div className="mb-6">
               <Image
@@ -207,7 +207,7 @@ export default function Bold({ content }: { content: PortfolioContent }) {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 px-6 lg:px-12 py-8 lg:py-12">
+        <main className="flex-1 px-6 lg:px-16 xl:px-24 py-8 lg:py-16">
 
           {/* Hero */}
           <div className="mb-16">

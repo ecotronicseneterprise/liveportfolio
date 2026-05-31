@@ -79,38 +79,25 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
     >
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-        <div className="max-w-[680px] mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="w-full px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-between">
           <span className="text-sm font-medium text-gray-400 tracking-wide">
-            {content.name.split(' ')[0].toLowerCase()}.liveportfolio.site
+            {content.name.toLowerCase().replace(/\s+/g, '')}.liveportfolio.site
           </span>
           <div className="hidden sm:flex items-center gap-6">
             {navLinks.map((link) => (
-              <a
-                key={link}
-                href={`#${link.toLowerCase()}`}
-                className="text-sm text-gray-500 hover:text-[#0A0A0A] transition-colors"
-              >
+              <a key={link} href={`#${link.toLowerCase()}`} className="text-sm text-gray-500 hover:text-[#0A0A0A] transition-colors">
                 {link}
               </a>
             ))}
           </div>
-          <button
-            className="sm:hidden p-1 text-gray-500"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
+          <button className="sm:hidden p-1 text-gray-500" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle menu">
             <span className="text-lg">{mobileMenuOpen ? '✕' : '☰'}</span>
           </button>
         </div>
         {mobileMenuOpen && (
           <div className="sm:hidden border-t border-gray-100 px-6 py-3 space-y-1 bg-white">
             {navLinks.map((link) => (
-              <a
-                key={link}
-                href={`#${link.toLowerCase()}`}
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-sm text-gray-600 hover:text-[#0A66C2] transition-colors"
-              >
+              <a key={link} href={`#${link.toLowerCase()}`} onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm text-gray-600 hover:text-[#0A66C2] transition-colors">
                 {link}
               </a>
             ))}
@@ -118,203 +105,110 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
         )}
       </nav>
 
-      <main className="max-w-[680px] mx-auto px-6">
+      <main className="w-full">
 
-        {/* Hero */}
-        <section className="pt-20 pb-16 border-b border-gray-100">
-          <div className="flex items-start gap-6 mb-8">
-            {content.avatar_url && (
-              <div className="flex-shrink-0">
-                <Image
-                  src={content.avatar_url}
-                  alt={content.name}
-                  width={80}
-                  height={80}
-                  className="rounded-full object-cover object-top"
-                />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <h1
-                className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight break-words"
-                style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
-              >
+        {/* Hero — full width, two-column on desktop */}
+        <section className="w-full border-b border-gray-100">
+          <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+            <div>
+              {content.avatar_url && (
+                <Image src={content.avatar_url} alt={content.name} width={80} height={80} className="rounded-full object-cover object-top mb-6" />
+              )}
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.0] break-words mb-4" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
                 {content.name}
               </h1>
-              <div className="w-8 h-0.5 bg-[#0A66C2] my-3" />
-              <p className="text-lg text-gray-500">{content.role}</p>
+              <div className="w-8 h-0.5 bg-[#0A66C2] my-4" />
+              <p className="text-xl text-gray-500 mb-6">{content.role}</p>
+              <div className="flex flex-wrap items-center gap-4">
+                <a href={`mailto:${content.email}`} className="text-sm text-[#0A66C2] hover:underline font-medium">{content.email}</a>
+                {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#0A66C2] hover:underline font-medium">GitHub →</a>}
+                {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#0A66C2] hover:underline font-medium">LinkedIn →</a>}
+                {content.location && <span className="text-sm text-gray-400">{content.location}</span>}
+              </div>
             </div>
-          </div>
-
-          <p className="text-xl leading-relaxed text-[#0A0A0A] max-w-prose">
-            {content.headline}
-          </p>
-
-          <div className="flex flex-wrap items-center gap-4 mt-6">
-            <a href={`mailto:${content.email}`} className="text-sm text-[#0A66C2] hover:underline font-medium">
-              {content.email}
-            </a>
-            {content.github_url && (
-              <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#0A66C2] hover:underline font-medium">
-                GitHub →
-              </a>
-            )}
-            {content.linkedin_url && (
-              <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#0A66C2] hover:underline font-medium">
-                LinkedIn →
-              </a>
-            )}
-            {content.location && (
-              <span className="text-sm text-gray-400">{content.location}</span>
-            )}
-          </div>
-        </section>
-
-        {/* About */}
-        <section id="about" className={`py-16 border-b border-gray-100 ${fadeIn('about')}`}>
-          <div className="sm:grid sm:grid-cols-[120px_1fr] sm:gap-12">
-            <div className="mb-4 sm:mb-0">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">About</span>
-            </div>
-            <div>
-              {content.about.split('\n\n').map((para, i) => (
-                <p key={i} className="text-base leading-relaxed text-gray-700 mb-4 last:mb-0">
-                  {para}
-                </p>
-              ))}
+            <div className="flex flex-col gap-8">
+              <p className="text-xl sm:text-2xl leading-relaxed text-[#0A0A0A]" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+                {content.headline}
+              </p>
+              {content.about && (
+                <div>
+                  {content.about.split('\n\n').map((para, i) => (
+                    <p key={i} className="text-base leading-relaxed text-gray-600 mb-4 last:mb-0">{para}</p>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>
 
-        {/* Skills — hidden if no skills data */}
+        {/* Skills */}
         {(content.skills.length > 0 || content.skills_grouped.length > 0) && (
-          <section id="skills" className={`py-16 border-b border-gray-100 ${fadeIn('skills')}`}>
-            <div className="sm:grid sm:grid-cols-[120px_1fr] sm:gap-12">
-              <div className="mb-4 sm:mb-0">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Skills</span>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 mb-6 italic">{content.skills_narrative}</p>
-                {content.skills_grouped.length > 0 ? (
-                  <div className="space-y-5">
-                    {content.skills_grouped.map((group, i) => (
-                      <div key={i}>
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                          {group.category}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {group.items.map((skill) => (
-                            <span
-                              key={skill}
-                              className="px-3 py-1 text-sm bg-gray-50 border border-gray-200 rounded-full text-gray-700 hover:border-[#0A66C2] hover:text-[#0A66C2] hover:scale-105 transition-all"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
+          <section id="skills" className={`w-full border-b border-gray-100 ${fadeIn('skills')}`}>
+            <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-8">Skills</p>
+              {content.skills_grouped.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 border border-gray-100 rounded-2xl overflow-hidden">
+                  {content.skills_grouped.map((group, i) => (
+                    <div key={i} className={`p-6 ${i < content.skills_grouped.length - 1 ? 'border-b sm:border-b-0 sm:border-r border-gray-100' : ''}`}>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">{group.category}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {group.items.map((skill) => (
+                          <span key={skill} className="px-2.5 py-1 text-xs bg-gray-50 border border-gray-200 rounded-full text-gray-700">{skill}</span>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {content.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="px-3 py-1 text-sm bg-gray-50 border border-gray-200 rounded-full text-gray-700 hover:border-[#0A66C2] hover:text-[#0A66C2] hover:scale-105 transition-all"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {content.skills.map((skill) => (
+                    <span key={skill} className="px-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-full text-gray-700 hover:border-[#0A66C2] hover:text-[#0A66C2] transition-all">{skill}</span>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         )}
 
-        {/* Projects — hidden if no projects */}
+        {/* Projects */}
         {content.projects.length > 0 && (
-          <section id="projects" className={`py-16 border-b border-gray-100 ${fadeIn('projects')}`}>
-            <div className="sm:grid sm:grid-cols-[120px_1fr] sm:gap-12">
-              <div className="mb-6 sm:mb-0">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Projects</span>
-              </div>
-              <div className="space-y-6">
+          <section id="projects" className={`w-full border-b border-gray-100 ${fadeIn('projects')}`}>
+            <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-8">Projects</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {content.projects.map((project, i) => (
                   <div
                     key={i}
-                    className="border border-gray-100 rounded-xl overflow-hidden hover:border-[#0A66C2] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                    className="border border-gray-100 rounded-2xl overflow-hidden hover:border-[#0A66C2] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                     onClick={() => setExpandedProject(expandedProject === i ? null : i)}
                   >
                     {project.image_url && (
                       <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
-                        <Image
-                          src={project.image_url}
-                          alt={project.title}
-                          width={640}
-                          height={360}
-                          className="w-full h-full object-cover"
-                        />
+                        <Image src={project.image_url} alt={project.title} width={640} height={360} className="w-full h-full object-cover" />
                       </div>
                     )}
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3
-                            className="text-lg font-semibold text-[#0A0A0A] mb-1"
-                            style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
-                          >
-                            {project.title}
-                          </h3>
-                          {project.stack.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5">
-                              {project.stack.slice(0, 5).map((tech) => (
-                                <span key={tech} className="text-xs px-2 py-0.5 bg-gray-50 text-gray-500 rounded border border-gray-100">
-                                  {tech}
-                                </span>
-                              ))}
-                              {project.stack.length > 5 && (
-                                <span className="text-xs px-2 py-0.5 text-gray-400">
-                                  +{project.stack.length - 5} more
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                        <h3 className="text-lg font-semibold text-[#0A0A0A] flex-1" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>{project.title}</h3>
                         <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                           {project.url && (
-                            <a
-                              href={project.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-xs text-[#0A66C2] hover:underline"
-                            >
-                              View →
-                            </a>
+                            <a href={project.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-xs text-[#0A66C2] hover:underline">View →</a>
                           )}
                           <span className="text-gray-300 text-xs">{expandedProject === i ? '▲' : '▼'}</span>
                         </div>
                       </div>
-
-                      {project.outcome && (
-                        <p className="text-sm text-gray-600 leading-relaxed">{project.outcome}</p>
+                      {project.stack.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          {project.stack.slice(0, 4).map((tech) => (
+                            <span key={tech} className="text-xs px-2 py-0.5 bg-gray-50 text-gray-500 rounded border border-gray-100">{tech}</span>
+                          ))}
+                        </div>
                       )}
-
+                      {project.outcome && <p className="text-sm text-gray-600 leading-relaxed">{project.outcome}</p>}
                       {expandedProject === i && (project.problem || project.solution) && (
                         <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
-                          {project.problem && (
-                            <div>
-                              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">The Problem</span>
-                              <p className="text-sm text-gray-600 mt-1 leading-relaxed">{project.problem}</p>
-                            </div>
-                          )}
-                          {project.solution && (
-                            <div>
-                              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">The Solution</span>
-                              <p className="text-sm text-gray-600 mt-1 leading-relaxed">{project.solution}</p>
-                            </div>
-                          )}
+                          {project.problem && <div><span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">The Problem</span><p className="text-sm text-gray-600 mt-1 leading-relaxed">{project.problem}</p></div>}
+                          {project.solution && <div><span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">The Solution</span><p className="text-sm text-gray-600 mt-1 leading-relaxed">{project.solution}</p></div>}
                         </div>
                       )}
                     </div>
@@ -325,27 +219,23 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
           </section>
         )}
 
-        {/* Experience — hidden if empty */}
+        {/* Experience */}
         {content.experience && content.experience.length > 0 && (
-          <section id="experience" className={`py-16 border-b border-gray-100 ${fadeIn('experience')}`}>
-            <div className="sm:grid sm:grid-cols-[120px_1fr] sm:gap-12">
-              <div className="mb-6 sm:mb-0">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Experience</span>
-              </div>
-              <div className="space-y-8">
+          <section id="experience" className={`w-full border-b border-gray-100 ${fadeIn('experience')}`}>
+            <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-8">Experience</p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {content.experience.map((exp, i) => (
-                  <div key={i} className="relative pl-4 border-l-2 border-gray-100">
-                    <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-[#0A66C2]" />
-                    <div className="mb-1">
-                      <h3 className="font-semibold text-[#0A0A0A]">{exp.role}</h3>
-                      <span className="text-gray-400 text-sm">{exp.company}</span>
-                    </div>
-                    <p className="text-xs text-gray-400 mb-3">{exp.period}</p>
+                  <div key={i} className="relative pl-5 border-l-2 border-gray-100">
+                    <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-[#0A66C2]" />
+                    <h3 className="font-semibold text-[#0A0A0A] text-base">{exp.role}</h3>
+                    <p className="text-[#0A66C2] text-sm font-medium mt-0.5">{exp.company}</p>
+                    <p className="text-xs text-gray-400 mt-1 mb-3">{exp.period}</p>
                     {exp.bullets.length > 0 && (
                       <ul className="space-y-1.5">
                         {exp.bullets.map((bullet, j) => (
                           <li key={j} className="text-sm text-gray-600 leading-relaxed flex gap-2">
-                            <span className="text-[#0A66C2] mt-1 flex-shrink-0">•</span>
+                            <span className="text-[#0A66C2] flex-shrink-0">•</span>
                             <span>{bullet}</span>
                           </li>
                         ))}
@@ -359,33 +249,30 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
         )}
 
         {/* Contact */}
-        <section id="contact" className={`py-16 border-b border-gray-100 ${fadeIn('contact')}`}>
-          <div className="sm:grid sm:grid-cols-[120px_1fr] sm:gap-12">
-            <div className="mb-4 sm:mb-0">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Contact</span>
-            </div>
+        <section id="contact" className={`w-full ${fadeIn('contact')}`}>
+          <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div>
-              <p className="text-gray-600 mb-4 text-sm leading-relaxed">
-                Open to new opportunities and interesting conversations.
-              </p>
-              <a
-                href={`mailto:${content.email}`}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#0A0A0A] text-white text-sm font-medium rounded-full hover:bg-[#0A66C2] hover:gap-3 transition-all duration-200"
-              >
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Contact</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] leading-tight mb-6" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+                Let&apos;s work together.
+              </h2>
+              <a href={`mailto:${content.email}`} className="inline-flex items-center gap-2 px-6 py-3 bg-[#0A0A0A] text-white text-sm font-medium rounded-full hover:bg-[#0A66C2] hover:gap-3 transition-all duration-200">
                 Get in touch →
               </a>
+            </div>
+            <div className="flex flex-col gap-3">
+              <a href={`mailto:${content.email}`} className="text-sm text-gray-600 hover:text-[#0A66C2] transition-colors">{content.email}</a>
+              {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-[#0A66C2] transition-colors">GitHub</a>}
+              {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-[#0A66C2] transition-colors">LinkedIn</a>}
+              {content.location && <p className="text-sm text-gray-400">{content.location}</p>}
             </div>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="py-8 text-center">
-          <a
-            href="https://liveportfolio.site"
-            className="text-xs text-gray-300 hover:text-[#0A66C2] transition-colors"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+        <footer className="w-full border-t border-gray-100 px-6 sm:px-10 lg:px-16 py-6 flex items-center justify-between">
+          <span className="text-xs text-gray-300">{content.name}</span>
+          <a href="https://liveportfolio.site" className="text-xs text-gray-300 hover:text-[#0A66C2] transition-colors" target="_blank" rel="noopener noreferrer">
             Built with liveportfolio.site
           </a>
         </footer>

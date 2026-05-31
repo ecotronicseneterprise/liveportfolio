@@ -116,7 +116,7 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'creative
     content: {
       name: 'Ezekwe Nwanna',
       role: 'AI/ML Engineer · Electronics Engineer',
-      headline: 'I design and deploy AI systems that solve real operational problems — from banking intelligence platforms and AI agents to embedded IoT products and production SaaS.',
+      headline: 'I design and deploy AI systems that solve real operational problems. From banking intelligence platforms, AI agents, embedded IoT products, and production SaaS.',
       about: 'AI systems engineer with a background in electronics and a track record of shipping production systems across banking, fintech, and IoT. Currently at Wema Bank building ML pipelines and conversational AI platforms on Azure.\n\nI care about systems that actually run in production — not demos. Every project here has real users, real revenue, or real operational impact.',
       location: 'Lagos, Nigeria · Available Remote · USD/EUR',
       email: 'nwannachumaclifford@gmail.com',
@@ -157,12 +157,20 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'creative
           url: 'https://liveportfolio.site',
         },
         {
-          title: 'Data Knight V2 — NL→SQL Analytics',
+          title: 'Data Knight V2 — NL to SQL Analytics',
           problem: 'Business analysts spending 4+ hours daily writing SQL reports on Azure Synapse.',
-          solution: 'Governed natural language to SQL platform using Semantic Firewall Architecture — intent classification routes queries to pre-approved templates. 39/39 agent tests passing.',
+          solution: 'Governed natural language to SQL platform using Semantic Firewall Architecture. Intent classification routes queries to pre-approved templates. 39/39 agent tests passing.',
           outcome: 'Report turnaround reduced from 4 hours to under 2 minutes for 200+ users.',
           stack: ['FastAPI', 'Azure OpenAI', 'Azure Synapse', 'Chart.js'],
           url: '',
+        },
+        {
+          title: 'Finance Intelligence System',
+          problem: 'People upload bank statements to spreadsheets and still have no idea where their money is going.',
+          solution: 'GPT-powered Streamlit app with a strict separation between a deterministic statistical pipeline and LLM narration. Upload a CSV, get instant category breakdowns, trend analysis, and a finance assistant that only narrates real numbers — never invents them. Full responsible AI governance layer including prompt injection detection, rate limiting, and audit logging.',
+          outcome: '100 tests passing. Live on Hugging Face Spaces. MIT open source.',
+          stack: ['Python', 'Streamlit', 'OpenAI GPT-4o-mini', 'Pandas', 'Plotly'],
+          url: 'https://huggingface.co/spaces/cliffordnwanna/finance-intelligence',
         },
       ],
       experience: [
