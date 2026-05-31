@@ -17,6 +17,6 @@ echo "Installing production dependencies (omit dev)..."
 npm ci --omit=dev
 
 echo "Reloading PM2..."
-pm2 reload liveportfolio || pm2 start ecosystem.config.js --env production
+pm2 startOrReload ecosystem.config.js --env production --update-env
 
 echo "Done. App is live at https://liveportfolio.site"
