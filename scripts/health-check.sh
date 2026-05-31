@@ -3,7 +3,7 @@
 # Sends a rich HTML email with all key metrics via Resend
 # Runs daily at 6:00 AM UTC (7:00 AM Lagos time) via cron
 
-set -euo pipefail
+set +e
 
 APP_URL="https://liveportfolio.site"
 HEALTH_URL="${APP_URL}/api/health"
