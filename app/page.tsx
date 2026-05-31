@@ -2,9 +2,10 @@ import Link from 'next/link'
 import Logo from '@/components/Logo'
 
 const EXAMPLE_PORTFOLIOS = [
-  { name: 'Amara Osei', role: 'Frontend Developer', slug: 'amara' },
-  { name: 'Benedicta Kamau', role: 'Social Media Manager & Content Strategist', slug: 'benedicta' },
-  { name: 'Chukwuemeka Adeyemi', role: 'Senior Data Scientist & ML Engineer', slug: 'emeka' },
+  { name: 'Amara Osei', role: 'Frontend Developer', slug: 'amara', template: 'Minimal' },
+  { name: 'Benedicta Kamau', role: 'Social Media Manager', slug: 'benedicta', template: 'Minimal' },
+  { name: 'Chukwuemeka Adeyemi', role: 'Senior Data Scientist & ML Engineer', slug: 'emeka', template: 'Bold' },
+  { name: 'Ezekwe Nwanna', role: 'AI/ML Engineer · Electronics Engineer', slug: 'ezekwe', template: 'Neutral' },
 ]
 
 const FAQ_ITEMS = [
@@ -67,54 +68,64 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="max-w-4xl mx-auto px-5 pt-12 pb-12 sm:pt-20 sm:pb-20 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-full text-xs sm:text-sm text-[#0A66C2] font-medium mb-6 sm:mb-8 max-w-xs sm:max-w-none text-center">
-          <span className="w-2 h-2 bg-[#0A66C2] rounded-full animate-pulse flex-shrink-0" />
-          <span>Built for professionals, freelancers, and job seekers.</span>
-        </div>
+      {/* Hero — full width, immersive */}
+      <section className="px-5 sm:px-10 pt-12 pb-0 sm:pt-20 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto">
 
-        <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#0A0A0A] mb-5 sm:mb-6 leading-tight">
-          Turn your experience into a portfolio recruiters can actually read and trust.
-        </h1>
-
-        <p className="text-base sm:text-xl text-gray-500 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed">
-          Build a clean, professional portfolio in minutes.
-          No writing skills. No design. No subscription.
-        </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link
-            href="/create"
-            className="w-full sm:w-auto px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20"
-          >
-            Create My Portfolio
-          </Link>
-          <span className="text-sm text-gray-400">One-time payment. Yours forever.</span>
-        </div>
-
-        {/* Example portfolios — horizontal scroll on mobile, 3-col grid on desktop */}
-        <div className="mt-10 sm:mt-14 -mx-5 sm:mx-0 px-5 sm:px-0 flex gap-3 overflow-x-auto pb-2 sm:pb-0 snap-x snap-mandatory sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible text-left">
-          {EXAMPLE_PORTFOLIOS.map((p) => (
-            <a
-              key={p.slug}
-              href={`/${p.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group min-w-[240px] sm:min-w-0 flex-shrink-0 snap-start border border-gray-100 rounded-2xl p-4 sm:p-5 hover:border-[#0A66C2] hover:shadow-sm transition-all"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#0A66C2] to-[#084D9A] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                  {p.name.charAt(0)}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{p.name}</p>
-                  <p className="text-xs text-gray-400 truncate">{p.role}</p>
-                </div>
+          {/* Top row: headline left, CTA right */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-16 items-end pb-12 sm:pb-16">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-full text-xs text-[#0A66C2] font-medium mb-6">
+                <span className="w-2 h-2 bg-[#0A66C2] rounded-full animate-pulse flex-shrink-0" />
+                <span>Built for professionals, freelancers, and job seekers.</span>
               </div>
-              <p className="text-xs text-[#0A66C2] group-hover:underline truncate">View example →</p>
-            </a>
-          ))}
+              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#0A0A0A] leading-tight">
+                Turn your experience into a portfolio recruiters can actually read and trust.
+              </h1>
+            </div>
+            <div className="flex flex-col gap-4 sm:items-end">
+              <p className="text-base sm:text-lg text-gray-500 sm:text-right leading-relaxed max-w-sm">
+                Build a clean, professional portfolio in minutes. No writing skills. No design. No subscription.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/create"
+                  className="px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20 text-center"
+                >
+                  Create My Portfolio
+                </Link>
+                <span className="text-sm text-gray-400 self-center">One-time payment.</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Example portfolios — full bleed grid, no gap at bottom so they bleed into next section */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-gray-100">
+            {EXAMPLE_PORTFOLIOS.map((p, i) => (
+              <a
+                key={p.slug}
+                href={`/${p.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`group p-5 sm:p-6 hover:bg-gray-50 transition-colors ${i < 3 ? 'border-r border-gray-100' : ''}`}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0A66C2] to-[#084D9A] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    {p.name.charAt(0)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{p.name}</p>
+                    <p className="text-xs text-gray-400 truncate">{p.role}</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] px-2 py-0.5 bg-gray-50 border border-gray-100 rounded-full text-gray-400 font-medium">{p.template}</span>
+                  <span className="text-xs text-[#0A66C2] group-hover:underline font-medium">View →</span>
+                </div>
+              </a>
+            ))}
+          </div>
+
         </div>
       </section>
 

@@ -27,6 +27,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [checking, setChecking] = useState(true)
+  const [resetMode, setResetMode] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
 
   // If already logged in, redirect immediately
   useEffect(() => {
@@ -70,6 +73,21 @@ export default function LoginPage() {
     router.push('/dashboard')
   }
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setResetLoading(true)
+    setError('')
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (error) {
+      setError(error.message)
+    } else {
+      setResetSent(true)
+    }
+    setResetLoading(false)
+  }
+
   if (checking) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -87,8 +105,12 @@ export default function LoginPage() {
         </div>
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h1>
-          <p className="text-gray-500 text-sm">Sign in to view and manage your portfolio.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">
+            {resetMode ? 'Reset your password' : 'Welcome back'}
+          </h1>
+          <p className="text-gray-500 text-sm">
+            {resetMode ? "We'll send a reset link to your email." : 'Sign in to view and manage your portfolio.'}
+          </p>
         </div>
 
         {error && (
@@ -97,41 +119,81 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              autoFocus
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
-            />
+        {resetSent ? (
+          <div className="p-5 bg-green-50 border border-green-100 rounded-2xl text-center">
+            <p className="text-sm font-semibold text-green-700 mb-1">Check your email</p>
+            <p className="text-sm text-green-600">We sent a reset link to <strong>{email}</strong>. Click it to set a new password.</p>
+            <button onClick={() => { setResetMode(false); setResetSent(false) }} className="mt-4 text-sm text-[#0A66C2] hover:underline">
+              Back to sign in
+            </button>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Your password"
-              required
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Signing in…' : 'Sign in →'}
-          </button>
-        </form>
+        ) : resetMode ? (
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                autoFocus
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={resetLoading}
+              className="w-full py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors disabled:opacity-50"
+            >
+              {resetLoading ? 'Sending…' : 'Send reset link →'}
+            </button>
+            <button type="button" onClick={() => setResetMode(false)} className="w-full text-sm text-gray-400 hover:text-gray-600 text-center">
+              ← Back to sign in
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                autoFocus
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+              />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <button type="button" onClick={() => setResetMode(true)} className="text-xs text-[#0A66C2] hover:underline">
+                  Forgot password?
+                </button>
+              </div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Your password"
+                required
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Signing in…' : 'Sign in →'}
+            </button>
+          </form>
+        )}
 
         <p className="mt-6 text-center text-sm text-gray-400">
-          Don't have a portfolio yet?{' '}
+          Don&apos;t have a portfolio yet?{' '}
           <a href="/create" className="text-[#0A66C2] hover:underline font-medium">
             Build yours in 5 minutes →
           </a>

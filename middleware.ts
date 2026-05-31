@@ -41,6 +41,7 @@ export function middleware(req: NextRequest) {
         'portfolio',
         'preview',
         'privacy',
+        'reset-password',
         'terms',
         'test-templates',
         '_next',

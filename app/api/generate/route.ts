@@ -89,7 +89,7 @@ function parseInput(body: Partial<InputData>) {
       period: stripHtml(e.period || '').slice(0, 40),
       bullets: (e.bullets || []).slice(0, 4).map((b) => stripHtml(b).slice(0, 200)),
     })),
-    template: body.template === 'bold' ? 'bold' : 'minimal',
+    template: body.template === 'bold' ? 'bold' : body.template === 'neutral' ? 'neutral' : 'minimal',
   }
 }
 

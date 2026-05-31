@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
 import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
+import Neutral from '@/components/templates/Neutral'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import Logo from '@/components/Logo'
 
@@ -270,7 +271,7 @@ export default function PreviewPage() {
   }
 
   const [content, setContent] = useState<PortfolioContent | null>(null)
-  const [template, setTemplate] = useState<'minimal' | 'bold'>('minimal')
+  const [template, setTemplate] = useState<'minimal' | 'bold' | 'neutral'>('minimal')
   const [portfolioUserId, setPortfolioUserId] = useState<string>('')
   const [userEmail, setUserEmail] = useState<string>('')
   const [loading, setLoading] = useState(true)
@@ -325,7 +326,7 @@ export default function PreviewPage() {
     }
 
     setContent(portfolio.content as PortfolioContent)
-    setTemplate((portfolio.template as 'minimal' | 'bold') || 'minimal')
+    setTemplate((portfolio.template as 'minimal' | 'bold' | 'neutral') || 'minimal')
     setPortfolioUserId(portfolio.user_id)
 
     // Check if paid + get email for Paystack
@@ -367,7 +368,7 @@ export default function PreviewPage() {
     return () => { supabase.removeChannel(channel) }
   }, [portfolioUserId])
 
-  const switchTemplate = async (t: 'minimal' | 'bold') => {
+  const switchTemplate = async (t: 'minimal' | 'bold' | 'neutral') => {
     setTemplate(t)
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
@@ -455,7 +456,7 @@ export default function PreviewPage() {
 
   const { score, items } = calculateHealth(content)
   const missing = items.filter((i) => !i.earned)
-  const Template = template === 'bold' ? Bold : Minimal
+  const Template = template === 'bold' ? Bold : template === 'neutral' ? Neutral : Minimal
 
   return (
     <div className="relative">
@@ -475,7 +476,7 @@ export default function PreviewPage() {
             <span className="text-sm font-semibold text-gray-500">Preview</span>
             {/* Template switcher */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
-              {(['minimal', 'bold'] as const).map((t) => (
+              {(['minimal', 'bold', 'neutral'] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => switchTemplate(t)}

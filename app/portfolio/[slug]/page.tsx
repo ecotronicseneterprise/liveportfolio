@@ -3,12 +3,13 @@ import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
+import Neutral from '@/components/templates/Neutral'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import ClientAnalytics from './ClientAnalytics'
 import AcquisitionBar from './AcquisitionBar'
 import DemoToggle from './DemoToggle'
 
-const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold'; content: PortfolioContent }> = {
+const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'neutral'; content: PortfolioContent }> = {
   amara: {
     template: 'minimal',
     content: {
@@ -105,6 +106,95 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold'; content: P
             'Managed Instagram, Facebook, and Twitter for one of East Africa\'s largest e-commerce platforms',
             'Co-created the Black Friday 2022 social campaign that drove 23% higher click-through than the previous year',
             'Handled real-time community management during peak sale periods',
+          ],
+        },
+      ],
+    },
+  },
+  ezekwe: {
+    template: 'neutral',
+    content: {
+      name: 'Ezekwe Nwanna',
+      role: 'AI/ML Engineer · Electronics Engineer',
+      headline: 'I design and deploy AI systems that solve real operational problems — from banking intelligence platforms and AI agents to embedded IoT products and production SaaS.',
+      about: 'AI systems engineer with a background in electronics and a track record of shipping production systems across banking, fintech, and IoT. Currently at Wema Bank building ML pipelines and conversational AI platforms on Azure.\n\nI care about systems that actually run in production — not demos. Every project here has real users, real revenue, or real operational impact.',
+      location: 'Lagos, Nigeria · Available Remote · USD/EUR',
+      email: 'nwannachumaclifford@gmail.com',
+      github_url: 'https://github.com/cliffordnwanna',
+      linkedin_url: 'https://linkedin.com/in/cliffordnwanna',
+      avatar_url: '',
+      skills: ['LangChain', 'Azure OpenAI', 'GPT-4o', 'RAG Pipelines', 'pgvector', 'Python', 'FastAPI', 'Next.js 15', 'TypeScript', 'Supabase', 'Azure ML', 'Azure Synapse', 'Docker', 'ESP32', 'Paystack'],
+      skills_narrative: 'Full-stack AI: from prompt engineering and vector search to embedded hardware and production SaaS.',
+      skills_grouped: [
+        { category: 'AI / LLM', items: ['LangChain', 'Azure OpenAI', 'GPT-4o / mini', 'RAG Pipelines', 'pgvector', 'Embeddings', 'AI Agents'] },
+        { category: 'Backend', items: ['Python', 'FastAPI', 'Flask', 'Node.js', 'SQL / T-SQL', 'PostgreSQL', 'Supabase'] },
+        { category: 'Frontend', items: ['Next.js 15', 'TypeScript', 'React', 'Tailwind CSS', 'Streamlit'] },
+        { category: 'Cloud / MLOps', items: ['Azure ML', 'Azure Synapse', 'Docker', 'GitHub Actions', 'PM2', 'Hetzner VPS'] },
+        { category: 'Data Science', items: ['Scikit-learn', 'Pandas', 'TensorFlow', 'Power BI', 'Feature Engineering'] },
+        { category: 'Hardware / IoT', items: ['ESP32', 'Arduino', 'BLE', 'RFID', 'Embedded C', 'IoT SaaS'] },
+      ],
+      projects: [
+        {
+          title: 'UpJobs.co — AI Job Matching Platform',
+          problem: 'African tech professionals applying to 50+ irrelevant roles manually with no targeting.',
+          solution: 'Solo-built Next.js platform ingesting 9,000+ remote jobs daily via hybrid pgvector semantic search and GPT-4o-mini match reasoning, delivering results to WhatsApp.',
+          outcome: 'Live product with paying users. 85% reduction in irrelevant applications reported.',
+          stack: ['Next.js 15', 'Supabase', 'pgvector', 'OpenAI', 'WasenderAPI', 'Paystack', 'PM2'],
+          url: 'https://upjobs.co',
+        },
+        {
+          title: 'CRIS — Corporate Retention Intelligence System',
+          problem: 'Bank losing high-value corporate accounts with no early warning or intervention system.',
+          solution: '1,069-line Python/SQL churn pipeline on Azure ML scoring 320,000+ corporate accounts monthly using random forest with 89% recall.',
+          outcome: '₦295B at-risk identified. ₦191.5B turnover reactivated in first quarter.',
+          stack: ['Python', 'Azure ML', 'T-SQL', 'Azure Synapse', 'Scikit-learn'],
+          url: '',
+        },
+        {
+          title: 'Data Knight V2 — NL→SQL Analytics',
+          problem: 'Business analysts spending 4+ hours daily writing SQL reports on Azure Synapse.',
+          solution: 'Governed natural language to SQL platform using Semantic Firewall Architecture — intent classification routes queries to pre-approved templates. 39/39 agent tests passing.',
+          outcome: 'Report turnaround reduced from 4 hours to under 2 minutes for 200+ users.',
+          stack: ['FastAPI', 'Azure OpenAI', 'Azure Synapse', 'SQLite', 'Chart.js'],
+          url: '',
+        },
+        {
+          title: 'Gateman — BLE Attendance SaaS',
+          problem: 'Lagos offices managing attendance with paper registers and manual Excel entry.',
+          solution: 'ESP32 + BLE badge hardware nodes syncing to cloud with zero-touch provisioning. First paid deployment targeting Lagos offices.',
+          outcome: 'Registered business, first client signed. V2 in progress.',
+          stack: ['ESP32', 'BLE', 'Arduino', 'Google Drive API', 'Next.js'],
+          url: '',
+        },
+      ],
+      experience: [
+        {
+          company: 'Wema Bank Plc',
+          role: 'Data Scientist / AI Engineer',
+          period: 'Mar 2025 – Present',
+          bullets: [
+            'Built CRIS churn pipeline — 320k+ accounts scored monthly, ₦295B identified, ₦191.5B reactivated in first quarter',
+            'Designed Semantic Firewall Architecture for Data Knight — governed NL→SQL on Azure Synapse',
+            'Built Streak AI — LangChain + Azure OpenAI agent for relationship managers with RLS enforcement',
+          ],
+        },
+        {
+          company: 'JéGO Technologies',
+          role: 'AI/ML Engineer (Contract)',
+          period: 'Jan 2025 – Mar 2025',
+          bullets: [
+            'ML models for EV route optimisation and energy consumption prediction',
+            'Distributed Agile delivery across time zones',
+          ],
+        },
+        {
+          company: 'Ecotronics Enterprise',
+          role: 'Founder & Solutions Engineer',
+          period: '2021 – Present',
+          bullets: [
+            'UpJobs.co — live AI job platform, solo-built, paying users',
+            'Gateman — BLE attendance SaaS (registered business, first client)',
+            'liveportfolio.site — AI portfolio builder (this product)',
           ],
         },
       ],
@@ -299,7 +389,7 @@ export default async function PortfolioPage({ params }: Props) {
     notFound()
   }
 
-  const Template = portfolio.template === 'bold' ? Bold : Minimal
+  const Template = portfolio.template === 'bold' ? Bold : portfolio.template === 'neutral' ? Neutral : Minimal
 
   return (
     <>

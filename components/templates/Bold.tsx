@@ -86,7 +86,7 @@ export default function Bold({ content }: { content: PortfolioContent }) {
             className="text-sm font-bold text-[#58A6FF]"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
-            {content.name.split(' ')[0].toLowerCase()}
+            {content.name.toLowerCase().replace(/\s+/g, '')}
           </span>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

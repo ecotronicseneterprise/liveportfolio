@@ -73,10 +73,16 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [template, setTemplate] = useState<'minimal' | 'bold'>('minimal')
+  const [template, setTemplate] = useState<'minimal' | 'bold' | 'neutral'>('minimal')
   const [editContent, setEditContent] = useState<Partial<PortfolioContent>>({})
   const [activeTab, setActiveTab] = useState<'overview' | 'edit' | 'settings'>('overview')
   const [copied, setCopied] = useState(false)
+  const [changingPassword, setChangingPassword] = useState(false)
+  const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' })
+  const [passwordMsg, setPasswordMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  const [deletingAccount, setDeletingAccount] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleteMsg, setDeleteMsg] = useState('')
   const [qrDownloading, setQrDownloading] = useState(false)
 
   useEffect(() => {
@@ -106,7 +112,7 @@ export default function DashboardPage() {
 
     if (!portfolioData) { router.push('/create'); return }
     setPortfolio(portfolioData as Portfolio)
-    setTemplate((portfolioData.template as 'minimal' | 'bold') || 'minimal')
+    setTemplate((portfolioData.template as 'minimal' | 'bold' | 'neutral') || 'minimal')
     setEditContent(portfolioData.content as PortfolioContent)
     setLoading(false)
   }, [router])
@@ -160,6 +166,58 @@ export default function DashboardPage() {
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.push('/')
+  }
+
+  const handleChangePassword = async () => {
+    setPasswordMsg(null)
+    if (passwordForm.next.length < 8) {
+      setPasswordMsg({ type: 'err', text: 'New password must be at least 8 characters.' })
+      return
+    }
+    if (passwordForm.next !== passwordForm.confirm) {
+      setPasswordMsg({ type: 'err', text: 'Passwords do not match.' })
+      return
+    }
+    setChangingPassword(true)
+    // Re-authenticate first to verify current password
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setPasswordMsg({ type: 'err', text: 'Session expired. Please sign in again.' }); setChangingPassword(false); return }
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: session.user.email!, password: passwordForm.current })
+    if (signInError) {
+      setPasswordMsg({ type: 'err', text: 'Current password is incorrect.' })
+      setChangingPassword(false)
+      return
+    }
+    const { error } = await supabase.auth.updateUser({ password: passwordForm.next })
+    if (error) {
+      setPasswordMsg({ type: 'err', text: error.message })
+    } else {
+      setPasswordMsg({ type: 'ok', text: 'Password updated successfully.' })
+      setPasswordForm({ current: '', next: '', confirm: '' })
+    }
+    setChangingPassword(false)
+  }
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== user?.slug) {
+      setDeleteMsg('Type your username exactly to confirm.')
+      return
+    }
+    setDeletingAccount(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { setDeleteMsg('Session expired. Please sign in again.'); setDeletingAccount(false); return }
+      const res = await fetch('/api/delete-account', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (!res.ok) { const d = await res.json(); setDeleteMsg(d.error || 'Failed to delete account.'); setDeletingAccount(false); return }
+      await supabase.auth.signOut()
+      router.push('/?deleted=1')
+    } catch {
+      setDeleteMsg('Something went wrong. Please try again.')
+      setDeletingAccount(false)
+    }
   }
 
   if (loading) {
@@ -415,7 +473,7 @@ export default function DashboardPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Template</label>
               <div className="flex gap-2">
-                {(['minimal', 'bold'] as const).map((t) => (
+                {(['minimal', 'bold', 'neutral'] as const).map((t) => (
                   <button
                     key={t}
                     onClick={() => setTemplate(t)}
@@ -477,43 +535,98 @@ export default function DashboardPage() {
 
         {/* Settings tab */}
         {activeTab === 'settings' && (
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-6">
-            <h2 className="text-lg font-semibold text-gray-900">Account settings</h2>
+          <div className="space-y-5">
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={user.email}
-                disabled
-                className="w-full border border-gray-100 rounded-xl px-4 py-2.5 text-sm bg-gray-50 text-gray-400"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Portfolio slug</label>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500 bg-gray-50 border border-gray-100 px-3 py-2 rounded-xl">
-                  {new URL(APP_URL).host.replace(/^www\./, '')}/{user.slug}
-                </span>
+            {/* Account info */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-4">
+              <h2 className="text-lg font-semibold text-gray-900">Account</h2>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Email</label>
+                <p className="text-sm text-gray-700">{user.email}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Portfolio URL</label>
+                <p className="text-sm text-[#0A66C2] font-medium">{APP_URL}/{user.slug}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Plan</label>
+                <p className="text-sm text-gray-700 capitalize">{user.plan === 'pro' ? '✓ Pro — published' : 'Unpublished'}</p>
+              </div>
+              <div className="pt-2 border-t border-gray-100">
+                <button onClick={handleSignOut} className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
+                  Sign out
+                </button>
               </div>
             </div>
 
-            {user.plan === 'pro' && (
-              <div className="bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-xl p-4">
-                <p className="text-xs font-semibold text-[#0A66C2] uppercase tracking-wider mb-1">Pro plan</p>
-                <p className="text-sm text-gray-600">You can edit your portfolio anytime from the Edit tab. Changes go live instantly.</p>
+            {/* Change password */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-4">
+              <h2 className="text-base font-semibold text-gray-900">Change password</h2>
+              {passwordMsg && (
+                <div className={`p-3 rounded-xl text-sm ${passwordMsg.type === 'ok' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+                  {passwordMsg.text}
+                </div>
+              )}
+              <div className="space-y-3">
+                <input
+                  type="password"
+                  placeholder="Current password"
+                  value={passwordForm.current}
+                  onChange={(e) => setPasswordForm((p) => ({ ...p, current: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                />
+                <input
+                  type="password"
+                  placeholder="New password (min 8 characters)"
+                  value={passwordForm.next}
+                  onChange={(e) => setPasswordForm((p) => ({ ...p, next: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                />
+                <input
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={passwordForm.confirm}
+                  onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                />
               </div>
-            )}
-
-            <div className="pt-4 border-t border-gray-100">
               <button
-                onClick={handleSignOut}
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={handleChangePassword}
+                disabled={changingPassword || !passwordForm.current || !passwordForm.next || !passwordForm.confirm}
+                className="px-5 py-2.5 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors disabled:opacity-40"
               >
-                Sign out
+                {changingPassword ? 'Updating…' : 'Update password'}
               </button>
             </div>
+
+            {/* Delete account */}
+            <div className="bg-white border border-red-100 rounded-2xl p-6 space-y-4">
+              <h2 className="text-base font-semibold text-red-600">Delete account</h2>
+              <p className="text-sm text-gray-500">
+                This permanently deletes your account, portfolio, and all data. If you have a published portfolio, it will go offline immediately. <strong>This cannot be undone.</strong>
+              </p>
+              {deleteMsg && (
+                <div className="p-3 rounded-xl text-sm bg-red-50 text-red-600 border border-red-100">{deleteMsg}</div>
+              )}
+              <div className="space-y-3">
+                <p className="text-xs text-gray-500">Type <strong className="text-gray-700 font-mono">{user.slug}</strong> to confirm:</p>
+                <input
+                  type="text"
+                  placeholder={user.slug}
+                  value={deleteConfirm}
+                  onChange={(e) => setDeleteConfirm(e.target.value)}
+                  className="w-full border border-red-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent"
+                />
+              </div>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deletingAccount || deleteConfirm !== user.slug}
+                className="px-5 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-full hover:bg-red-700 transition-colors disabled:opacity-40"
+              >
+                {deletingAccount ? 'Deleting…' : 'Delete my account'}
+              </button>
+            </div>
+
           </div>
         )}
       </div>

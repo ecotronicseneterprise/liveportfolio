@@ -32,7 +32,7 @@ interface FormData {
   avatar_url: string
   avatarFile: File | null
   projects: Project[]
-  template: 'minimal' | 'bold'
+  template: 'minimal' | 'bold' | 'neutral'
   slug: string
   password: string
   agreeTerms: boolean
@@ -695,7 +695,7 @@ export default function CreatePage() {
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Choose your template</h1>
               <p className="text-gray-500 text-sm">You can switch templates anytime after generating.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 {
                   id: 'minimal' as const,
@@ -739,6 +739,37 @@ export default function CreatePage() {
                         <div className="mt-1 bg-[#1C2128] border-l-2 border-[#58A6FF] rounded p-1">
                           <div className="h-1.5 bg-[#58A6FF] rounded w-1/2" />
                         </div>
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  id: 'neutral' as const,
+                  name: 'Neutral',
+                  desc: 'Warm editorial. Distinctive type, structured grid.',
+                  preview: (
+                    <div className="bg-[#f5f2eb] border border-[#d4cfc2] rounded-lg p-3 h-32 flex flex-col gap-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="h-3 bg-[#0d0d0d] rounded w-20 mb-1" style={{ borderRadius: 0 }} />
+                          <div className="h-1.5 bg-[#d4cfc2] rounded w-24" style={{ borderRadius: 0 }} />
+                        </div>
+                        <div className="h-1.5 bg-[#c8401a] rounded w-10" style={{ borderRadius: 0 }} />
+                      </div>
+                      <div className="border-t border-[#d4cfc2] pt-2 flex gap-2">
+                        <div className="flex-1 flex flex-col gap-1">
+                          <div className="h-2 bg-[#7a7060] rounded w-full" style={{ borderRadius: 0 }} />
+                          <div className="h-1.5 bg-[#d4cfc2] rounded w-3/4" style={{ borderRadius: 0 }} />
+                        </div>
+                        <div className="w-12 flex flex-col gap-1">
+                          <div className="h-3 bg-[#c8401a] rounded w-full" style={{ borderRadius: 0 }} />
+                          <div className="h-1.5 bg-[#d4cfc2] rounded w-full" style={{ borderRadius: 0 }} />
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        {['AI', 'Python', 'SaaS'].map((t) => (
+                          <span key={t} className="text-[7px] px-1.5 py-0.5 border border-[#d4cfc2] text-[#7a7060]" style={{ borderRadius: 0 }}>{t}</span>
+                        ))}
                       </div>
                     </div>
                   ),
