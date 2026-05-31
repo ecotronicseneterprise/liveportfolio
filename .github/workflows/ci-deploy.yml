@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build production app
         run: npm run build
@@ -39,17 +39,15 @@ jobs:
           ADMIN_METRICS_SECRET: ${{ secrets.ADMIN_METRICS_SECRET }}
           NEXT_TELEMETRY_DISABLED: '1'
 
+      - name: Prune dev dependencies before transfer
+        run: npm prune --omit=dev
+
       - name: Verify build artifacts
         run: |
-          echo "Checking .next directory..."
           test -d .next
-          if [ -d public ]; then
-            echo "public directory exists."
-          else
-            echo "public directory missing; creating empty public directory."
-            mkdir -p public
-          fi
-          echo "Build artifacts are present."
+          test -d node_modules
+          [ -d public ] || mkdir -p public
+          echo "Build artifacts verified."
 
       - name: Copy built app to VPS
         env:
@@ -65,14 +63,15 @@ jobs:
           ssh -i /tmp/vps_key -p "$VPS_SSH_PORT" -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" \
             "mkdir -p /home/deploy/apps/liveportfolio__incoming"
 
+          # Transfer build + pruned node_modules (no npm ci needed on VPS)
           rsync -az --delete \
             -e "ssh -i /tmp/vps_key -p $VPS_SSH_PORT -o StrictHostKeyChecking=no" \
             --exclude ".next/cache" \
             --exclude ".env.local" \
-            .next public scripts package.json package-lock.json next.config.ts ecosystem.config.js deploy.sh \
+            .next node_modules public scripts package.json package-lock.json next.config.ts ecosystem.config.js deploy.sh \
             "$VPS_USER@$VPS_HOST:/home/deploy/apps/liveportfolio__incoming/"
 
-      - name: Install production dependencies and reload PM2
+      - name: Swap release and reload PM2
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -84,28 +83,17 @@ jobs:
             cd /home/deploy/apps
             test -d liveportfolio__incoming
 
-            rm -rf liveportfolio__previous
-            if [ -d liveportfolio ]; then
-              # Preserve .env.local across deploys
-              if [ -f liveportfolio/.env.local ]; then
-                cp liveportfolio/.env.local liveportfolio__incoming/.env.local
-              fi
-              mv liveportfolio liveportfolio__previous
+            # Preserve .env.local across deploys
+            if [ -d liveportfolio ] && [ -f liveportfolio/.env.local ]; then
+              cp liveportfolio/.env.local liveportfolio__incoming/.env.local
             fi
+
+            rm -rf liveportfolio__previous
+            [ -d liveportfolio ] && mv liveportfolio liveportfolio__previous
             mv liveportfolio__incoming liveportfolio
 
-            cd /home/deploy/apps/liveportfolio
-            if npm ci --omit=dev; then
-              pm2 startOrReload ecosystem.config.js --env production --update-env
-            else
-              echo "npm ci failed; rolling back to previous release"
-              cd /home/deploy/apps
-              rm -rf liveportfolio
-              if [ -d liveportfolio__previous ]; then
-                mv liveportfolio__previous liveportfolio
-              fi
-              exit 1
-            fi
+            # Reload PM2 — no npm ci needed, node_modules came from CI
+            pm2 startOrReload /home/deploy/apps/liveportfolio/ecosystem.config.js --env production --update-env
 
             # Install/update health-check cron (idempotent)
             chmod +x /home/deploy/apps/liveportfolio/scripts/health-check.sh
