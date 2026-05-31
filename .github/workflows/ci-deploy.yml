@@ -84,29 +84,33 @@ jobs:
               cp liveportfolio/.env.local liveportfolio__incoming/.env.local
             fi
 
-            # Delete node_modules from previous release first to avoid OOM on rm -rf
-            rm -rf liveportfolio__previous/node_modules 2>/dev/null || true
+            # Reuse existing node_modules — move it into incoming before swap
+            # This avoids running npm install on every deploy (OOM risk on ARM64)
+            if [ -d liveportfolio/node_modules ]; then
+              mv liveportfolio/node_modules liveportfolio__incoming/node_modules
+            fi
+
+            # Now safe to delete previous (no node_modules inside liveportfolio anymore)
             rm -rf liveportfolio__previous 2>/dev/null || true
             [ -d liveportfolio ] && mv liveportfolio liveportfolio__previous
             mv liveportfolio__incoming liveportfolio
 
             cd /home/deploy/apps/liveportfolio
 
-            # Ensure swap is active to prevent OOM during npm install
-            if ! swapon --show | grep -q /swapfile; then
-              sudo swapon /swapfile 2>/dev/null || true
+            # Only run npm install if package.json changed vs previous release
+            PREV_PKG="/home/deploy/apps/liveportfolio__previous/package.json"
+            CURR_PKG="/home/deploy/apps/liveportfolio/package.json"
+            if [ ! -d node_modules ] || ! diff -q "$PREV_PKG" "$CURR_PKG" > /dev/null 2>&1; then
+              echo "package.json changed or node_modules missing — running npm install"
+              if ! swapon --show | grep -q /swapfile; then
+                sudo swapon /swapfile 2>/dev/null || true
+              fi
+              npm install --omit=dev || { echo "npm install failed; rolling back"; cd /home/deploy/apps; rm -rf liveportfolio; [ -d liveportfolio__previous ] && mv liveportfolio__previous liveportfolio; exit 1; }
+            else
+              echo "package.json unchanged — skipping npm install"
             fi
 
-            # Install ARM64-native deps on VPS
-            if npm install --omit=dev; then
-              pm2 startOrReload /home/deploy/apps/liveportfolio/ecosystem.config.js --env production --update-env
-            else
-              echo "npm install failed; rolling back"
-              cd /home/deploy/apps
-              rm -rf liveportfolio
-              [ -d liveportfolio__previous ] && mv liveportfolio__previous liveportfolio
-              exit 1
-            fi
+            pm2 startOrReload /home/deploy/apps/liveportfolio/ecosystem.config.js --env production --update-env
 
             # Install/update health-check cron (idempotent)
             chmod +x /home/deploy/apps/liveportfolio/scripts/health-check.sh
