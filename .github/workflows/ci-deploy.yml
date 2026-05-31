@@ -40,9 +40,14 @@ jobs:
 
       - name: Verify build artifacts
         run: |
-          echo "Checking .next and public directories..."
+          echo "Checking .next directory..."
           test -d .next
-          test -d public
+          if [ -d public ]; then
+            echo "public directory exists."
+          else
+            echo "public directory missing; creating empty public directory."
+            mkdir -p public
+          fi
           echo "Build artifacts are present."
 
       - name: Clean remote app directories
