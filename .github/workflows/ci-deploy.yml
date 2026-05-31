@@ -110,6 +110,9 @@ jobs:
               echo "package.json unchanged — skipping npm install"
             fi
 
+            set -a
+            source /home/deploy/apps/liveportfolio/.env.local
+            set +a
             pm2 startOrReload /home/deploy/apps/liveportfolio/ecosystem.config.js --env production --update-env
 
             # Install/update health-check cron (idempotent)
