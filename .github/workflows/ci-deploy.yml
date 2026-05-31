@@ -51,14 +51,24 @@ jobs:
           echo "Build artifacts are present."
 
       - name: Copy built app to VPS
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_SSH_PORT || '22' }}
-          source: ".next,public,package.json,package-lock.json,next.config.ts,ecosystem.config.js,deploy.sh"
-          target: /home/deploy/apps/liveportfolio__incoming
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
+        run: |
+          set -euo pipefail
+          echo "$VPS_SSH_KEY" > /tmp/vps_key
+          chmod 600 /tmp/vps_key
+
+          ssh -i /tmp/vps_key -p "$VPS_SSH_PORT" -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" \
+            "mkdir -p /home/deploy/apps/liveportfolio__incoming"
+
+          rsync -az --delete \
+            -e "ssh -i /tmp/vps_key -p $VPS_SSH_PORT -o StrictHostKeyChecking=no" \
+            --exclude ".next/cache" \
+            .next public package.json package-lock.json next.config.ts ecosystem.config.js deploy.sh \
+            "$VPS_USER@$VPS_HOST:/home/deploy/apps/liveportfolio__incoming/"
 
       - name: Install production dependencies and reload PM2
         uses: appleboy/ssh-action@v0.1.10
