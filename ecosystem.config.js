@@ -5,8 +5,8 @@ module.exports = {
       cwd: '/home/deploy/apps/liveportfolio',
       script: 'node_modules/.bin/next',
       args: 'start -p 3001',
-      instances: 2,
-      exec_mode: 'cluster',
+      instances: 1,
+      exec_mode: 'fork',
       env_production: {
         NODE_ENV: 'production',
         PORT: 3001,

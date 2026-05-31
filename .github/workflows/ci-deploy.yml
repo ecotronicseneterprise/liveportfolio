@@ -113,7 +113,15 @@ jobs:
             set -a
             source /home/deploy/apps/liveportfolio/.env.local
             set +a
-            pm2 startOrReload /home/deploy/apps/liveportfolio/ecosystem.config.js --env production --update-env
+
+            # Check if liveportfolio is already running
+            if pm2 list | grep -q "liveportfolio"; then
+              # Reload one instance at a time to avoid OOM (graceful, zero-downtime)
+              pm2 reload liveportfolio --update-env
+            else
+              # First deploy — start fresh with only 1 instance to save memory
+              pm2 start /home/deploy/apps/liveportfolio/ecosystem.config.js --env production --update-env
+            fi
 
             # Install/update health-check cron (idempotent)
             chmod +x /home/deploy/apps/liveportfolio/scripts/health-check.sh
