@@ -43,6 +43,9 @@ export default function LandingPage() {
         <div className="w-full px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-between">
           <Link href="/"><Logo /></Link>
           <div className="flex items-center gap-4">
+            <Link href="/blog" className="text-sm text-gray-500 hover:text-gray-800 transition-colors hidden sm:block">
+              Blog
+            </Link>
             <Link href="/login" className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
               Sign in
             </Link>
@@ -72,7 +75,7 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col gap-6">
             <p className="text-lg sm:text-xl text-gray-500 leading-relaxed">
-              Fill in a 4-step form. AI writes your copy. Your portfolio goes live in minutes — with a permanent link you own forever.
+              Not hearing back after an application hurts. It makes you question everything you've built. A portfolio won't fix the silence, but it makes sure they can't ignore what you've done. Sign up and answer 4 questions. We turn your experience into a live, professional portfolio. Your page is ready in minutes. Share the link in your next application.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link
@@ -269,7 +272,7 @@ export default function LandingPage() {
           <div className="bg-white border-2 border-[#0A66C2] rounded-2xl p-8">
             <div className="mb-6 pb-6 border-b border-gray-100">
               <p className="font-bold text-gray-900 text-xl mb-1">Pro</p>
-              <p className="text-4xl font-bold text-gray-900 mt-3">$9 <span className="text-base font-normal text-gray-400">one-time</span></p>
+              <p className="text-4xl font-bold text-gray-900 mt-3">$5 <span className="text-base font-normal text-gray-400">one-time</span></p>
             </div>
             <ul className="space-y-3 text-sm text-gray-600">
               {[
