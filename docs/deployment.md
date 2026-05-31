@@ -182,6 +182,13 @@ subdomains (clifford.liveportfolio.site, john.liveportfolio.site etc.) Caddy
 needs a Namecheap DNS API plugin to issue the wildcard SSL certificate. Without
 it, subdomains will work over HTTP but not HTTPS until the plugin is installed.
 
+This is why you may see this browser error on subdomains:
+ERR_SSL_PROTOCOL_ERROR (HTTPS handshake fails)
+
+Workarounds until wildcard HTTPS is installed:
+- Use http://slug.liveportfolio.site (HTTP) for published portfolios, OR
+- Use https://liveportfolio.site/portfolio/slug (HTTPS on the main domain) for demos/testing
+
 For v1 launch, the main domain has full HTTPS. Wildcard subdomain HTTPS
 is a one-time follow-up step — add it after the app is confirmed working.
 
@@ -220,6 +227,59 @@ To use it, create these repository secrets in GitHub:
 - `VPS_USER`
 - `VPS_SSH_KEY`
 - `VPS_SSH_PORT`
+
+CI/CD Reliability: the exact flow (Local → GitHub Actions → VPS)
+This is the "source of truth" deployment path. Use this, and you avoid VPS build failures.
+
+1) Local machine (you)
+- You code locally and push to `main`.
+- You do NOT build on the VPS in this mode.
+
+2) GitHub Actions (CI)
+- GitHub Actions runs `npm install` and `npm run build` on GitHub's runner.
+- It uploads build artifacts to the VPS staging folder:
+  `/home/deploy/apps/liveportfolio__incoming`
+- Transfer uses `rsync` (not tar/scp) for reliability. It also excludes `.next/cache` to reduce upload size.
+
+3) VPS (CD)
+- The workflow swaps the staging folder into place (atomic-ish release):
+  - current release becomes `/home/deploy/apps/liveportfolio__previous`
+  - incoming becomes `/home/deploy/apps/liveportfolio`
+- Then the VPS installs production deps and restarts via PM2 using `ecosystem.config.js`.
+
+Important: there are 2 different folders on the VPS
+- `~/liveportfolio` = a full git checkout (source code). Useful for browsing, but NOT used by CI/CD runtime.
+- `/home/deploy/apps/liveportfolio` = the artifact runtime folder (contains `.next`, not necessarily `app/`/`pages/`).
+
+If you mix these up, you get the exact outage we saw:
+- PM2 starts in `~/liveportfolio` → no `.next` there → Next crashes → Caddy shows `502`.
+
+Golden rule: PM2 must run from `/home/deploy/apps/liveportfolio`
+Check:
+pm2 describe liveportfolio | grep "exec cwd"
+# Must show: /home/deploy/apps/liveportfolio
+
+Fast 502 recovery playbook (copy/paste on VPS)
+# 1) Prove the app is (not) listening
+ss -lntp | grep 3001 || true
+
+# 2) Read logs
+pm2 logs liveportfolio --lines 120
+sudo journalctl -u caddy --since "10 min ago" --no-pager | tail -80
+
+# 3) If PM2 is running from the wrong folder, reset it correctly
+pm2 delete liveportfolio || true
+cd /home/deploy/apps/liveportfolio
+npm ci --omit=dev
+pm2 start ecosystem.config.js --update-env
+pm2 save
+
+# 4) Local health check on VPS
+curl -I http://127.0.0.1:3001
+
+Note on testing HTTPS from the VPS
+If `curl -I https://liveportfolio.site` prints "Killed", test HTTPS from your laptop/browser instead.
+On the VPS, use `curl -I http://liveportfolio.site` (expect 308 redirect) and `curl -I http://127.0.0.1:3001` (expect 200).
 
 If you cannot use GitHub Actions yet, the manual deployment steps below still work as a fallback, but the CI/CD workflow is the recommended approach for a 4GB VPS.
 

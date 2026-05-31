@@ -94,7 +94,7 @@ export default function LandingPage() {
           {EXAMPLE_PORTFOLIOS.map((p) => (
             <a
               key={p.slug}
-              href={`https://${p.slug}.liveportfolio.site`}
+              href={`/portfolio/${p.slug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="group min-w-[240px] sm:min-w-0 flex-shrink-0 snap-start border border-gray-100 rounded-2xl p-4 sm:p-5 hover:border-[#0A66C2] hover:shadow-sm transition-all"
@@ -108,9 +108,7 @@ export default function LandingPage() {
                   <p className="text-xs text-gray-400 truncate">{p.role}</p>
                 </div>
               </div>
-              <p className="text-xs text-[#0A66C2] group-hover:underline truncate">
-                {p.slug}.liveportfolio.site →
-              </p>
+              <p className="text-xs text-[#0A66C2] group-hover:underline truncate">View example →</p>
             </a>
           ))}
         </div>
