@@ -6,8 +6,9 @@
 set +e
 
 APP_URL="https://liveportfolio.site"
-HEALTH_URL="${APP_URL}/api/health"
-METRICS_URL="${APP_URL}/api/admin/metrics"
+LOCAL_URL="http://localhost:3001"
+HEALTH_URL="${LOCAL_URL}/api/health"
+METRICS_URL="${LOCAL_URL}/api/admin/metrics"
 ALERT_EMAIL="nwannachumaclifford@gmail.com"
 FROM_EMAIL="dashboard@liveportfolio.site"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M UTC')
