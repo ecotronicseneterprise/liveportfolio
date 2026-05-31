@@ -189,8 +189,8 @@ the Caddyfile block to use a tls directive with the Namecheap DNS provider.
 Part 5 — Deploy the App
 Create the app directory
 mkdir -p /home/deploy/apps
-cd /home/deploy/apps
 
+./deploy.sh
 Clone your GitHub repo
 # Replace YOUR_GITHUB_USERNAME with your actual username
 git clone https://github.com/YOUR_GITHUB_USERNAME/liveportfolio.git
