@@ -68,6 +68,7 @@ jobs:
           rsync -az --delete \
             -e "ssh -i /tmp/vps_key -p $VPS_SSH_PORT -o StrictHostKeyChecking=no" \
             --exclude ".next/cache" \
+            --exclude ".env.local" \
             .next public scripts package.json package-lock.json next.config.ts ecosystem.config.js deploy.sh \
             "$VPS_USER@$VPS_HOST:/home/deploy/apps/liveportfolio__incoming/"
 
@@ -85,6 +86,10 @@ jobs:
 
             rm -rf liveportfolio__previous
             if [ -d liveportfolio ]; then
+              # Preserve .env.local across deploys
+              if [ -f liveportfolio/.env.local ]; then
+                cp liveportfolio/.env.local liveportfolio__incoming/.env.local
+              fi
               mv liveportfolio liveportfolio__previous
             fi
             mv liveportfolio__incoming liveportfolio
