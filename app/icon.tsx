@@ -18,26 +18,32 @@ export default function Icon() {
           alignItems: 'center',
           justifyContent: 'center',
           background: '#0A66C2',
-          borderRadius: 7,
         }}
       >
-        {/* User silhouette: head + shoulders */}
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 28 28"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle cx="14" cy="10" r="5" fill="white" />
-          <path
-            d="M4 26c0-5.52 4.48-10 10-10s10 4.48 10 10"
-            stroke="white"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            fill="none"
-          />
-        </svg>
+        {/* Head */}
+        <div
+          style={{
+            position: 'absolute',
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            background: 'white',
+            top: 6,
+            left: 10,
+          }}
+        />
+        {/* Shoulders arc — two overlapping divs forming a U shape */}
+        <div
+          style={{
+            position: 'absolute',
+            width: 20,
+            height: 12,
+            borderRadius: '0 0 10px 10px',
+            background: 'white',
+            bottom: 4,
+            left: 6,
+          }}
+        />
       </div>
     ),
     { ...size }
