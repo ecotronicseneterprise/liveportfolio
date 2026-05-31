@@ -32,7 +32,7 @@ interface FormData {
   avatar_url: string
   avatarFile: File | null
   projects: Project[]
-  template: 'minimal' | 'bold' | 'neutral'
+  template: 'minimal' | 'bold' | 'creative'
   slug: string
   password: string
   agreeTerms: boolean
@@ -744,9 +744,9 @@ export default function CreatePage() {
                   ),
                 },
                 {
-                  id: 'neutral' as const,
-                  name: 'Neutral',
-                  desc: 'Warm editorial. Distinctive type, structured grid.',
+                  id: 'creative' as const,
+                  name: 'Creative',
+                  desc: 'Warm editorial grid. Distinctive type, structured layout.',
                   preview: (
                     <div className="bg-[#f5f2eb] border border-[#d4cfc2] rounded-lg p-3 h-32 flex flex-col gap-2">
                       <div className="flex justify-between items-start">

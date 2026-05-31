@@ -3,15 +3,15 @@ import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
-import Neutral from '@/components/templates/Neutral'
+import Creative from '@/components/templates/Creative'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import ClientAnalytics from './ClientAnalytics'
 import AcquisitionBar from './AcquisitionBar'
 import DemoToggle from './DemoToggle'
 
-const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'neutral'; content: PortfolioContent }> = {
+const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'creative'; content: PortfolioContent }> = {
   amara: {
-    template: 'minimal',
+    template: 'bold',
     content: {
       name: 'Amara Osei',
       role: 'Frontend Developer',
@@ -112,7 +112,7 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'neutral'
     },
   },
   ezekwe: {
-    template: 'neutral',
+    template: 'creative',
     content: {
       name: 'Ezekwe Nwanna',
       role: 'AI/ML Engineer · Electronics Engineer',
@@ -123,15 +123,13 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'neutral'
       github_url: 'https://github.com/cliffordnwanna',
       linkedin_url: 'https://linkedin.com/in/cliffordnwanna',
       avatar_url: '',
-      skills: ['LangChain', 'Azure OpenAI', 'GPT-4o', 'RAG Pipelines', 'pgvector', 'Python', 'FastAPI', 'Next.js 15', 'TypeScript', 'Supabase', 'Azure ML', 'Azure Synapse', 'Docker', 'ESP32', 'Paystack'],
+      skills: ['LangChain', 'Azure OpenAI', 'GPT-4o', 'Python', 'FastAPI', 'Next.js 15', 'TypeScript', 'Supabase', 'Azure ML', 'ESP32', 'Docker', 'Paystack'],
       skills_narrative: 'Full-stack AI: from prompt engineering and vector search to embedded hardware and production SaaS.',
       skills_grouped: [
-        { category: 'AI / LLM', items: ['LangChain', 'Azure OpenAI', 'GPT-4o / mini', 'RAG Pipelines', 'pgvector', 'Embeddings', 'AI Agents'] },
-        { category: 'Backend', items: ['Python', 'FastAPI', 'Flask', 'Node.js', 'SQL / T-SQL', 'PostgreSQL', 'Supabase'] },
-        { category: 'Frontend', items: ['Next.js 15', 'TypeScript', 'React', 'Tailwind CSS', 'Streamlit'] },
-        { category: 'Cloud / MLOps', items: ['Azure ML', 'Azure Synapse', 'Docker', 'GitHub Actions', 'PM2', 'Hetzner VPS'] },
-        { category: 'Data Science', items: ['Scikit-learn', 'Pandas', 'TensorFlow', 'Power BI', 'Feature Engineering'] },
-        { category: 'Hardware / IoT', items: ['ESP32', 'Arduino', 'BLE', 'RFID', 'Embedded C', 'IoT SaaS'] },
+        { category: 'AI / LLM', items: ['LangChain', 'Azure OpenAI', 'GPT-4o / mini', 'RAG Pipelines', 'pgvector', 'AI Agents', 'Prompt Engineering', 'Embeddings'] },
+        { category: 'Backend & Data', items: ['Python', 'FastAPI', 'Flask', 'SQL / T-SQL', 'PostgreSQL', 'Supabase', 'Scikit-learn', 'Pandas'] },
+        { category: 'Frontend & Cloud', items: ['Next.js 15', 'TypeScript', 'React', 'Azure ML', 'Azure Synapse', 'Docker', 'GitHub Actions', 'PM2'] },
+        { category: 'Hardware & SaaS', items: ['ESP32', 'Arduino', 'BLE', 'RFID', 'Embedded C', 'Paystack', 'Resend', 'IoT SaaS'] },
       ],
       projects: [
         {
@@ -139,7 +137,7 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'neutral'
           problem: 'African tech professionals applying to 50+ irrelevant roles manually with no targeting.',
           solution: 'Solo-built Next.js platform ingesting 9,000+ remote jobs daily via hybrid pgvector semantic search and GPT-4o-mini match reasoning, delivering results to WhatsApp.',
           outcome: 'Live product with paying users. 85% reduction in irrelevant applications reported.',
-          stack: ['Next.js 15', 'Supabase', 'pgvector', 'OpenAI', 'WasenderAPI', 'Paystack', 'PM2'],
+          stack: ['Next.js 15', 'Supabase', 'pgvector', 'OpenAI', 'Paystack'],
           url: 'https://upjobs.co',
         },
         {
@@ -147,23 +145,23 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'neutral'
           problem: 'Bank losing high-value corporate accounts with no early warning or intervention system.',
           solution: '1,069-line Python/SQL churn pipeline on Azure ML scoring 320,000+ corporate accounts monthly using random forest with 89% recall.',
           outcome: '₦295B at-risk identified. ₦191.5B turnover reactivated in first quarter.',
-          stack: ['Python', 'Azure ML', 'T-SQL', 'Azure Synapse', 'Scikit-learn'],
+          stack: ['Python', 'Azure ML', 'T-SQL', 'Scikit-learn'],
           url: '',
+        },
+        {
+          title: 'liveportfolio.site — AI Portfolio Builder',
+          problem: 'African tech professionals with strong experience but no professional online presence to show recruiters.',
+          solution: 'Solo-built SaaS that turns a 4-step form into a full portfolio website using GPT-4o-mini — generates polished copy, three designer templates, and publishes permanently at yourname.liveportfolio.site.',
+          outcome: 'Live product. First users onboarded. Built and deployed in under 30 days.',
+          stack: ['Next.js 15', 'Supabase', 'OpenAI', 'Paystack', 'Resend'],
+          url: 'https://liveportfolio.site',
         },
         {
           title: 'Data Knight V2 — NL→SQL Analytics',
           problem: 'Business analysts spending 4+ hours daily writing SQL reports on Azure Synapse.',
           solution: 'Governed natural language to SQL platform using Semantic Firewall Architecture — intent classification routes queries to pre-approved templates. 39/39 agent tests passing.',
           outcome: 'Report turnaround reduced from 4 hours to under 2 minutes for 200+ users.',
-          stack: ['FastAPI', 'Azure OpenAI', 'Azure Synapse', 'SQLite', 'Chart.js'],
-          url: '',
-        },
-        {
-          title: 'Gateman — BLE Attendance SaaS',
-          problem: 'Lagos offices managing attendance with paper registers and manual Excel entry.',
-          solution: 'ESP32 + BLE badge hardware nodes syncing to cloud with zero-touch provisioning. First paid deployment targeting Lagos offices.',
-          outcome: 'Registered business, first client signed. V2 in progress.',
-          stack: ['ESP32', 'BLE', 'Arduino', 'Google Drive API', 'Next.js'],
+          stack: ['FastAPI', 'Azure OpenAI', 'Azure Synapse', 'Chart.js'],
           url: '',
         },
       ],
@@ -176,6 +174,7 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'neutral'
             'Built CRIS churn pipeline — 320k+ accounts scored monthly, ₦295B identified, ₦191.5B reactivated in first quarter',
             'Designed Semantic Firewall Architecture for Data Knight — governed NL→SQL on Azure Synapse',
             'Built Streak AI — LangChain + Azure OpenAI agent for relationship managers with RLS enforcement',
+            'Authored AI productivity guide for internal Data Digest publication (50+ RM audience)',
           ],
         },
         {
@@ -193,8 +192,9 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'neutral'
           period: '2021 – Present',
           bullets: [
             'UpJobs.co — live AI job platform, solo-built, paying users',
+            'liveportfolio.site — AI portfolio builder, solo-built, live product',
             'Gateman — BLE attendance SaaS (registered business, first client)',
-            'liveportfolio.site — AI portfolio builder (this product)',
+            'INKLIENT — CNC pen plotter signing machine (Flask + G-code, near-production)',
           ],
         },
       ],
@@ -389,7 +389,7 @@ export default async function PortfolioPage({ params }: Props) {
     notFound()
   }
 
-  const Template = portfolio.template === 'bold' ? Bold : portfolio.template === 'neutral' ? Neutral : Minimal
+  const Template = portfolio.template === 'bold' ? Bold : portfolio.template === 'creative' ? Creative : Minimal
 
   return (
     <>

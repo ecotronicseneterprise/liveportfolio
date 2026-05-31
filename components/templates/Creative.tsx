@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
 
-const neutralFonts = `
+const creativeFonts = `
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300;1,9..144,600&family=JetBrains+Mono:wght@400;500&display=swap');
 `
 
@@ -374,7 +374,7 @@ const css = `
   }
 `
 
-export default function Neutral({ content }: { content: PortfolioContent }) {
+export default function Creative({ content }: { content: PortfolioContent }) {
   const rootRef = useRef<HTMLDivElement>(null)
 
   // Fade-in on scroll
@@ -401,7 +401,7 @@ export default function Neutral({ content }: { content: PortfolioContent }) {
 
   return (
     <div className="nt-root" ref={rootRef}>
-      <style>{neutralFonts}{css}</style>
+      <style>{creativeFonts}{css}</style>
 
       {/* Header */}
       <header className="nt-header">

@@ -73,7 +73,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [template, setTemplate] = useState<'minimal' | 'bold' | 'neutral'>('minimal')
+  const [template, setTemplate] = useState<'minimal' | 'bold' | 'creative'>('minimal')
   const [editContent, setEditContent] = useState<Partial<PortfolioContent>>({})
   const [activeTab, setActiveTab] = useState<'overview' | 'edit' | 'settings'>('overview')
   const [copied, setCopied] = useState(false)
@@ -112,7 +112,7 @@ export default function DashboardPage() {
 
     if (!portfolioData) { router.push('/create'); return }
     setPortfolio(portfolioData as Portfolio)
-    setTemplate((portfolioData.template as 'minimal' | 'bold' | 'neutral') || 'minimal')
+    setTemplate((portfolioData.template as 'minimal' | 'bold' | 'creative') || 'minimal')
     setEditContent(portfolioData.content as PortfolioContent)
     setLoading(false)
   }, [router])
@@ -473,7 +473,7 @@ export default function DashboardPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Template</label>
               <div className="flex gap-2">
-                {(['minimal', 'bold', 'neutral'] as const).map((t) => (
+                {(['minimal', 'bold', 'creative'] as const).map((t) => (
                   <button
                     key={t}
                     onClick={() => setTemplate(t)}
