@@ -39,13 +39,9 @@ jobs:
           ADMIN_METRICS_SECRET: ${{ secrets.ADMIN_METRICS_SECRET }}
           NEXT_TELEMETRY_DISABLED: '1'
 
-      - name: Prune dev dependencies before transfer
-        run: npm prune --omit=dev
-
       - name: Verify build artifacts
         run: |
           test -d .next
-          test -d node_modules
           [ -d public ] || mkdir -p public
           echo "Build artifacts verified."
 
@@ -63,15 +59,15 @@ jobs:
           ssh -i /tmp/vps_key -p "$VPS_SSH_PORT" -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" \
             "mkdir -p /home/deploy/apps/liveportfolio__incoming"
 
-          # Transfer build + pruned node_modules (no npm ci needed on VPS)
+          # Transfer build only — node_modules installed on VPS for correct ARM64 binaries
           rsync -az --delete \
             -e "ssh -i /tmp/vps_key -p $VPS_SSH_PORT -o StrictHostKeyChecking=no" \
             --exclude ".next/cache" \
             --exclude ".env.local" \
-            .next node_modules public scripts package.json package-lock.json next.config.ts ecosystem.config.js deploy.sh \
+            .next public scripts package.json package-lock.json next.config.ts ecosystem.config.js deploy.sh \
             "$VPS_USER@$VPS_HOST:/home/deploy/apps/liveportfolio__incoming/"
 
-      - name: Swap release and reload PM2
+      - name: Swap release, install deps, reload PM2
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -92,8 +88,23 @@ jobs:
             [ -d liveportfolio ] && mv liveportfolio liveportfolio__previous
             mv liveportfolio__incoming liveportfolio
 
-            # Reload PM2 — no npm ci needed, node_modules came from CI
-            pm2 startOrReload /home/deploy/apps/liveportfolio/ecosystem.config.js --env production --update-env
+            cd /home/deploy/apps/liveportfolio
+
+            # Ensure swap is active to prevent OOM during npm install
+            if ! swapon --show | grep -q /swapfile; then
+              sudo swapon /swapfile 2>/dev/null || true
+            fi
+
+            # Install ARM64-native deps on VPS
+            if npm install --omit=dev; then
+              pm2 startOrReload /home/deploy/apps/liveportfolio/ecosystem.config.js --env production --update-env
+            else
+              echo "npm install failed; rolling back"
+              cd /home/deploy/apps
+              rm -rf liveportfolio
+              [ -d liveportfolio__previous ] && mv liveportfolio__previous liveportfolio
+              exit 1
+            fi
 
             # Install/update health-check cron (idempotent)
             chmod +x /home/deploy/apps/liveportfolio/scripts/health-check.sh
