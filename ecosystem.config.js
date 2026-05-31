@@ -2,6 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'liveportfolio',
+      cwd: '/home/deploy/apps/liveportfolio',
       script: 'node_modules/.bin/next',
       args: 'start -p 3001',
       instances: 2,

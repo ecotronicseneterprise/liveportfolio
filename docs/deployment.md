@@ -205,7 +205,15 @@ ls
 
 Use GitHub Actions for remote build and deploy
 This repo now includes a CI/CD workflow at `.github/workflows/ci-deploy.yml`.
-It builds the app off-server, copies the compiled `.next` bundle to your VPS, installs production dependencies, and reloads PM2.
+When the workflow succeeds, it already:
+- builds the app off-server
+- copies `.next`, `public`, `package.json`, `package-lock.json`, `next.config.ts`, `ecosystem.config.js`, and `deploy.sh` to the VPS
+- installs production dependencies on the VPS
+- reloads PM2
+
+If the GitHub Actions job succeeded, no further deployment action is required on the VPS except verification.
+
+Note: the workflow copies to a staging folder (`/home/deploy/apps/liveportfolio__incoming`) and then swaps it into place to avoid downtime if a copy/install step fails. The VPS does not have full source code in this mode, so do not run `npm run build` on the server unless you deployed the full repo.
 
 To use it, create these repository secrets in GitHub:
 - `VPS_HOST`
@@ -213,7 +221,22 @@ To use it, create these repository secrets in GitHub:
 - `VPS_SSH_KEY`
 - `VPS_SSH_PORT`
 
-If you cannot use GitHub Actions yet, the manual deployment steps below still work, but the CI/CD workflow is the recommended approach for a 4GB VPS.
+If you cannot use GitHub Actions yet, the manual deployment steps below still work as a fallback, but the CI/CD workflow is the recommended approach for a 4GB VPS.
+
+Verify deployment on the VPS
+ssh deploy@46.225.186.103
+
+# Confirm the app is running under PM2
+pm2 status
+
+# View the latest app logs
+pm2 logs liveportfolio --lines 50
+
+# Confirm Caddy is running
+sudo systemctl status caddy
+
+# Confirm external access
+curl -I https://liveportfolio.site
 
 Create your environment file
 nano .env.local
