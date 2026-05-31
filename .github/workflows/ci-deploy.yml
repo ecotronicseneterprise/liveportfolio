@@ -67,7 +67,7 @@ jobs:
           rsync -az --delete \
             -e "ssh -i /tmp/vps_key -p $VPS_SSH_PORT -o StrictHostKeyChecking=no" \
             --exclude ".next/cache" \
-            .next public package.json package-lock.json next.config.ts ecosystem.config.js deploy.sh \
+            .next public scripts package.json package-lock.json next.config.ts ecosystem.config.js deploy.sh \
             "$VPS_USER@$VPS_HOST:/home/deploy/apps/liveportfolio__incoming/"
 
       - name: Install production dependencies and reload PM2
@@ -100,3 +100,10 @@ jobs:
               fi
               exit 1
             fi
+
+            # Install/update health-check cron (idempotent)
+            chmod +x /home/deploy/apps/liveportfolio/scripts/health-check.sh
+            mkdir -p /home/deploy/logs
+            RESEND_KEY=$(grep RESEND_API_KEY /home/deploy/apps/liveportfolio/.env.local | cut -d= -f2- | tr -d '"' | tr -d "'")
+            CRON_JOB="0 6 * * * RESEND_API_KEY=${RESEND_KEY} /home/deploy/apps/liveportfolio/scripts/health-check.sh >> /home/deploy/logs/health-check.log 2>&1"
+            (crontab -l 2>/dev/null | grep -v "health-check.sh"; echo "$CRON_JOB") | crontab -
