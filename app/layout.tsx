@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'liveportfolio.site — Your professional portfolio in 5 minutes',
   description: 'Fill in your info. AI writes the copy. Your portfolio goes live in minutes. One-time $5. No subscription.',
   icons: {
-    icon: '/icon',
+    icon: '/logo.svg',
   },
   openGraph: {
     title: 'liveportfolio.site — Professional portfolio in 5 minutes',
