@@ -316,24 +316,17 @@ export default function LandingPage() {
       </section>
 
       {/* ── Final CTA ── */}
-      <section className="w-full bg-[#0A66C2]">
-        <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-24 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          <div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
-              Your work is already valuable.<br />It just needs to be seen.
-            </h2>
-          </div>
-          <div className="flex flex-col gap-4 lg:items-end">
-            <p className="text-[#bfdbfe] text-lg leading-relaxed lg:text-right">
-              Create a portfolio link you can share with recruiters, clients, and collaborators — in minutes.
-            </p>
-            <Link
-              href="/create"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-[#0A66C2] text-base font-bold rounded-full hover:bg-[#f0f7ff] transition-colors w-fit"
-            >
-              Create My Portfolio →
-            </Link>
-          </div>
+      <section className="w-full">
+        <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-24">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#0A0A0A] leading-tight mb-8">
+            Your work is already valuable.<br />It just needs to be seen.
+          </h2>
+          <Link
+            href="/create"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors"
+          >
+            Create My Portfolio →
+          </Link>
         </div>
       </section>
 
