@@ -33,8 +33,8 @@ export default function Icon() {
           <path
             d="M4 26c0-5.52 4.48-10 10-10s10 4.48 10 10"
             stroke="white"
-            stroke-width="2.5"
-            stroke-linecap="round"
+            strokeWidth="2.5"
+            strokeLinecap="round"
             fill="none"
           />
         </svg>

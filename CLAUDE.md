@@ -137,16 +137,20 @@ portfolios won't render. Always check middleware.ts first.
 
 ```bash
 NEXT_PUBLIC_ROOT_DOMAIN=liveportfolio.site
-NEXT_PUBLIC_APP_URL=http://46.225.186.103     # update to https once SSL added
+NEXT_PUBLIC_APP_URL=https://liveportfolio.site
 
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=               # safe to expose to client
 SUPABASE_SERVICE_ROLE_KEY=                   # SERVER SIDE ONLY — never in client bundle
 
 OPENAI_API_KEY=
-LEMON_SQUEEZY_WEBHOOK_SECRET=
-LEMON_SQUEEZY_API_KEY=
+
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=             # safe to expose to client
+PAYSTACK_SECRET_KEY=                         # SERVER SIDE ONLY
+NEXT_PUBLIC_USD_TO_NGN_RATE=1400             # update when rate shifts significantly
+
 RESEND_API_KEY=
+ADMIN_METRICS_SECRET=                        # protects /api/admin/metrics endpoint
 ```
 
 ---
@@ -260,20 +264,23 @@ Persist to `portfolios.health_score` on save and update.
 
 ## Payment Flow
 
+Payment processor: **Paystack** (not Lemon Squeezy — that was removed).
+Webhook endpoint: `/api/paystack-webhook`
+
 ```
-User clicks "Publish — $19"
+User clicks "Publish"
   ↓
-Lemon Squeezy overlay (stays on liveportfolio.site — no redirect)
+Paystack popup (stays on liveportfolio.site — no redirect)
   ↓
 User pays
   ↓
-LS fires POST to /api/webhook
+Paystack fires POST to /api/paystack-webhook
   ↓
-/api/webhook:
-  1. Verify HMAC signature (X-Signature header)
-  2. Check ls_order_id not already in payments table (idempotency)
-  3. Find user by email from LS order
-  4. Set users.plan = 'launch' or 'professional'
+/api/paystack-webhook:
+  1. Verify HMAC signature (x-paystack-signature header, sha512)
+  2. Check reference not already in payments table (idempotency)
+  3. Find user by user_id from metadata
+  4. Set users.plan = 'pro'
   5. Set users.published_at = now()
   6. Insert into payments table
   7. Send Resend confirmation email
@@ -311,31 +318,68 @@ demo, test, null, undefined, liveportfolio`
 
 ## Deployment
 
+### How deploys work (fully automated)
+Push to `main` → GitHub Actions does everything:
+1. Builds the app on GitHub's servers (x86_64)
+2. Rsyncs `.next`, `public`, `scripts`, `package.json`, `ecosystem.config.js` to VPS
+3. Copies `.env.local` from old release to new (preserves secrets across deploys)
+4. Runs `npm install --omit=dev` on VPS (ARM64-native binaries — must run on VPS, not CI)
+5. Reloads PM2 with `ecosystem.config.js --env production --update-env`
+6. Reinstalls the daily health-check cron
+
+**You never need to SSH into the VPS for a normal deploy.**
+
 ### VPS Details
 - IP: 46.225.186.103
 - User: deploy
 - SSH: `ssh deploy@46.225.186.103`
 - App directory: `/home/deploy/apps/liveportfolio`
-- App port: 3001
+- App port: 3001 (UpJobs runs on 3000 — never use 3000)
 - PM2 process name: `liveportfolio`
+- Architecture: ARM64 (Hetzner) — node_modules must be installed on VPS, never rsynced from CI
 
-### Deploy command (after pushing to GitHub)
+### .env.local on VPS
+Lives at `/home/deploy/apps/liveportfolio/.env.local`.
+**Never committed to git.** Preserved automatically across deploys by the workflow.
+If it ever gets lost (e.g. first deploy to a fresh VPS), recreate it manually then run:
 ```bash
-ssh deploy@46.225.186.103
-cd /home/deploy/apps/liveportfolio
-sh deploy.sh
+pm2 startOrReload /home/deploy/apps/liveportfolio/ecosystem.config.js --env production --update-env
 ```
 
-### deploy.sh does:
-git pull → npm install → npm run build → pm2 reload liveportfolio
+Required variables:
+```
+NEXT_PUBLIC_ROOT_DOMAIN=liveportfolio.site
+NEXT_PUBLIC_APP_URL=https://liveportfolio.site
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+OPENAI_API_KEY=
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=
+PAYSTACK_SECRET_KEY=
+NEXT_PUBLIC_USD_TO_NGN_RATE=1400
+RESEND_API_KEY=
+ADMIN_METRICS_SECRET=
+```
+
+### ecosystem.config.js
+Reads `.env.local` automatically via `loadEnv()` and passes all vars into PM2's env.
+This means PM2 never needs manual env injection — just reload after `.env.local` changes.
+
+### Swap file
+The VPS has a 2GB swap file at `/swapfile` to prevent OOM during `npm install`.
+It is made permanent via `/etc/fstab`. Never delete it.
+
+### If a deploy fails and rolls back
+The workflow automatically reverts to `liveportfolio__previous`.
+To debug: `pm2 logs liveportfolio --lines 50 --nostream`
 
 ### PM2 commands
 ```bash
-pm2 list                          # see all running processes
-pm2 logs liveportfolio --lines 50 # read app logs
-pm2 restart liveportfolio         # restart (brief downtime)
-pm2 reload liveportfolio          # zero-downtime reload
-pm2 stop liveportfolio            # stop
+pm2 list                                    # see all running processes
+pm2 logs liveportfolio --lines 50 --nostream # read app logs
+pm2 startOrReload ecosystem.config.js --env production --update-env  # reload with env
+pm2 restart liveportfolio                   # hard restart (brief downtime)
+pm2 stop liveportfolio                      # stop
 ```
 
 ### Caddy config location
@@ -343,6 +387,27 @@ pm2 stop liveportfolio            # stop
 
 ### Key Caddy line (never delete from the liveportfolio.site block)
 `header_up Host {host}`
+
+### GitHub Actions secrets required
+```
+VPS_HOST, VPS_USER, VPS_SSH_KEY, VPS_SSH_PORT
+OPENAI_API_KEY, RESEND_API_KEY, PAYSTACK_SECRET_KEY
+NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY, NEXT_PUBLIC_APP_URL, NEXT_PUBLIC_ROOT_DOMAIN
+ADMIN_METRICS_SECRET
+```
+
+### Daily health check email
+- Script: `scripts/health-check.sh`
+- Cron: daily at 6:00 AM UTC (7:00 AM Lagos time)
+- Sends to: nwannachumaclifford@gmail.com via Resend
+- Shows: app status, response time, SSL days, revenue, signups, published users,
+  email list, portfolio views, top portfolios, recent signups, recent payments
+- Metrics endpoint: `GET /api/admin/metrics` (requires `x-metrics-secret` header)
+- To trigger manually:
+```bash
+RESEND_API_KEY=... ADMIN_METRICS_SECRET=... bash /home/deploy/apps/liveportfolio/scripts/health-check.sh
+```
 
 ---
 
