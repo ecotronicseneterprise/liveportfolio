@@ -84,7 +84,9 @@ jobs:
               cp liveportfolio/.env.local liveportfolio__incoming/.env.local
             fi
 
-            rm -rf liveportfolio__previous
+            # Delete node_modules from previous release first to avoid OOM on rm -rf
+            rm -rf liveportfolio__previous/node_modules 2>/dev/null || true
+            rm -rf liveportfolio__previous 2>/dev/null || true
             [ -d liveportfolio ] && mv liveportfolio liveportfolio__previous
             mv liveportfolio__incoming liveportfolio
 
