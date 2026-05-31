@@ -16,7 +16,7 @@ Turn your CV or raw experience into a live, professional portfolio in 5 minutes.
 - Next.js 15 (App Router)
 - Supabase (Auth + Database)
 - OpenAI (content generation)
-- Nginx (reverse proxy + subdomains)
+- Caddy (reverse proxy + subdomains)
 - PM2 (process management)
 - TailwindCSS
 
@@ -53,9 +53,10 @@ RESEND_API_KEY=
 
 ## Deployment
 Uses:
-- Nginx reverse proxy
+- Caddy reverse proxy
 - PM2 cluster mode
 - Ubuntu VPS
+- GitHub Actions CI/CD for remote build and deployment
 
 ## Status
 🚧 Active development — production SaaS system

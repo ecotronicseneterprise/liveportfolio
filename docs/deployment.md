@@ -4,7 +4,10 @@ Every command is copy-paste ready. Nothing to figure out.
 Ecotronics Enterprise — Clifford Nwanna — May 2026
 Your Server Details (baked into every command below)
 VPS IP: 46.225.186.103
-SSH command: ssh deploy@46.225.186.103
+SSH command: 
+ssh -i $HOME\.ssh\liveportfolio deploy@46.225.186.103
+
+ssh deploy@46.225.186.103
 Domain: liveportfolio.site (Namecheap)
 App port: 3001 (UpJobs runs on 3000 — no conflict)
 Web server: Caddy (already installed — do NOT install or start Nginx)
@@ -199,6 +202,18 @@ cd liveportfolio
 # Verify you're in the right folder
 ls
 # Should show: package.json, app/, components/, etc.
+
+Use GitHub Actions for remote build and deploy
+This repo now includes a CI/CD workflow at `.github/workflows/ci-deploy.yml`.
+It builds the app off-server, copies the compiled `.next` bundle to your VPS, installs production dependencies, and reloads PM2.
+
+To use it, create these repository secrets in GitHub:
+- `VPS_HOST`
+- `VPS_USER`
+- `VPS_SSH_KEY`
+- `VPS_SSH_PORT`
+
+If you cannot use GitHub Actions yet, the manual deployment steps below still work, but the CI/CD workflow is the recommended approach for a 4GB VPS.
 
 Create your environment file
 nano .env.local
