@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Logo from '@/components/Logo'
+import SupportButton from '@/components/SupportButton'
 
 const EXAMPLE_PORTFOLIOS = [
   { name: 'Amara Osei', role: 'Frontend Developer', slug: 'amara', template: 'Bold' },
@@ -46,7 +47,7 @@ export default function LandingPage() {
             <Link href="/blog" className="text-sm text-gray-500 hover:text-gray-800 transition-colors hidden sm:block">
               Blog
             </Link>
-            <Link href="/login" className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
+<Link href="/login" className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
               Sign in
             </Link>
             <Link
@@ -330,10 +331,38 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <SupportButton />
+
       {/* ── Footer ── */}
       <footer className="w-full border-t border-gray-100 bg-white">
-        <div className="w-full px-6 sm:px-10 lg:px-16 py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-gray-400">
+        <div className="w-full px-6 sm:px-10 lg:px-16 py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs text-gray-400">
           <span>© 2026 Ecotronics Enterprise · liveportfolio.site</span>
+
+          {/* Contact links */}
+          <div className="flex items-center gap-5">
+            <a
+              href="tel:+2349014545622"
+              className="flex items-center gap-1.5 hover:text-[#0A66C2] transition-colors"
+              aria-label="Call us"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.79a16 16 0 0 0 6.29 6.29l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              +234 901 454 5622
+            </a>
+            <a
+              href="mailto:nwannachumaclifford@gmail.com"
+              className="flex items-center gap-1.5 hover:text-[#0A66C2] transition-colors"
+              aria-label="Email us"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              Email us
+            </a>
+          </div>
+
           <div className="flex gap-6">
             <a href="/blog" className="hover:text-gray-600 transition-colors">Blog</a>
             <a href="/terms" className="hover:text-gray-600 transition-colors">Terms</a>

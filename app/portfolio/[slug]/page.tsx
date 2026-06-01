@@ -407,9 +407,28 @@ export default async function PortfolioPage({ params }: Props) {
   const portfolio = portfolioRow
 
   const Template = portfolio.template === 'bold' ? Bold : portfolio.template === 'creative' ? Creative : Minimal
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
+  const c = portfolio.content
+
+  const personSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: c.name,
+    jobTitle: c.role,
+    description: c.headline,
+    email: c.email,
+    url: `${appUrl}/${slug}`,
+    ...(c.location && { address: { '@type': 'PostalAddress', addressLocality: c.location } }),
+    ...(c.github_url && { sameAs: [c.github_url, c.linkedin_url].filter(Boolean) }),
+    ...(c.avatar_url && { image: c.avatar_url }),
+  }
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+      />
       <Template content={portfolio.content} />
       <ClientAnalytics slug={slug} />
       <AcquisitionBar />
