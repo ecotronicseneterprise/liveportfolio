@@ -83,10 +83,10 @@ export default function Bold({ content }: { content: PortfolioContent }) {
       <div className="lg:hidden sticky top-0 z-50 bg-[#0D1117]/95 backdrop-blur-sm border-b border-[#1C2128]">
         <div className="flex items-center justify-between px-5 py-4">
           <span
-            className="text-sm font-bold text-[#58A6FF]"
+            className="text-base font-bold text-[#58A6FF]"
             style={{ fontFamily: 'var(--font-space-mono), monospace' }}
           >
-            {content.name.toLowerCase().replace(/\s+/g, '')}
+            {content.name}
           </span>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
