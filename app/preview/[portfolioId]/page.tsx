@@ -283,6 +283,7 @@ export default function PreviewPage() {
   const [justPaid, setJustPaid] = useState(false)
   const [slug, setSlug] = useState('')
   const [paying, setPaying] = useState(false)
+  const [paymentTimedOut, setPaymentTimedOut] = useState(false)
   const [ngnRate, setNgnRate] = useState(1500)
 
   // Fetch live USD → NGN rate; fall back to 1500 if API is unreachable
@@ -345,9 +346,11 @@ export default function PreviewPage() {
     setLoading(false)
   }, [portfolioId, router])
 
-  // Listen for real-time payment updates
+  // Listen for real-time payment updates + poll as fallback
   useEffect(() => {
     if (!portfolioUserId) return
+
+    // Realtime subscription
     const channel = supabase
       .channel(`user-plan-${portfolioUserId}`)
       .on('postgres_changes', {
@@ -367,6 +370,34 @@ export default function PreviewPage() {
 
     return () => { supabase.removeChannel(channel) }
   }, [portfolioUserId])
+
+  // Polling fallback — if paying spinner is showing, poll every 3s for up to 90s
+  useEffect(() => {
+    if (!paying || !portfolioUserId) return
+    let attempts = 0
+    const maxAttempts = 30 // 30 × 3s = 90s max
+    const interval = setInterval(async () => {
+      attempts++
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
+        .from('users')
+        .select('plan, slug')
+        .eq('id', portfolioUserId)
+        .single()
+      if (data && data.plan !== 'unpublished') {
+        setIsPaid(true)
+        setPaying(false)
+        setJustPaid(true)
+        if (data.slug) setSlug(data.slug)
+        clearInterval(interval)
+      } else if (attempts >= maxAttempts) {
+        setPaying(false)
+        setPaymentTimedOut(true)
+        clearInterval(interval)
+      }
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [paying, portfolioUserId])
 
   const switchTemplate = async (t: 'minimal' | 'bold' | 'creative') => {
     setTemplate(t)
@@ -441,7 +472,39 @@ export default function PreviewPage() {
 
   if (!content) return null
 
-  // Payment processing state — waiting for webhook → Realtime
+  // Payment timeout — webhook may have been delayed
+  if (paymentTimedOut) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-6">
+        <div className="text-center max-w-sm">
+          <div className="text-4xl mb-4">⏳</div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Payment is being confirmed</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Your payment was received by Paystack. Portfolio activation can take up to 2 minutes.
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            Check your email for a confirmation, then refresh this page or go to your dashboard.
+          </p>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => { setPaymentTimedOut(false); setPaying(true) }}
+              className="px-6 py-2.5 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
+            >
+              Keep checking…
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2.5 border border-gray-200 text-gray-600 text-sm rounded-full hover:border-gray-300 transition-colors"
+            >
+              Refresh page
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Payment processing state — waiting for webhook → Realtime + polling
   if (paying) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-6">

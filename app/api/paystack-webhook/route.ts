@@ -31,10 +31,31 @@ export async function POST(req: NextRequest) {
   const data = event.data
   const reference = data.reference as string
   const amount = data.amount as number
-  const metadata = (data.metadata as Record<string, string>) || {}
-  const { user_id, plan } = metadata
+
+  // Paystack can send metadata as direct keys OR as custom_fields array
+  // Handle both to be safe
+  const rawMeta = (data.metadata as Record<string, unknown>) || {}
+  let user_id: string | undefined
+  let plan: string | undefined
+
+  if (rawMeta.user_id) {
+    // Direct key format (used by PaystackPop inline)
+    user_id = rawMeta.user_id as string
+    plan = rawMeta.plan as string
+  } else if (Array.isArray(rawMeta.custom_fields)) {
+    // custom_fields array format
+    const fields = rawMeta.custom_fields as { variable_name: string; value: string }[]
+    user_id = fields.find(f => f.variable_name === 'user_id')?.value
+    plan = fields.find(f => f.variable_name === 'plan')?.value
+  }
+
+  // Also try reference parsing as last resort: ref format is lp-{portfolioId}-pro-{timestamp}
+  if (!user_id && reference) {
+    console.log('[paystack-webhook] metadata missing user_id, reference:', reference, 'raw meta:', JSON.stringify(rawMeta))
+  }
 
   if (!user_id || plan !== 'pro') {
+    console.log('[paystack-webhook] skipping: user_id=', user_id, 'plan=', plan)
     return NextResponse.json({ received: true })
   }
 

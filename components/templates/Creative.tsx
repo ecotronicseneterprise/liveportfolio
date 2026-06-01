@@ -199,12 +199,21 @@ const css = `
   }
   .nt-project-card {
     background: var(--card);
-    padding: 28px;
     transition: background 0.2s;
+    overflow: hidden;
   }
   .nt-project-card:hover { background: var(--cream); }
   .nt-project-card.nt-featured {
     grid-column: 1 / -1;
+  }
+  .nt-project-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    display: block;
+  }
+  .nt-project-body {
+    padding: 28px;
   }
   .nt-p-label {
     font-family: 'JetBrains Mono', monospace;
@@ -491,18 +500,24 @@ export default function Creative({ content }: { content: PortfolioContent }) {
               const isLastOdd = i > 0 && remaining % 2 !== 0 && i === content.projects.length - 1
               return (
               <div key={i} className={`nt-project-card${i === 0 ? ' nt-featured' : ''}${isLastOdd ? ' nt-featured' : ''}`}>
-                <div className="nt-p-label">{p.stack.slice(0, 3).join(' · ')}</div>
-                <div className="nt-p-name">{p.title}</div>
-                <div className="nt-p-desc">{p.problem} {p.solution}</div>
-                {p.outcome && <div className="nt-p-outcome">{p.outcome}</div>}
-                <div className="nt-p-stack">
-                  {p.stack.map((s, j) => <span key={j} className="nt-stack-tag">{s}</span>)}
-                </div>
-                {p.url && (
-                  <a href={p.url} target="_blank" rel="noopener noreferrer" className="nt-p-link">
-                    View project →
-                  </a>
+                {p.image_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.image_url} alt={p.title} className="nt-project-img" />
                 )}
+                <div className="nt-project-body">
+                  <div className="nt-p-label">{p.stack.slice(0, 3).join(' · ')}</div>
+                  <div className="nt-p-name">{p.title}</div>
+                  <div className="nt-p-desc">{p.problem} {p.solution}</div>
+                  {p.outcome && <div className="nt-p-outcome">{p.outcome}</div>}
+                  <div className="nt-p-stack">
+                    {p.stack.map((s, j) => <span key={j} className="nt-stack-tag">{s}</span>)}
+                  </div>
+                  {p.url && (
+                    <a href={p.url} target="_blank" rel="noopener noreferrer" className="nt-p-link">
+                      View project →
+                    </a>
+                  )}
+                </div>
               </div>
               )
             })}
