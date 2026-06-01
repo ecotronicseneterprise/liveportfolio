@@ -140,10 +140,6 @@ export default function Bold({ content }: { content: PortfolioContent }) {
             <p className="text-xs text-[#8B949E] mb-8">{content.location}</p>
           )}
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#1C2128] border border-[#1a5fa8] rounded-full mb-8 w-fit shadow-[0_0_12px_rgba(10,102,194,0.3)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#0A66C2] animate-pulse" />
-            <span className="text-xs text-[#0A66C2]">Open to work</span>
-          </div>
 
           <nav className="space-y-1 mb-8">
             {navItems.map((item) => (
@@ -211,10 +207,6 @@ export default function Bold({ content }: { content: PortfolioContent }) {
 
           {/* Hero */}
           <div className="mb-16">
-            <div className="flex items-center gap-2 mb-6 lg:hidden">
-              <span className="w-2 h-2 rounded-full bg-[#0A66C2] animate-pulse" />
-              <span className="text-xs text-[#0A66C2] font-medium">Available for opportunities</span>
-            </div>
 
             <p
               className="text-xs text-[#8B949E] mb-3 tracking-widest uppercase"
@@ -368,7 +360,6 @@ export default function Bold({ content }: { content: PortfolioContent }) {
                         )}
                         {project.outcome && (
                           <div className="bg-[#0D1117] border border-[#1a5fa8] rounded-lg px-3 py-2 shadow-[0_0_8px_rgba(10,102,194,0.15)]">
-                            <span className="text-xs text-[#0A66C2] font-bold" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>→ </span>
                             <span className="text-xs text-[#0A66C2] font-medium">{project.outcome}</span>
                           </div>
                         )}
