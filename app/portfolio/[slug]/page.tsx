@@ -334,11 +334,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .neq('plan', 'unpublished')
     .single()
 
-  const portfolio = data?.portfolios as unknown as {
-    seo_title: string
-    seo_description: string
-    og_image_url: string
-  } | null
+  const rawPortfolio = data?.portfolios
+  const portfolio = (Array.isArray(rawPortfolio)
+    ? (rawPortfolio as unknown as { seo_title: string; seo_description: string; og_image_url: string }[])[0]
+    : rawPortfolio as unknown as { seo_title: string; seo_description: string; og_image_url: string } | null) ?? null
 
   if (!portfolio) return {}
 
@@ -396,15 +395,16 @@ export default async function PortfolioPage({ params }: Props) {
     notFound()
   }
 
-  const portfolio = data.portfolios as unknown as {
-    id: string
-    template: string
-    content: PortfolioContent
-  } | null
+  // Supabase returns related rows as an array — unwrap the first element
+  const portfolioRow = Array.isArray(data.portfolios)
+    ? (data.portfolios as unknown as { id: string; template: string; content: PortfolioContent }[])[0]
+    : (data.portfolios as unknown as { id: string; template: string; content: PortfolioContent } | null)
 
-  if (!portfolio?.content) {
+  if (!portfolioRow?.content) {
     notFound()
   }
+
+  const portfolio = portfolioRow
 
   const Template = portfolio.template === 'bold' ? Bold : portfolio.template === 'creative' ? Creative : Minimal
 
