@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" fill="none">
+  <!-- Background -->
+  <rect width="800" height="800" rx="160" fill="#0A66C2"/>
+
+  <!-- Person icon - centred, large -->
+  <circle cx="400" cy="290" r="130" fill="white"/>
+  <path d="M150 660c0-138 112.5-250 250-250s250 112.5 250 250" stroke="white" stroke-width="72" stroke-linecap="round" fill="none"/>
+</svg>
