@@ -27,7 +27,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Who is this for?',
-    a: 'Developers, designers, data scientists, product managers, freelancers — anyone who wants to show their work clearly and get hired faster.',
+    a: 'Developers, designers, data scientists, product managers, freelancers — anyone who wants to present their work professionally and be taken seriously online.',
   },
   {
     q: 'Do I need design or coding skills?',
@@ -351,7 +351,7 @@ export default function LandingPage() {
               +234 901 454 5622
             </a>
             <a
-              href="mailto:nwannachumaclifford@gmail.com"
+              href="mailto:support@ecotronicsenterprise.com"
               className="flex items-center gap-1.5 hover:text-[#0A66C2] transition-colors"
               aria-label="Email us"
             >
@@ -367,6 +367,7 @@ export default function LandingPage() {
             <a href="/blog" className="hover:text-gray-600 transition-colors">Blog</a>
             <a href="/terms" className="hover:text-gray-600 transition-colors">Terms</a>
             <a href="/privacy" className="hover:text-gray-600 transition-colors">Privacy</a>
+            <a href="https://ecotronicsenterprise.com" className="hover:text-gray-600 transition-colors">Ecotronics</a>
           </div>
         </div>
       </footer>

@@ -28,6 +28,11 @@ export default function TermsPage() {
               (Lagos, Nigeria). We allow users to create, preview, and publish professional portfolio websites
               at a subdomain of liveportfolio.site. By using this service, you agree to these terms.
             </p>
+            <p className="mt-3">
+              liveportfolio.site is a software tool. We are not a recruiter, employment agency, or guarantor
+              of any employment outcome. We make no promise that using this service will result in job offers,
+              interviews, or any other professional outcome.
+            </p>
           </section>
 
           <section>
@@ -75,9 +80,10 @@ export default function TermsPage() {
               handle or store your card details.
             </p>
             <p className="mt-3">
-              <strong>No refunds:</strong> Once your portfolio has been published and is live at your
-              subdomain, the payment is non-refundable. If your portfolio has not yet gone live due to a
-              technical error on our part, contact us within 48 hours for a full refund.
+              <strong>Refund policy:</strong> If you are not satisfied, email us within 7 days of payment
+              for a full refund — no questions asked. After 7 days, or once your portfolio has been published
+              and shared, refunds are at our discretion. Contact{' '}
+              <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">support@ecotronicsenterprise.com</a>.
             </p>
             <p className="mt-3">
               There are no recurring fees. Your portfolio remains live indefinitely following a single payment.
@@ -97,7 +103,7 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-3">7. Account Termination</h2>
             <p>
               You may request deletion of your account at any time by emailing
-              {' '}<a href="mailto:ecotronics.nterprise@gmail.com" className="text-[#0A66C2] hover:underline">ecotronics.nterprise@gmail.com</a>.
+              {' '}<a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">support@ecotronicsenterprise.com</a>.
               We will delete your account and all associated portfolio data within 14 days of your request.
               Deletion is permanent and irreversible.
             </p>
@@ -137,8 +143,8 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-3">11. Contact</h2>
             <p>
               For any questions about these terms, email us at{' '}
-              <a href="mailto:ecotronics.nterprise@gmail.com" className="text-[#0A66C2] hover:underline">
-                ecotronics.nterprise@gmail.com
+              <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">
+                support@ecotronicsenterprise.com
               </a>.
             </p>
           </section>
@@ -148,8 +154,9 @@ export default function TermsPage() {
 
       <footer className="border-t border-gray-100 py-8 px-5">
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4 text-xs text-gray-400">
-          <span>© 2026 Ecotronics Enterprise. Built by Clifford Nwanna.</span>
+          <span>© 2026 Ecotronics Enterprise · liveportfolio.site</span>
           <div className="flex gap-4">
+            <a href="https://ecotronicsenterprise.com" className="hover:text-gray-600">Ecotronics</a>
             <Link href="/terms" className="hover:text-gray-600">Terms</Link>
             <Link href="/privacy" className="hover:text-gray-600">Privacy</Link>
           </div>

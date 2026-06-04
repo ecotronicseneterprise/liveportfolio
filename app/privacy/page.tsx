@@ -26,8 +26,9 @@ export default function PrivacyPage() {
             <p>
               liveportfolio.site is operated by Ecotronics Enterprise, Lagos, Nigeria. This Privacy Policy
               explains how we collect, use, and protect your personal data when you use our service.
-              We are committed to compliance with the Nigeria Data Protection Regulation (NDPR) and, where
-              applicable, the EU General Data Protection Regulation (GDPR).
+              We are committed to compliance with the Nigeria Data Protection Regulation (NDPR), the Nigeria
+              Data Protection Act (NDPA) 2023, and, where applicable, the EU General Data Protection
+              Regulation (GDPR).
             </p>
           </section>
 
@@ -36,6 +37,7 @@ export default function PrivacyPage() {
             <p>We collect the following data:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li><strong>Account data:</strong> email address, password (stored as a hashed value — we never see it in plain text)</li>
+              <li><strong>Uploaded CV (PDF):</strong> if you choose to upload your CV, its text content is extracted to auto-fill your portfolio form. The raw file is not stored after extraction.</li>
               <li><strong>Portfolio content:</strong> your name, professional role, biography, work experience, project descriptions, skills, and any URLs or images you provide</li>
               <li><strong>Usage analytics:</strong> view counts on your published portfolio (we track page views, not individual visitor identities)</li>
               <li><strong>Payment records:</strong> transaction reference and amount (we do not store card numbers — card data is handled entirely by Paystack)</li>
@@ -112,7 +114,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">8. Your Rights</h2>
-            <p>Under NDPR and GDPR (where applicable), you have the right to:</p>
+            <p>Under NDPR, NDPA 2023, and GDPR (where applicable), you have the right to:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Access the personal data we hold about you</li>
               <li>Request correction of inaccurate data</li>
@@ -122,8 +124,8 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-3">
               To exercise any of these rights, email{' '}
-              <a href="mailto:ecotronics.nterprise@gmail.com" className="text-[#0A66C2] hover:underline">
-                ecotronics.nterprise@gmail.com
+              <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">
+                support@ecotronicsenterprise.com
               </a>
               . We will respond within 30 days.
             </p>
@@ -150,8 +152,8 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-3">11. Contact</h2>
             <p>
               For privacy-related questions or requests, contact us at{' '}
-              <a href="mailto:ecotronics.nterprise@gmail.com" className="text-[#0A66C2] hover:underline">
-                ecotronics.nterprise@gmail.com
+              <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">
+                support@ecotronicsenterprise.com
               </a>.
             </p>
           </section>
@@ -161,8 +163,9 @@ export default function PrivacyPage() {
 
       <footer className="border-t border-gray-100 py-8 px-5">
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4 text-xs text-gray-400">
-          <span>© 2026 Ecotronics Enterprise. Built by Clifford Nwanna.</span>
+          <span>© 2026 Ecotronics Enterprise · liveportfolio.site</span>
           <div className="flex gap-4">
+            <a href="https://ecotronicsenterprise.com" className="hover:text-gray-600">Ecotronics</a>
             <Link href="/terms" className="hover:text-gray-600">Terms</Link>
             <Link href="/privacy" className="hover:text-gray-600">Privacy</Link>
           </div>
