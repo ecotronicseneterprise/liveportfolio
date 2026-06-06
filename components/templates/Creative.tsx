@@ -418,10 +418,6 @@ export default function Creative({ content }: { content: PortfolioContent }) {
           <div className="nt-badge">{content.role}</div>
         </div>
         <div className="nt-header-right">
-          <div className="nt-status">
-            <span className="nt-status-dot" />
-            Available · Remote
-          </div>
           <nav className="nt-nav">
             {content.projects.length > 0 && <a href="#work">Work</a>}
             {content.experience.length > 0 && <a href="#experience">Experience</a>}
@@ -476,34 +472,13 @@ export default function Creative({ content }: { content: PortfolioContent }) {
           })}
           {statsProjects.length === 0 && content.about && (
             <div className="nt-meta-item">
-              <div className="nt-meta-num" style={{ fontSize: 14, paddingTop: 4, fontFamily: "'Space Grotesk', sans-serif", color: 'var(--muted)', minWidth: 0 }}>
-                {content.about.split(' ').slice(0, 60).join(' ')}{content.about.split(' ').length > 60 ? '…' : ''}
+              <div className="nt-meta-num" style={{ fontSize: 15, paddingTop: 4, fontFamily: "'Space Grotesk', sans-serif", color: 'var(--muted)', minWidth: 0, lineHeight: 1.8 }}>
+                {content.about}
               </div>
             </div>
           )}
         </div>
       </section>
-
-      {/* About */}
-      {content.about && (
-        <section className="nt-section nt-fade">
-          <div className="nt-section-header">
-            <span className="nt-section-num">00</span>
-            <h2 className="nt-section-title">About</h2>
-            <div className="nt-section-line" />
-          </div>
-          <div className="nt-about">
-            {content.about.split('\n').filter(Boolean).map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
-            {content.location && (
-              <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8, fontStyle: 'italic' }}>
-                📍 {content.location}
-              </p>
-            )}
-          </div>
-        </section>
-      )}
 
       {/* Projects */}
       {content.projects.length > 0 && (
@@ -581,7 +556,7 @@ export default function Creative({ content }: { content: PortfolioContent }) {
           </div>
           {content.skills_grouped && content.skills_grouped.length > 0 ? (
             <div className="nt-skills-grid">
-              {content.skills_grouped.map((g, i) => (
+              {content.skills_grouped.filter(g => g.items && g.items.length > 0).map((g, i) => (
                 <div key={i} className="nt-skill-cell">
                   <div className="nt-skill-cat">{g.category}</div>
                   <div className="nt-skill-items">{g.items.join('\n').split('\n').map((s, j) => <span key={j}>{s}<br /></span>)}</div>
