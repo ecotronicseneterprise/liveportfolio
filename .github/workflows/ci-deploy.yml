@@ -130,10 +130,13 @@ jobs:
               echo "⚠ WARNING: swap is not active — run: sudo swapon /swapfile"
             fi
 
-            # Install/update health-check cron (idempotent)
+            # Ensure health-check script is executable and logs dir exists
             chmod +x /home/deploy/apps/liveportfolio/scripts/health-check.sh
             mkdir -p /home/deploy/logs
-            RESEND_KEY=$(grep RESEND_API_KEY /home/deploy/apps/liveportfolio/.env.local | cut -d= -f2- | tr -d '"' | tr -d "'")
-            METRICS_SECRET=$(grep ADMIN_METRICS_SECRET /home/deploy/apps/liveportfolio/.env.local | cut -d= -f2- | tr -d '"' | tr -d "'")
-            CRON_JOB="0 6 * * * RESEND_API_KEY=${RESEND_KEY} ADMIN_METRICS_SECRET=${METRICS_SECRET} /home/deploy/apps/liveportfolio/scripts/health-check.sh >> /home/deploy/logs/health-check.log 2>&1"
-            (crontab -l 2>/dev/null | grep -v "health-check.sh"; echo "$CRON_JOB") | crontab -
+            # Crontab is locked with chattr +i — skip update if immutable, it is already correct
+            if lsattr /var/spool/cron/crontabs/deploy 2>/dev/null | grep -q '\-i'; then
+              echo "✓ Crontab is immutable — skipping cron update"
+            else
+              CRON_JOB="0 6 * * * /home/deploy/apps/liveportfolio/scripts/health-check.sh >> /home/deploy/logs/health-check.log 2>&1"
+              (crontab -l 2>/dev/null | grep -v "health-check.sh"; echo "$CRON_JOB") | crontab -
+            fi
