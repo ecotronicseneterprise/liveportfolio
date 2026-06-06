@@ -102,11 +102,11 @@ export async function GET(req: NextRequest) {
       .eq('event_type', 'portfolio_view')
       .gte('created_at', last7DaysAgo.toISOString()),
 
-    // Recent 5 signups
+    // All signups — used for full list + CSV export in health report
     db.from('users')
       .select('email, slug, plan, created_at')
       .order('created_at', { ascending: false })
-      .limit(5),
+      .limit(1000),
 
     // Recent 5 payments
     db.from('payments')
@@ -251,7 +251,13 @@ export async function GET(req: NextRequest) {
       views: p.view_count || 0,
       template: p.template,
     })),
-    recent_signups: (recentSignups.data || []).map(u => ({
+    recent_signups: (recentSignups.data || []).slice(0, 5).map(u => ({
+      email: u.email,
+      slug: u.slug,
+      plan: u.plan,
+      joined: u.created_at,
+    })),
+    all_signups: (recentSignups.data || []).map(u => ({
       email: u.email,
       slug: u.slug,
       plan: u.plan,

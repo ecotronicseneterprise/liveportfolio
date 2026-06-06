@@ -117,6 +117,62 @@ except:
   print('<tr><td colspan=2 style=\"padding:7px 12px;color:#9ca3af\">No data</td></tr>')
 " 2>/dev/null || echo "<tr><td colspan=2>?</td></tr>")
 
+# Full signup list — all users for dropdown + CSV
+ALL_SIGNUPS_COUNT=$(python3 -c "
+import json
+try:
+  d = json.load(open('/tmp/lp_metrics.json'))
+  print(len(d.get('all_signups', [])))
+except:
+  print(0)
+" 2>/dev/null || echo "0")
+
+# Build full signup table rows (all users, for <details> dropdown)
+ALL_SIGNUPS_ROWS=$(python3 -c "
+import json
+from datetime import datetime
+try:
+  d = json.load(open('/tmp/lp_metrics.json'))
+  rows = ''
+  for i, u in enumerate(d.get('all_signups', [])):
+    bg = '#f9fafb' if i % 2 == 0 else '#ffffff'
+    plan = u.get('plan','?')
+    plan_color = '#16a34a' if plan in ('basic','pro') else '#6b7280'
+    try:
+      dt = datetime.fromisoformat(u.get('joined','').replace('Z','+00:00'))
+      joined = dt.strftime('%d %b %Y, %H:%M')
+    except:
+      joined = u.get('joined','?')[:10]
+    rows += f\"<tr style='background:{bg}'><td style='padding:6px 10px;font-size:11px;color:#374151'>{u.get('email','?')}</td><td style='padding:6px 10px;font-size:11px;color:#0A66C2'>/{u.get('slug','?')}</td><td style='padding:6px 10px;font-size:11px;color:{plan_color};font-weight:600;text-align:center'>{plan}</td><td style='padding:6px 10px;font-size:11px;color:#6b7280;text-align:right'>{joined}</td></tr>\"
+  print(rows)
+except:
+  print('<tr><td colspan=4 style=\"padding:6px 10px;color:#9ca3af\">No data</td></tr>')
+" 2>/dev/null || echo "<tr><td colspan=4>?</td></tr>")
+
+# Generate CSV if user count > 100
+CSV_FILE=""
+if [ "$ALL_SIGNUPS_COUNT" -gt 100 ] 2>/dev/null; then
+  CSV_FILE="/tmp/lp_signups_$(date +%Y%m%d).csv"
+  python3 -c "
+import json, csv
+from datetime import datetime
+try:
+  d = json.load(open('/tmp/lp_metrics.json'))
+  with open('$CSV_FILE', 'w', newline='') as f:
+    w = csv.writer(f)
+    w.writerow(['Email', 'Slug', 'Plan', 'Joined'])
+    for u in d.get('all_signups', []):
+      try:
+        dt = datetime.fromisoformat(u.get('joined','').replace('Z','+00:00'))
+        joined = dt.strftime('%Y-%m-%d %H:%M')
+      except:
+        joined = u.get('joined','')[:10]
+      w.writerow([u.get('email',''), u.get('slug',''), u.get('plan',''), joined])
+except Exception as e:
+  print(e)
+" 2>/dev/null
+fi
+
 # Top viewed portfolios as HTML rows
 TOP_VIEWED_ROWS=$(python3 -c "
 import json
@@ -463,16 +519,16 @@ ${CRON_DISPLAY}"
 # Tier 1: ₦50,000  (~5 payments)   — getting started
 # Tier 2: ₦150,000 (~15 payments)  — early traction
 # Tier 3: ₦500,000 (~50 payments)  — growth stage
-GOAL=50000
-GOAL_LABEL="₦50,000"
+GOAL=500000
+GOAL_LABEL="₦500,000"
 REV_MONTH_INT=$(echo "$REV_MONTH" | cut -d. -f1)
 [[ "$REV_MONTH_INT" =~ ^[0-9]+$ ]] || REV_MONTH_INT=0
 PROGRESS_PCT=$(( REV_MONTH_INT * 100 / GOAL ))
 [ "$PROGRESS_PCT" -gt 100 ] && PROGRESS_PCT=100
-# Blue below 50%, green at 100%, never red unless truly zero
-PROGRESS_COLOR="#0A66C2"
+# Red early, blue past 30%, green at 100%
+PROGRESS_COLOR="#dc2626"
+[ "$PROGRESS_PCT" -ge 30 ]  && PROGRESS_COLOR="#0A66C2"
 [ "$PROGRESS_PCT" -ge 100 ] && PROGRESS_COLOR="#16a34a"
-[ "$PROGRESS_PCT" -eq 0 ]   && PROGRESS_COLOR="#e5e7eb"
 
 # Format revenue with commas
 REV_MONTH_FMT=$(python3 -c "
@@ -690,6 +746,22 @@ HTML_BODY="<!DOCTYPE html>
         ${RECENT_SIGNUPS_ROWS}
       </table>
 
+      <!-- Full signup list — collapsible dropdown -->
+      <details style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden'>
+        <summary style='padding:10px 14px;font-size:12px;font-weight:700;color:#374151;cursor:pointer;background:#f9fafb;font-family:Arial,sans-serif;list-style:none'>
+          ▶ All ${USERS_TOTAL} users — click to expand
+        </summary>
+        <table width='100%' cellpadding='0' cellspacing='0' border='0'>
+          <tr style='background:#f9fafb'>
+            <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Email</th>
+            <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Slug</th>
+            <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:center;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Plan</th>
+            <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:right;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Joined</th>
+          </tr>
+          ${ALL_SIGNUPS_ROWS}
+        </table>
+      </details>
+
       <!-- Recent payments — FIX 1: ₦ -->
       <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;font-family:Arial,sans-serif'>Recent payments</div>
       <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px'>
@@ -809,16 +881,18 @@ HTML_BODY="<!DOCTYPE html>
 </body></html>"
 
 # ── 9. Send via Resend ────────────────────────────────────────────────────────
-echo "$HTML_BODY"   > /tmp/lp_html.txt
-echo "$PLAIN_TEXT"  > /tmp/lp_plain.txt
-echo "$SUBJECT"     > /tmp/lp_subject.txt
+echo "$HTML_BODY"        > /tmp/lp_html.txt
+echo "$PLAIN_TEXT"       > /tmp/lp_plain.txt
+echo "$SUBJECT"          > /tmp/lp_subject.txt
+echo "${CSV_FILE:-}"     > /tmp/lp_csvpath.txt
 
 python3 << 'PYEOF'
-import json, os
+import json, os, base64
 
-html    = open('/tmp/lp_html.txt').read()
-plain   = open('/tmp/lp_plain.txt').read()
-subject = open('/tmp/lp_subject.txt').read().strip()
+html      = open('/tmp/lp_html.txt').read()
+plain     = open('/tmp/lp_plain.txt').read()
+subject   = open('/tmp/lp_subject.txt').read().strip()
+csv_path  = open('/tmp/lp_csvpath.txt').read().strip()
 
 payload = {
     "from": f"liveportfolio dashboard <{os.environ.get('FROM_EMAIL','dashboard@liveportfolio.site')}>",
@@ -827,6 +901,16 @@ payload = {
     "html": html,
     "text": plain,
 }
+
+if csv_path and os.path.isfile(csv_path):
+    with open(csv_path, 'rb') as f:
+        encoded = base64.b64encode(f.read()).decode('utf-8')
+    filename = os.path.basename(csv_path)
+    payload["attachments"] = [{
+        "filename": filename,
+        "content": encoded,
+    }]
+
 with open('/tmp/lp_payload.json', 'w') as f:
     json.dump(payload, f)
 PYEOF
@@ -839,6 +923,7 @@ SEND_RESULT=$(curl -s -w "\n%{http_code}" -X POST "https://api.resend.com/emails
 SEND_HTTP=$(echo "$SEND_RESULT" | tail -1)
 SEND_BODY=$(echo "$SEND_RESULT" | head -1)
 
-rm -f /tmp/lp_metrics.json /tmp/lp_vps.json /tmp/lp_html.txt /tmp/lp_plain.txt /tmp/lp_subject.txt /tmp/lp_payload.json
+rm -f /tmp/lp_metrics.json /tmp/lp_vps.json /tmp/lp_html.txt /tmp/lp_plain.txt /tmp/lp_subject.txt /tmp/lp_csvpath.txt /tmp/lp_payload.json
+[ -n "${CSV_FILE:-}" ] && rm -f "$CSV_FILE"
 
 echo "[${TIMESTAMP}] Status:${APP_STATUS} HTTP:${HTTP_CODE} ${RESPONSE_MS}ms SSL:${SSL_INFO} Users:${USERS_TOTAL} Revenue:${REV_TOTAL_FMT} Published:${PUB_TOTAL} Subs:${SUBS_TOTAL} | Email:${SEND_HTTP} ${SEND_BODY}"
