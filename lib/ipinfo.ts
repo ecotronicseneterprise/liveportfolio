@@ -1,12 +1,5 @@
 // Server-side only — never import in client components
 
-function filterCompany(name: string): string | null {
-  if (!name) return null
-  const noise = /\b(amazon|google|microsoft|cloudflare|digitalocean|linode|vultr|hetzner|ovh|comcast|verizon|att|t-mobile|spectrum|cox|frontier|centurylink|unknown|datacamp|datacenter|data center|mtn|airtel|glo|9mobile|etisalat|safaricom|vodacom|vodafone|orange|telkom|tigo|camtel|mti|ntel|smile|internet service|isp|broadband|telecom|telco|communication|fibre|fiber|cable|wireless|mobile network|hosting|server|cloud|vps|dedicated|colocation|colo|akamai|fastly|cdn|incapsula|imperva|sucuri|iinet|bigpond|optus|telstra|shaw|rogers|bell|virgin|bt|sky|talktalk|plusnet|ee|three|o2|telia|telenor|swisscom|deutsche telekom|bouygues|sfr|transtelco|total play|izzi|megacable|university|college|school|institute|academy|government|federal|ministry|department of)\b/i
-  if (noise.test(name)) return null
-  return name.trim() || null
-}
-
 interface IpInfoResult {
   company: string | null
   country: string | null
@@ -24,19 +17,19 @@ export async function getIpInfo(ip: string, ipHash: string, supabaseAdmin: any):
   }
 
   try {
-    // Check if we've seen this ip_hash in the last 24 hours — reuse cached data
+    // Check if we've seen this ip_hash in the last 24 hours — reuse cached country
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
     const { data: cached } = await supabaseAdmin
       .from('analytics_events')
-      .select('company, country')
+      .select('country')
       .eq('ip_hash', ipHash)
       .gte('created_at', oneDayAgo)
-      .not('company', 'is', null)
+      .not('country', 'is', null)
       .limit(1)
       .single()
 
     if (cached) {
-      return { company: cached.company, country: cached.country }
+      return { company: null, country: cached.country }
     }
   } catch {
     // No cached row — proceed to API call
@@ -56,7 +49,7 @@ export async function getIpInfo(ip: string, ipHash: string, supabaseAdmin: any):
 
     const data = await res.json()
     return {
-      company: data.as_name ? filterCompany(data.as_name) : null,
+      company: null,
       country: data.country ?? null,
     }
   } catch {

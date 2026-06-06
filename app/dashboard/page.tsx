@@ -275,15 +275,14 @@ const PLACEHOLDER_SOURCES = [
   { label: 'WhatsApp', pct: 17 },
 ]
 const PLACEHOLDER_ACTIVITY: ActivityEvent[] = [
-  { event_type: 'portfolio_view', label: null, company: 'Andela', country: 'Nigeria', time: '2h ago' },
-  { event_type: 'portfolio_view', label: null, company: 'Flutterwave', country: 'Ghana', time: '5h ago' },
-  { event_type: 'link_click', label: 'GitHub', company: null, country: null, time: '1d ago' },
+  { event_type: 'portfolio_view', label: null, country: 'Nigeria', time: '2h ago' },
+  { event_type: 'portfolio_view', label: null, country: 'Ghana', time: '5h ago' },
+  { event_type: 'link_click', label: 'GitHub', country: null, time: '1d ago' },
 ]
 
 interface ActivityEvent {
   event_type: string
   label: string | null
-  company: string | null
   country: string | null
   time: string
 }
@@ -413,14 +412,13 @@ function AnalyticsSection({
               {(() => {
                 const a = activity[0]
                 const displayTime = typeof a.time === 'string' && a.time.includes('ago') ? a.time : timeAgo(a.time)
-                const who = a.event_type === 'portfolio_view'
-                  ? (a.company ?? (a.country ?? 'Portfolio visit'))
+                const label = a.event_type === 'portfolio_view'
+                  ? (a.country ? `Portfolio visit · ${a.country}` : 'Portfolio visit')
                   : (a.label ?? a.event_type.replace(/_/g, ' '))
-                const where = a.event_type === 'portfolio_view' ? (a.country ?? '') : ''
                 return (
                   <div className="mb-3 pb-3 border-b border-gray-100">
                     <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1">Most recent visit</p>
-                    <p className="text-sm font-semibold text-gray-800">{who}{where && where !== who ? ` · ${where}` : ''}</p>
+                    <p className="text-sm font-semibold text-gray-800">{label}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{displayTime}</p>
                   </div>
                 )
@@ -429,13 +427,12 @@ function AnalyticsSection({
               {/* Remaining unique visitors */}
               {activity.slice(1).map((a, i) => {
                 const displayTime = typeof a.time === 'string' && a.time.includes('ago') ? a.time : timeAgo(a.time)
-                const who = a.event_type === 'portfolio_view'
-                  ? (a.company ?? a.country ?? 'Portfolio visit')
+                const label = a.event_type === 'portfolio_view'
+                  ? (a.country ? `Portfolio visit · ${a.country}` : 'Portfolio visit')
                   : (a.label ?? a.event_type.replace(/_/g, ' '))
-                const where = a.event_type === 'portfolio_view' && a.country && a.country !== who ? ` · ${a.country}` : ''
                 return (
                   <div key={i} className="flex items-center justify-between py-1.5 border-t border-gray-50">
-                    <span className="text-xs text-gray-600">· {who}{where}</span>
+                    <span className="text-xs text-gray-600">· {label}</span>
                     <span className="text-[10px] text-gray-300 ml-3 flex-shrink-0">{displayTime}</span>
                   </div>
                 )
