@@ -32,6 +32,8 @@ export async function POST(req: NextRequest) {
 
   const supabaseAdmin = getSupabaseAdmin()
 
+  console.log('[paystack-webhook] event received:', event.event)
+
   // ─── subscription.create ────────────────────────────────────────────────────
   if (event.event === 'subscription.create') {
     const data = event.data
@@ -39,15 +41,21 @@ export async function POST(req: NextRequest) {
     const customer = data.customer as Record<string, unknown>
 
     const planCode = planData?.plan_code as string
+    const customerEmail = customer?.email as string
+    console.log('[paystack-webhook] subscription.create: planCode=', planCode, 'email=', customerEmail)
+
+    const TEST_PLAN_CODE = 'PLN_gzi13ks4vajcdhx' // ₦500 test plan — maps to basic
     const plan: 'basic' | 'pro' =
-      planCode === process.env.PAYSTACK_BASIC_PLAN_CODE ? 'basic' : 'pro'
+      planCode === process.env.PAYSTACK_BASIC_PLAN_CODE || planCode === TEST_PLAN_CODE
+        ? 'basic'
+        : 'pro'
+    console.log('[paystack-webhook] subscription.create: resolved plan=', plan)
 
     const subscriptionCode = data.subscription_code as string
     const customerCode = customer?.customer_code as string
     const nextPaymentDate = data.next_payment_date as string
 
     // Derive user_id from customer email — Paystack doesn't pass it directly
-    const customerEmail = customer?.email as string
     if (!customerEmail) {
       console.log('[paystack-webhook] subscription.create: no customer email')
       return NextResponse.json({ received: true })
@@ -85,10 +93,11 @@ export async function POST(req: NextRequest) {
       )
 
     // Update users.plan → keeps Realtime celebration flow working
-    await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from('users')
       .update({ plan, published_at: new Date().toISOString() })
       .eq('id', user_id)
+    console.log('[paystack-webhook] subscription.create: users update error=', updateError, 'user_id=', user_id)
 
     // Send confirmation email
     if (process.env.RESEND_API_KEY) {
