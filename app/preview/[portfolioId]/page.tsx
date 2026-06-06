@@ -544,12 +544,14 @@ export default function PreviewPage() {
               </a>
             </div>
           ) : (
-            <button
-              onClick={() => setShowUpgradeModal(true)}
-              className="px-4 py-2 bg-[#0A66C2] text-white text-xs font-bold rounded-full hover:bg-[#084D9A] transition-colors whitespace-nowrap"
-            >
+            false && (
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                className="px-4 py-2 bg-[#0A66C2] text-white text-xs font-bold rounded-full hover:bg-[#084D9A] transition-colors whitespace-nowrap"
+              >
               Publish my portfolio →
-            </button>
+              </button>
+            )
           )}
         </div>
       </div>

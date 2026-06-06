@@ -371,6 +371,9 @@ const css = `
     .nt-header-right { text-align: left; }
     .nt-nav { justify-content: flex-start; }
     .nt-hero { grid-template-columns: 1fr; padding: 0 5vw; gap: 32px; margin-top: 36px; }
+    .nt-meta-item { flex-direction: column; gap: 6px; }
+    .nt-meta-num { min-width: 0; font-size: 26px; }
+    .nt-meta-desc { padding-top: 0; }
     .nt-projects-grid { grid-template-columns: 1fr; }
     .nt-project-card.nt-featured { grid-column: 1; }
     .nt-section { padding: 0 5vw; }
