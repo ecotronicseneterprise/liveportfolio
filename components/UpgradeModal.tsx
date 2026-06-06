@@ -12,6 +12,7 @@ interface UpgradeModalProps {
   onClose: () => void
   userEmail: string
   portfolioId: string
+  onPaymentStarted?: () => void
 }
 
 function PlanFeature({ text }: { text: string }) {
@@ -23,7 +24,7 @@ function PlanFeature({ text }: { text: string }) {
   )
 }
 
-export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId }: UpgradeModalProps) {
+export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, onPaymentStarted }: UpgradeModalProps) {
   // Load Paystack inline script
   useEffect(() => {
     if (!isOpen) return
@@ -61,9 +62,10 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId }
       plan: planCode,
       ref: `lp-${portfolioId}-${tier}-${Date.now()}`,
       callback: () => {
-        // Webhook updates plan → Realtime notifies preview page
+        // Paystack popup closed after payment — webhook fires async
+        // Signal the preview page to show "activating" spinner and start polling
         onClose()
-        window.location.reload()
+        onPaymentStarted?.()
       },
       onClose: () => {},
     })

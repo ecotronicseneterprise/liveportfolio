@@ -32,8 +32,6 @@ export async function POST(req: NextRequest) {
 
   const supabaseAdmin = getSupabaseAdmin()
 
-  console.log('[paystack-webhook] event received:', event.event)
-
   // ─── subscription.create ────────────────────────────────────────────────────
   if (event.event === 'subscription.create') {
     const data = event.data
@@ -42,14 +40,12 @@ export async function POST(req: NextRequest) {
 
     const planCode = planData?.plan_code as string
     const customerEmail = customer?.email as string
-    console.log('[paystack-webhook] subscription.create: planCode=', planCode, 'email=', customerEmail)
 
     const TEST_PLAN_CODE = 'PLN_gzi13ks4vajcdhx' // ₦500 test plan — maps to basic
     const plan: 'basic' | 'pro' =
       planCode === process.env.PAYSTACK_BASIC_PLAN_CODE || planCode === TEST_PLAN_CODE
         ? 'basic'
         : 'pro'
-    console.log('[paystack-webhook] subscription.create: resolved plan=', plan)
 
     const subscriptionCode = data.subscription_code as string
     const customerCode = customer?.customer_code as string
@@ -57,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     // Derive user_id from customer email — Paystack doesn't pass it directly
     if (!customerEmail) {
-      console.log('[paystack-webhook] subscription.create: no customer email')
+      console.error('[webhook] subscription.create: missing customer email')
       return NextResponse.json({ received: true })
     }
 
@@ -68,7 +64,7 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (!userData) {
-      console.log('[paystack-webhook] subscription.create: no user found for email', customerEmail)
+      console.error('[webhook] subscription.create: no user found for planCode', planCode)
       return NextResponse.json({ received: true })
     }
 
@@ -97,7 +93,7 @@ export async function POST(req: NextRequest) {
       .from('users')
       .update({ plan, published_at: new Date().toISOString() })
       .eq('id', user_id)
-    console.log('[paystack-webhook] subscription.create: users update error=', updateError, 'user_id=', user_id)
+    if (updateError) console.error('[webhook] subscription.create: failed to update user plan', updateError.message)
 
     // Send confirmation email
     if (process.env.RESEND_API_KEY) {
@@ -126,8 +122,6 @@ export async function POST(req: NextRequest) {
         .from('subscriptions')
         .update({ status: 'cancelled' })
         .eq('paystack_subscription_code', subscriptionCode)
-
-      console.log('[paystack-webhook] subscription.disable: cancelled', subscriptionCode)
     }
 
     // Do NOT change users.plan — user keeps access until expires_at
@@ -140,7 +134,6 @@ export async function POST(req: NextRequest) {
   }
 
   const data = event.data
-  const reference = data.reference as string
 
   // Distinguish recurring subscription renewal from one-time charge
   const chargePlan = data.plan as Record<string, unknown> | undefined
@@ -159,13 +152,10 @@ export async function POST(req: NextRequest) {
         .update({ status: 'active', expires_at: expiresAt })
         .eq('paystack_subscription_code', subscriptionCode)
 
-      console.log('[paystack-webhook] charge.success (renewal): extended', subscriptionCode)
     }
 
     return NextResponse.json({ received: true })
   }
 
-  // Unrecognised charge.success — not a subscription renewal, not a known event
-  console.log('[paystack-webhook] unhandled charge.success reference:', reference)
   return NextResponse.json({ received: true })
 }

@@ -499,6 +499,7 @@ export default function PreviewPage() {
         onClose={() => setShowUpgradeModal(false)}
         userEmail={userEmail}
         portfolioId={portfolioId}
+        onPaymentStarted={() => { setShowUpgradeModal(false); setPaying(true) }}
       />
 
       {/* Preview header bar */}
