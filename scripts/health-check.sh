@@ -314,9 +314,11 @@ SSH_KEYS_LIST=$(awk '{print $3 " (" $1 ")"}' ~/.ssh/authorized_keys 2>/dev/null 
 
 # Check for suspicious processes and auto-kill them
 # Matches: miners, reverse shells, and random-name bash processes (e.g. "bash CE4A7D")
+# Excludes processes owned by 'deploy' (PM2, Next.js, health-check itself)
 SUSPICIOUS_PROCS=$(ps aux 2>/dev/null \
   | grep -E 'xmrig|minerd|kdevtmpfsi|wget.*pastebin|curl.*pastebin|bash -i |bash [A-Z0-9]{6}' \
-  | grep -v grep || echo "")
+  | grep -v grep \
+  | grep -v '^deploy ' || echo "")
 SUSPICIOUS_ALERT=0
 SUSPICIOUS_STATUS="✓ None detected"
 SUSPICIOUS_COLOR="#16a34a"
