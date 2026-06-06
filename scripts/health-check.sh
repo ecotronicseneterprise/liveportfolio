@@ -230,6 +230,107 @@ except:
   print('<tr><td colspan=5 style=\"padding:7px 12px;color:#9ca3af\">No data</td></tr>')
 " 2>/dev/null || echo "<tr><td colspan=5>?</td></tr>")
 
+# ── 5. Security audit ─────────────────────────────────────────────────────────
+
+# Known-good SSH key fingerprint — update this if you ever legitimately rotate keys
+KNOWN_KEY="AAAAC3NzaC1lZDI1NTE5AAAAIEDgN/BvoDqFCrQS0a43rfwdd+lv8mFSFv3w4rd3IBsW"
+
+# Count authorised keys and flag if more than 1
+SSH_KEY_COUNT=$(wc -l < ~/.ssh/authorized_keys 2>/dev/null || echo "?")
+SSH_KEY_ALERT=0
+SSH_KEY_STATUS="✓ OK — 1 key"
+SSH_KEY_COLOR="#16a34a"
+if [ "$SSH_KEY_COUNT" != "1" ] && [ "$SSH_KEY_COUNT" != "?" ]; then
+  SSH_KEY_ALERT=1
+  SSH_KEY_STATUS="🔴 ALERT — ${SSH_KEY_COUNT} keys found!"
+  SSH_KEY_COLOR="#dc2626"
+fi
+
+# Check known good key is still present
+if ! grep -q "$KNOWN_KEY" ~/.ssh/authorized_keys 2>/dev/null; then
+  SSH_KEY_ALERT=1
+  SSH_KEY_STATUS="🔴 ALERT — known key missing or replaced!"
+  SSH_KEY_COLOR="#dc2626"
+fi
+
+# List all current SSH keys
+SSH_KEYS_LIST=$(awk '{print $3 " (" $1 ")"}' ~/.ssh/authorized_keys 2>/dev/null || echo "unreadable")
+
+# Check for suspicious processes (miners, reverse shells, wget/curl piped to sh)
+SUSPICIOUS_PROCS=$(ps aux 2>/dev/null | grep -E 'xmrig|minerd|kdevtmpfsi|\.sh$|wget.*pastebin|curl.*pastebin|bash -i|/tmp/\.' | grep -v grep || echo "")
+SUSPICIOUS_ALERT=0
+SUSPICIOUS_STATUS="✓ None detected"
+SUSPICIOUS_COLOR="#16a34a"
+if [ -n "$SUSPICIOUS_PROCS" ]; then
+  SUSPICIOUS_ALERT=1
+  SUSPICIOUS_STATUS="🔴 SUSPICIOUS PROCESSES FOUND"
+  SUSPICIOUS_COLOR="#dc2626"
+fi
+
+# Crontab integrity — count lines and flag unexpected entries
+CRON_LINES=$(crontab -l 2>/dev/null | grep -v '^#' | grep -v '^$' || echo "")
+CRON_COUNT=$(echo "$CRON_LINES" | grep -c . 2>/dev/null || echo "0")
+CRON_ALERT=0
+CRON_STATUS="✓ OK — ${CRON_COUNT} jobs"
+CRON_COLOR="#16a34a"
+# Flag if anything other than health-check and drip appears
+if echo "$CRON_LINES" | grep -qvE 'health-check\.sh|cron/drip'; then
+  CRON_ALERT=1
+  CRON_STATUS="🔴 ALERT — unexpected cron entry!"
+  CRON_COLOR="#dc2626"
+fi
+
+# Current crontab as escaped text for display
+CRON_DISPLAY=$(crontab -l 2>/dev/null | grep -v '^#' | grep -v '^$' \
+  | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' || echo "empty")
+
+# Recent SSH logins (last 10)
+RECENT_LOGINS=$(last -n 10 2>/dev/null | grep -v 'wtmp\|reboot' \
+  | awk '{print $1, $3, $4" "$5" "$6" "$7, $NF}' || echo "unavailable")
+
+# Failed SSH attempts in last 24h
+FAILED_SSH=$(grep "Failed password\|Invalid user\|authentication failure" \
+  /var/log/auth.log 2>/dev/null \
+  | grep "$(date '+%b %e')" | wc -l 2>/dev/null || echo "?")
+
+# Unique IPs with failed attempts today
+FAILED_IPS=$(grep "Failed password\|Invalid user" /var/log/auth.log 2>/dev/null \
+  | grep "$(date '+%b %e')" \
+  | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | sort -u | head -5 || echo "none")
+
+# Recent logins as HTML rows (flag non-Lagos IPs)
+MY_IP="79.127.207"  # Your IP prefix — update if your ISP changes
+RECENT_LOGINS_ROWS=$(last -n 15 2>/dev/null | grep -v 'wtmp\|reboot\|^$' | head -10 | python3 -c "
+import sys
+rows = ''
+for i, line in enumerate(sys.stdin):
+  parts = line.split()
+  if len(parts) < 5:
+    continue
+  user = parts[0]
+  ip = parts[2] if len(parts) > 2 else '?'
+  date = ' '.join(parts[3:7]) if len(parts) > 6 else '?'
+  duration = parts[-1] if 'still' not in line else 'active'
+  bg = '#f9fafb' if i % 2 == 0 else '#ffffff'
+  # Flag IPs that don't match known prefix
+  ip_color = '#dc2626' if ip != '?' and not ip.startswith('79.127.207') and not ip.startswith('102.88') and not ip.startswith('102.89') and '.' in ip else '#374151'
+  flag = ' 🚨' if ip_color == '#dc2626' else ''
+  rows += f\"<tr style='background:{bg}'><td style='padding:6px 10px;font-size:12px;color:#374151'>{user}</td><td style='padding:6px 10px;font-size:12px;color:{ip_color};font-weight:600'>{ip}{flag}</td><td style='padding:6px 10px;font-size:12px;color:#6b7280'>{date}</td><td style='padding:6px 10px;font-size:12px;color:#6b7280;text-align:right'>{duration}</td></tr>\"
+print(rows if rows else '<tr><td colspan=4 style=\"padding:6px 10px;color:#9ca3af\">No data</td></tr>')
+" 2>/dev/null || echo "<tr><td colspan=4>?</td></tr>")
+
+# /tmp suspicious files
+TMP_SUSPICIOUS=$(find /tmp -maxdepth 1 -type f -name '*.sh' -o -name '*.elf' -o -name '.*' \
+  2>/dev/null | grep -v '^\s*$' || echo "")
+TMP_ALERT=0
+TMP_STATUS="✓ Clean"
+TMP_COLOR="#16a34a"
+if [ -n "$TMP_SUSPICIOUS" ]; then
+  TMP_ALERT=1
+  TMP_STATUS="🔴 Suspicious files in /tmp"
+  TMP_COLOR="#dc2626"
+fi
+
 # FIX 5: Alert flags — check thresholds
 HIGH_MEMORY=0
 LOW_DISK=0
@@ -264,10 +365,14 @@ except:
 
 # ── 5. Build subject with alert flags (FIX 5) ─────────────────────────────────
 SUBJECT_ALERTS=""
-[ "$PROCESS_DOWN" = "1" ] && SUBJECT_ALERTS="🔴 PROCESS DOWN · ${SUBJECT_ALERTS}"
-[ "$HIGH_MEMORY" = "1" ]  && SUBJECT_ALERTS="${SUBJECT_ALERTS}⚠️ HIGH MEMORY · "
-[ "$LOW_DISK" = "1" ]     && SUBJECT_ALERTS="${SUBJECT_ALERTS}⚠️ LOW DISK · "
-[ "$SSL_ALERT" = "1" ]    && SUBJECT_ALERTS="${SUBJECT_ALERTS}⚠️ SSL EXPIRING · "
+[ "$PROCESS_DOWN" = "1" ]   && SUBJECT_ALERTS="🔴 PROCESS DOWN · ${SUBJECT_ALERTS}"
+[ "$SSH_KEY_ALERT" = "1" ]  && SUBJECT_ALERTS="🔴 SSH KEY ALERT · ${SUBJECT_ALERTS}"
+[ "$SUSPICIOUS_ALERT" = "1" ] && SUBJECT_ALERTS="🔴 SUSPICIOUS PROCESS · ${SUBJECT_ALERTS}"
+[ "$CRON_ALERT" = "1" ]     && SUBJECT_ALERTS="🔴 CRON TAMPERED · ${SUBJECT_ALERTS}"
+[ "$TMP_ALERT" = "1" ]      && SUBJECT_ALERTS="⚠️ /tmp FILES · ${SUBJECT_ALERTS}"
+[ "$HIGH_MEMORY" = "1" ]    && SUBJECT_ALERTS="${SUBJECT_ALERTS}⚠️ HIGH MEMORY · "
+[ "$LOW_DISK" = "1" ]       && SUBJECT_ALERTS="${SUBJECT_ALERTS}⚠️ LOW DISK · "
+[ "$SSL_ALERT" = "1" ]      && SUBJECT_ALERTS="${SUBJECT_ALERTS}⚠️ SSL EXPIRING · "
 
 BASE_SUBJECT="LP · liveportfolio.site · ${DATE_LABEL}"
 
@@ -337,7 +442,18 @@ Memory: ${VPS_MEM_USED}MB / ${VPS_MEM_TOT}MB (${VPS_MEM_PCT}%)
 Disk: ${VPS_DISK_USED}GB / ${VPS_DISK_TOT}GB (${VPS_DISK_PCT}%)
 
 Target: ₦500,000/mo = 16 payments/mo
-Progress this month: ${REV_MO_COUNT}/16 payments | ₦${REV_MONTH}/₦500,000"
+Progress this month: ${REV_MO_COUNT}/16 payments | ₦${REV_MONTH}/₦500,000
+
+=== SECURITY ===
+SSH keys: ${SSH_KEY_STATUS}
+Suspicious processes: ${SUSPICIOUS_STATUS}
+Cron integrity: ${CRON_STATUS}
+/tmp files: ${TMP_STATUS}
+Failed SSH attempts today: ${FAILED_SSH}
+Attacking IPs today: ${FAILED_IPS}
+
+=== CRONTAB ===
+${CRON_DISPLAY}"
 
 # ── 8. Build HTML ─────────────────────────────────────────────────────────────
 # FIX 1: Monthly goal in NGN — ₦500,000
@@ -613,6 +729,54 @@ HTML_BODY="<!DOCTYPE html>
           <th style='padding:7px 12px;font-size:10px;color:#6b7280;text-align:right;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Memory</th>
         </tr>
         ${PM2_ROWS}
+      </table>
+
+      <!-- Security audit section -->
+      <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;font-family:Arial,sans-serif'>Security Audit</div>
+
+      <!-- Security status row -->
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:12px'>
+        <tr>
+          <td width='49%' style='padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;vertical-align:top;background:#f9fafb'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:4px'>SSH Keys</div>
+            <div style='font-size:13px;font-weight:700;color:${SSH_KEY_COLOR};font-family:Arial,sans-serif'>${SSH_KEY_STATUS}</div>
+            <div style='font-size:11px;color:#6b7280;font-family:Arial,sans-serif;margin-top:3px'>${SSH_KEYS_LIST}</div>
+          </td>
+          <td width='2%'></td>
+          <td width='49%' style='padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;vertical-align:top;background:#f9fafb'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:4px'>Suspicious Processes</div>
+            <div style='font-size:13px;font-weight:700;color:${SUSPICIOUS_COLOR};font-family:Arial,sans-serif'>${SUSPICIOUS_STATUS}</div>
+          </td>
+        </tr>
+      </table>
+
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:12px'>
+        <tr>
+          <td width='49%' style='padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;vertical-align:top;background:#f9fafb'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:4px'>Cron Integrity</div>
+            <div style='font-size:13px;font-weight:700;color:${CRON_COLOR};font-family:Arial,sans-serif'>${CRON_STATUS}</div>
+            <pre style='margin:4px 0 0;font-size:10px;color:#6b7280;white-space:pre-wrap;font-family:monospace'>${CRON_DISPLAY}</pre>
+          </td>
+          <td width='2%'></td>
+          <td width='49%' style='padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;vertical-align:top;background:#f9fafb'>
+            <div style='font-size:10px;color:#6b7280;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:4px'>Failed SSH Today</div>
+            <div style='font-size:22px;font-weight:800;color:#111827;font-family:Arial,sans-serif'>${FAILED_SSH}</div>
+            <div style='font-size:11px;color:#6b7280;font-family:Arial,sans-serif;margin-top:3px'>/tmp: ${TMP_STATUS}</div>
+            <div style='font-size:11px;color:#6b7280;font-family:Arial,sans-serif;margin-top:2px'>Top IPs: ${FAILED_IPS}</div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Recent logins -->
+      <div style='font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;font-family:Arial,sans-serif'>Recent SSH logins <span style='font-weight:400;color:#9ca3af'>(🚨 = unfamiliar IP)</span></div>
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px'>
+        <tr style='background:#f9fafb'>
+          <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>User</th>
+          <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>IP</th>
+          <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>When</th>
+          <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:right;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Duration</th>
+        </tr>
+        ${RECENT_LOGINS_ROWS}
       </table>
 
       ${FIX_SECTION}
