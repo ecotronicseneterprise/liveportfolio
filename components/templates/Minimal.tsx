@@ -148,8 +148,8 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-8">Skills</p>
               {content.skills_grouped.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 border border-gray-100 rounded-2xl overflow-hidden">
-                  {content.skills_grouped.map((group, i) => {
-                    const total = content.skills_grouped.length
+                  {content.skills_grouped.filter(g => g.items && g.items.length > 0).map((group, i) => {
+                    const total = content.skills_grouped.filter(g => g.items && g.items.length > 0).length
                     const cols = 4
                     const lastRowCount = total % cols
                     const isInLastRow = i >= total - (lastRowCount || cols)

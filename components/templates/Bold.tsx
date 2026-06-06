@@ -257,7 +257,7 @@ export default function Bold({ content }: { content: PortfolioContent }) {
               <p className="text-xs text-[#8B949E] italic mb-6">{content.skills_narrative}</p>
               {content.skills_grouped.length > 0 ? (
                 <div className="space-y-5">
-                  {content.skills_grouped.map((group, i) => (
+                  {content.skills_grouped.filter(g => g.items && g.items.length > 0).map((group, i) => (
                     <div key={i}>
                       <p
                         className="text-xs text-[#58A6FF] mb-2"
