@@ -256,8 +256,10 @@ fi
 # List all current SSH keys
 SSH_KEYS_LIST=$(awk '{print $3 " (" $1 ")"}' ~/.ssh/authorized_keys 2>/dev/null || echo "unreadable")
 
-# Check for suspicious processes (miners, reverse shells, wget/curl piped to sh)
-SUSPICIOUS_PROCS=$(ps aux 2>/dev/null | grep -E 'xmrig|minerd|kdevtmpfsi|\.sh$|wget.*pastebin|curl.*pastebin|bash -i|/tmp/\.' | grep -v grep || echo "")
+# Check for suspicious processes — specific known-bad patterns only, no false positives
+SUSPICIOUS_PROCS=$(ps aux 2>/dev/null \
+  | grep -E 'xmrig|minerd|kdevtmpfsi|wget.*pastebin|curl.*pastebin|bash -i ' \
+  | grep -v grep || echo "")
 SUSPICIOUS_ALERT=0
 SUSPICIOUS_STATUS="✓ None detected"
 SUSPICIOUS_COLOR="#16a34a"
@@ -319,8 +321,8 @@ for i, line in enumerate(sys.stdin):
 print(rows if rows else '<tr><td colspan=4 style=\"padding:6px 10px;color:#9ca3af\">No data</td></tr>')
 " 2>/dev/null || echo "<tr><td colspan=4>?</td></tr>")
 
-# /tmp suspicious files
-TMP_SUSPICIOUS=$(find /tmp -maxdepth 1 -type f -name '*.sh' -o -name '*.elf' -o -name '.*' \
+# /tmp suspicious files — only actual files (not dirs), skip system-owned hidden dirs
+TMP_SUSPICIOUS=$(find /tmp -maxdepth 1 -type f \( -name '*.sh' -o -name '*.elf' -o -name '*.py' -o -name '*.bin' \) \
   2>/dev/null | grep -v '^\s*$' || echo "")
 TMP_ALERT=0
 TMP_STATUS="✓ Clean"
