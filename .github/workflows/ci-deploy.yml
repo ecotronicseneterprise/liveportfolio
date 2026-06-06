@@ -133,12 +133,5 @@ jobs:
             # Ensure health-check script is executable and logs dir exists
             chmod +x /home/deploy/apps/liveportfolio/scripts/health-check.sh
             mkdir -p /home/deploy/logs
-            # Crontab is locked with chattr +i — skip update if immutable, it is already correct
-            # lsattr output looks like: ----i---------e------- /path — check for 'i' anywhere in flags field
-            CRONTAB_FLAGS=$(lsattr /var/spool/cron/crontabs/deploy 2>/dev/null | awk '{print $1}')
-            if echo "$CRONTAB_FLAGS" | grep -q 'i'; then
-              echo "✓ Crontab is immutable — skipping cron update"
-            else
-              CRON_JOB="0 6 * * * /home/deploy/apps/liveportfolio/scripts/health-check.sh >> /home/deploy/logs/health-check.log 2>&1"
-              (crontab -l 2>/dev/null | grep -v "health-check.sh"; echo "$CRON_JOB") | crontab -
-            fi
+            # Crontab is managed manually and locked with chattr +i — do not touch it here
+            echo "✓ Crontab managed manually — skipping"
