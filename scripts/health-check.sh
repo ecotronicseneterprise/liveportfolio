@@ -338,9 +338,15 @@ if echo "$CRON_LINES" | grep -qvE 'health-check\.sh|cron/drip'; then
   CRON_COLOR="#dc2626"
 fi
 
-# Current crontab as escaped text for display
+# Current crontab as escaped text — redact any inline secrets before display
 CRON_DISPLAY=$(crontab -l 2>/dev/null | grep -v '^#' | grep -v '^$' \
-  | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' || echo "empty")
+  | sed \
+      -E 's/RESEND_API_KEY=[^ ]*/RESEND_API_KEY=[redacted]/g' \
+      -E 's/ADMIN_METRICS_SECRET=[^ ]*/ADMIN_METRICS_SECRET=[redacted]/g' \
+      -E 's/CRON_SECRET=[^ ]*/CRON_SECRET=[redacted]/g' \
+      -E "s/x-cron-secret: '[^']*'/x-cron-secret: '[redacted]'/g" \
+  | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' \
+  || echo "empty")
 
 # Recent SSH logins (last 10)
 RECENT_LOGINS=$(last -n 10 2>/dev/null | grep -v 'wtmp\|reboot' \
