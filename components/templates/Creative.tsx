@@ -162,12 +162,12 @@ const css = `
 
   /* About */
   .nt-about {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--muted);
-    line-height: 1.8;
-    max-width: 700px;
+    line-height: 1.9;
+    max-width: 720px;
   }
-  .nt-about p { margin-bottom: 14px; }
+  .nt-about p { margin-bottom: 18px; }
   .nt-about p:last-child { margin-bottom: 0; }
 
   /* Skills */
@@ -420,7 +420,7 @@ export default function Creative({ content }: { content: PortfolioContent }) {
         <div className="nt-header-right">
           <div className="nt-status">
             <span className="nt-status-dot" />
-            {content.location || 'Available · Remote'}
+            Available · Remote
           </div>
           <nav className="nt-nav">
             {content.projects.length > 0 && <a href="#work">Work</a>}
@@ -483,6 +483,27 @@ export default function Creative({ content }: { content: PortfolioContent }) {
           )}
         </div>
       </section>
+
+      {/* About */}
+      {content.about && (
+        <section className="nt-section nt-fade">
+          <div className="nt-section-header">
+            <span className="nt-section-num">00</span>
+            <h2 className="nt-section-title">About</h2>
+            <div className="nt-section-line" />
+          </div>
+          <div className="nt-about">
+            {content.about.split('\n').filter(Boolean).map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+            {content.location && (
+              <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8, fontStyle: 'italic' }}>
+                📍 {content.location}
+              </p>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Projects */}
       {content.projects.length > 0 && (
