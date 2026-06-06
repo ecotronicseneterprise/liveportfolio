@@ -432,17 +432,14 @@ SUBJECT_ALERTS=""
 [ "$LOW_DISK" = "1" ]       && SUBJECT_ALERTS="${SUBJECT_ALERTS}⚠️ LOW DISK · "
 [ "$SSL_ALERT" = "1" ]      && SUBJECT_ALERTS="${SUBJECT_ALERTS}⚠️ SSL EXPIRING · "
 
-BASE_SUBJECT="LP · liveportfolio.site · ${DATE_LABEL}"
-
 if [ "$APP_STATUS" = "DOWN" ]; then
-  SUBJECT="🚨 ALERT — liveportfolio.site is DOWN · ${DATE_LABEL}"
+  SUBJECT="🚨 Site is DOWN — ${DATE_LABEL}"
 elif [ -n "$SUBJECT_ALERTS" ]; then
-  SUBJECT="${SUBJECT_ALERTS}${BASE_SUBJECT}"
+  SUBJECT="${SUBJECT_ALERTS}Daily Report · ${DATE_LABEL}"
 else
-  # FIX 1: revenue in NGN in subject
   REV_INT=$(echo "$REV_MONTH" | cut -d. -f1)
   [[ "$REV_INT" =~ ^[0-9]+$ ]] || REV_INT=0
-  SUBJECT="📊 ${BASE_SUBJECT} · ₦${REV_INT} this month"
+  SUBJECT="📊 Daily Report · ${DATE_LABEL} · ₦${REV_INT} this month"
 fi
 
 # ── 6. Fix guide (only shown if app is down) ───────────────────────────────────
