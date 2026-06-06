@@ -118,26 +118,57 @@ export async function POST(req: NextRequest) {
 
   const data = event.data
 
-  // Distinguish recurring subscription renewal from one-time charge
+  // charge.success fires for both first subscription payment and renewals
+  // Reference format: lp-{portfolioId}-{tier}-{timestamp}
+  const reference = data.reference as string
+  const customerData = data.customer as Record<string, unknown>
+  const customerEmail = customerData?.email as string
   const chargePlan = data.plan as Record<string, unknown> | undefined
-  if (chargePlan && chargePlan.plan_code) {
-    // ── Recurring renewal ──
-    const subscriptionCode = data.subscription_code as string
-    const paidAt = data.paid_at as string
+  const planCode = chargePlan?.plan_code as string | undefined
 
-    if (subscriptionCode) {
-      const expiresAt = new Date(
-        (paidAt ? new Date(paidAt) : new Date()).getTime() + 365 * 24 * 60 * 60 * 1000
-      ).toISOString()
+  if (!customerEmail) return NextResponse.json({ received: true })
 
-      await supabaseAdmin
-        .from('subscriptions')
-        .update({ status: 'active', expires_at: expiresAt })
-        .eq('paystack_subscription_code', subscriptionCode)
+  // Determine plan tier from reference string or plan code
+  const TEST_PLAN_CODE = 'PLN_gzi13ks4vajcdhx'
+  let plan: 'basic' | 'pro' = 'basic'
+  if (reference?.includes('-pro-')) plan = 'pro'
+  else if (planCode && planCode !== process.env.NEXT_PUBLIC_PAYSTACK_BASIC_PLAN_CODE && planCode !== TEST_PLAN_CODE) plan = 'pro'
 
-    }
+  const { data: userData } = await supabaseAdmin
+    .from('users')
+    .select('id, email, slug, plan')
+    .eq('email', customerEmail)
+    .single()
 
-    return NextResponse.json({ received: true })
+  if (!userData) return NextResponse.json({ received: true })
+
+  // Skip if already activated (idempotency)
+  if (userData.plan !== 'unpublished') return NextResponse.json({ received: true })
+
+  await supabaseAdmin
+    .from('subscriptions')
+    .insert({
+      user_id: userData.id,
+      plan,
+      status: 'active',
+      started_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+    })
+
+  const { error: updateError } = await supabaseAdmin
+    .from('users')
+    .update({ plan, published_at: new Date().toISOString() })
+    .eq('id', userData.id)
+  if (updateError) console.error('[webhook] charge.success: failed to update user plan', updateError.message)
+
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
+      await sendEmail({
+        to: userData.email,
+        ...emailTemplates.portfolioLive(`${appUrl}/${userData.slug}`),
+      })
+    } catch { /* never fail the webhook */ }
   }
 
   return NextResponse.json({ received: true })
