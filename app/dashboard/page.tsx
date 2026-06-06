@@ -47,6 +47,24 @@ function ProBlurOverlay({ headline, subtext, onUpgrade }: {
 }) {
   const [expanded, setExpanded] = useState(false)
 
+  function ProOnlyBadge() {
+    return (
+      <div
+        style={{
+          padding: '6px 12px',
+          borderRadius: 999,
+          background: '#0A66C2',
+          color: '#fff',
+          fontSize: 12,
+          fontWeight: 800,
+          boxShadow: '0 6px 14px rgba(10, 102, 194, 0.25)',
+        }}
+      >
+        Pro Only
+      </div>
+    )
+  }
+
   return (
     <div
       onClick={() => !expanded && setExpanded(true)}
@@ -71,6 +89,7 @@ function ProBlurOverlay({ headline, subtext, onUpgrade }: {
       {expanded ? (
         <>
           <LockIcon size={24} />
+          <ProOnlyBadge />
           <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', margin: 0 }}>{headline}</p>
           <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, maxWidth: 220 }}>{subtext}</p>
           <button
@@ -91,7 +110,11 @@ function ProBlurOverlay({ headline, subtext, onUpgrade }: {
           </button>
         </>
       ) : (
-        <LockIcon size={22} />
+        <>
+          <LockIcon size={22} />
+          <ProOnlyBadge />
+          <p style={{ fontSize: 11, color: '#6b7280', margin: 0, maxWidth: 160, lineHeight: 1.4 }}>{subtext}</p>
+        </>
       )}
     </div>
   )
@@ -874,6 +897,19 @@ export default function DashboardPage() {
                           }}
                         >
                           <LockIcon size={18} />
+                          <div
+                            style={{
+                              padding: '5px 10px',
+                              borderRadius: 999,
+                              background: '#0A66C2',
+                              color: '#fff',
+                              fontSize: 11,
+                              fontWeight: 800,
+                              boxShadow: '0 6px 14px rgba(10, 102, 194, 0.25)',
+                            }}
+                          >
+                            Pro Only
+                          </div>
                           <button
                             onClick={() => setShowUpgradeModal(true)}
                             style={{ fontSize: 11, fontWeight: 600, color: '#0A66C2', background: 'none', border: 'none', cursor: 'pointer' }}

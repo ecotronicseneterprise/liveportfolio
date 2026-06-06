@@ -37,10 +37,12 @@ const CONFETTI = [
 
 function CelebrationOverlay({
   slug,
+  isPro,
   onDismiss,
   onDashboard,
 }: {
   slug: string
+  isPro: boolean
   onDismiss: () => void
   onDashboard: () => void
 }) {
@@ -120,21 +122,23 @@ function CelebrationOverlay({
           </button>
         </div>
 
-        {/* QR code */}
-        <div className="flex items-center gap-4 bg-[#E8F0F9] rounded-2xl p-4 mb-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={qrSrc} alt="Portfolio QR code" width={80} height={80} className="rounded-lg flex-shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-800 mb-0.5">Your QR code</p>
-            <p className="text-xs text-gray-500 mb-2">Print it, add it to your CV, or put it in your email signature.</p>
-            <button
-              onClick={downloadQr}
-              className="text-xs font-semibold text-[#0A66C2] hover:text-[#084D9A] transition-colors"
-            >
-              Download PNG →
-            </button>
+        {/* QR code — Pro only */}
+        {isPro && (
+          <div className="flex items-center gap-4 bg-[#E8F0F9] rounded-2xl p-4 mb-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={qrSrc} alt="Portfolio QR code" width={80} height={80} className="rounded-lg flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-800 mb-0.5">Your QR code</p>
+              <p className="text-xs text-gray-500 mb-2">Print it, add it to your CV, or put it in your email signature.</p>
+              <button
+                onClick={downloadQr}
+                className="text-xs font-semibold text-[#0A66C2] hover:text-[#084D9A] transition-colors"
+              >
+                Download PNG →
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Share buttons */}
         <div className="grid grid-cols-2 gap-2 mb-4">
@@ -271,6 +275,7 @@ export default function PreviewPage() {
   const [deferEmail, setDeferEmail] = useState('')
   const [showDeferForm, setShowDeferForm] = useState(false)
   const [isPaid, setIsPaid] = useState(false)
+  const [isPro, setIsPro] = useState(false)
   const [justPaid, setJustPaid] = useState(false)
   const [slug, setSlug] = useState('')
   const [paying, setPaying] = useState(false)
@@ -327,6 +332,7 @@ export default function PreviewPage() {
       const { plan } = await planRes.json()
       const paid = plan !== 'free'
       setIsPaid(paid)
+      setIsPro(plan === 'pro')
 
       // Already paid — send straight to dashboard, no need to show preview again
       if (paid) {
@@ -354,6 +360,7 @@ export default function PreviewPage() {
         const newPlan = (payload.new as { plan: string }).plan
         if (newPlan && newPlan !== 'unpublished') {
           setIsPaid(true)
+          setIsPro(newPlan === 'pro')
           setPaying(false)
           setJustPaid(true)
         }
@@ -378,6 +385,7 @@ export default function PreviewPage() {
         .single()
       if (data && data.plan !== 'unpublished') {
         setIsPaid(true)
+        setIsPro(data.plan === 'pro')
         setPaying(false)
         setJustPaid(true)
         if (data.slug) setSlug(data.slug)
@@ -487,6 +495,7 @@ export default function PreviewPage() {
       {justPaid && (
         <CelebrationOverlay
           slug={slug}
+          isPro={isPro}
           onDismiss={() => setJustPaid(false)}
           onDashboard={() => router.push('/dashboard')}
         />
