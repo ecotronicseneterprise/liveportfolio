@@ -8,8 +8,14 @@ export const dynamic = 'force-dynamic'
 export async function POST(req: NextRequest) {
   const body = await req.text()
 
+  const secret = process.env.PAYSTACK_SECRET_KEY
+  if (!secret) {
+    console.error('[paystack-webhook] PAYSTACK_SECRET_KEY is not set — rejecting request')
+    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
+  }
+
   const hash = crypto
-    .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY || '')
+    .createHmac('sha512', secret)
     .update(body)
     .digest('hex')
 
