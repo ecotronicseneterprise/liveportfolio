@@ -327,6 +327,34 @@ Persist to `portfolios.health_score` on save and update.
 Payment processor: **Paystack** (not Lemon Squeezy — that was removed).
 Webhook endpoint: `/api/paystack-webhook`
 
+### Testing Payments (without touching real plan prices)
+
+A hidden ₦500 test plan exists for verifying the full payment flow end-to-end.
+
+**How to trigger it:**
+1. Go to any preview page and append `?test=1` to the URL:
+   `https://liveportfolio.site/preview/YOUR_PORTFOLIO_ID?test=1`
+2. Click "Publish" → modal opens → click **[TEST] Pay ₦500** at the bottom
+3. Pay with real card — Paystack fires webhook → Supabase updates → email sends
+4. Verify `users.plan = 'basic'` in Supabase
+
+**Test plan details (live mode):**
+- Plan code: `PLN_gzi13ks4vajcdhx`
+- Amount: ₦500 monthly
+- Defined in: `components/UpgradeModal.tsx` → `TEST_PLAN_CODE`
+- Visibility: only shown when `?test=1` is in URL — never visible to real users
+
+**After testing:** manually reset the test user's plan back to `unpublished` in Supabase
+if you want to reuse the same account for another test.
+
+**Key env vars (baked into build at compile time — must match):**
+- `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` — live: `pk_live_...`, must match `PAYSTACK_SECRET_KEY`
+- `NEXT_PUBLIC_PAYSTACK_BASIC_PLAN_CODE` — `PLN_xsu4j4jyxo67pe1`
+- `NEXT_PUBLIC_PAYSTACK_PRO_PLAN_CODE` — `PLN_npgms123sd8z2jc`
+- `NEXT_PUBLIC_` vars are baked in at **build time** by GitHub Actions — changing `.env.local` on VPS alone is NOT enough. Must update GitHub Actions secrets + redeploy.
+
+**Caddy note:** `X-Frame-Options` must NOT be `SAMEORIGIN` on liveportfolio.site block — Paystack uses an iframe. Current setting: `ALLOWALL`.
+
 ```
 User clicks "Publish"
   ↓
