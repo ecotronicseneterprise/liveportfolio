@@ -123,16 +123,11 @@ export async function POST(req: NextRequest) {
   const reference = data.reference as string
   const customerData = data.customer as Record<string, unknown>
   const customerEmail = customerData?.email as string
-  const chargePlan = data.plan as Record<string, unknown> | undefined
-  const planCode = chargePlan?.plan_code as string | undefined
-
   if (!customerEmail) return NextResponse.json({ received: true })
 
-  // Determine plan tier from reference string or plan code
-  const TEST_PLAN_CODE = 'PLN_gzi13ks4vajcdhx'
-  let plan: 'basic' | 'pro' = 'basic'
-  if (reference?.includes('-pro-')) plan = 'pro'
-  else if (planCode && planCode !== process.env.NEXT_PUBLIC_PAYSTACK_BASIC_PLAN_CODE && planCode !== TEST_PLAN_CODE) plan = 'pro'
+  // Determine plan tier from reference string (format: lp-{portfolioId}-{tier}-{timestamp})
+  // Reference is set by us in UpgradeModal — reliable across all payment methods
+  const plan: 'basic' | 'pro' = reference?.includes('-pro-') ? 'pro' : 'basic'
 
   const { data: userData } = await supabaseAdmin
     .from('users')
