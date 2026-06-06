@@ -338,15 +338,20 @@ if echo "$CRON_LINES" | grep -qvE 'health-check\.sh|cron/drip'; then
   CRON_COLOR="#dc2626"
 fi
 
-# Current crontab as escaped text — redact any inline secrets before display
+# Current crontab as escaped text — redact secrets, then HTML-escape
 CRON_DISPLAY=$(crontab -l 2>/dev/null | grep -v '^#' | grep -v '^$' \
-  | sed \
-      -E 's/RESEND_API_KEY=[^ ]*/RESEND_API_KEY=[redacted]/g' \
-      -E 's/ADMIN_METRICS_SECRET=[^ ]*/ADMIN_METRICS_SECRET=[redacted]/g' \
-      -E 's/CRON_SECRET=[^ ]*/CRON_SECRET=[redacted]/g' \
-      -E "s/x-cron-secret: '[^']*'/x-cron-secret: '[redacted]'/g" \
-  | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' \
-  || echo "empty")
+  | python3 -c "
+import sys, re
+out = []
+for line in sys.stdin:
+    line = re.sub(r\"x-cron-secret: '([^']+)'\", \"x-cron-secret: '[redacted]'\", line)
+    line = re.sub(r'RESEND_API_KEY=\S+', 'RESEND_API_KEY=[redacted]', line)
+    line = re.sub(r'ADMIN_METRICS_SECRET=\S+', 'ADMIN_METRICS_SECRET=[redacted]', line)
+    line = re.sub(r'CRON_SECRET=\S+', 'CRON_SECRET=[redacted]', line)
+    line = line.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
+    out.append(line.rstrip())
+print('\n'.join(out))
+" 2>/dev/null || echo "empty")
 
 # Recent SSH logins (last 10)
 RECENT_LOGINS=$(last -n 10 2>/dev/null | grep -v 'wtmp\|reboot' \
@@ -749,10 +754,10 @@ HTML_BODY="<!DOCTYPE html>
         ${RECENT_SIGNUPS_ROWS}
       </table>
 
-      <!-- Full signup list — collapsible dropdown -->
-      <details style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden'>
+      <!-- Full signup list — open by default, collapse when done -->
+      <details open style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden'>
         <summary style='padding:10px 14px;font-size:12px;font-weight:700;color:#374151;cursor:pointer;background:#f9fafb;font-family:Arial,sans-serif;list-style:none'>
-          ▶ All ${USERS_TOTAL} users — click to expand
+          ▼ All ${USERS_TOTAL} users — click to collapse
         </summary>
         <table width='100%' cellpadding='0' cellspacing='0' border='0'>
           <tr style='background:#f9fafb'>
