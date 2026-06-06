@@ -75,18 +75,18 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">5. Payment Terms</h2>
             <p>
-              Publishing your portfolio requires a one-time payment of $5 (Pro plan), charged in Nigerian Naira
-              at the prevailing exchange rate via Paystack. Payment is processed securely by Paystack — we never
-              handle or store your card details.
+              Publishing your portfolio requires an annual subscription. We offer two plans: Basic at $9/year
+              and Pro at $49/year. Subscriptions are billed annually and renew automatically unless cancelled.
+              Payment is processed securely by Paystack — we never handle or store your card details.
             </p>
             <p className="mt-3">
               <strong>Refund policy:</strong> If you are not satisfied, email us within 7 days of payment
-              for a full refund — no questions asked. After 7 days, or once your portfolio has been published
-              and shared, refunds are at our discretion. Contact{' '}
+              for a full refund — no questions asked. After 7 days, refunds are at our discretion. Contact{' '}
               <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">support@ecotronicsenterprise.com</a>.
             </p>
             <p className="mt-3">
-              There are no recurring fees. Your portfolio remains live indefinitely following a single payment.
+              You may cancel your subscription at any time. Upon cancellation, your portfolio remains live
+              until the end of your current billing period, after which it will be unpublished.
             </p>
           </section>
 

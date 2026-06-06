@@ -39,7 +39,7 @@ export default function PrivacyPage() {
               <li><strong>Account data:</strong> email address, password (stored as a hashed value — we never see it in plain text)</li>
               <li><strong>Uploaded CV (PDF):</strong> if you choose to upload your CV, its text content is extracted to auto-fill your portfolio form. The raw file is not stored after extraction.</li>
               <li><strong>Portfolio content:</strong> your name, professional role, biography, work experience, project descriptions, skills, and any URLs or images you provide</li>
-              <li><strong>Usage analytics:</strong> view counts on your published portfolio (we track page views, not individual visitor identities)</li>
+              <li><strong>Usage analytics:</strong> view counts on your published portfolio. We collect visitor IP addresses on published portfolio pages to provide analytics to portfolio owners (a plan-gated feature). IP addresses are hashed before storage and used only to identify approximate company affiliation and geography — raw IPs are never stored or shared.</li>
               <li><strong>Payment records:</strong> transaction reference and amount (we do not store card numbers — card data is handled entirely by Paystack)</li>
             </ul>
           </section>

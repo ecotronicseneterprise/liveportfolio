@@ -49,8 +49,8 @@ Urgent pain + clear solution = purchases happen.
 | Plan | Price | What they get |
 |---|---|---|
 | **Free** | $0 | Generate + preview ONLY. Portfolio saved privately. No editing. No publishing. No sharing. |
-| **Basic** | **$9/year** | Publish + edit + subdomain (yourname.liveportfolio.site) + analytics dashboard + career score |
-| **Pro** | **$49/year** | Everything in Basic + custom domain + multi-portfolio (3) + export pack (PDF, LinkedIn, cover letter) + priority AI |
+| **Basic** | **$9/year** | Publish + edit + up to 3 portfolios + subdomain (yourname.liveportfolio.site) |
+| **Pro** | **$49/year** | Everything in Basic + analytics dashboard (views, company, country, referrer) + QR code sharing + weekly AI career score + custom domain + export pack (PDF, LinkedIn summary, cover letter) |
 
 ### The logic
 - Free users see what they built but can't do anything with it until they pay.
@@ -64,14 +64,14 @@ Urgent pain + clear solution = purchases happen.
 ```
 [ FREE ]          Generate and preview. That's it.
 
-⭐ BASIC           $9/year
-   (Recommended)  The core product. Publish, track, improve.
+BASIC             $9/year
+   (Recommended)  Publish + edit + subdomain. The core product.
 
-👑 PRO             $49/year
-   (Power Users)  Your own domain. Multiple portfolios. Full export pack.
+PRO               $49/year
+   (Power Users)  Analytics + QR + career score + custom domain + export pack.
 ```
 If Basic feels like "everything" and Pro feels like "optional extras,"
-Pro will die. Basic must feel like the core product. Pro must feel like
+Pro will die. Basic must feel like the entry point. Pro must feel like
 a status upgrade worth 5x the price. Enforce this in every UI decision.
 
 ### Annual billing rationale
@@ -138,8 +138,8 @@ GPT-4o-mini generates portfolio → Full preview shown
         ↓
 Dashboard: "Your portfolio is ready. Publish it."
 Two options shown:
-  ├─ ⭐ Basic — $9/year (Recommended) → publish + analytics + score
-  └─ 👑 Pro — $49/year → everything + custom domain
+  ├─ Basic — $9/year (Recommended) → publish + edit + subdomain
+  └─ Pro — $49/year → everything + analytics + score + custom domain
         ↓
 If not paid: 7-day email drip (segmented)
         ↓
@@ -355,8 +355,8 @@ CREATE TABLE analytics_events (
    - Top referrers (LinkedIn, direct, etc.)
    - Simple view count chart (last 14 days, bar chart using existing Chart.js)
 
-4. For Free users: show locked Analytics tab with blur overlay
-   "See who's viewing your portfolio — upgrade to Basic ($9/year)"
+4. For Free and Basic users: show locked Analytics tab with blur overlay
+   "See who's viewing your portfolio — upgrade to Pro ($49/year)"
 
 5. Add IPINFO_TOKEN to .env.example with instructions.
 
@@ -575,8 +575,8 @@ LivePortfolio is an AI career visibility system for active job seekers —
 people applying everywhere and hearing nothing back. The product:
 
 **Free (generate + preview only) → email drip → Basic $9/year (publish +
-analytics + career score) → Pro $49/year (custom domain + multi-portfolio +
-export pack)**
+edit + subdomain) → Pro $49/year (analytics + career score + QR + custom
+domain + multi-portfolio + export pack)**
 
 Two plans. Annual billing. No one-time options. The email funnel moves users
 through the three stages. The retention engine is the analytics dashboard —

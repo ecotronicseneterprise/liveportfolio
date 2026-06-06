@@ -8,8 +8,8 @@ import Bold from '@/components/templates/Bold'
 import Creative from '@/components/templates/Creative'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import Logo from '@/components/Logo'
+import UpgradeModal from '@/components/UpgradeModal'
 
-const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ''
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
 
 const CONFETTI = [
@@ -105,7 +105,7 @@ function CelebrationOverlay({
           ×
         </button>
 
-        <div className="text-4xl mb-3 text-center">🎉</div>
+        <div className="text-4xl mb-3 text-center" />
         <h2 className="text-xl font-bold text-gray-900 mb-1 text-center">Your portfolio is live.</h2>
         <p className="text-gray-500 text-sm mb-5 text-center">Share it and start getting noticed.</p>
 
@@ -153,7 +153,7 @@ function CelebrationOverlay({
             LinkedIn
           </a>
           <a
-            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Just launched my professional portfolio at ${portfolioUrl} — built with @liveportfolio in under 5 minutes 🚀`)}`}
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Just launched my professional portfolio at ${portfolioUrl} — built with @liveportfolio`)}`}
             target="_blank" rel="noopener noreferrer"
             className="py-2 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:border-gray-300 transition-colors text-center"
           >
@@ -284,9 +284,10 @@ export default function PreviewPage() {
   const [slug, setSlug] = useState('')
   const [paying, setPaying] = useState(false)
   const [paymentTimedOut, setPaymentTimedOut] = useState(false)
-  const [ngnRate, setNgnRate] = useState(1500)
+  const [ngnRate, setNgnRate] = useState(1500) // retained for rate fetch side-effect only
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
-  // Fetch live USD → NGN rate; fall back to 1500 if API is unreachable
+  // ngnRate retained in state so existing poll useEffect doesn't break — no longer used for payment
   useEffect(() => {
     fetch('https://open.er-api.com/v6/latest/USD')
       .then((r) => r.json())
@@ -295,17 +296,6 @@ export default function PreviewPage() {
         if (typeof rate === 'number' && rate > 100) setNgnRate(Math.round(rate))
       })
       .catch(() => {})
-  }, [])
-
-  // Load Paystack inline script
-  useEffect(() => {
-    const script = document.createElement('script')
-    script.src = 'https://js.paystack.co/v1/inline.js'
-    script.async = true
-    document.head.appendChild(script)
-    return () => {
-      if (document.head.contains(script)) document.head.removeChild(script)
-    }
   }, [])
 
   useEffect(() => {
@@ -338,9 +328,13 @@ export default function PreviewPage() {
       .single()
 
     if (user) {
-      setIsPaid(user.plan !== 'unpublished')
       setSlug(user.slug || '')
       setUserEmail((user as { email?: string }).email || '')
+
+      // Check plan via server-side getUserPlan (handles both subscriptions + legacy)
+      const planRes = await fetch(`/api/user-plan?userId=${portfolio.user_id}`)
+      const { plan } = await planRes.json()
+      setIsPaid(plan !== 'free')
     }
 
     setLoading(false)
@@ -360,7 +354,7 @@ export default function PreviewPage() {
         filter: `id=eq.${portfolioUserId}`,
       }, (payload) => {
         const newPlan = (payload.new as { plan: string }).plan
-        if (newPlan !== 'unpublished') {
+        if (newPlan && newPlan !== 'unpublished') {
           setIsPaid(true)
           setPaying(false)
           setJustPaid(true)
@@ -414,37 +408,6 @@ export default function PreviewPage() {
     }
   }
 
-  const handlePaystack = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const PaystackPop = (window as any).PaystackPop
-    if (!PaystackPop) {
-      alert('Payment is loading — please try again in a moment.')
-      return
-    }
-
-    const amountKobo = Math.round(5 * ngnRate * 100) // $5 in NGN kobo
-    const reference = `lp-${portfolioId}-pro-${Date.now()}`
-
-    const handler = PaystackPop.setup({
-      key: PAYSTACK_PUBLIC_KEY,
-      email: userEmail,
-      amount: amountKobo,
-      currency: 'NGN',
-      ref: reference,
-      metadata: {
-        user_id: portfolioUserId,
-        plan: 'pro',
-        portfolio_id: portfolioId,
-      },
-      callback: () => {
-        // Webhook updates the plan; Realtime notifies this page
-        setPaying(true)
-      },
-      onClose: () => {},
-    })
-    handler.openIframe()
-  }
-
   const handleSaveEmail = async () => {
     if (!deferEmail.includes('@')) return
     setSavingEmail(true)
@@ -477,7 +440,7 @@ export default function PreviewPage() {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="text-center max-w-sm">
-          <div className="text-4xl mb-4">⏳</div>
+          <div className="text-4xl mb-4" />
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Payment is being confirmed</h2>
           <p className="text-sm text-gray-500 mb-4">
             Your payment was received by Paystack. Portfolio activation can take up to 2 minutes.
@@ -531,6 +494,13 @@ export default function PreviewPage() {
         />
       )}
 
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        userEmail={userEmail}
+        portfolioId={portfolioId}
+      />
+
       {/* Preview header bar */}
       <div className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -567,10 +537,10 @@ export default function PreviewPage() {
             </div>
           ) : (
             <button
-              onClick={handlePaystack}
+              onClick={() => setShowUpgradeModal(true)}
               className="px-4 py-2 bg-[#0A66C2] text-white text-xs font-bold rounded-full hover:bg-[#084D9A] transition-colors whitespace-nowrap"
             >
-              Publish my portfolio — $5
+              Publish my portfolio →
             </button>
           )}
         </div>
@@ -630,10 +600,10 @@ export default function PreviewPage() {
       {!isPaid && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 p-4 sm:hidden">
           <button
-            onClick={handlePaystack}
-            className="w-full py-3 bg-[#0A66C2] text-white text-sm font-bold rounded-full"
+            onClick={() => setShowUpgradeModal(true)}
+            className="w-full py-3 bg-[#0A66C2] text-white text-sm font-bold rounded-full hover:bg-[#084D9A] transition-colors"
           >
-            Publish my portfolio — $5
+            Publish my portfolio →
           </button>
         </div>
       )}

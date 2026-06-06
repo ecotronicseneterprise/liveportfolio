@@ -123,6 +123,13 @@ jobs:
               pm2 start /home/deploy/apps/liveportfolio/ecosystem.config.js --env production --update-env
             fi
 
+            # Verify swap is active (warn if missing — does not fail deploy)
+            if swapon --show | grep -q /swapfile; then
+              echo "✓ Swap active"
+            else
+              echo "⚠ WARNING: swap is not active — run: sudo swapon /swapfile"
+            fi
+
             # Install/update health-check cron (idempotent)
             chmod +x /home/deploy/apps/liveportfolio/scripts/health-check.sh
             mkdir -p /home/deploy/logs

@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
+import { createHash } from 'crypto'
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { getIpInfo } from '@/lib/ipinfo'
 import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
 import Creative from '@/components/templates/Creative'
@@ -405,6 +408,28 @@ export default async function PortfolioPage({ params }: Props) {
   }
 
   const portfolio = portfolioRow
+
+  // Fire-and-forget: record portfolio_view event with company/country enrichment.
+  // Does not block render. Uses server-side headers — raw IP never stored.
+  const headersList = await headers()
+  const rawIp = headersList.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || headersList.get('x-real-ip')
+    || 'unknown'
+  const referrer = headersList.get('referer') || null
+  const ipHash = createHash('sha256').update(rawIp).digest('hex').slice(0, 16)
+
+  getIpInfo(rawIp, ipHash, supabaseAdmin).then(({ company, country }) => {
+    void Promise.resolve(
+      supabaseAdmin.from('analytics_events').insert({
+        portfolio_id: portfolio.id,
+        event_type: 'portfolio_view',
+        referrer,
+        ip_hash: ipHash,
+        company,
+        country,
+      })
+    )
+  }).catch(() => {})
 
   const Template = portfolio.template === 'bold' ? Bold : portfolio.template === 'creative' ? Creative : Minimal
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
