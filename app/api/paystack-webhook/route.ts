@@ -47,8 +47,6 @@ export async function POST(req: NextRequest) {
         ? 'basic'
         : 'pro'
 
-    const subscriptionCode = data.subscription_code as string
-    const customerCode = customer?.customer_code as string
     const nextPaymentDate = data.next_payment_date as string
 
     // Derive user_id from customer email — Paystack doesn't pass it directly
@@ -70,23 +68,18 @@ export async function POST(req: NextRequest) {
 
     const user_id = userData.id
 
-    // Insert subscription row (idempotent — ignore conflict on subscription_code)
+    // Insert subscription row
     await supabaseAdmin
       .from('subscriptions')
-      .upsert(
-        {
-          user_id,
-          plan,
-          status: 'active',
-          paystack_subscription_code: subscriptionCode,
-          paystack_customer_code: customerCode,
-          started_at: new Date().toISOString(),
-          expires_at: nextPaymentDate
-            ? new Date(nextPaymentDate).toISOString()
-            : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-        },
-        { onConflict: 'paystack_subscription_code' }
-      )
+      .insert({
+        user_id,
+        plan,
+        status: 'active',
+        started_at: new Date().toISOString(),
+        expires_at: nextPaymentDate
+          ? new Date(nextPaymentDate).toISOString()
+          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+      })
 
     // Update users.plan → keeps Realtime celebration flow working
     const { error: updateError } = await supabaseAdmin
@@ -114,16 +107,6 @@ export async function POST(req: NextRequest) {
 
   // ─── subscription.disable ───────────────────────────────────────────────────
   if (event.event === 'subscription.disable') {
-    const data = event.data
-    const subscriptionCode = data.subscription_code as string
-
-    if (subscriptionCode) {
-      await supabaseAdmin
-        .from('subscriptions')
-        .update({ status: 'cancelled' })
-        .eq('paystack_subscription_code', subscriptionCode)
-    }
-
     // Do NOT change users.plan — user keeps access until expires_at
     return NextResponse.json({ received: true })
   }
