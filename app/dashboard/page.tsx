@@ -39,14 +39,17 @@ function LockIcon({ size = 20 }: { size?: number }) {
   )
 }
 
-// ── Frosted blur overlay — sits over blurred preview content ─────────────────
+// ── Frosted blur overlay — padlock by default, full CTA on tap ───────────────
 function ProBlurOverlay({ headline, subtext, onUpgrade }: {
   headline: string
   subtext: string
   onUpgrade: () => void
 }) {
+  const [expanded, setExpanded] = useState(false)
+
   return (
     <div
+      onClick={() => !expanded && setExpanded(true)}
       style={{
         position: 'absolute',
         inset: 0,
@@ -62,27 +65,34 @@ function ProBlurOverlay({ headline, subtext, onUpgrade }: {
         padding: '16px',
         borderRadius: 'inherit',
         zIndex: 10,
+        cursor: expanded ? 'default' : 'pointer',
       }}
     >
-      <LockIcon size={24} />
-      <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', margin: 0 }}>{headline}</p>
-      <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, maxWidth: 220 }}>{subtext}</p>
-      <button
-        onClick={onUpgrade}
-        style={{
-          marginTop: 4,
-          padding: '8px 18px',
-          background: '#0A66C2',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 999,
-          fontSize: 13,
-          fontWeight: 600,
-          cursor: 'pointer',
-        }}
-      >
-        Upgrade to Pro — $49/year
-      </button>
+      {expanded ? (
+        <>
+          <LockIcon size={24} />
+          <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', margin: 0 }}>{headline}</p>
+          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, maxWidth: 220 }}>{subtext}</p>
+          <button
+            onClick={(e) => { e.stopPropagation(); onUpgrade() }}
+            style={{
+              marginTop: 4,
+              padding: '8px 18px',
+              background: '#0A66C2',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 999,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Upgrade to Pro →
+          </button>
+        </>
+      ) : (
+        <LockIcon size={22} />
+      )}
     </div>
   )
 }
