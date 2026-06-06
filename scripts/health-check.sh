@@ -312,17 +312,20 @@ fi
 # List all current SSH keys
 SSH_KEYS_LIST=$(awk '{print $3 " (" $1 ")"}' ~/.ssh/authorized_keys 2>/dev/null || echo "unreadable")
 
-# Check for suspicious processes — specific known-bad patterns only, no false positives
+# Check for suspicious processes and auto-kill them
+# Matches: miners, reverse shells, and random-name bash processes (e.g. "bash CE4A7D")
 SUSPICIOUS_PROCS=$(ps aux 2>/dev/null \
-  | grep -E 'xmrig|minerd|kdevtmpfsi|wget.*pastebin|curl.*pastebin|bash -i ' \
+  | grep -E 'xmrig|minerd|kdevtmpfsi|wget.*pastebin|curl.*pastebin|bash -i |bash [A-Z0-9]{6}' \
   | grep -v grep || echo "")
 SUSPICIOUS_ALERT=0
 SUSPICIOUS_STATUS="✓ None detected"
 SUSPICIOUS_COLOR="#16a34a"
 if [ -n "$SUSPICIOUS_PROCS" ]; then
   SUSPICIOUS_ALERT=1
-  SUSPICIOUS_STATUS="🔴 SUSPICIOUS PROCESSES FOUND"
+  SUSPICIOUS_STATUS="🔴 SUSPICIOUS PROCESSES FOUND — auto-killing"
   SUSPICIOUS_COLOR="#dc2626"
+  # Auto-kill each suspicious process
+  echo "$SUSPICIOUS_PROCS" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
 fi
 
 # Crontab integrity — count lines and flag unexpected entries
