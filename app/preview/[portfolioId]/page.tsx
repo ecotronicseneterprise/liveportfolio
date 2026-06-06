@@ -596,6 +596,13 @@ export default function PreviewPage() {
       {/* Portfolio render */}
       <Template content={content} />
 
+      {/* Disclaimer */}
+      <div className="bg-gray-50 border-t border-gray-100 py-4 px-6 text-center">
+        <p className="text-xs text-gray-400 max-w-xl mx-auto">
+          Please review all information carefully before publishing. You are solely responsible for the accuracy of your portfolio content. liveportfolio.site is not liable for any errors, omissions, or consequences arising from published information.
+        </p>
+      </div>
+
       {/* Mobile CTA (non-paid only) */}
       {!isPaid && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 p-4 sm:hidden">
