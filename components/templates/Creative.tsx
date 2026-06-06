@@ -555,7 +555,7 @@ export default function Creative({ content }: { content: PortfolioContent }) {
             <div className="nt-section-line" />
           </div>
           {content.skills_grouped && content.skills_grouped.length > 0 ? (
-            <div className="nt-skills-grid">
+            <div className="nt-skills-grid" style={{ gridTemplateColumns: `repeat(${content.skills_grouped.filter(g => g.items && g.items.length > 0).length}, 1fr)` }}>
               {content.skills_grouped.filter(g => g.items && g.items.length > 0).map((g, i) => (
                 <div key={i} className="nt-skill-cell">
                   <div className="nt-skill-cat">{g.category}</div>
