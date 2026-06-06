@@ -128,7 +128,7 @@ function CareerScoreCard({
 
   return (
     <div
-      className="sm:col-span-3 bg-white border border-gray-100 rounded-2xl p-5"
+      className="col-span-full bg-white border border-gray-100 rounded-2xl p-5"
       style={{ position: 'relative', overflow: 'hidden' }}
     >
       <div className="flex items-start justify-between mb-4">
@@ -292,6 +292,7 @@ interface AnalyticsSummary {
   viewsByDay: number[]
   topSources: { label: string; pct: number }[]
   recentActivity: ActivityEvent[]
+  totalUniqueVisitors: number
   eventCount: number
 }
 
@@ -300,11 +301,13 @@ function AnalyticsSection({
   portfolioId,
   userId,
   onUpgrade,
+  onSummaryLoaded,
 }: {
   isPro: boolean
   portfolioId: string
   userId: string
   onUpgrade: () => void
+  onSummaryLoaded?: (totalUniqueVisitors: number) => void
 }) {
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
 
@@ -312,26 +315,31 @@ function AnalyticsSection({
     if (!isPro) return
     fetch(`/api/analytics/summary?portfolioId=${portfolioId}&userId=${userId}`)
       .then((r) => r.json())
-      .then((d) => setSummary(d))
+      .then((d: AnalyticsSummary) => {
+        setSummary(d)
+        onSummaryLoaded?.(d.totalUniqueVisitors ?? 0)
+      })
       .catch(() => {})
-  }, [isPro, portfolioId, userId])
+  }, [isPro, portfolioId, userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const bars = isPro && summary ? summary.viewsByDay : PLACEHOLDER_BARS
   const maxBar = Math.max(...bars, 1)
   const sources = isPro && summary ? summary.topSources : PLACEHOLDER_SOURCES
   const activity = isPro && summary ? summary.recentActivity : PLACEHOLDER_ACTIVITY
 
-  function timeAgo(iso: string) {
-    const diff = Date.now() - new Date(iso).getTime()
-    const m = Math.floor(diff / 60000)
-    if (m < 60) return `${m}m ago`
-    const h = Math.floor(m / 60)
-    if (h < 24) return `${h}h ago`
-    return `${Math.floor(h / 24)}d ago`
+  function timeAgo(dateString: string): string {
+    const diff = Date.now() - new Date(dateString).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1) return 'just now'
+    if (mins < 60) return `${mins}m ago`
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) return `${hours}h ago`
+    const days = Math.floor(hours / 24)
+    return `${days} day${days === 1 ? '' : 's'} ago`
   }
 
   return (
-    <div className="sm:col-span-3 bg-white border border-gray-100 rounded-2xl overflow-hidden">
+    <div className="col-span-full bg-white border border-gray-100 rounded-2xl overflow-hidden">
       {/* Header — always visible */}
       <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
         <h3 className="text-sm font-semibold text-gray-700">Portfolio analytics</h3>
@@ -392,71 +400,48 @@ function AnalyticsSection({
           </div>
         </div>
 
-        {/* Recent activity */}
+        {/* Recent visitors */}
         <div className="px-5 pb-5">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Recent activity</p>
-          <div className="space-y-2">
-            {activity.length === 0 ? (
-              <p className="text-xs text-gray-400">No activity yet. Share your portfolio to start tracking.</p>
-            ) : (
-              activity.map((a, i) => {
-                const displayTime = typeof a.time === 'string' && a.time.includes('ago')
-                  ? a.time
-                  : timeAgo(a.time)
-
-                let headline = ''
-                let subline = ''
-                let avatar = ''
-
-                if (a.event_type === 'portfolio_view') {
-                  if (a.company) {
-                    headline = `Someone from ${a.company}`
-                    subline = a.country ?? 'Unknown location'
-                    avatar = a.company[0].toUpperCase()
-                  } else {
-                    headline = 'Portfolio visit'
-                    subline = a.country ?? 'Unknown location'
-                    avatar = 'V'
-                  }
-                } else if (a.event_type === 'github' || (a.event_type === 'link_click' && a.label?.toLowerCase().includes('github'))) {
-                  headline = 'GitHub link clicked'
-                  subline = 'link click'
-                  avatar = 'G'
-                } else if (a.event_type === 'linkedin' || (a.event_type === 'link_click' && a.label?.toLowerCase().includes('linkedin'))) {
-                  headline = 'LinkedIn link clicked'
-                  subline = 'link click'
-                  avatar = 'L'
-                } else if (a.event_type === 'email') {
-                  headline = 'Email link clicked'
-                  subline = 'link click'
-                  avatar = 'E'
-                } else if (a.event_type === 'project_url') {
-                  headline = a.label ? `${a.label} project opened` : 'Project link clicked'
-                  subline = 'project click'
-                  avatar = (a.label?.[0] ?? 'P').toUpperCase()
-                } else {
-                  headline = a.label ?? a.event_type.replace(/_/g, ' ')
-                  subline = a.event_type.replace(/_/g, ' ')
-                  avatar = (a.label?.[0] ?? a.event_type[0]).toUpperCase()
-                }
-
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Recent visitors</p>
+          {activity.length === 0 ? (
+            <p className="text-xs text-gray-400">
+              No visits recorded yet. Share your portfolio link to start tracking visitors.
+            </p>
+          ) : (
+            <div>
+              {/* Most recent visit — prominent */}
+              {(() => {
+                const a = activity[0]
+                const displayTime = typeof a.time === 'string' && a.time.includes('ago') ? a.time : timeAgo(a.time)
+                const who = a.event_type === 'portfolio_view'
+                  ? (a.company ?? (a.country ?? 'Portfolio visit'))
+                  : (a.label ?? a.event_type.replace(/_/g, ' '))
+                const where = a.event_type === 'portfolio_view' ? (a.country ?? '') : ''
                 return (
-                  <div key={i} className="flex items-center justify-between py-2 border-t border-gray-50">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 bg-[#E8F0F9] rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-[10px] font-bold text-[#0A66C2]">{avatar}</span>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-gray-800">{headline}</p>
-                        <p className="text-[10px] text-gray-400">{subline}</p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-gray-300">{displayTime}</span>
+                  <div className="mb-3 pb-3 border-b border-gray-100">
+                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1">Most recent visit</p>
+                    <p className="text-sm font-semibold text-gray-800">{who}{where && where !== who ? ` · ${where}` : ''}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{displayTime}</p>
                   </div>
                 )
-              })
-            )}
-          </div>
+              })()}
+
+              {/* Remaining unique visitors */}
+              {activity.slice(1).map((a, i) => {
+                const displayTime = typeof a.time === 'string' && a.time.includes('ago') ? a.time : timeAgo(a.time)
+                const who = a.event_type === 'portfolio_view'
+                  ? (a.company ?? a.country ?? 'Portfolio visit')
+                  : (a.label ?? a.event_type.replace(/_/g, ' '))
+                const where = a.event_type === 'portfolio_view' && a.country && a.country !== who ? ` · ${a.country}` : ''
+                return (
+                  <div key={i} className="flex items-center justify-between py-1.5 border-t border-gray-50">
+                    <span className="text-xs text-gray-600">· {who}{where}</span>
+                    <span className="text-[10px] text-gray-300 ml-3 flex-shrink-0">{displayTime}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* Blur overlay for Basic users — sits over content only, not header */}
@@ -508,6 +493,7 @@ export default function DashboardPage() {
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleteMsg, setDeleteMsg] = useState('')
+  const [uniqueVisitors, setUniqueVisitors] = useState<number | null>(null)
 
   useEffect(() => {
     loadData()
@@ -758,7 +744,7 @@ export default function DashboardPage() {
 
         {/* ── OVERVIEW TAB ── */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className={`grid grid-cols-1 gap-4 ${isPublished ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
 
             {/* Portfolio strength */}
             <div className="sm:col-span-1">
@@ -779,6 +765,22 @@ export default function DashboardPage() {
                 <ProBlurOverlay
                   headline="See your total views"
                   subtext="Upgrade to Pro to track views"
+                  onUpgrade={() => setShowUpgradeModal(true)}
+                />
+              )}
+            </div>
+
+            {/* Unique visitors — Pro only, blurred for Basic */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-5" style={{ position: 'relative', overflow: 'hidden' }}>
+              <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">Unique visitors</span>
+              <p className="text-3xl font-bold text-gray-900 mt-1">
+                {isPro && uniqueVisitors !== null ? uniqueVisitors : '—'}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">Last 30 days</p>
+              {!isPro && isPublished && (
+                <ProBlurOverlay
+                  headline="Unique visitor count"
+                  subtext="Upgrade to Pro to see unique visitors"
                   onUpgrade={() => setShowUpgradeModal(true)}
                 />
               )}
@@ -805,7 +807,7 @@ export default function DashboardPage() {
 
             {/* Share — available to all published users */}
             {isPublished && (
-              <div className="sm:col-span-3 bg-white border-2 border-[#0A66C2]/20 rounded-2xl p-5">
+              <div className="col-span-full bg-white border-2 border-[#0A66C2]/20 rounded-2xl p-5">
                 <h3 className="text-sm font-semibold text-gray-700 mb-1">Share your portfolio</h3>
                 <p className="text-xs text-gray-400 mb-5">Add your link to every job application, LinkedIn bio, and email signature.</p>
 
@@ -938,12 +940,13 @@ export default function DashboardPage() {
                 portfolioId={portfolio.id}
                 userId={user.id}
                 onUpgrade={() => setShowUpgradeModal(true)}
+                onSummaryLoaded={(n) => setUniqueVisitors(n)}
               />
             )}
 
             {/* Unpublished CTA */}
             {!isPublished && (
-              <div className="sm:col-span-3 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-2xl p-5 text-center">
+              <div className="col-span-full bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-2xl p-5 text-center">
                 <p className="text-sm font-semibold text-gray-800 mb-1">Your portfolio is ready to publish.</p>
                 <p className="text-sm text-gray-500 mb-4">Go live and start tracking who finds you.</p>
                 <button

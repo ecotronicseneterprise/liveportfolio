@@ -38,17 +38,19 @@ export async function GET(req: NextRequest) {
 
     const { data: events } = await supabaseAdmin
       .from('analytics_events')
-      .select('event_type, label, referrer, company, country, created_at')
+      .select('event_type, label, referrer, company, country, ip_hash, created_at')
       .eq('portfolio_id', portfolioId)
       .gte('created_at', thirtyDaysAgo)
       .order('created_at', { ascending: false })
 
-    // Build 7-day views bar chart from events (event_type = 'view' once wired)
-    // For now: bucket all events by day-of-week as a proxy for activity
+    const allEvents = events || []
+
+    // Build 7-day bar chart — bucket portfolio_view events by day-of-week
     const dayBuckets = [0, 0, 0, 0, 0, 0, 0] // Sun=0 … Sat=6
-    for (const e of events || []) {
-      const d = new Date(e.created_at).getDay()
-      dayBuckets[d]++
+    for (const e of allEvents) {
+      if (e.event_type === 'portfolio_view') {
+        dayBuckets[new Date(e.created_at).getDay()]++
+      }
     }
     // Re-order Mon–Sun
     const viewsByDay = [
@@ -56,9 +58,10 @@ export async function GET(req: NextRequest) {
       dayBuckets[5], dayBuckets[6], dayBuckets[0],
     ]
 
-    // Top referrer sources
+    // Top referrer sources (portfolio_view events only)
     const referrerCounts: Record<string, number> = {}
-    for (const e of events || []) {
+    for (const e of allEvents) {
+      if (e.event_type !== 'portfolio_view') continue
       const ref = e.referrer
       let source = 'Direct'
       if (ref) {
@@ -81,30 +84,48 @@ export async function GET(req: NextRequest) {
         pct: Math.round((count / totalEvents) * 100),
       }))
 
-    // Recent activity — portfolio views + link clicks, last 10
-    const recentActivity = (events || [])
-      .filter((e) =>
-        e.event_type === 'portfolio_view' ||
-        e.event_type === 'link_click' ||
-        e.event_type === 'github' ||
-        e.event_type === 'linkedin' ||
-        e.event_type === 'email' ||
-        e.event_type === 'project_url'
-      )
-      .slice(0, 10)
-      .map((e) => ({
+    // Unique visitors — distinct ip_hash values across all events
+    const uniqueIpHashes = new Set(allEvents.map((e) => (e as { ip_hash?: string }).ip_hash).filter(Boolean))
+    const totalUniqueVisitors = uniqueIpHashes.size
+
+    // Recent visitors — deduplicated by ip_hash, most recent per unique visitor, max 5
+    type RawEvent = {
+      event_type: string
+      label: string | null
+      company: string | null
+      country: string | null
+      ip_hash: string | null
+      created_at: string
+    }
+    const seenIpHashes = new Set<string>()
+    const recentActivity: {
+      event_type: string
+      label: string | null
+      company: string | null
+      country: string | null
+      time: string
+    }[] = []
+
+    for (const e of allEvents as RawEvent[]) {
+      if (recentActivity.length >= 5) break
+      const ipKey = e.ip_hash ?? `anon_${recentActivity.length}`
+      if (seenIpHashes.has(ipKey)) continue
+      seenIpHashes.add(ipKey)
+      recentActivity.push({
         event_type: e.event_type,
         label: e.label ?? null,
-        company: (e as { company?: string | null }).company ?? null,
-        country: (e as { country?: string | null }).country ?? null,
+        company: e.company ?? null,
+        country: e.country ?? null,
         time: e.created_at,
-      }))
+      })
+    }
 
     return NextResponse.json({
       viewsByDay,
       topSources: topSources.length > 0 ? topSources : [{ label: 'Direct', pct: 100 }],
       recentActivity,
-      eventCount: events?.length || 0,
+      totalUniqueVisitors,
+      eventCount: allEvents.length,
     })
   } catch {
     return NextResponse.json({ error: 'Internal error' }, { status: 200 })

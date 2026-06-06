@@ -2,7 +2,7 @@
 
 function filterCompany(name: string): string | null {
   if (!name) return null
-  const noise = /amazon|google|microsoft|cloudflare|digitalocean|linode|vultr|hetzner|ovh|comcast|verizon|att\b|t-mobile|spectrum|cox |frontier|centurylink|unknown/i
+  const noise = /\b(amazon|google|microsoft|cloudflare|digitalocean|linode|vultr|hetzner|ovh|comcast|verizon|att|t-mobile|spectrum|cox|frontier|centurylink|unknown|datacamp|datacenter|data center|mtn|airtel|glo|9mobile|etisalat|safaricom|vodacom|vodafone|orange|telkom|tigo|camtel|mti|ntel|smile|internet service|isp|broadband|telecom|telco|communication|fibre|fiber|cable|wireless|mobile network|hosting|server|cloud|vps|dedicated|colocation|colo|akamai|fastly|cdn|incapsula|imperva|sucuri|iinet|bigpond|optus|telstra|shaw|rogers|bell|virgin|bt|sky|talktalk|plusnet|ee|three|o2|telia|telenor|swisscom|deutsche telekom|bouygues|sfr|transtelco|total play|izzi|megacable|university|college|school|institute|academy|government|federal|ministry|department of)\b/i
   if (noise.test(name)) return null
   return name.trim() || null
 }
