@@ -754,21 +754,17 @@ HTML_BODY="<!DOCTYPE html>
         ${RECENT_SIGNUPS_ROWS}
       </table>
 
-      <!-- Full signup list — open by default, collapse when done -->
-      <details open style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden'>
-        <summary style='padding:10px 14px;font-size:12px;font-weight:700;color:#374151;cursor:pointer;background:#f9fafb;font-family:Arial,sans-serif;list-style:none'>
-          ▼ All ${USERS_TOTAL} users — click to collapse
-        </summary>
-        <table width='100%' cellpadding='0' cellspacing='0' border='0'>
-          <tr style='background:#f9fafb'>
-            <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Email</th>
-            <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Slug</th>
-            <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:center;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Plan</th>
-            <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:right;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Joined</th>
-          </tr>
-          ${ALL_SIGNUPS_ROWS}
-        </table>
-      </details>
+      <!-- Full signup list — always visible (email clients strip details/summary) -->
+      <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;font-family:Arial,sans-serif'>All ${USERS_TOTAL} users</div>
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px'>
+        <tr style='background:#f9fafb'>
+          <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Email</th>
+          <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Slug</th>
+          <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:center;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Plan</th>
+          <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:right;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Joined</th>
+        </tr>
+        ${ALL_SIGNUPS_ROWS}
+      </table>
 
       <!-- Recent payments — FIX 1: ₦ -->
       <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;font-family:Arial,sans-serif'>Recent payments</div>
