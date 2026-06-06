@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ''
 const BASIC_PLAN_CODE = process.env.NEXT_PUBLIC_PAYSTACK_BASIC_PLAN_CODE || ''
 const PRO_PLAN_CODE = process.env.NEXT_PUBLIC_PAYSTACK_PRO_PLAN_CODE || ''
+const TEST_PLAN_CODE = 'PLN_gzi13ks4vajcdhx' // ₦500 live test plan — hidden from users
 
 interface UpgradeModalProps {
   isOpen: boolean
@@ -43,6 +44,8 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId }
   }, [isOpen, onClose])
 
   if (!isOpen) return null
+
+  const isTestMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('test') === '1'
 
   const handlePay = (planCode: string, tier: 'basic' | 'pro') => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -155,6 +158,14 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId }
           <p className="text-xs text-gray-400">
             Annual billing · 7-day refund guarantee · Cancel anytime
           </p>
+          {isTestMode && (
+            <button
+              onClick={() => handlePay(TEST_PLAN_CODE, 'basic')}
+              className="mt-3 text-xs text-orange-500 underline"
+            >
+              [TEST] Pay ₦500 to verify payment flow
+            </button>
+          )}
         </div>
       </div>
     </div>
