@@ -302,7 +302,7 @@ FAILED_IPS=$(grep "Failed password\|Invalid user" /var/log/auth.log 2>/dev/null 
 
 # Recent logins as HTML rows (flag non-Lagos IPs)
 MY_IP="79.127.207"  # Your IP prefix — update if your ISP changes
-RECENT_LOGINS_ROWS=$(last -n 15 2>/dev/null | grep -v 'wtmp\|reboot\|^$' | head -10 | python3 -c "
+RECENT_LOGINS_ROWS=$(last -n 5 2>/dev/null | grep -v 'wtmp\|reboot\|^$' | head -5 | python3 -c "
 import sys
 rows = ''
 for i, line in enumerate(sys.stdin):
@@ -443,8 +443,8 @@ Uptime: ${VPS_UPTIME_HR} | Load: ${VPS_LOAD}
 Memory: ${VPS_MEM_USED}MB / ${VPS_MEM_TOT}MB (${VPS_MEM_PCT}%)
 Disk: ${VPS_DISK_USED}GB / ${VPS_DISK_TOT}GB (${VPS_DISK_PCT}%)
 
-Target: ₦500,000/mo = 16 payments/mo
-Progress this month: ${REV_MO_COUNT}/16 payments | ₦${REV_MONTH}/₦500,000
+Target: ${GOAL_LABEL}/mo
+Progress this month: ${REV_MO_COUNT} payments | ₦${REV_MONTH}/${GOAL_LABEL} (${PROGRESS_PCT}%)
 
 === SECURITY ===
 SSH keys: ${SSH_KEY_STATUS}
@@ -459,14 +459,20 @@ ${CRON_DISPLAY}"
 
 # ── 8. Build HTML ─────────────────────────────────────────────────────────────
 # FIX 1: Monthly goal in NGN — ₦500,000
-GOAL=500000
+# Monthly goal scales with traction — update GOAL as you hit each tier
+# Tier 1: ₦50,000  (~5 payments)   — getting started
+# Tier 2: ₦150,000 (~15 payments)  — early traction
+# Tier 3: ₦500,000 (~50 payments)  — growth stage
+GOAL=50000
+GOAL_LABEL="₦50,000"
 REV_MONTH_INT=$(echo "$REV_MONTH" | cut -d. -f1)
 [[ "$REV_MONTH_INT" =~ ^[0-9]+$ ]] || REV_MONTH_INT=0
 PROGRESS_PCT=$(( REV_MONTH_INT * 100 / GOAL ))
 [ "$PROGRESS_PCT" -gt 100 ] && PROGRESS_PCT=100
+# Blue below 50%, green at 100%, never red unless truly zero
 PROGRESS_COLOR="#0A66C2"
 [ "$PROGRESS_PCT" -ge 100 ] && PROGRESS_COLOR="#16a34a"
-[ "$PROGRESS_PCT" -lt 30 ]  && PROGRESS_COLOR="#dc2626"
+[ "$PROGRESS_PCT" -eq 0 ]   && PROGRESS_COLOR="#e5e7eb"
 
 # Format revenue with commas
 REV_MONTH_FMT=$(python3 -c "
@@ -551,12 +557,12 @@ HTML_BODY="<!DOCTYPE html>
           <td style='padding:14px'>
             <table width='100%' cellpadding='0' cellspacing='0' border='0'>
               <tr>
-                <td style='font-size:13px;font-weight:700;color:#1e40af;font-family:Arial,sans-serif'>Monthly goal — ₦500,000</td>
-                <td align='right' style='font-size:13px;font-weight:700;color:${PROGRESS_COLOR};font-family:Arial,sans-serif'>${REV_MONTH_FMT} / ₦500,000 (${PROGRESS_PCT}%)</td>
+                <td style='font-size:13px;font-weight:700;color:#1e40af;font-family:Arial,sans-serif'>Monthly goal — ${GOAL_LABEL}</td>
+                <td align='right' style='font-size:13px;font-weight:700;color:${PROGRESS_COLOR};font-family:Arial,sans-serif'>${REV_MONTH_FMT} / ${GOAL_LABEL} (${PROGRESS_PCT}%)</td>
               </tr>
             </table>
             <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-top:8px;background:#dbeafe;border-radius:4px;height:8px'>
-              <tr><td width='${PROGRESS_PCT}%' style='background:${PROGRESS_COLOR};height:8px;border-radius:4px;font-size:0'>&nbsp;</td><td></td></tr>
+              <tr><td width='${PROGRESS_PCT}%' style='background:${PROGRESS_COLOR};height:8px;border-radius:4px;font-size:0;min-width:4px'>&nbsp;</td><td></td></tr>
             </table>
             <div style='margin-top:6px;font-size:11px;color:#6b7280;font-family:Arial,sans-serif'>${REV_MO_COUNT} payments this month · target: 16 payments</div>
           </td>
@@ -667,8 +673,13 @@ HTML_BODY="<!DOCTYPE html>
         ${TOP_VIEWED_ROWS}
       </table>
 
-      <!-- Recent signups -->
-      <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;font-family:Arial,sans-serif'>Recent signups</div>
+      <!-- Recent signups — capped at 5, full list in dashboard -->
+      <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:6px'>
+        <tr>
+          <td style='font-size:13px;font-weight:700;color:#111827;font-family:Arial,sans-serif'>Recent signups</td>
+          <td align='right' style='font-size:11px;font-family:Arial,sans-serif'><a href='${APP_URL}/dashboard' style='color:#0A66C2;text-decoration:none'>View all ${USERS_TOTAL} →</a></td>
+        </tr>
+      </table>
       <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px'>
         <tr style='background:#f9fafb'>
           <th style='padding:8px 12px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>Email</th>
@@ -769,8 +780,8 @@ HTML_BODY="<!DOCTYPE html>
         </tr>
       </table>
 
-      <!-- Recent logins -->
-      <div style='font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;font-family:Arial,sans-serif'>Recent SSH logins <span style='font-weight:400;color:#9ca3af'>(🚨 = unfamiliar IP)</span></div>
+      <!-- Recent logins — last 5 only -->
+      <div style='font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;font-family:Arial,sans-serif'>Recent SSH logins — last 5 <span style='font-weight:400;color:#9ca3af'>(🚨 = unfamiliar IP)</span></div>
       <table width='100%' cellpadding='0' cellspacing='0' border='0' style='margin-bottom:20px;border:1px solid #e5e7eb;border-radius:8px'>
         <tr style='background:#f9fafb'>
           <th style='padding:6px 10px;font-size:10px;color:#6b7280;text-align:left;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif'>User</th>
