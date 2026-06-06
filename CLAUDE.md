@@ -10,7 +10,7 @@ and a one-time payment publishes the portfolio permanently at slug.liveportfolio
 **Domain:** liveportfolio.site (Namecheap, active until May 2027)  
 **VPS:** 46.225.186.103 — ssh deploy@46.225.186.103  
 **App port:** 3001 (UpJobs runs on 3000 — never use 3000)  
-**Stack:** Next.js 15, TypeScript, Supabase, OpenAI GPT-4o-mini, Lemon Squeezy, Resend, PM2, Caddy
+**Stack:** Next.js 15, TypeScript, Supabase, OpenAI GPT-4o-mini, Paystack, Resend, IPinfo, PM2, Caddy
 
 ---
 
@@ -23,7 +23,7 @@ Caddy (port 80/443, auto-SSL) on 46.225.186.103
   ↓
 Next.js app (port 3001)
   ↓
-Supabase (DB + Auth + Storage) / OpenAI / Lemon Squeezy / Resend
+Supabase (DB + Auth + Storage) / OpenAI / Paystack / Resend / IPinfo
 ```
 
 **Subdomain routing:** middleware.ts reads the Host header on every request.
@@ -47,13 +47,22 @@ portfolios won't render. Always check middleware.ts first.
 │   ├── portfolio/[slug]/          ← Fallback: liveportfolio.site/portfolio/slug
 │   ├── dashboard/page.tsx         ← Post-payment user dashboard
 │   └── api/
-│       ├── parse-cv/route.ts      ← PDF → structured JSON
-│       ├── generate/route.ts      ← THE CORE: form data → AI → portfolio JSON
-│       ├── check-slug/route.ts    ← Real-time slug availability
-│       ├── webhook/route.ts       ← Lemon Squeezy payment confirmation
-│       ├── subscribe/route.ts     ← Capture non-paying user email
-│       ├── analytics/route.ts     ← Portfolio view counting
-│       └── health/route.ts        ← {status: 'ok'}
+│       ├── parse-cv/route.ts            ← PDF → structured JSON
+│       ├── generate/route.ts            ← THE CORE: form data → AI → portfolio JSON
+│       ├── check-slug/route.ts          ← Real-time slug availability
+│       ├── paystack-webhook/route.ts    ← Paystack payment confirmation
+│       ├── subscribe/route.ts           ← Capture non-paying user email
+│       ├── analytics/route.ts           ← Portfolio view counting (batch flush)
+│       ├── analytics/event/route.ts     ← Click event tracking
+│       ├── analytics/summary/route.ts   ← Dashboard analytics data
+│       ├── score/route.ts               ← AI career score (7-day cache)
+│       ├── unsubscribe/route.ts         ← One-click unsubscribe
+│       ├── cron/drip/route.ts           ← Email drip runner (CRON_SECRET)
+│       ├── admin/metrics/route.ts       ← Health check metrics
+│       ├── update/route.ts              ← Dashboard edits (no AI)
+│       ├── user-plan/route.ts           ← Plan status check
+│       ├── delete-account/route.ts      ← Account deletion
+│       └── health/route.ts              ← {status: 'ok'}
 ├── components/
 │   └── templates/
 │       ├── Minimal.tsx            ← Template 1: editorial minimalism
@@ -61,8 +70,12 @@ portfolios won't render. Always check middleware.ts first.
 ├── lib/
 │   ├── supabase.ts                ← Client + admin instances
 │   ├── prompts.ts                 ← AI system prompt + banned word list
+│   ├── ipinfo.ts                  ← IPinfo Lite enrichment (company, country)
+│   ├── email-drip.ts              ← All email templates (Flow A, B, C)
 │   └── schema.sql                 ← Supabase table definitions
-└── ecosystem.config.js            ← PM2 config (port 3001, cluster mode)
+├── scripts/
+│   └── health-check.sh            ← Daily VPS health email
+└── ecosystem.config.js            ← PM2 config (port 3001, fork mode)
 ```
 
 ---
@@ -75,10 +88,9 @@ portfolios won't render. Always check middleware.ts first.
 | id | uuid PK | references auth.users |
 | email | text unique | login email |
 | slug | text unique | → slug.liveportfolio.site |
-| plan | text | 'unpublished' \| 'launch' \| 'professional' |
+| plan | text | 'unpublished' \| 'pro' |
 | published_at | timestamptz | null until payment |
 | custom_domain | text | professional plan only |
-| ls_customer_id | text | Lemon Squeezy |
 
 ### portfolios
 | column | type | notes |
@@ -90,8 +102,60 @@ portfolios won't render. Always check middleware.ts first.
 | health_score | integer | 0–100, recalculated on each update |
 | seo_title | text | AI-generated |
 | seo_description | text | AI-generated, max 155 chars |
-| og_image_url | text | Playwright screenshot URL |
+| og_image_url | text | screenshot URL |
 | view_count | integer | batch-flushed from memory |
+
+### payments
+| column | type | notes |
+|--------|------|-------|
+| id | uuid PK | |
+| user_id | uuid FK | |
+| ls_order_id | text unique | Paystack reference (column kept from original) |
+| product_tier | text | 'launch' \| 'pro' |
+| amount_cents | integer | |
+
+### subscriptions
+| column | type | notes |
+|--------|------|-------|
+| id | uuid PK | |
+| user_id | uuid FK | |
+| plan | text | 'basic' \| 'pro' |
+| status | text | 'active' \| 'cancelled' \| 'expired' |
+| started_at | timestamptz | |
+| expires_at | timestamptz | used for renewal reminders |
+
+### analytics_events
+| column | type | notes |
+|--------|------|-------|
+| id | uuid PK | |
+| portfolio_id | uuid FK | |
+| event_type | text | 'portfolio_view' \| 'click' |
+| label | text | click label |
+| referrer | text | |
+| ip_hash | text | sha256 of IP — never raw IP |
+| company | text | from IPinfo Lite (filtered) |
+| country | text | from IPinfo Lite (full name) |
+
+### career_scores
+| column | type | notes |
+|--------|------|-------|
+| id | uuid PK | |
+| portfolio_id | uuid FK | |
+| score | integer | 0–100 |
+| breakdown | jsonb | { presence, projects, experience, skills } |
+| summary | text | AI-generated one-liner |
+| scored_at | timestamptz | 7-day cache key |
+
+### email_subscribers
+| column | type | notes |
+|--------|------|-------|
+| id | uuid PK | |
+| email | text unique | |
+| user_id | uuid nullable FK | |
+| subscribed | boolean | false on unsubscribe |
+| sequence_step | integer | current drip step |
+| sent_flows | jsonb | e.g. `{"a_1": true, "b_7": true}` — deduplication |
+| source | text | 'preview_defer' etc |
 
 ### portfolios.content JSON shape
 ```typescript
@@ -125,12 +189,6 @@ portfolios won't render. Always check middleware.ts first.
 }
 ```
 
-### payments
-`id, user_id, ls_order_id (unique — idempotency), product_tier, amount_cents, created_at`
-
-### email_subscribers
-`id, email (unique), user_id, portfolio_og_url, source, subscribed, sequence_step, created_at`
-
 ---
 
 ## Environment Variables
@@ -151,6 +209,8 @@ NEXT_PUBLIC_USD_TO_NGN_RATE=1400             # update when rate shifts significa
 
 RESEND_API_KEY=
 ADMIN_METRICS_SECRET=                        # protects /api/admin/metrics endpoint
+CRON_SECRET=                                 # protects /api/cron/drip endpoint
+IPINFO_TOKEN=                                # IPinfo Lite — 50k lookups/month free
 ```
 
 ---
@@ -290,7 +350,7 @@ Supabase Realtime pushes plan update to client
 Client removes watermark — portfolio is live (no page reload)
 ```
 
-**Webhook always returns 200.** Lemon Squeezy retries on non-200.
+**Webhook always returns 200.** Paystack retries on non-200.
 If there's an error processing, log it but still return 200.
 
 ---
@@ -304,6 +364,59 @@ If there's an error processing, log it but still return 200.
 | /api/parse-cv | 3 per IP per hour | in-memory Map |
 | /api/check-slug | 10 per IP per minute | in-memory Map |
 | /api/analytics | 1 per IP+slug per hour | in-memory Set |
+
+---
+
+## Analytics Pipeline
+
+Portfolio views are tracked in `analytics_events` (event_type = `portfolio_view`).
+Click events are tracked in `analytics_events` (event_type = `click`).
+
+**IPinfo enrichment** (`lib/ipinfo.ts`):
+- Called fire-and-forget from `app/portfolio/[slug]/page.tsx` on every view
+- Uses IPinfo Lite API: `https://api.ipinfo.io/lite/${ip}?token=`
+- Fields: `as_name` → filtered company name, `country` → full country name
+- 24-hour cache: if ip_hash seen in last 24h, reuses company/country from DB
+- Private/loopback IPs skipped. Timeout: 2 seconds. Never blocks page render.
+- `filterCompany()` removes noise: ISPs, mobile carriers (MTN, Airtel, Glo), hosting providers, universities
+
+**Dashboard analytics** (`/api/analytics/summary`):
+- Views-by-day bar chart (Mon–Sun, last 30 days, portfolio_view only)
+- Top referrer sources (LinkedIn, WhatsApp, Twitter/X, GitHub, Google, Direct, Other)
+- Unique visitors: distinct ip_hash count
+- Recent activity: deduplicated by ip_hash, max 5 most recent unique visitors
+
+---
+
+## Career Score
+
+`/api/score` calls GPT-4o-mini to score the portfolio 0–100 across 4 dimensions:
+- `presence` — avatar, contact links, location
+- `projects` — number, outcome metrics, stack depth
+- `experience` — roles, periods, bullet quality
+- `skills` — count, grouping, narrative
+
+Result cached in `career_scores` table for 7 days. Ownership-checked.
+Pro users see real score. Basic users see blurred placeholder (72/100).
+
+---
+
+## Email Drip System
+
+Cron endpoint: `GET /api/cron/drip` — protected by `x-cron-secret` header.
+Run daily at 07:00 UTC via VPS crontab.
+
+**Flow A** (free users, days 1/3/6/12): nudge to publish  
+**Flow B** (Basic subscribers, days 7/21/45): nudge to upgrade to Pro  
+**Flow C weekly** (Pro, Mondays): career score email  
+**Flow C monthly** (Basic+Pro, 1st of month): views summary + top source  
+**Renewal** (Basic+Pro, 30 days before expires_at): renewal reminder  
+
+Deduplication: `sent_flows` JSONB column in `email_subscribers`.
+Each key (e.g. `a_1`, `b_7`, `c_score_2026_w2_5`) is set `true` after send.
+Email sent exactly once per user per step, forever.
+
+Unsubscribe: `GET /api/unsubscribe?token=<base64url(email)>` sets `subscribed=false`.
 
 ---
 
@@ -359,6 +472,8 @@ PAYSTACK_SECRET_KEY=
 NEXT_PUBLIC_USD_TO_NGN_RATE=1400
 RESEND_API_KEY=
 ADMIN_METRICS_SECRET=
+CRON_SECRET=
+IPINFO_TOKEN=
 ```
 
 ### ecosystem.config.js
@@ -394,7 +509,7 @@ VPS_HOST, VPS_USER, VPS_SSH_KEY, VPS_SSH_PORT
 OPENAI_API_KEY, RESEND_API_KEY, PAYSTACK_SECRET_KEY
 NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY, NEXT_PUBLIC_APP_URL, NEXT_PUBLIC_ROOT_DOMAIN
-ADMIN_METRICS_SECRET
+ADMIN_METRICS_SECRET, CRON_SECRET, IPINFO_TOKEN
 ```
 
 ### Daily health check email
