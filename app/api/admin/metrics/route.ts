@@ -28,6 +28,10 @@ export async function GET(req: NextRequest) {
   last30.setDate(last30.getDate() - 30)
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
+  const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+  const last30DaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const last7DaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
   const [
     usersTotal,
     usersToday,
@@ -43,10 +47,22 @@ export async function GET(req: NextRequest) {
     paymentsAll,
     paymentsThisMonth,
     portfoliosAll,
-    topViewed,
+    topViewedAllTime,
+    topViewedThisWeek,
     recentSignups,
     recentPayments,
     templateStats,
+    // Subscription health
+    activeBasic,
+    activePro,
+    cancelledThisMonth,
+    expiringIn30,
+    // Unique visitors last 30 days
+    uniqueVisitors,
+    // Career scores this month
+    careerScoresThisMonth,
+    // Free users with unpublished portfolios
+    freeUnpublished,
   ] = await Promise.all([
     // Users
     db.from('users').select('id', { count: 'exact', head: true }),
@@ -55,28 +71,36 @@ export async function GET(req: NextRequest) {
     db.from('users').select('id', { count: 'exact', head: true }).gte('created_at', last30.toISOString()),
 
     // Published (paying)
-    db.from('users').select('id', { count: 'exact', head: true }).eq('plan', 'pro'),
-    db.from('users').select('id', { count: 'exact', head: true }).eq('plan', 'pro').gte('published_at', today.toISOString()),
-    db.from('users').select('id', { count: 'exact', head: true }).eq('plan', 'pro').gte('published_at', last7.toISOString()),
-    db.from('users').select('id', { count: 'exact', head: true }).eq('plan', 'pro').gte('published_at', last30.toISOString()),
+    db.from('users').select('id', { count: 'exact', head: true }).not('plan', 'eq', 'unpublished'),
+    db.from('users').select('id', { count: 'exact', head: true }).not('plan', 'eq', 'unpublished').gte('published_at', today.toISOString()),
+    db.from('users').select('id', { count: 'exact', head: true }).not('plan', 'eq', 'unpublished').gte('published_at', last7.toISOString()),
+    db.from('users').select('id', { count: 'exact', head: true }).not('plan', 'eq', 'unpublished').gte('published_at', last30.toISOString()),
 
     // Email subscribers
     db.from('email_subscribers').select('id', { count: 'exact', head: true }).eq('subscribed', true),
     db.from('email_subscribers').select('id', { count: 'exact', head: true }).eq('subscribed', true).gte('created_at', today.toISOString()),
     db.from('email_subscribers').select('id', { count: 'exact', head: true }).eq('subscribed', true).gte('created_at', last7.toISOString()),
 
-    // Payments
+    // Payments — FIX 2: use proper month boundary for this_month count
     db.from('payments').select('amount_cents'),
-    db.from('payments').select('amount_cents').gte('created_at', thisMonthStart.toISOString()),
+    db.from('payments').select('amount_cents')
+      .gte('created_at', thisMonthStart.toISOString())
+      .lt('created_at', thisMonthEnd.toISOString()),
 
     // Portfolios
     db.from('portfolios').select('view_count, health_score, template'),
 
-    // Top 5 most viewed
+    // Top 5 most viewed all time
     db.from('portfolios')
       .select('id, view_count, content, template')
       .order('view_count', { ascending: false })
       .limit(5),
+
+    // Top viewed this week (from analytics_events)
+    db.from('analytics_events')
+      .select('portfolio_id')
+      .eq('event_type', 'portfolio_view')
+      .gte('created_at', last7DaysAgo.toISOString()),
 
     // Recent 5 signups
     db.from('users')
@@ -92,11 +116,43 @@ export async function GET(req: NextRequest) {
 
     // Template distribution
     db.from('portfolios').select('template'),
+
+    // FIX 3: Subscription health
+    db.from('subscriptions').select('id', { count: 'exact', head: true })
+      .eq('plan', 'basic').eq('status', 'active').gt('expires_at', now.toISOString()),
+    db.from('subscriptions').select('id', { count: 'exact', head: true })
+      .eq('plan', 'pro').eq('status', 'active').gt('expires_at', now.toISOString()),
+    db.from('subscriptions').select('id', { count: 'exact', head: true })
+      .eq('status', 'cancelled')
+      .gte('updated_at', thisMonthStart.toISOString())
+      .lt('updated_at', thisMonthEnd.toISOString()),
+    db.from('subscriptions').select('id', { count: 'exact', head: true })
+      .eq('status', 'active')
+      .gt('expires_at', now.toISOString())
+      .lt('expires_at', new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()),
+
+    // FIX 6: Unique visitors last 30 days
+    db.from('analytics_events')
+      .select('ip_hash')
+      .eq('event_type', 'portfolio_view')
+      .gte('created_at', last30DaysAgo.toISOString()),
+
+    // FIX 6: Career scores this month
+    db.from('career_scores').select('id', { count: 'exact', head: true })
+      .gte('scored_at', thisMonthStart.toISOString())
+      .lt('scored_at', thisMonthEnd.toISOString()),
+
+    // FIX 6: Free users with unpublished portfolios (most recent 3)
+    db.from('users')
+      .select('email, created_at')
+      .eq('plan', 'unpublished')
+      .order('created_at', { ascending: false })
+      .limit(3),
   ])
 
-  // Revenue calculations
-  const totalRevenueCents = (paymentsAll.data || []).reduce((s, p) => s + (p.amount_cents || 0), 0)
-  const monthRevenueCents = (paymentsThisMonth.data || []).reduce((s, p) => s + (p.amount_cents || 0), 0)
+  // FIX 1: Revenue in NGN — amount_cents is kobo (Paystack), divide by 100 for NGN
+  const totalRevenueKobo = (paymentsAll.data || []).reduce((s, p) => s + (p.amount_cents || 0), 0)
+  const monthRevenueKobo = (paymentsThisMonth.data || []).reduce((s, p) => s + (p.amount_cents || 0), 0)
 
   // Portfolio stats
   const allPortfolios = portfoliosAll.data || []
@@ -116,6 +172,29 @@ export async function GET(req: NextRequest) {
     ? (((published.count || 0) / (usersTotal.count || 0)) * 100).toFixed(1)
     : '0.0'
 
+  // FIX 6: Unique visitors (distinct ip_hash) last 30 days
+  const uniqueIpHashes = new Set((uniqueVisitors.data || []).map((e: { ip_hash: string }) => e.ip_hash))
+
+  // FIX 6: Top portfolio this week by analytics_events count
+  const weekViewCounts: Record<string, number> = {}
+  for (const e of (topViewedThisWeek.data || [])) {
+    weekViewCounts[e.portfolio_id] = (weekViewCounts[e.portfolio_id] || 0) + 1
+  }
+  const topThisWeekId = Object.entries(weekViewCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+  let topThisWeekName: string | null = null
+  let topThisWeekViews = 0
+  if (topThisWeekId) {
+    const { data: twData } = await db.from('portfolios').select('content').eq('id', topThisWeekId).single()
+    topThisWeekName = (twData?.content as Record<string, string> | null)?.name ?? 'Unknown'
+    topThisWeekViews = weekViewCounts[topThisWeekId]
+  }
+
+  // FIX 6: Free unpublished users with days since signup
+  const freeUnpublishedList = (freeUnpublished.data || []).map((u: { email: string; created_at: string }) => {
+    const daysSince = Math.floor((now.getTime() - new Date(u.created_at).getTime()) / 86400000)
+    return { email: u.email, days_since_signup: daysSince }
+  })
+
   return NextResponse.json({
     generated_at: now.toISOString(),
     users: {
@@ -124,9 +203,10 @@ export async function GET(req: NextRequest) {
       last_7_days: usersLast7.count || 0,
       last_30_days: usersLast30.count || 0,
     },
+    // FIX 1: all revenue fields now in NGN
     revenue: {
-      total_usd: (totalRevenueCents / 100).toFixed(2),
-      this_month_usd: (monthRevenueCents / 100).toFixed(2),
+      total_ngn: (totalRevenueKobo / 100).toFixed(2),
+      this_month_ngn: (monthRevenueKobo / 100).toFixed(2),
       total_payments: paymentsAll.data?.length || 0,
       this_month_payments: paymentsThisMonth.data?.length || 0,
     },
@@ -149,7 +229,24 @@ export async function GET(req: NextRequest) {
       template_minimal: templateCounts['minimal'] || 0,
       template_bold: templateCounts['bold'] || 0,
     },
-    top_viewed: (topViewed.data || []).map(p => ({
+    // FIX 3: subscription health
+    subscriptions: {
+      active_basic: activeBasic.count || 0,
+      active_pro: activePro.count || 0,
+      cancelled_this_month: cancelledThisMonth.count || 0,
+      expiring_in_30_days: expiringIn30.count || 0,
+    },
+    // FIX 6: additional data points
+    analytics: {
+      unique_visitors_30d: uniqueIpHashes.size,
+      career_scores_this_month: careerScoresThisMonth.count || 0,
+      free_unpublished_count: usersTotal.count ? ((usersTotal.count) - (published.count || 0)) : 0,
+      top_viewed_this_week: topThisWeekName
+        ? { name: topThisWeekName, views: topThisWeekViews }
+        : null,
+      free_unpublished_sample: freeUnpublishedList,
+    },
+    top_viewed: (topViewedAllTime.data || []).map(p => ({
       name: (p.content as Record<string, string> | null)?.name || 'Unknown',
       views: p.view_count || 0,
       template: p.template,
@@ -161,7 +258,7 @@ export async function GET(req: NextRequest) {
       joined: u.created_at,
     })),
     recent_payments: (recentPayments.data || []).map(p => ({
-      amount_usd: ((p.amount_cents || 0) / 100).toFixed(2),
+      amount_ngn: ((p.amount_cents || 0) / 100).toFixed(2),
       tier: p.product_tier,
       date: p.created_at,
     })),

@@ -132,7 +132,6 @@ export async function POST(req: NextRequest) {
 
   const data = event.data
   const reference = data.reference as string
-  const amount = data.amount as number
 
   // Distinguish recurring subscription renewal from one-time charge
   const chargePlan = data.plan as Record<string, unknown> | undefined
@@ -157,77 +156,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true })
   }
 
-  // ── Legacy: one-time $5 payments — remove after all existing users migrate to subscriptions ──
-  const rawMeta = (data.metadata as Record<string, unknown>) || {}
-  let user_id: string | undefined
-  let plan: string | undefined
-
-  if (rawMeta.user_id) {
-    user_id = rawMeta.user_id as string
-    plan = rawMeta.plan as string
-  } else if (Array.isArray(rawMeta.custom_fields)) {
-    const fields = rawMeta.custom_fields as { variable_name: string; value: string }[]
-    user_id = fields.find(f => f.variable_name === 'user_id')?.value
-    plan = fields.find(f => f.variable_name === 'plan')?.value
-  }
-
-  if (!user_id && reference) {
-    console.log('[paystack-webhook] metadata missing user_id, reference:', reference, 'raw meta:', JSON.stringify(rawMeta))
-  }
-
-  if (!user_id || plan !== 'pro') {
-    console.log('[paystack-webhook] skipping: user_id=', user_id, 'plan=', plan)
-    return NextResponse.json({ received: true })
-  }
-
-  // Idempotency — ignore if already processed
-  const { data: existing } = await supabaseAdmin
-    .from('payments')
-    .select('id')
-    .eq('ls_order_id', reference)
-    .single()
-
-  if (existing) {
-    return NextResponse.json({ received: true })
-  }
-
-  // Update user plan (triggers Supabase Realtime → preview page shows celebration)
-  await supabaseAdmin
-    .from('users')
-    .update({ plan, published_at: new Date().toISOString() })
-    .eq('id', user_id)
-
-  // Record payment for idempotency
-  await supabaseAdmin
-    .from('payments')
-    .insert({
-      user_id,
-      ls_order_id: reference,
-      product_tier: plan,
-      amount_cents: amount,
-    })
-
-  // Send confirmation email
-  if (process.env.RESEND_API_KEY) {
-    try {
-      const { data: userData } = await supabaseAdmin
-        .from('users')
-        .select('email, slug')
-        .eq('id', user_id)
-        .single()
-
-      if (userData) {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
-        const portfolioUrl = `${appUrl}/${userData.slug}`
-        await sendEmail({
-          to: userData.email,
-          ...emailTemplates.portfolioLive(portfolioUrl),
-        })
-      }
-    } catch {
-      // Don't fail the webhook if email sending fails
-    }
-  }
-
+  // Unrecognised charge.success — not a subscription renewal, not a known event
+  console.log('[paystack-webhook] unhandled charge.success reference:', reference)
   return NextResponse.json({ received: true })
 }

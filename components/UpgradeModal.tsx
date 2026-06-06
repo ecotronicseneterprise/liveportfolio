@@ -134,9 +134,9 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId }
 
             <ul className="space-y-2 mb-5 flex-1">
               <PlanFeature text="Everything in Basic" />
-              <PlanFeature text="Analytics dashboard (views, company, country, referrer)" />
+              <PlanFeature text="Analytics dashboard (views, country, referrer)" />
               <PlanFeature text="QR code sharing" />
-              <PlanFeature text="Weekly AI career score" />
+              <PlanFeature text="Weekly career score" />
               <PlanFeature text="Custom domain (connect your own)" />
               <PlanFeature text="Export pack (PDF, LinkedIn summary, cover letter)" />
             </ul>

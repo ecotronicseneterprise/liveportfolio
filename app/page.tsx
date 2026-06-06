@@ -24,7 +24,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What do I get when I publish?',
-    a: 'Basic gives you a live portfolio at yourname.liveportfolio.site, all three templates, and full editing from your dashboard. Pro adds an analytics dashboard, QR code sharing, weekly AI career score, custom domain, and an export pack (PDF, LinkedIn summary, cover letter).',
+    a: 'Basic gives you a live portfolio at yourname.liveportfolio.site, all three templates, and full editing from your dashboard. Pro adds an analytics dashboard, QR code sharing, weekly career score, custom domain, and an export pack (PDF, LinkedIn summary, cover letter).',
   },
   {
     q: 'Who is this for?',
@@ -32,7 +32,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Do I need design or coding skills?',
-    a: 'None at all. Add your experience, pick a template, and publish. The AI handles the writing.',
+    a: 'None at all. Add your experience, pick a template, and publish. We handle the writing.',
   },
 ]
 
@@ -115,7 +115,7 @@ export default function LandingPage() {
               },
               {
                 step: '02',
-                title: 'AI writes your copy',
+                title: 'We write your copy',
                 desc: 'We rewrite everything into clean, professional language — specific, human, recruiter-ready. No buzzwords.',
               },
               {
@@ -253,7 +253,7 @@ export default function LandingPage() {
               <p className="text-3xl font-bold text-gray-900 mb-1">$0</p>
               <p className="text-sm text-gray-400 mb-5">Always free</p>
               <ul className="space-y-2 text-sm text-gray-500 mb-6 flex-1">
-                {['Generate your portfolio with AI', 'Preview all three templates', 'Saved to your account'].map((f) => (
+                {['Generate your portfolio', 'Preview all three templates', 'Saved to your account'].map((f) => (
                   <li key={f} className="flex items-center gap-2">
                     <span className="text-gray-300 flex-shrink-0">✓</span>{f}
                   </li>
