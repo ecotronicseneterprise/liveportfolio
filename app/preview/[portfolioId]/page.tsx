@@ -49,9 +49,9 @@ function CelebrationOverlay({
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(portfolioUrl)}&color=0A66C2&bgcolor=ffffff&qzone=1`
 
   useEffect(() => {
-    const timer = setTimeout(onDismiss, 8000)
+    const timer = setTimeout(onDashboard, 8000)
     return () => clearTimeout(timer)
-  }, [onDismiss])
+  }, [onDashboard])
 
   const copyUrl = () => {
     navigator.clipboard.writeText(portfolioUrl)
@@ -95,11 +95,11 @@ function CelebrationOverlay({
         />
       ))}
 
-      <div className="absolute inset-0 bg-black/60" onClick={onDismiss} />
+      <div className="absolute inset-0 bg-black/60" onClick={onDashboard} />
 
       <div className="relative bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
         <button
-          onClick={onDismiss}
+          onClick={onDashboard}
           className="absolute top-4 right-4 text-gray-300 hover:text-gray-500 text-2xl leading-none w-8 h-8 flex items-center justify-center"
         >
           ×
@@ -167,21 +167,12 @@ function CelebrationOverlay({
           </a>
         </div>
 
-        <div className="flex gap-2">
-          <a
-            href={portfolioUrl}
-            target="_blank" rel="noopener noreferrer"
-            className="flex-1 py-2.5 border-2 border-[#0A66C2] text-[#0A66C2] text-sm font-semibold rounded-full hover:bg-[#E8F0F9] transition-colors text-center"
-          >
-            View portfolio →
-          </a>
-          <button
-            onClick={onDashboard}
-            className="flex-1 py-2.5 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
-          >
-            Dashboard
-          </button>
-        </div>
+        <button
+          onClick={onDashboard}
+          className="w-full py-2.5 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
+        >
+          Go to Dashboard →
+        </button>
       </div>
     </div>
   )
@@ -334,7 +325,14 @@ export default function PreviewPage() {
       // Check plan via server-side getUserPlan (handles both subscriptions + legacy)
       const planRes = await fetch(`/api/user-plan?userId=${portfolio.user_id}`)
       const { plan } = await planRes.json()
-      setIsPaid(plan !== 'free')
+      const paid = plan !== 'free'
+      setIsPaid(paid)
+
+      // Already paid — send straight to dashboard, no need to show preview again
+      if (paid) {
+        router.push('/dashboard')
+        return
+      }
     }
 
     setLoading(false)
