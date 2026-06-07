@@ -100,7 +100,9 @@ export async function GET(req: NextRequest) {
     db.from('analytics_events')
       .select('portfolio_id')
       .eq('event_type', 'portfolio_view')
-      .gte('created_at', last7DaysAgo.toISOString()),
+      .gte('created_at', last7DaysAgo.toISOString())
+      // Safety cap: analytics_events can grow quickly; avoid pulling unbounded rows.
+      .limit(5000),
 
     // All signups — used for full list + CSV export in health report
     db.from('users')
@@ -132,10 +134,8 @@ export async function GET(req: NextRequest) {
       .lt('expires_at', new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()),
 
     // FIX 6: Unique visitors last 30 days
-    db.from('analytics_events')
-      .select('ip_hash')
-      .eq('event_type', 'portfolio_view')
-      .gte('created_at', last30DaysAgo.toISOString()),
+    // Disabled: selecting raw ip_hash rows can grow unbounded and destabilize the server.
+    Promise.resolve({ data: [] as Array<{ ip_hash: string }> }),
 
     // FIX 6: Career scores this month
     db.from('career_scores').select('id', { count: 'exact', head: true })
@@ -173,20 +173,26 @@ export async function GET(req: NextRequest) {
     : '0.0'
 
   // FIX 6: Unique visitors (distinct ip_hash) last 30 days
-  const uniqueIpHashes = new Set((uniqueVisitors.data || []).map((e: { ip_hash: string }) => e.ip_hash))
+  // Disabled: see query above.
+  const uniqueIpHashes = new Set<string>()
 
-  // FIX 6: Top portfolio this week by analytics_events count
-  const weekViewCounts: Record<string, number> = {}
-  for (const e of (topViewedThisWeek.data || [])) {
-    weekViewCounts[e.portfolio_id] = (weekViewCounts[e.portfolio_id] || 0) + 1
-  }
-  const topThisWeekId = Object.entries(weekViewCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+  // FIX 6: Top portfolio this week by analytics_events count (best-effort, capped)
   let topThisWeekName: string | null = null
   let topThisWeekViews = 0
-  if (topThisWeekId) {
-    const { data: twData } = await db.from('portfolios').select('content').eq('id', topThisWeekId).single()
-    topThisWeekName = (twData?.content as Record<string, string> | null)?.name ?? 'Unknown'
-    topThisWeekViews = weekViewCounts[topThisWeekId]
+  try {
+    const weekViewCounts: Record<string, number> = {}
+    for (const e of (topViewedThisWeek.data || [])) {
+      weekViewCounts[e.portfolio_id] = (weekViewCounts[e.portfolio_id] || 0) + 1
+    }
+    const topThisWeekId = Object.entries(weekViewCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+    if (topThisWeekId) {
+      const { data: twData } = await db.from('portfolios').select('content').eq('id', topThisWeekId).single()
+      topThisWeekName = (twData?.content as Record<string, string> | null)?.name ?? 'Unknown'
+      topThisWeekViews = weekViewCounts[topThisWeekId] || 0
+    }
+  } catch {
+    topThisWeekName = null
+    topThisWeekViews = 0
   }
 
   // FIX 6: Free unpublished users with days since signup
