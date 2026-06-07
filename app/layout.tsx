@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import TrackingScripts from '@/components/TrackingScripts'
 
 export const metadata: Metadata = {
   title: 'LivePortfolio — Your professional portfolio, live in minutes',
@@ -31,7 +32,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <TrackingScripts />
+        {children}
+      </body>
     </html>
   )
 }
