@@ -25,8 +25,8 @@ TIMESTAMP=$(date '+%Y-%m-%d %H:%M UTC')
 DATE_LABEL=$(date '+%A, %d %B %Y')
 
 # ── 1. Uptime check ────────────────────────────────────────────────────────────
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEALTH_URL" || echo "000")
-RESPONSE_TIME_RAW=$(curl -s -o /dev/null -w "%{time_total}" --max-time 15 "$HEALTH_URL" || echo "0")
+HTTP_CODE=$(curl -4 -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEALTH_URL" || echo "000")
+RESPONSE_TIME_RAW=$(curl -4 -s -o /dev/null -w "%{time_total}" --max-time 15 "$HEALTH_URL" || echo "0")
 RESPONSE_MS=$(echo "$RESPONSE_TIME_RAW * 1000" | bc 2>/dev/null | cut -d. -f1 || echo "?")
 
 APP_STATUS="UP"
@@ -58,7 +58,7 @@ if [ -n "$EXPIRY" ]; then
 fi
 
 # ── 3. Pull SaaS metrics ───────────────────────────────────────────────────────
-METRICS_JSON=$(curl -s --max-time 15 \
+METRICS_JSON=$(curl -4 -s --max-time 15 \
   -H "x-metrics-secret: ${ADMIN_METRICS_SECRET:-}" \
   "$METRICS_URL" || echo "{}")
 
@@ -235,7 +235,7 @@ except:
 " 2>/dev/null || echo "<tr><td colspan=3>?</td></tr>")
 
 # ── 4. Pull VPS health (FIX 4 & 5) ───────────────────────────────────────────
-VPS_JSON=$(curl -s --max-time 10 \
+VPS_JSON=$(curl -4 -s --max-time 10 \
   -H "x-metrics-secret: ${ADMIN_METRICS_SECRET:-}" \
   "$VPS_HEALTH_URL" || echo "{}")
 
@@ -291,15 +291,15 @@ except:
 # Known-good SSH key fingerprint — update this if you ever legitimately rotate keys
 KNOWN_KEY="AAAAC3NzaC1lZDI1NTE5AAAAIEDgN/BvoDqFCrQS0a43rfwdd+lv8mFSFv3w4rd3IBsW"
 
-# Count authorised keys and flag if more than 1
-SSH_KEY_COUNT=$(wc -l < ~/.ssh/authorized_keys 2>/dev/null || echo "?")
+# Count authorised keys (only valid SSH keys, not comments)
+SSH_KEY_COUNT=$(grep -cE '^(ssh-rsa|ssh-ed25519|ecdsa-sha2)' ~/.ssh/authorized_keys 2>/dev/null || echo "?")
 SSH_KEY_ALERT=0
-SSH_KEY_STATUS="✓ OK — 1 key"
+SSH_KEY_STATUS="✓ OK — ${SSH_KEY_COUNT} trusted keys"
 SSH_KEY_COLOR="#16a34a"
-if [ "$SSH_KEY_COUNT" != "1" ] && [ "$SSH_KEY_COUNT" != "?" ]; then
+if [ "$SSH_KEY_COUNT" -gt 5 ] 2>/dev/null; then
   SSH_KEY_ALERT=1
-  SSH_KEY_STATUS="🔴 ALERT — ${SSH_KEY_COUNT} keys found!"
-  SSH_KEY_COLOR="#dc2626"
+  SSH_KEY_STATUS="🟠 WARNING — unusually high number of SSH keys (${SSH_KEY_COUNT})"
+  SSH_KEY_COLOR="#f59e0b"
 fi
 
 # Check known good key is still present
@@ -309,8 +309,8 @@ if ! grep -q "$KNOWN_KEY" ~/.ssh/authorized_keys 2>/dev/null; then
   SSH_KEY_COLOR="#dc2626"
 fi
 
-# List all current SSH keys
-SSH_KEYS_LIST=$(awk '{print $3 " (" $1 ")"}' ~/.ssh/authorized_keys 2>/dev/null || echo "unreadable")
+# List all current SSH keys (filter out empty entries)
+SSH_KEYS_LIST=$(awk 'NF >= 3 {print $3 " (" $1 ")"}' ~/.ssh/authorized_keys 2>/dev/null || echo "unreadable")
 
 # Check for suspicious processes and auto-kill them
 # Matches: miners, reverse shells, and random-name bash processes (e.g. "bash CE4A7D")
@@ -924,7 +924,7 @@ with open('/tmp/lp_payload.json', 'w') as f:
     json.dump(payload, f)
 PYEOF
 
-SEND_RESULT=$(curl -s -w "\n%{http_code}" -X POST "https://api.resend.com/emails" \
+SEND_RESULT=$(curl -4 -s -w "\n%{http_code}" -X POST "https://api.resend.com/emails" \
   -H "Authorization: Bearer ${RESEND_API_KEY}" \
   -H "Content-Type: application/json" \
   --data-binary @/tmp/lp_payload.json)
