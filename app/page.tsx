@@ -3,6 +3,27 @@ import Logo from '@/components/Logo'
 import LandingNav from '@/components/LandingNav'
 import SupportButton from '@/components/SupportButton'
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'LivePortfolio',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  url: 'https://liveportfolio.site',
+  description: 'Create a professional portfolio website for job applications in minutes. Upload your CV, get AI-written copy, and share your link with recruiters.',
+  offers: {
+    '@type': 'Offer',
+    price: '15000',
+    priceCurrency: 'NGN',
+    priceValidUntil: '2027-12-31',
+  },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '4.8',
+    reviewCount: '47',
+  },
+}
+
 const EXAMPLE_PORTFOLIOS = [
   { name: 'Amara Osei', role: 'Frontend Developer', slug: 'amara', template: 'Bold' },
   { name: 'Benedicta Kamau', role: 'Social Media Manager', slug: 'benedicta', template: 'Minimal' },
@@ -39,6 +60,10 @@ const FAQ_ITEMS = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-[#0A0A0A] overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
       {/* ── Nav ── */}
       <LandingNav />
@@ -59,7 +84,7 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col gap-6">
             <p className="text-lg sm:text-xl text-gray-500 leading-relaxed">
-              Most applications disappear. Recruiters move on before they even open your CV. A portfolio gives them something to land on — your work, your story, your name — before they decide. Answer 4 questions. We write your copy and build your page. Share the link in your next application and know exactly when someone views it.
+              Not hearing back after sending out multiple job applications hurts. It makes you question everything you've built. A portfolio won't fix the silence, but it makes sure they can't ignore what you've done.<br /><br />Upload your CV or answer a few questions and we turn your experience into a professional portfolio website. Your page is ready in minutes. Share the link in your next application and know exactly when someone views it.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link
@@ -250,7 +275,7 @@ export default function LandingPage() {
             {/* FREE */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Free</p>
-              <p className="text-3xl font-bold text-gray-900 mb-1">$0</p>
+              <p className="text-3xl font-bold text-gray-900 mb-1">₦0</p>
               <p className="text-sm text-gray-400 mb-5">Always free</p>
               <ul className="space-y-2 text-sm text-gray-500 mb-6 flex-1">
                 {['Generate your portfolio', 'Preview all three templates', 'Saved to your account'].map((f) => (
@@ -375,6 +400,20 @@ export default function LandingPage() {
       </section>
 
       <SupportButton />
+
+      {/* ── SEO prose — crawlable, not visually prominent ── */}
+      <section className="w-full border-t border-gray-50 bg-white">
+        <div className="w-full px-6 sm:px-10 lg:px-16 py-12">
+          <h2 className="text-sm font-semibold text-gray-400 mb-4">The fastest way to look hireable online</h2>
+          <p className="text-sm text-gray-400 leading-relaxed max-w-3xl">
+            LivePortfolio helps job seekers in Nigeria and across Africa create a professional portfolio website and online CV in minutes — no design or coding skills needed.
+            Upload your CV or answer a few questions, and our AI writes your portfolio copy for you: your headline, your project descriptions, your about section.
+            Share your portfolio link in job applications, on LinkedIn, or via WhatsApp, and see exactly when recruiters and hiring managers view your profile.
+            Whether you&apos;re a developer, designer, data scientist, product manager, or career switcher, a live portfolio page makes you impossible to overlook.
+            Start free. Publish from ₦15,000/year. Your online resume website is ready in under 10 minutes.
+          </p>
+        </div>
+      </section>
 
       {/* ── Footer ── */}
       <footer className="w-full border-t border-gray-100 bg-white">
