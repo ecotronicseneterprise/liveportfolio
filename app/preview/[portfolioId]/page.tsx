@@ -441,33 +441,26 @@ export default function PreviewPage() {
 
   if (!content) return null
 
-  // Payment timeout — webhook may have been delayed
+  // Payment timeout — webhook delayed beyond 90s
   if (paymentTimedOut) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="text-center max-w-sm">
-          <div className="text-4xl mb-4" />
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Payment is being confirmed</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Your payment was received by Paystack. Portfolio activation can take up to 2 minutes.
-          </p>
-          <p className="text-sm text-gray-500 mb-6">
-            Check your email for a confirmation, then refresh this page or go to your dashboard.
-          </p>
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={() => { setPaymentTimedOut(false); setPaying(true) }}
-              className="px-6 py-2.5 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
-            >
-              Keep checking…
-            </button>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-2.5 border border-gray-200 text-gray-600 text-sm rounded-full hover:border-gray-300 transition-colors"
-            >
-              Refresh page
-            </button>
+          <div className="w-12 h-12 rounded-full bg-[#E8F0F9] flex items-center justify-center mx-auto mb-6">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0A66C2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.79a16 16 0 0 0 6.29 6.29l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
           </div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Your payment is being processed</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            We received your payment. Your portfolio will be activated shortly and you'll receive a confirmation email. If it's not live within 10 minutes, email us at <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">support@ecotronicsenterprise.com</a>.
+          </p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="px-6 py-2.5 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
+          >
+            Go to Dashboard →
+          </button>
         </div>
       </div>
     )
@@ -544,14 +537,12 @@ export default function PreviewPage() {
               </a>
             </div>
           ) : (
-            false && (
-              <button
-                onClick={() => setShowUpgradeModal(true)}
-                className="px-4 py-2 bg-[#0A66C2] text-white text-xs font-bold rounded-full hover:bg-[#084D9A] transition-colors whitespace-nowrap"
-              >
+            <button
+              onClick={() => setShowUpgradeModal(true)}
+              className="hidden sm:block px-4 py-2 bg-[#0A66C2] text-white text-xs font-bold rounded-full hover:bg-[#084D9A] transition-colors whitespace-nowrap"
+            >
               Publish my portfolio →
-              </button>
-            )
+            </button>
           )}
         </div>
       </div>

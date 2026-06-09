@@ -312,9 +312,13 @@ fi
 # List all current SSH keys (filter out empty entries)
 SSH_KEYS_LIST=$(awk 'NF >= 3 {print $3 " (" $1 ")"}' ~/.ssh/authorized_keys 2>/dev/null || echo "unreadable")
 
-# Check for suspicious processes and auto-kill them
+# Check for suspicious processes (optionally enforce by killing)
 # Matches: miners, reverse shells, and random-name bash processes (e.g. "bash CE4A7D")
 # Excludes processes owned by 'deploy' (PM2, Next.js, health-check itself)
+# NOTE: Auto-killing can cause collateral damage (e.g. killing curl/Node/PM2) if the pattern matches
+# something legitimate. For safety, enforcement is OFF by default.
+# Set `SECURITY_ENFORCE=1` (in `.env.local` or the cron environment) to enable auto-kill.
+SECURITY_ENFORCE="${SECURITY_ENFORCE:-0}"
 SUSPICIOUS_PROCS=$(ps aux 2>/dev/null \
   | grep -E 'xmrig|minerd|kdevtmpfsi|wget.*pastebin|curl.*pastebin|bash -i |bash [A-Z0-9]{6}' \
   | grep -v grep \
@@ -324,10 +328,14 @@ SUSPICIOUS_STATUS="✓ None detected"
 SUSPICIOUS_COLOR="#16a34a"
 if [ -n "$SUSPICIOUS_PROCS" ]; then
   SUSPICIOUS_ALERT=1
-  SUSPICIOUS_STATUS="🔴 SUSPICIOUS PROCESSES FOUND — auto-killing"
-  SUSPICIOUS_COLOR="#dc2626"
-  # Auto-kill each suspicious process
-  echo "$SUSPICIOUS_PROCS" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
+  if [ "$SECURITY_ENFORCE" = "1" ]; then
+    SUSPICIOUS_STATUS="🔴 SUSPICIOUS PROCESSES FOUND — auto-killing (SECURITY_ENFORCE=1)"
+    SUSPICIOUS_COLOR="#dc2626"
+    echo "$SUSPICIOUS_PROCS" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
+  else
+    SUSPICIOUS_STATUS="🔴 SUSPICIOUS PROCESSES FOUND — NOT killing (set SECURITY_ENFORCE=1 to enable)"
+    SUSPICIOUS_COLOR="#f59e0b"
+  fi
 fi
 
 # Crontab integrity — count lines and flag unexpected entries

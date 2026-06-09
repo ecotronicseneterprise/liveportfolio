@@ -354,7 +354,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: portfolio.seo_title,
       description: portfolio.seo_description,
-      images: portfolio.og_image_url ? [portfolio.og_image_url] : [],
+      images: portfolio.og_image_url
+        ? [portfolio.og_image_url]
+        : [`${appUrl}/logo-1024.png`],
       url: canonicalUrl,
       type: 'profile',
       siteName: 'liveportfolio.site',
@@ -363,7 +365,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title: portfolio.seo_title,
       description: portfolio.seo_description,
-      images: portfolio.og_image_url ? [portfolio.og_image_url] : [],
+      images: portfolio.og_image_url
+        ? [portfolio.og_image_url]
+        : [`${appUrl}/logo-1024.png`],
     },
   }
 }

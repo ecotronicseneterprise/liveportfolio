@@ -16,7 +16,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How does billing work?',
-    a: 'Plans are billed annually — $9/year for Basic, $49/year for Pro. You get a 7-day refund guarantee, no questions asked. Cancel anytime.',
+    a: 'Plans are billed annually — ₦15,000/year for Basic, ₦45,000/year for Pro (approximately $10 and $30). You get a 7-day refund guarantee, no questions asked. Cancel anytime.',
   },
   {
     q: 'Can I edit my portfolio after publishing?',
@@ -24,7 +24,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What do I get when I publish?',
-    a: 'Basic gives you a live portfolio at yourname.liveportfolio.site, all three templates, and full editing from your dashboard. Pro adds an analytics dashboard, QR code sharing, weekly career score, custom domain, and an export pack (PDF, LinkedIn summary, cover letter).',
+    a: 'Basic gives you a live portfolio at yourname.liveportfolio.site, all three templates, and full editing from your dashboard. Pro adds an analytics dashboard (see who views you and from where), QR code sharing, weekly career score, custom domain, and an export pack (PDF, LinkedIn summary, cover letter).',
   },
   {
     q: 'Who is this for?',
@@ -59,7 +59,7 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col gap-6">
             <p className="text-lg sm:text-xl text-gray-500 leading-relaxed">
-              Not hearing back after an application hurts. It makes you question everything you've built. A portfolio won't fix the silence, but it makes sure they can't ignore what you've done. Sign up and answer 4 questions. We turn your experience into a live, professional portfolio. Your page is ready in minutes. Share the link in your next application.
+              Most applications disappear. Recruiters move on before they even open your CV. A portfolio gives them something to land on — your work, your story, your name — before they decide. Answer 4 questions. We write your copy and build your page. Share the link in your next application and know exactly when someone views it.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link
@@ -68,7 +68,7 @@ export default function LandingPage() {
               >
                 Create My Portfolio →
               </Link>
-              <span className="text-sm text-gray-400">Free to build. From $9/year to publish.</span>
+              <span className="text-sm text-gray-400">Free to build. From ₦15,000/year to publish.</span>
             </div>
           </div>
         </div>
@@ -280,8 +280,9 @@ export default function LandingPage() {
                 </span>
               </div>
               <p className="text-xs font-bold text-[#0A66C2] uppercase tracking-widest mb-2 mt-2">Basic</p>
-              <p className="text-3xl font-bold text-gray-900 mb-1">$9<span className="text-base font-normal text-gray-400">/year</span></p>
-              <p className="text-sm text-gray-400 mb-5">The core product</p>
+              <p className="text-3xl font-bold text-gray-900 mb-1">₦15,000<span className="text-base font-normal text-gray-400">/year</span></p>
+              <p className="text-sm text-gray-400 mb-0.5">The core product</p>
+              <p className="text-xs text-gray-400 mb-5">≈ $10/year</p>
               <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-1">
                 {[
                   'Publish your portfolio',
@@ -307,8 +308,9 @@ export default function LandingPage() {
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
                 Pro
               </p>
-              <p className="text-3xl font-bold text-gray-900 mb-1">$49<span className="text-base font-normal text-gray-400">/year</span></p>
-              <p className="text-sm text-gray-400 mb-5">Power users</p>
+              <p className="text-3xl font-bold text-gray-900 mb-1">₦45,000<span className="text-base font-normal text-gray-400">/year</span></p>
+              <p className="text-sm text-gray-400 mb-0.5">Power users</p>
+              <p className="text-xs text-gray-400 mb-5">≈ $30/year</p>
               <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-1">
                 {[
                   'Everything in Basic',
