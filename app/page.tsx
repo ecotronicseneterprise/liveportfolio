@@ -258,7 +258,7 @@ export default function LandingPage() {
 
       {/* ── Final CTA ── */}
       <section className="w-full">
-        <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-24">
+        <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-24 lg:text-center lg:flex lg:flex-col lg:items-center">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#0A0A0A] leading-tight mb-8">
             Your work is already valuable.<br />It just needs to be seen.
           </h2>
@@ -275,7 +275,7 @@ export default function LandingPage() {
 
       {/* ── SEO prose — crawlable, not visually prominent ── */}
       <section className="w-full border-t border-gray-50 bg-white">
-        <div className="w-full px-6 sm:px-10 lg:px-16 py-12">
+        <div className="w-full px-6 sm:px-10 lg:px-16 py-12 lg:text-center lg:flex lg:flex-col lg:items-center">
           <h2 className="text-sm font-semibold text-gray-400 mb-4">The fastest way to look hireable online</h2>
           <p className="text-sm text-gray-400 leading-relaxed max-w-3xl">
             LivePortfolio helps job seekers in Nigeria and across Africa create a professional portfolio website and online CV in minutes — no design or coding skills needed.

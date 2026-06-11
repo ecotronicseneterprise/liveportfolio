@@ -135,9 +135,9 @@ function Card({ p }: { p: ShowcasePortfolio }) {
         padding: '20px 20px 18px',
         textDecoration: 'none',
         position: 'relative',
-        borderLeft: isDark ? 'none' : `4px solid ${p.accent}`,
-        border: isDark ? `1px solid rgba(255,255,255,0.07)` : undefined,
-        borderLeftWidth: isDark ? undefined : 4,
+        border: isDark
+          ? `1px solid rgba(255,255,255,0.07)`
+          : `2px solid ${p.accent}`,
         boxShadow: isDark
           ? '0 4px 24px rgba(0,0,0,0.4)'
           : '0 2px 16px rgba(0,0,0,0.07)',
@@ -165,6 +165,7 @@ function Card({ p }: { p: ShowcasePortfolio }) {
 
       {/* Identity row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, paddingRight: 80 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={p.avatar}
           alt={p.name}
@@ -185,7 +186,7 @@ function Card({ p }: { p: ShowcasePortfolio }) {
             if (ph) ph.style.display = 'flex'
           }}
         />
-        {/* Initials fallback — hidden until img errors */}
+        {/* Initials fallback */}
         <div
           aria-hidden="true"
           style={{
@@ -214,7 +215,6 @@ function Card({ p }: { p: ShowcasePortfolio }) {
         </div>
       </div>
 
-      {/* Divider */}
       <div style={{ height: 1, background: divider, marginBottom: 14 }} />
 
       {/* Skills */}
@@ -237,7 +237,6 @@ function Card({ p }: { p: ShowcasePortfolio }) {
         ))}
       </div>
 
-      {/* Divider */}
       <div style={{ height: 1, background: divider, marginBottom: 14 }} />
 
       {/* Highlight stat */}
@@ -248,7 +247,6 @@ function Card({ p }: { p: ShowcasePortfolio }) {
         </p>
       </div>
 
-      {/* CTA */}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: p.accent }}>
           View portfolio →
@@ -258,29 +256,94 @@ function Card({ p }: { p: ShowcasePortfolio }) {
   )
 }
 
+// How many clones to append at the end (enough to fill the peek)
+const CLONE_COUNT = 3
+
 export default function PortfolioShowcase() {
-  const [current, setCurrent] = useState(0)
+  const total = PORTFOLIOS.length
+  // real index into PORTFOLIOS (0..total-1), used for dots + accent colour
+  const [realIndex, setRealIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const trackRef = useRef<HTMLDivElement>(null)
+  const transitioning = useRef(false)
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
-  const total = PORTFOLIOS.length
+  // track position as a raw slot index (0..total+CLONE_COUNT-1)
+  const slotRef = useRef(0)
 
-  const goTo = useCallback((index: number) => {
-    setCurrent(((index % total) + total) % total)
-  }, [total])
+  // The rendered list: real cards + clones of the first CLONE_COUNT
+  const items = [...PORTFOLIOS, ...PORTFOLIOS.slice(0, CLONE_COUNT)]
 
-  const next = useCallback(() => goTo(current + 1), [current, goTo])
-  const prev = useCallback(() => goTo(current - 1), [current, goTo])
+  const getCardWidth = useCallback((): number => {
+    const track = trackRef.current
+    if (!track) return 0
+    const first = track.firstElementChild as HTMLElement | null
+    if (!first) return 0
+    return first.offsetWidth + 12
+  }, [])
 
-  // Auto-advance
+  const moveTo = useCallback((slot: number, animated: boolean) => {
+    const track = trackRef.current
+    if (!track) return
+    const cardWidth = getCardWidth()
+    track.style.transition = animated
+      ? 'transform 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+      : 'none'
+    track.style.transform = `translateX(-${slot * cardWidth}px)`
+    slotRef.current = slot
+  }, [getCardWidth])
+
+  const advance = useCallback(() => {
+    if (transitioning.current) return
+    transitioning.current = true
+    const nextSlot = slotRef.current + 1
+    const nextReal = nextSlot % total
+    setRealIndex(nextReal)
+    moveTo(nextSlot, true)
+
+    // After transition ends, if we've hit a clone, silently jump to the real position
+    setTimeout(() => {
+      if (nextSlot >= total) {
+        moveTo(nextSlot % total, false)
+      }
+      transitioning.current = false
+    }, 620)
+  }, [moveTo, total])
+
+  const retreat = useCallback(() => {
+    if (transitioning.current) return
+    transitioning.current = true
+    let prevSlot = slotRef.current - 1
+    // If already at 0, silently jump to the equivalent clone position then slide back
+    if (prevSlot < 0) {
+      moveTo(total, false)
+      prevSlot = total - 1
+    }
+    const prevReal = prevSlot % total
+    setRealIndex(prevReal)
+    // Small delay lets the silent jump paint before we animate
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        moveTo(prevSlot < 0 ? total - 1 : prevSlot, true)
+        setTimeout(() => { transitioning.current = false }, 620)
+      })
+    })
+  }, [moveTo, total])
+
+  // Auto-advance every 4 seconds
   useEffect(() => {
     if (paused) return
-    const id = setInterval(next, 2000)
+    const id = setInterval(advance, 4000)
     return () => clearInterval(id)
-  }, [paused, next])
+  }, [paused, advance])
 
-  // Touch handlers for swipe
+  // Recalculate position on resize
+  useEffect(() => {
+    const handler = () => moveTo(slotRef.current, false)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [moveTo])
+
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
     touchStartY.current = e.touches[0].clientY
@@ -291,12 +354,18 @@ export default function PortfolioShowcase() {
     if (touchStartX.current === null || touchStartY.current === null) return
     const dx = e.changedTouches[0].clientX - touchStartX.current
     const dy = e.changedTouches[0].clientY - touchStartY.current
-    // Only register as horizontal swipe if horizontal movement dominates
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-      dx < 0 ? next() : prev()
+      dx < 0 ? advance() : retreat()
     }
     touchStartX.current = null
     touchStartY.current = null
+    setPaused(false)
+  }
+
+  const jumpTo = (i: number) => {
+    if (transitioning.current) return
+    setRealIndex(i)
+    moveTo(i, true)
     setPaused(false)
   }
 
@@ -315,7 +384,7 @@ export default function PortfolioShowcase() {
 
       {/* Slideshow */}
       <div
-        style={{ overflow: 'hidden', position: 'relative' }}
+        style={{ overflow: 'hidden', position: 'relative', paddingLeft: 24 }}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={onTouchStart}
@@ -325,54 +394,31 @@ export default function PortfolioShowcase() {
           ref={trackRef}
           style={{
             display: 'flex',
-            transition: 'transform 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            // On mobile: full card width = calc(100vw - 48px) + gap
-            // On desktop: show 1.25 cards — handled via CSS custom properties via inline calc
             willChange: 'transform',
           }}
         >
-          {PORTFOLIOS.map((p, i) => {
-            // Offset from current, wrapped
-            const offset = ((i - current + total) % total)
-            // We render all cards but translate the track
-            // Actual translation is done on the wrapper div below via CSS var trick
-            return (
-              <div
-                key={p.slug}
-                style={{
-                  // Mobile: full width minus side padding (24px each side)
-                  // Desktop: show 1 full + 25% peek → width = ~80% of container
-                  flexShrink: 0,
-                  width: 'var(--card-width, calc(100vw - 48px))',
-                  marginRight: 12,
-                  opacity: offset === 0 ? 1 : offset === 1 ? 0.6 : 0,
-                  transition: 'opacity 400ms ease',
-                  pointerEvents: offset === 0 ? 'auto' : 'none',
-                }}
-              >
-                <Card p={p} />
-              </div>
-            )
-          })}
+          {items.map((p, i) => (
+            <div
+              key={`${p.slug}-${i}`}
+              style={{
+                flexShrink: 0,
+                // Mobile: full width minus the 24px left padding + 24px right breathing room
+                // Desktop: ~78% so next card peeks ~18% on the right
+                width: 'clamp(280px, calc(100vw - 72px), 520px)',
+                maxWidth: '78vw',
+                marginRight: 12,
+              }}
+            >
+              <Card p={p} />
+            </div>
+          ))}
         </div>
-
-        {/* CSS to set card width per breakpoint and translate track */}
-        <style>{`
-          @media (min-width: 640px) {
-            [data-showcase-track] { --card-width: calc(80% - 6px); }
-          }
-        `}</style>
       </div>
 
-      {/* We drive translation via JS since CSS custom property on the track
-          needs to respond to current index */}
-      <TrackDriver trackRef={trackRef} current={current} total={total} />
-
-      {/* Dot indicators + arrows */}
+      {/* Dots + arrows */}
       <div className="flex items-center justify-center gap-3 mt-6 px-6">
-        {/* Prev arrow */}
         <button
-          onClick={prev}
+          onClick={retreat}
           aria-label="Previous portfolio"
           className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-400 transition-colors flex-shrink-0"
         >
@@ -381,18 +427,17 @@ export default function PortfolioShowcase() {
           </svg>
         </button>
 
-        {/* Dots */}
         <div className="flex items-center gap-2">
           {PORTFOLIOS.map((p, i) => (
             <button
               key={p.slug}
-              onClick={() => { goTo(i); setPaused(false) }}
+              onClick={() => jumpTo(i)}
               aria-label={`Go to ${p.name}`}
               style={{
-                width: i === current ? 20 : 6,
+                width: i === realIndex ? 20 : 6,
                 height: 6,
                 borderRadius: 99,
-                background: i === current ? PORTFOLIOS[current].accent : '#D1D5DB',
+                background: i === realIndex ? PORTFOLIOS[realIndex].accent : '#D1D5DB',
                 border: 'none',
                 padding: 0,
                 cursor: 'pointer',
@@ -403,9 +448,8 @@ export default function PortfolioShowcase() {
           ))}
         </div>
 
-        {/* Next arrow */}
         <button
-          onClick={next}
+          onClick={advance}
           aria-label="Next portfolio"
           className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-400 transition-colors flex-shrink-0"
         >
@@ -416,42 +460,4 @@ export default function PortfolioShowcase() {
       </div>
     </div>
   )
-}
-
-// Separate component so it can use a layout effect to measure card width
-// and apply the correct translateX to the track element imperatively.
-// This avoids any inline style recalculation issues with CSS custom properties.
-function TrackDriver({
-  trackRef,
-  current,
-  total,
-}: {
-  trackRef: React.RefObject<HTMLDivElement | null>
-  current: number
-  total: number
-}) {
-  useEffect(() => {
-    const track = trackRef.current
-    if (!track) return
-    const firstCard = track.firstElementChild as HTMLElement | null
-    if (!firstCard) return
-    const cardWidth = firstCard.offsetWidth + 12 // card + gap
-    track.style.transform = `translateX(-${current * cardWidth}px)`
-  }, [current, trackRef, total])
-
-  // Also recalculate on resize
-  useEffect(() => {
-    const handler = () => {
-      const track = trackRef.current
-      if (!track) return
-      const firstCard = track.firstElementChild as HTMLElement | null
-      if (!firstCard) return
-      const cardWidth = firstCard.offsetWidth + 12
-      track.style.transform = `translateX(-${current * cardWidth}px)`
-    }
-    window.addEventListener('resize', handler)
-    return () => window.removeEventListener('resize', handler)
-  }, [current, trackRef])
-
-  return null
 }
