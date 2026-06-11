@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import Logo from '@/components/Logo'
 import LandingNav from '@/components/LandingNav'
 import SupportButton from '@/components/SupportButton'
 import PricingSection from '@/components/PricingSection'
+import PortfolioShowcase from '@/components/PortfolioShowcase'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -25,11 +25,6 @@ const jsonLd = {
   },
 }
 
-const EXAMPLE_PORTFOLIOS = [
-  { name: 'Amara Osei', role: 'Frontend Developer', slug: 'amara', template: 'Bold' },
-  { name: 'Benedicta Kamau', role: 'Social Media Manager', slug: 'benedicta', template: 'Minimal' },
-  { name: 'Ezekwe Nwanna', role: 'AI/ML Engineer', slug: 'ezekwe', template: 'Creative' },
-]
 
 const FAQ_ITEMS = [
   {
@@ -99,32 +94,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Example portfolio cards — edge to edge, 3-col, no padding */}
-        <div className="w-full grid grid-cols-1 sm:grid-cols-3 border-t border-gray-100">
-          {EXAMPLE_PORTFOLIOS.map((p, i) => (
-            <a
-              key={p.slug}
-              href={`/${p.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`group flex flex-col justify-between px-6 sm:px-10 lg:px-16 py-8 hover:bg-gray-50 transition-colors${i < 2 ? ' sm:border-r border-gray-100' : ''}`}
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0A66C2] to-[#084D9A] flex items-center justify-center text-white font-bold flex-shrink-0">
-                  {p.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">{p.name}</p>
-                  <p className="text-sm text-gray-400">{p.role}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs px-2.5 py-1 bg-gray-50 border border-gray-100 rounded-full text-gray-400 font-medium">{p.template}</span>
-                <span className="text-sm text-[#0A66C2] font-medium group-hover:underline">View portfolio →</span>
-              </div>
-            </a>
-          ))}
-        </div>
+        <PortfolioShowcase />
 
       </section>
 
@@ -309,7 +279,7 @@ export default function LandingPage() {
           <h2 className="text-sm font-semibold text-gray-400 mb-4">The fastest way to look hireable online</h2>
           <p className="text-sm text-gray-400 leading-relaxed max-w-3xl">
             LivePortfolio helps job seekers in Nigeria and across Africa create a professional portfolio website and online CV in minutes — no design or coding skills needed.
-            Upload your CV or answer a few questions, and our AI writes your portfolio copy for you: your headline, your project descriptions, your about section.
+            Upload your CV or answer a few questions, and we write your portfolio copy for you: your headline, your project descriptions, your about section.
             Share your portfolio link in job applications, on LinkedIn, or via WhatsApp, and see exactly when recruiters and hiring managers view your profile.
             Whether you&apos;re a developer, designer, data scientist, product manager, or career switcher, a live portfolio page makes you impossible to overlook.
             Start free. Publish from ₦15,000/year. Your online resume website is ready in under 10 minutes.

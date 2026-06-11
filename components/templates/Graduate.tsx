@@ -246,7 +246,9 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
         {content.avatar_url ? (
           <Image src={content.avatar_url} alt={content.name} width={100} height={100} className="gr-avatar" style={{ borderRadius: '50%', objectFit: 'cover' }} />
         ) : (
-          <div className="gr-avatar-ph">✦</div>
+          <div className="gr-avatar-ph" style={{ fontSize: 36, fontWeight: 600, color: '#fff', background: 'var(--primary)' }}>
+            {content.name.charAt(0).toUpperCase()}
+          </div>
         )}
         <div>
           <h1 className="gr-hero-name">{content.name}</h1>

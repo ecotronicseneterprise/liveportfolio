@@ -150,11 +150,10 @@ const css = `
   .cy-proj-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-left: 3px solid var(--primary);
     border-radius: 6px; padding: 20px;
-    transition: border-left-color 0.2s;
+    transition: border-color 0.2s;
   }
-  .cy-proj-card:hover { border-left-color: var(--accent); }
+  .cy-proj-card:hover { border-color: var(--accent); }
   .cy-proj-img { width: 100%; aspect-ratio: 16/7; object-fit: cover; border-radius: 4px; display: block; margin-bottom: 14px; }
   .cy-proj-name {
     font-family: 'Share Tech Mono', monospace;
@@ -302,7 +301,9 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
           {content.avatar_url ? (
             <Image src={content.avatar_url} alt={content.name} width={80} height={80} className="cy-avatar" style={{ borderRadius: '50%', objectFit: 'cover' }} />
           ) : (
-            <div className="cy-avatar-ph">⚡</div>
+            <div className="cy-avatar-ph" style={{ fontSize: 28, fontWeight: 600, color: '#fff', background: '#166534' }}>
+              {content.name.charAt(0).toUpperCase()}
+            </div>
           )}
           <div>
             <div className="cy-hero-name">{content.name}</div>

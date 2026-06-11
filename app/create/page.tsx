@@ -205,6 +205,18 @@ export default function CreatePage() {
     })
   }, [router]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Pre-fill location from IP detection
+  useEffect(() => {
+    fetch('/api/pricing-region')
+      .then((r) => r.json())
+      .then((data: { region: string; country: string | null }) => {
+        if (data.country) {
+          setForm((prev) => ({ ...prev, location: prev.location || data.country || '' }))
+        }
+      })
+      .catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [entryChoice, setEntryChoice] = useState<EntryChoice>('none')
   const [step, setStep] = useState(1)
   const [generating, setGenerating] = useState(false)
@@ -457,8 +469,11 @@ export default function CreatePage() {
           const path = `project-images/${authData.user!.id}-${i}.${ext}`
           const { error: uploadError } = await supabase.storage
             .from('project-images')
-            .upload(path, p.imageFile, { upsert: true, contentType: p.imageFile.type })
-          if (uploadError) return null
+            .upload(path, p.imageFile, { upsert: true, contentType: p.imageFile.type || 'image/jpeg' })
+          if (uploadError) {
+            console.error('Project image upload failed:', uploadError)
+            return null
+          }
           const { data: publicData } = supabase.storage.from('project-images').getPublicUrl(path)
           return publicData.publicUrl
         })
@@ -467,12 +482,14 @@ export default function CreatePage() {
       // Upload avatar
       let avatarUrl: string | undefined
       if (form.avatarFile) {
-        const ext = form.avatarFile.type === 'image/png' ? 'png' : form.avatarFile.type === 'image/webp' ? 'webp' : 'jpg'
-        const path = `avatars/${authData.user!.id}.${ext}`
+        const path = `avatars/${authData.user!.id}.jpg`
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(path, form.avatarFile, { upsert: true, contentType: form.avatarFile.type })
-        if (!uploadError) {
+          .upload(path, form.avatarFile, { upsert: true, contentType: 'image/jpeg' })
+        if (uploadError) {
+          console.error('Avatar upload failed:', uploadError)
+          setError('Photo upload failed — your portfolio will be created without a photo. You can add one from your dashboard.')
+        } else {
           const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(path)
           avatarUrl = publicData.publicUrl
         }
@@ -484,14 +501,20 @@ export default function CreatePage() {
       )
       const allSkills = [...new Set([...form.directSkills, ...stackSkills])].slice(0, 15)
 
+      const buildFullUrl = (val: string, base: string) => {
+        if (!val.trim()) return undefined
+        if (val.startsWith('http')) return val
+        return `${base}${val.trim()}`
+      }
+
       const generatePayload = {
         name: form.name,
         role: form.role,
         bio: form.bio,
         location: form.location,
         email: form.email,
-        github_url: form.github_url || undefined,
-        linkedin_url: form.linkedin_url || undefined,
+        github_url: buildFullUrl(form.github_url, 'https://github.com/'),
+        linkedin_url: buildFullUrl(form.linkedin_url, 'https://linkedin.com/in/'),
         avatar_url: avatarUrl,
         skills: allSkills,
         certifications: form.certifications.length > 0 ? form.certifications : undefined,
@@ -505,7 +528,7 @@ export default function CreatePage() {
           title: p.title,
           description: p.description,
           stack: p.stack.split(',').map((s) => s.trim()).filter(Boolean),
-          url: p.url || undefined,
+          url: p.url ? (p.url.startsWith('http') ? p.url : `https://${p.url}`) : undefined,
           image_url: projectImageUrls[i] || undefined,
         })),
         experience: form.experience.map((e) => ({
@@ -562,14 +585,8 @@ export default function CreatePage() {
                   await handleCvUpload(file)
                 }}
               />
-              <div className="h-full border-2 border-gray-100 rounded-2xl p-6 flex flex-col gap-3 hover:border-[#0A66C2] hover:shadow-sm transition-all group-hover:bg-[#FAFCFF]">
-                <div className="w-10 h-10 bg-[#E8F0F9] rounded-xl flex items-center justify-center text-xl">📄</div>
-                <div>
-                  <p className="font-semibold text-gray-900">Build from your CV</p>
-                  <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                    We read your PDF — nothing is stored beyond your session. Your file is deleted after parsing.
-                  </p>
-                </div>
+              <div className="h-full border-2 border-gray-100 rounded-2xl p-6 flex flex-col gap-4 hover:border-[#0A66C2] hover:shadow-sm transition-all group-hover:bg-[#FAFCFF]">
+                <p className="font-semibold text-gray-900 text-base">Build from your CV</p>
                 <span className="mt-auto inline-flex items-center gap-1 text-sm font-semibold text-[#0A66C2]">
                   Upload PDF →
                 </span>
@@ -579,17 +596,11 @@ export default function CreatePage() {
             {/* Manual path */}
             <button
               onClick={() => setEntryChoice('manual')}
-              className="h-full border-2 border-gray-100 rounded-2xl p-6 flex flex-col gap-3 hover:border-[#0A66C2] hover:shadow-sm transition-all text-left hover:bg-[#FAFCFF]"
+              className="h-full border-2 border-gray-100 rounded-2xl p-6 flex flex-col gap-4 hover:border-[#0A66C2] hover:shadow-sm transition-all text-left hover:bg-[#FAFCFF]"
             >
-              <div className="w-10 h-10 bg-[#E8F0F9] rounded-xl flex items-center justify-center text-xl">✏️</div>
-              <div>
-                <p className="font-semibold text-gray-900">Answer 4 quick questions</p>
-                <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                  No file needed. Takes about 3 minutes.
-                </p>
-              </div>
+              <p className="font-semibold text-gray-900 text-base">Tell us about yourself</p>
               <span className="mt-auto inline-flex items-center gap-1 text-sm font-semibold text-[#0A66C2]">
-                Start →
+                Answer a few questions →
               </span>
             </button>
           </div>
@@ -667,7 +678,7 @@ export default function CreatePage() {
           <div className="space-y-5">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Your basics</h1>
-              <p className="text-gray-500 text-sm">Tell us who you are. AI will write the rest.</p>
+              <p className="text-gray-500 text-sm">Tell us who you are. We write the rest.</p>
             </div>
 
             {/* Required fields */}
@@ -733,24 +744,30 @@ export default function CreatePage() {
             <Collapsible label="Add links (optional)">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">GitHub URL</label>
-                  <input
-                    type="url"
-                    value={form.github_url}
-                    onChange={(e) => update('github_url', e.target.value.slice(0, 200))}
-                    placeholder="https://github.com/..."
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">GitHub</label>
+                  <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#0A66C2]">
+                    <span className="px-3 py-3 text-sm text-gray-400 bg-gray-50 border-r border-gray-200 flex-shrink-0 select-none">github.com/</span>
+                    <input
+                      type="text"
+                      value={form.github_url.replace(/^https?:\/\/(www\.)?github\.com\//i, '')}
+                      onChange={(e) => update('github_url', e.target.value.slice(0, 100))}
+                      placeholder="username"
+                      className="flex-1 px-3 py-3 text-sm focus:outline-none bg-white" style={{ fontSize: '16px' }}
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label>
-                  <input
-                    type="url"
-                    value={form.linkedin_url}
-                    onChange={(e) => update('linkedin_url', e.target.value.slice(0, 200))}
-                    placeholder="https://linkedin.com/in/..."
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                  <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#0A66C2]">
+                    <span className="px-3 py-3 text-sm text-gray-400 bg-gray-50 border-r border-gray-200 flex-shrink-0 select-none">linkedin.com/in/</span>
+                    <input
+                      type="text"
+                      value={form.linkedin_url.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, '')}
+                      onChange={(e) => update('linkedin_url', e.target.value.slice(0, 100))}
+                      placeholder="username"
+                      className="flex-1 px-3 py-3 text-sm focus:outline-none bg-white" style={{ fontSize: '16px' }}
+                    />
+                  </div>
                 </div>
               </div>
               <div>
@@ -837,10 +854,10 @@ export default function CreatePage() {
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Projects &amp; experience</h1>
-              <p className="text-gray-500 text-sm">Add 1–4 projects. Keep descriptions short — AI expands them into case studies.</p>
+              <p className="text-gray-500 text-sm">Add 1–4 projects. Keep descriptions short — we expand them into case studies.</p>
               {form.github_url && form.projects.every((p) => !p.title.trim()) && (
                 <p className="text-xs text-[#0A66C2] mt-2 bg-[#E8F0F9] px-3 py-2 rounded-lg">
-                  You have a GitHub URL — you can skip projects and AI will work from your bio and role.
+                  You have a GitHub URL — you can skip projects and we will work from your bio and role.
                 </p>
               )}
             </div>
@@ -869,7 +886,7 @@ export default function CreatePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     What it does
-                    <span className="text-gray-400 font-normal"> — AI writes the case study (optional)</span>
+                    <span className="text-gray-400 font-normal"> — we write the case study (optional)</span>
                   </label>
                   <textarea
                     value={project.description}
@@ -893,13 +910,16 @@ export default function CreatePage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Live URL</label>
-                    <input
-                      type="url"
-                      value={project.url}
-                      onChange={(e) => updateProject(i, 'url', e.target.value.slice(0, 200))}
-                      placeholder="https://..."
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
-                    />
+                    <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#0A66C2]">
+                      <span className="px-3 py-3 text-sm text-gray-400 bg-gray-50 border-r border-gray-200 flex-shrink-0 select-none">https://</span>
+                      <input
+                        type="text"
+                        value={project.url.replace(/^https?:\/\//i, '')}
+                        onChange={(e) => updateProject(i, 'url', e.target.value.slice(0, 200))}
+                        placeholder="myproject.com"
+                        className="flex-1 px-3 py-3 text-sm focus:outline-none bg-white" style={{ fontSize: '16px' }}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div>

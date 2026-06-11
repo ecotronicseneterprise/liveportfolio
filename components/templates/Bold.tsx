@@ -214,6 +214,12 @@ export default function Bold({ content }: { content: PortfolioContent }) {
           {/* Hero */}
           <div className="mb-16">
 
+            <h1
+              className="lg:hidden text-2xl font-bold text-[#F0F6FF] mb-1 leading-tight break-words"
+              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+            >
+              {content.name}
+            </h1>
             <p
               className="text-xs text-[#8B949E] mb-3 tracking-widest uppercase"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
@@ -318,7 +324,6 @@ export default function Bold({ content }: { content: PortfolioContent }) {
                   <div
                     key={i}
                     className="bg-[#1C2128] border border-[#30363D] rounded-xl overflow-hidden hover:border-[#58A6FF] transition-all group"
-                    style={{ borderLeft: '3px solid #58A6FF' }}
                   >
                     {project.image_url && (
                       <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>

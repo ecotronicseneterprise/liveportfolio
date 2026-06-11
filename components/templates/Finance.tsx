@@ -113,11 +113,10 @@ const css = `
   .fin-proj-card {
     background: var(--surface);
     border: 1px solid rgba(30,58,138,0.4);
-    border-left: 3px solid var(--primary);
     border-radius: 6px; padding: 20px;
-    transition: border-left-color 0.2s;
+    transition: border-color 0.2s;
   }
-  .fin-proj-card:hover { border-left-color: var(--accent); }
+  .fin-proj-card:hover { border-color: var(--accent); }
   .fin-proj-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
   .fin-proj-outcome {
     font-size: 13px; font-weight: 600;
@@ -212,7 +211,9 @@ export default function Finance({ content }: { content: PortfolioContent }) {
           {content.avatar_url ? (
             <Image src={content.avatar_url} alt={content.name} width={80} height={80} className="fin-avatar" />
           ) : (
-            <div className="fin-avatar-ph">◆</div>
+            <div className="fin-avatar-ph" style={{ fontSize: 28, fontWeight: 600, color: '#fff', background: '#1E3A8A' }}>
+              {content.name.charAt(0).toUpperCase()}
+            </div>
           )}
 
           <div>

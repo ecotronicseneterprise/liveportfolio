@@ -84,9 +84,9 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-y-auto" style={{ maxHeight: 'calc(100vh - 32px)', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl" style={{ maxHeight: 'min(560px, calc(100vh - 48px))', overflowY: 'auto' } as React.CSSProperties}>
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+        <div className="px-5 pt-5 pb-3 border-b border-gray-100 sticky top-0 bg-white z-10">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-300 hover:text-gray-500 text-2xl leading-none w-8 h-8 flex items-center justify-center"
@@ -100,11 +100,11 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
         </div>
 
         {/* Plan cards */}
-        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
 
           {/* BASIC — visually dominant */}
-          <div className="relative border-2 border-[#0A66C2] rounded-2xl p-5 flex flex-col bg-[#E8F0F9]">
-            <div className="flex items-center justify-between mb-3">
+          <div className="relative border-2 border-[#0A66C2] rounded-2xl p-3 flex flex-col bg-[#E8F0F9]">
+            <div className="flex items-center justify-between mb-2">
               <div>
                 <span className="text-xs font-bold text-[#0A66C2] uppercase tracking-widest">
                   Basic
@@ -121,24 +121,23 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
               </span>
             </div>
 
-            <ul className="space-y-2 mb-5 flex-1">
+            <ul className="space-y-1.5 flex-1">
               <PlanFeature text="Publish your portfolio" />
               <PlanFeature text="Edit anytime" />
-              <PlanFeature text="Up to 3 portfolios" />
-              <PlanFeature text="Permanent subdomain (yourname.liveportfolio.site)" />
+              <PlanFeature text="Permanent subdomain" />
             </ul>
 
             <button
               onClick={() => handlePay(BASIC_PLAN_CODE, 'basic')}
-              className="w-full py-3 bg-[#0A66C2] text-white text-sm font-bold rounded-xl hover:bg-[#084D9A] transition-colors"
+              className="w-full py-2.5 mt-3 bg-[#0A66C2] text-white text-sm font-bold rounded-xl hover:bg-[#084D9A] transition-colors"
             >
               Publish with Basic →
             </button>
           </div>
 
           {/* PRO — secondary */}
-          <div className="border border-gray-200 rounded-2xl p-5 flex flex-col bg-white">
-            <div className="flex items-center justify-between mb-3">
+          <div className="border border-gray-200 rounded-2xl p-3 flex flex-col bg-white">
+            <div className="flex items-center justify-between mb-2">
               <div>
                 <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
                   Pro
@@ -155,18 +154,15 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
               </span>
             </div>
 
-            <ul className="space-y-2 mb-5 flex-1">
+            <ul className="space-y-1.5 flex-1">
               <PlanFeature text="Everything in Basic" />
-              <PlanFeature text="Analytics dashboard (views, country, referrer)" />
-              <PlanFeature text="QR code sharing" />
-              <PlanFeature text="Weekly career score" />
-              <PlanFeature text="Custom domain (connect your own)" />
-              <PlanFeature text="Export pack (PDF, LinkedIn summary, cover letter)" />
+              <PlanFeature text="Analytics + career score" />
+              <PlanFeature text="Custom domain + export pack" />
             </ul>
 
             <button
               onClick={() => handlePay(PRO_PLAN_CODE, 'pro')}
-              className="w-full py-3 border-2 border-gray-300 text-gray-700 text-sm font-bold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-colors"
+              className="w-full py-2.5 mt-3 border-2 border-gray-300 text-gray-700 text-sm font-bold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-colors"
             >
               Upgrade to Pro →
             </button>

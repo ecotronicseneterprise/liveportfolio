@@ -301,7 +301,11 @@ export default function ProductManager({ content }: { content: PortfolioContent 
       <div className="pm-hero">
         <div className="pm-hero-inner">
           <div>
-            <h1 className="pm-hero-name">{content.name}</h1>
+            <h1 className="pm-hero-name">
+              {content.name.trim().split(/\s+/).map((part, i) => (
+                <span key={i} style={{ display: 'block' }}>{part}</span>
+              ))}
+            </h1>
             <div className="pm-hero-role">{content.role}</div>
             <div className="pm-hero-headline">{content.headline}</div>
             <div className="pm-hero-links">
@@ -311,10 +315,8 @@ export default function ProductManager({ content }: { content: PortfolioContent 
             </div>
           </div>
           <div>
-            {content.avatar_url ? (
+            {content.avatar_url && (
               <Image src={content.avatar_url} alt={content.name} width={120} height={120} className="pm-avatar" />
-            ) : (
-              <div className="pm-avatar-ph">◆</div>
             )}
           </div>
         </div>

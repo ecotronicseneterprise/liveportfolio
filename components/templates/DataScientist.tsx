@@ -276,7 +276,9 @@ export default function DataScientist({ content }: { content: PortfolioContent }
           {content.avatar_url ? (
             <Image src={content.avatar_url} alt={content.name} width={80} height={80} className="sci-avatar" style={{ borderRadius: '50%', objectFit: 'cover' }} />
           ) : (
-            <div className="sci-avatar-ph">◉</div>
+            <div className="sci-avatar-ph" style={{ fontSize: 28, fontWeight: 600, color: '#fff', background: '#0F766E' }}>
+              {content.name.charAt(0).toUpperCase()}
+            </div>
           )}
           <div>
             <div className="sci-hero-name">{content.name}</div>

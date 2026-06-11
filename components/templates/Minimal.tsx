@@ -129,16 +129,16 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
         <section className="w-full border-b border-gray-100">
           <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
             <div>
-              {content.avatar_url ? (
-                <Image src={content.avatar_url} alt={content.name} width={80} height={80} className="rounded-full object-cover object-top mb-6" />
-              ) : (
-                <div className="rounded-full mb-6 flex items-center justify-center flex-shrink-0" style={{ width: 80, height: 80, background: 'rgba(10,102,194,0.12)', color: '#0A66C2', fontSize: 30, fontWeight: 700 }}>
-                  {content.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.0] break-words mb-4" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                {content.name}
-              </h1>
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.0] break-words flex-1" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+                  {content.name.trim().split(/\s+/).map((part, i) => (
+                    <span key={i} style={{ display: 'block' }}>{part}</span>
+                  ))}
+                </h1>
+                {content.avatar_url && (
+                  <Image src={content.avatar_url} alt={content.name} width={80} height={80} className="rounded-full object-cover object-top flex-shrink-0 mt-1" />
+                )}
+              </div>
               <div className="w-8 h-0.5 bg-[#0A66C2] my-4" />
               <p className="text-xl text-gray-500 mb-6">{content.role}</p>
               <div className="flex flex-wrap items-center gap-4">

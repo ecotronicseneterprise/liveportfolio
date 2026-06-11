@@ -147,12 +147,11 @@ const css = `
   .dv-project-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-left: 3px solid var(--primary);
     border-radius: 8px;
     overflow: hidden;
     transition: border-color 0.2s;
   }
-  .dv-project-card:hover { border-left-color: var(--accent); }
+  .dv-project-card:hover { border-color: var(--accent); }
   .dv-project-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
   .dv-project-body { padding: 20px; }
   .dv-project-name {
@@ -241,12 +240,14 @@ const css = `
   .dv-mobile-menu.open { display: block; }
   .dv-mobile-menu a { display: block; padding: 8px 0; font-size: 14px; color: var(--muted); text-decoration: none; }
 
+  .dv-mobile-name-hero { display: none; }
   @media (max-width: 768px) {
     .dv-layout { grid-template-columns: 1fr; }
     .dv-sidebar { display: none; }
     .dv-mobile-nav { display: flex; }
     .dv-main { padding: 24px 20px; }
     .dv-gh-card { flex-direction: column; align-items: flex-start; }
+    .dv-mobile-name-hero { display: block; font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
   }
 `
 
@@ -366,6 +367,7 @@ export default function Developer({ content }: { content: PortfolioContent }) {
           {/* About */}
           <section id="about" className="dv-section">
             <div className="dv-section-label">About</div>
+            <div className="dv-mobile-name-hero">{content.name}</div>
             <h1 className="dv-headline">{content.headline}</h1>
             <div className="dv-about">
               {content.about.split('\n\n').map((p, i) => <p key={i}>{p}</p>)}
