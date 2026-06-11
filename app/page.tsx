@@ -2,11 +2,7 @@ import Link from 'next/link'
 import LandingNav from '@/components/LandingNav'
 import SupportButton from '@/components/SupportButton'
 import PricingSection from '@/components/PricingSection'
-import dynamic from 'next/dynamic'
-const PortfolioShowcase = dynamic(
-  () => import('@/components/PortfolioShowcase'),
-  { ssr: false }
-)
+import PortfolioShowcaseWrapper from '@/components/PortfolioShowcaseWrapper'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -98,7 +94,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <PortfolioShowcase />
+        <PortfolioShowcaseWrapper />
 
       </section>
 
