@@ -84,9 +84,9 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-y-auto" style={{ maxHeight: 'calc(100vh - 32px)', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+        <div className="px-6 pt-6 pb-4 border-b border-gray-100 sticky top-0 bg-white z-10">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-300 hover:text-gray-500 text-2xl leading-none w-8 h-8 flex items-center justify-center"

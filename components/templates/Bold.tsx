@@ -82,12 +82,14 @@ export default function Bold({ content }: { content: PortfolioContent }) {
       {/* Mobile nav */}
       <div className="lg:hidden sticky top-0 z-50 bg-[#0D1117]/95 backdrop-blur-sm border-b border-[#1C2128]">
         <div className="flex items-center justify-between px-5 py-4">
-          <span
-            className="text-base font-bold text-[#58A6FF]"
-            style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-          >
-            {content.name}
-          </span>
+          {content.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={content.avatar_url} alt={content.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#58A6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0D1117', fontSize: 14, fontWeight: 700 }}>
+              {content.name.charAt(0).toUpperCase()}
+            </div>
+          )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="text-[#F0F6FF] p-1"
@@ -115,8 +117,8 @@ export default function Bold({ content }: { content: PortfolioContent }) {
 
         {/* Sidebar */}
         <aside className="hidden lg:flex lg:flex-col lg:w-[320px] lg:flex-shrink-0 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto px-8 py-12 border-r border-[#1C2128]">
-          {content.avatar_url && (
-            <div className="mb-6">
+          <div className="mb-6">
+            {content.avatar_url ? (
               <Image
                 src={content.avatar_url}
                 alt={content.name}
@@ -124,8 +126,12 @@ export default function Bold({ content }: { content: PortfolioContent }) {
                 height={72}
                 className="rounded-full object-cover object-top border-2 border-[#1C2128]"
               />
-            </div>
-          )}
+            ) : (
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(88,166,255,0.15)', color: '#58A6FF', fontSize: 26, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #1C2128' }}>
+                {content.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
 
           <h1
             className="text-xl font-bold text-[#F0F6FF] mb-1 leading-tight break-words"

@@ -293,7 +293,14 @@ export default function Developer({ content }: { content: PortfolioContent }) {
 
       {/* Mobile nav */}
       <div className="dv-mobile-nav">
-        <span className="dv-mobile-name">{content.name}</span>
+        {content.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={content.avatar_url} alt={content.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>
+            {content.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <button className="dv-mobile-toggle" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? '✕' : '☰'}
         </button>
@@ -463,7 +470,7 @@ export default function Developer({ content }: { content: PortfolioContent }) {
           )}
 
           {/* Contact */}
-          <section id="contact" className="dv-section">
+          <section id="contact" className="dv-section" style={{ marginBottom: 0 }}>
             <div className="dv-section-label">Contact</div>
             <a href={`mailto:${content.email}`} className="dv-contact-email">
               Get in touch →

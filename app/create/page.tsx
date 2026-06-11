@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
 import Logo from '@/components/Logo'
+import ImageCropper from '@/components/ImageCropper'
 
 interface Project {
   title: string
@@ -146,7 +147,7 @@ function ChipInput({
             }
           }}
           onBlur={() => { if (inputValue.trim()) addChip(inputValue) }}
-          className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none py-0.5"
+          className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none py-0.5" style={{ fontSize: '16px' }}
         />
       </div>
       <p className="text-xs text-gray-400 mt-1">Press Enter or comma to add each item</p>
@@ -214,6 +215,9 @@ export default function CreatePage() {
   const [uploadingCv, setUploadingCv] = useState(false)
   const [slugTimer, setSlugTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [showAccountForm, setShowAccountForm] = useState(false)
+  const [cropperSrc, setCropperSrc] = useState<string | null>(null)
+  const [cropperAspect, setCropperAspect] = useState<number>(1)
+  const [cropperTarget, setCropperTarget] = useState<'avatar' | number>('avatar')
 
   const [form, setForm] = useState<FormData>({
     name: '', role: '', email: '', location: '', bio: '',
@@ -273,15 +277,14 @@ export default function CreatePage() {
     }
   }
 
-  // Avatar Upload
-  const handleAvatarChange = async (file: File) => {
+  // Avatar Upload — opens cropper
+  const handleAvatarChange = (file: File) => {
     if (!file.type.startsWith('image/')) return
-    if (file.size > 2 * 1024 * 1024) {
-      setError('Photo must be under 2MB')
-      return
-    }
-    update('avatarFile', file)
-    update('avatar_url', URL.createObjectURL(file))
+    if (file.size > 10 * 1024 * 1024) { setError('Photo must be under 10MB'); return }
+    const url = URL.createObjectURL(file)
+    setCropperSrc(url)
+    setCropperAspect(1)
+    setCropperTarget('avatar')
   }
 
   // Slug check with debounce
@@ -320,11 +323,27 @@ export default function CreatePage() {
 
   const handleProjectImageChange = (index: number, file: File) => {
     if (!file.type.startsWith('image/')) return
-    if (file.size > 3 * 1024 * 1024) { setError('Project image must be under 3MB'); return }
-    const updated = [...form.projects]
-    updated[index] = { ...updated[index], imageFile: file, image_preview: URL.createObjectURL(file) }
-    update('projects', updated)
+    if (file.size > 10 * 1024 * 1024) { setError('Project image must be under 10MB'); return }
+    const url = URL.createObjectURL(file)
+    setCropperSrc(url)
+    setCropperAspect(16 / 9)
+    setCropperTarget(index)
   }
+
+  // Cropper callback — converts blob to File and stores preview
+  const handleCropDone = useCallback((blob: Blob) => {
+    setCropperSrc(null)
+    const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' })
+    const previewUrl = URL.createObjectURL(blob)
+    if (cropperTarget === 'avatar') {
+      update('avatarFile', file)
+      update('avatar_url', previewUrl)
+    } else if (typeof cropperTarget === 'number') {
+      const updated = [...form.projects]
+      updated[cropperTarget] = { ...updated[cropperTarget], imageFile: file, image_preview: previewUrl }
+      update('projects', updated)
+    }
+  }, [cropperTarget, form.projects]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const addExperience = () => {
     if (form.experience.length < 3) {
@@ -620,6 +639,15 @@ export default function CreatePage() {
 
   // ── Main form ──────────────────────────────────────────────────────────────
   return (
+    <>
+    {cropperSrc && (
+      <ImageCropper
+        src={cropperSrc}
+        aspectRatio={cropperAspect}
+        onCrop={handleCropDone}
+        onCancel={() => setCropperSrc(null)}
+      />
+    )}
     <div className="min-h-screen bg-white">
       <div className="max-w-xl mx-auto px-6 py-12">
         <div className="mb-8">
@@ -653,7 +681,7 @@ export default function CreatePage() {
                   value={form.name}
                   onChange={(e) => update('name', e.target.value.slice(0, 80))}
                   placeholder="Adaeze Okonkwo"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                 />
               </div>
               <div className="col-span-2">
@@ -665,7 +693,7 @@ export default function CreatePage() {
                   value={form.role}
                   onChange={(e) => update('role', e.target.value.slice(0, 80))}
                   placeholder="Data Scientist"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                 />
               </div>
               <div className="col-span-2">
@@ -677,7 +705,7 @@ export default function CreatePage() {
                   value={form.email}
                   onChange={(e) => update('email', e.target.value.slice(0, 120))}
                   placeholder="adaeze@gmail.com"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                 />
               </div>
             </div>
@@ -697,7 +725,7 @@ export default function CreatePage() {
                 onChange={(e) => update('bio', e.target.value.slice(0, 500))}
                 placeholder="I'm a data scientist with 3 years of experience building analytics pipelines… AI rewrites this, so keep it raw and real."
                 rows={4}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }}
               />
               <p className="text-xs text-gray-400 text-right">{form.bio.length}/500</p>
             </Collapsible>
@@ -711,7 +739,7 @@ export default function CreatePage() {
                     value={form.github_url}
                     onChange={(e) => update('github_url', e.target.value.slice(0, 200))}
                     placeholder="https://github.com/..."
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                   />
                 </div>
                 <div>
@@ -721,7 +749,7 @@ export default function CreatePage() {
                     value={form.linkedin_url}
                     onChange={(e) => update('linkedin_url', e.target.value.slice(0, 200))}
                     placeholder="https://linkedin.com/in/..."
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                   />
                 </div>
               </div>
@@ -732,7 +760,7 @@ export default function CreatePage() {
                   value={form.location}
                   onChange={(e) => update('location', e.target.value.slice(0, 80))}
                   placeholder="Lagos, Nigeria"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                 />
               </div>
             </Collapsible>
@@ -835,7 +863,7 @@ export default function CreatePage() {
                     value={project.title}
                     onChange={(e) => updateProject(i, 'title', e.target.value.slice(0, 80))}
                     placeholder="Analytics Dashboard"
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                   />
                 </div>
                 <div>
@@ -848,7 +876,7 @@ export default function CreatePage() {
                     onChange={(e) => updateProject(i, 'description', e.target.value.slice(0, 200))}
                     placeholder="Built a real-time sales dashboard that reduced reporting time from 2 days to 30 minutes"
                     rows={3}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }}
                   />
                   <p className="text-xs text-gray-400 mt-1 text-right">{project.description.length}/200</p>
                 </div>
@@ -860,7 +888,7 @@ export default function CreatePage() {
                       value={project.stack}
                       onChange={(e) => updateProject(i, 'stack', e.target.value.slice(0, 150))}
                       placeholder="Python, Pandas, PostgreSQL"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                     />
                   </div>
                   <div>
@@ -870,7 +898,7 @@ export default function CreatePage() {
                       value={project.url}
                       onChange={(e) => updateProject(i, 'url', e.target.value.slice(0, 200))}
                       placeholder="https://..."
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                     />
                   </div>
                 </div>
@@ -930,7 +958,7 @@ export default function CreatePage() {
                         value={exp.company}
                         onChange={(e) => updateExperience(i, 'company', e.target.value.slice(0, 80))}
                         placeholder="Paystack"
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                       />
                     </div>
                     <div>
@@ -940,7 +968,7 @@ export default function CreatePage() {
                         value={exp.role}
                         onChange={(e) => updateExperience(i, 'role', e.target.value.slice(0, 80))}
                         placeholder="Backend Engineer"
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                       />
                     </div>
                   </div>
@@ -951,7 +979,7 @@ export default function CreatePage() {
                       value={exp.period}
                       onChange={(e) => updateExperience(i, 'period', e.target.value.slice(0, 40))}
                       placeholder="Jan 2023 – Present"
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                     />
                   </div>
                   <div>
@@ -964,7 +992,7 @@ export default function CreatePage() {
                       onChange={(e) => updateExperience(i, 'bullets', e.target.value.slice(0, 600))}
                       placeholder="Built the payment gateway integration used by 2,000+ merchants&#10;Reduced API latency by 40% through caching"
                       rows={3}
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }}
                     />
                   </div>
                 </div>
@@ -995,7 +1023,7 @@ export default function CreatePage() {
                         value={ed.degree}
                         onChange={(e) => updateEducation(i, 'degree', e.target.value.slice(0, 100))}
                         placeholder="BSc Computer Science"
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                       />
                     </div>
                     <div className="col-span-2">
@@ -1005,7 +1033,7 @@ export default function CreatePage() {
                         value={ed.institution}
                         onChange={(e) => updateEducation(i, 'institution', e.target.value.slice(0, 100))}
                         placeholder="University of Lagos"
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                       />
                     </div>
                     <div>
@@ -1015,7 +1043,7 @@ export default function CreatePage() {
                         value={ed.year}
                         onChange={(e) => updateEducation(i, 'year', e.target.value.slice(0, 20))}
                         placeholder="2022"
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                       />
                     </div>
                     <div>
@@ -1025,7 +1053,7 @@ export default function CreatePage() {
                         value={ed.grade}
                         onChange={(e) => updateEducation(i, 'grade', e.target.value.slice(0, 40))}
                         placeholder="First Class"
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                       />
                     </div>
                   </div>
@@ -1228,7 +1256,7 @@ export default function CreatePage() {
                     checkSlug(val)
                   }}
                   placeholder="adaeze"
-                  className="flex-1 px-3 py-3 text-sm focus:outline-none"
+                  className="flex-1 px-3 py-3 text-sm focus:outline-none" style={{ fontSize: '16px' }}
                 />
                 <span className="px-4 py-3 text-sm text-gray-400 bg-gray-50 border-l border-gray-200 flex-shrink-0">
                   .liveportfolio.site
@@ -1283,7 +1311,7 @@ export default function CreatePage() {
                     onChange={(e) => update('password', e.target.value)}
                     placeholder="Min 8 characters"
                     autoFocus
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent bg-white"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent bg-white" style={{ fontSize: '16px' }}
                   />
                 </div>
                 <label className="flex items-start gap-3 cursor-pointer">
@@ -1353,5 +1381,6 @@ export default function CreatePage() {
         </div>
       </div>
     </div>
+    </>
   )
 }

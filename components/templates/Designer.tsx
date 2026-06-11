@@ -267,7 +267,14 @@ export default function Designer({ content }: { content: PortfolioContent }) {
       <style>{css}</style>
 
       <nav className="ds-nav">
-        <span className="ds-nav-name">{content.name}</span>
+        {content.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={content.avatar_url} alt={content.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#6D28D9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>
+            {content.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="ds-nav-links">
           {works.length > 0 && <a href="#work" className="ds-nav-link">Work</a>}
           {content.skills.length > 0 && <a href="#skills" className="ds-nav-link">Skills</a>}

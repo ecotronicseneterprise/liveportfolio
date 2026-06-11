@@ -93,9 +93,14 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
         <div className="w-full px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-400 tracking-wide">
-            {content.name.toLowerCase().replace(/\s+/g, '')}.liveportfolio.site
-          </span>
+          {content.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={content.avatar_url} alt={content.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#0A66C2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>
+              {content.name.charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="hidden sm:flex items-center gap-6">
             {navLinks.map((link) => (
               <a key={link} href={`#${link.toLowerCase()}`} className="text-sm text-gray-500 hover:text-[#0A0A0A] transition-colors">
@@ -124,8 +129,12 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
         <section className="w-full border-b border-gray-100">
           <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
             <div>
-              {content.avatar_url && (
+              {content.avatar_url ? (
                 <Image src={content.avatar_url} alt={content.name} width={80} height={80} className="rounded-full object-cover object-top mb-6" />
+              ) : (
+                <div className="rounded-full mb-6 flex items-center justify-center flex-shrink-0" style={{ width: 80, height: 80, background: 'rgba(10,102,194,0.12)', color: '#0A66C2', fontSize: 30, fontWeight: 700 }}>
+                  {content.name.charAt(0).toUpperCase()}
+                </div>
               )}
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.0] break-words mb-4" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
                 {content.name}

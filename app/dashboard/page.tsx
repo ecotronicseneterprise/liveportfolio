@@ -7,6 +7,7 @@ import { getSupabaseClient } from '@/lib/supabase'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import Logo from '@/components/Logo'
 import UpgradeModal from '@/components/UpgradeModal'
+import ImageCropper from '@/components/ImageCropper'
 
 interface UserProfile {
   id: string
@@ -528,6 +529,7 @@ export default function DashboardPage() {
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [avatarMsg, setAvatarMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [avatarCropperSrc, setAvatarCropperSrc] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
@@ -566,29 +568,34 @@ export default function DashboardPage() {
     setLoading(false)
   }, [router])
 
-  const handleAvatarUpload = async (file: File) => {
+  // Open cropper on file select
+  const handleAvatarUpload = (file: File) => {
     if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
       setAvatarMsg({ type: 'err', text: 'Only JPEG, PNG, or WebP files are accepted.' })
       return
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setAvatarMsg({ type: 'err', text: 'Photo must be under 2MB.' })
+    if (file.size > 10 * 1024 * 1024) {
+      setAvatarMsg({ type: 'err', text: 'Photo must be under 10MB.' })
       return
     }
+    setAvatarCropperSrc(URL.createObjectURL(file))
+  }
+
+  // Called after crop — uploads the cropped blob
+  const handleAvatarCropped = useCallback(async (blob: Blob) => {
+    setAvatarCropperSrc(null)
     setAvatarUploading(true)
     setAvatarMsg(null)
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { setAvatarMsg({ type: 'err', text: 'Session expired.' }); return }
-      const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
-      const path = `avatars/${session.user.id}.${ext}`
+      const path = `avatars/${session.user.id}.jpg`
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(path, file, { upsert: true, contentType: file.type })
+        .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
       if (uploadError) throw uploadError
       const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(path)
       const newUrl = publicData.publicUrl
-      // Update portfolio content via /api/update
       const res = await fetch('/api/update', {
         method: 'PATCH',
         headers: {
@@ -606,7 +613,7 @@ export default function DashboardPage() {
     } finally {
       setAvatarUploading(false)
     }
-  }
+  }, [editContent, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = async () => {
     if (!portfolio) return
@@ -716,6 +723,15 @@ export default function DashboardPage() {
       : { bg: '#f3f4f6', text: '#6b7280', label: 'Free' }
 
   return (
+    <>
+    {avatarCropperSrc && (
+      <ImageCropper
+        src={avatarCropperSrc}
+        aspectRatio={1}
+        onCrop={handleAvatarCropped}
+        onCancel={() => setAvatarCropperSrc(null)}
+      />
+    )}
     <div className="min-h-screen bg-gray-50">
       <UpgradeModal
         isOpen={showUpgradeModal}
@@ -1358,5 +1374,6 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+    </>
   )
 }

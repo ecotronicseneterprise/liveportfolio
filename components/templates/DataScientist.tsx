@@ -254,7 +254,14 @@ export default function DataScientist({ content }: { content: PortfolioContent }
       <style>{css}</style>
 
       <nav className="sci-nav">
-        <span className="sci-nav-name">{content.name}</span>
+        {content.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={content.avatar_url} alt={content.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#0F766E', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>
+            {content.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="sci-nav-links">
           <a href="#skills" className="sci-nav-link">Stack</a>
           <a href="#projects" className="sci-nav-link">Projects</a>

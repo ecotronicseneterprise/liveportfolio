@@ -225,7 +225,14 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
       <style>{css}</style>
 
       <nav className="gr-nav">
-        <span className="gr-nav-name">{content.name}</span>
+        {content.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={content.avatar_url} alt={content.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>
+            {content.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="gr-nav-links">
           <a href="#education" className="gr-nav-link">Education</a>
           {content.experience.length > 0 && <a href="#experience" className="gr-nav-link">Experience</a>}

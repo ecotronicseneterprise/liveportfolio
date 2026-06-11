@@ -360,7 +360,7 @@ const css = `
   /* Footer */
   .nt-footer {
     width: 100%;
-    margin: 0 0 40px;
+    margin: 0;
     padding: 20px 6vw 0;
     border-top: 1px solid var(--border);
     display: flex;
@@ -421,8 +421,12 @@ export default function Creative({ content }: { content: PortfolioContent }) {
       {/* Header */}
       <header className="nt-header">
         <div>
-          {content.avatar_url && (
+          {content.avatar_url ? (
             <Image src={content.avatar_url} alt={content.name} width={72} height={72} className="nt-avatar-circle" style={{ borderRadius: '50%', objectFit: 'cover' }} />
+          ) : (
+            <div className="nt-avatar-circle" style={{ borderRadius: '50%', width: 72, height: 72, background: 'rgba(124,58,237,0.12)', color: '#7C3AED', fontSize: 26, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {content.name.charAt(0).toUpperCase()}
+            </div>
           )}
           <h1 className="nt-name">{content.name}</h1>
           <div className="nt-badge">{content.role}</div>

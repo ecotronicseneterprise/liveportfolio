@@ -281,7 +281,14 @@ export default function ProductManager({ content }: { content: PortfolioContent 
       <style>{css}</style>
 
       <nav className="pm-nav">
-        <span className="pm-nav-name">{content.name}</span>
+        {content.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={content.avatar_url} alt={content.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#B45309', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>
+            {content.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="pm-nav-links">
           <a href="#products" className="pm-nav-link">Work</a>
           <a href="#skills" className="pm-nav-link">Skills</a>

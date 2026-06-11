@@ -279,7 +279,14 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
       <style>{css}</style>
 
       <nav className="cy-nav">
-        <span className="cy-nav-name">{`// ${content.name}`}</span>
+        {content.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={content.avatar_url} alt={content.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>
+            {content.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="cy-nav-links">
           {certs.length > 0 && <a href="#certs" className="cy-nav-link">Certs</a>}
           <a href="#skills" className="cy-nav-link">Skills</a>

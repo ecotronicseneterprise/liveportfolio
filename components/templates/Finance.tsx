@@ -150,6 +150,7 @@ const css = `
     .fin-sidebar { border-right: none; border-bottom: 1px solid rgba(30,58,138,0.4); padding: 28px 6vw; }
     .fin-main { padding: 28px 6vw; }
     .fin-nav-links { display: none; }
+    .fin-mobile-footer { display: flex !important; }
   }
 `
 
@@ -190,7 +191,14 @@ export default function Finance({ content }: { content: PortfolioContent }) {
       <style>{css}</style>
 
       <nav className="fin-nav">
-        <span className="fin-nav-name">{content.name}</span>
+        {content.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={content.avatar_url} alt={content.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1E3A8A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>
+            {content.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="fin-nav-links">
           {content.projects.length > 0 && <a href="#projects" className="fin-nav-link">Work</a>}
           {content.experience.length > 0 && <a href="#experience" className="fin-nav-link">Experience</a>}
@@ -322,6 +330,23 @@ export default function Finance({ content }: { content: PortfolioContent }) {
           )}
         </main>
       </div>
+
+      {/* Mobile footer — only visible when sidebar is hidden */}
+      <footer style={{
+        display: 'none',
+        padding: '16px 6vw',
+        borderTop: '1px solid rgba(30,58,138,0.4)',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        fontSize: 10,
+        color: 'var(--muted)',
+        fontFamily: 'Inter, system-ui, sans-serif',
+      }} className="fin-mobile-footer">
+        <span>{content.name}</span>
+        <a href="https://liveportfolio.site" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
+          liveportfolio.site
+        </a>
+      </footer>
     </div>
   )
 }
