@@ -327,7 +327,7 @@ export default function PortfolioShowcase() {
       {/* Dots + arrows */}
       <div className="mt-6 px-6 sm:px-10 lg:px-16">
         <div style={{ maxWidth: cardWidth, margin: '0 auto' }}>
-          <div className="flex items-center justify-start gap-3">
+          <div className="flex items-center justify-center gap-3">
             <button
               onClick={retreat}
               aria-label="Previous portfolio"
