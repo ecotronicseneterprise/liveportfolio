@@ -184,6 +184,7 @@ function Card({
               transform: `scale(${iframeScale})`,
               transformOrigin: 'top left',
               pointerEvents: 'none',
+              display: 'block',
             }}
           />
         ) : (
@@ -265,8 +266,9 @@ export default function PortfolioShowcase() {
   const advance = () => setIndex((i) => (i + 1) % total)
   const retreat = () => setIndex((i) => (i - 1 + total) % total)
 
-  const iframeHeight = Math.round(CARD_HEIGHT / iframeScale)
   const cardWidth = Math.round(IFRAME_WIDTH * iframeScale)
+  const actualScale = cardWidth / IFRAME_WIDTH
+  const iframeHeight = Math.round(CARD_HEIGHT / actualScale)
 
   useEffect(() => {
     if (paused) return
@@ -307,7 +309,7 @@ export default function PortfolioShowcase() {
           style={{
             position: 'relative',
             height: CARD_HEIGHT,
-            maxWidth: cardWidth,
+            width: cardWidth,
             margin: '0 auto',
           }}
         >
@@ -316,7 +318,7 @@ export default function PortfolioShowcase() {
               key={p.slug}
               p={p}
               active={i === index}
-              iframeScale={iframeScale}
+              iframeScale={actualScale}
               iframeHeight={iframeHeight}
               cardWidth={cardWidth}
             />
