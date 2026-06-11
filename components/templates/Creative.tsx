@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
 
 const creativeFonts = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300;1,9..144,600&family=JetBrains+Mono:wght@400;500&display=swap');`
@@ -392,6 +392,7 @@ const css = `
 `
 
 export default function Creative({ content }: { content: PortfolioContent }) {
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -509,8 +510,9 @@ export default function Creative({ content }: { content: PortfolioContent }) {
               const isLastOdd = i > 0 && remaining % 2 !== 0 && i === content.projects.length - 1
               return (
                 <div key={i} className={`nt-project-card${i === 0 ? ' nt-featured' : ''}${isLastOdd ? ' nt-featured' : ''}`}>
-                  {p.image_url && (
-                    <Image src={p.image_url} alt={p.title} width={1200} height={675} className="nt-project-img" />
+                  {p.image_url && !failedImages.has(p.image_url) && (
+                    <Image src={p.image_url} alt={p.title} width={1200} height={675} className="nt-project-img"
+                      onError={() => setFailedImages((prev) => new Set([...prev, p.image_url!]))} />
                   )}
                   <div className="nt-project-body">
                     <div className="nt-p-label">{p.stack.slice(0, 3).join(' · ')}</div>

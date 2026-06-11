@@ -56,6 +56,7 @@ type EntryChoice = 'none' | 'cv' | 'manual'
 const STEPS = ['Your Basics', 'Projects & Experience', 'Template', 'Claim Your URL']
 
 const GENERATION_LABELS = [
+  'Uploading your images…',
   'Parsing your information…',
   'Writing your story…',
   'Crafting your case studies…',
@@ -499,22 +500,29 @@ export default function CreatePage() {
       }
 
       // Upload project images
+      setGenerationStep(0) // "Uploading your images…"
+      const imageFailures: string[] = []
       const projectImageUrls: (string | null)[] = await Promise.all(
         form.projects.map(async (p, i) => {
           if (!p.imageFile) return null
           const ext = p.imageFile.type === 'image/png' ? 'png' : p.imageFile.type === 'image/webp' ? 'webp' : 'jpg'
-          const path = `project-images/${authData.user!.id}-${i}.${ext}`
+          const path = `${authData.user!.id}-${i}.${ext}`
           const { error: uploadError } = await supabase.storage
             .from('project-images')
             .upload(path, p.imageFile, { upsert: true, contentType: p.imageFile.type || 'image/jpeg' })
           if (uploadError) {
-            console.error('Project image upload failed:', uploadError)
+            console.error('[create project image upload]', uploadError.message)
+            imageFailures.push(p.title || `Project ${i + 1}`)
             return null
           }
           const { data: publicData } = supabase.storage.from('project-images').getPublicUrl(path)
           return publicData.publicUrl
         })
       )
+      if (imageFailures.length > 0) {
+        console.warn('Some project images failed to upload:', imageFailures)
+      }
+      setGenerationStep(1) // advance past upload label before interval takes over
 
       // Upload avatar
       let avatarUrl: string | undefined

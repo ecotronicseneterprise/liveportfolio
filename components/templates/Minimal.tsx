@@ -62,6 +62,7 @@ export interface PortfolioContent {
 export default function Minimal({ content }: { content: PortfolioContent }) {
   const [expandedProject, setExpandedProject] = useState<number | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const [visible, setVisible] = useState<Set<string>>(new Set())
   const observerRef = useRef<IntersectionObserver | null>(null)
 
@@ -211,9 +212,10 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
                     className={`border border-gray-100 rounded-2xl overflow-hidden hover:border-[#0A66C2] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer${content.projects.length % 2 !== 0 && i === content.projects.length - 1 ? ' sm:col-span-2' : ''}`}
                     onClick={() => setExpandedProject(expandedProject === i ? null : i)}
                   >
-                    {project.image_url && (
+                    {project.image_url && !failedImages.has(project.image_url) && (
                       <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
-                        <Image src={project.image_url} alt={project.title} width={640} height={360} className="w-full h-full object-cover" />
+                        <Image src={project.image_url} alt={project.title} width={640} height={360} className="w-full h-full object-cover"
+                          onError={() => setFailedImages((prev) => new Set([...prev, project.image_url!]))} />
                       </div>
                     )}
                     <div className="p-6">

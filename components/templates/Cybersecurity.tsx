@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
 
 const css = `
@@ -239,6 +239,7 @@ function extractCerts(skills: string[]): string[] {
 }
 
 export default function Cybersecurity({ content }: { content: PortfolioContent }) {
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -338,7 +339,10 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
             <div className="cy-projects">
               {content.projects.map((p, i) => (
                 <div key={i} className="cy-proj-card">
-                  {p.image_url && <Image src={p.image_url} alt={p.title} width={800} height={350} className="cy-proj-img" />}
+                  {p.image_url && !failedImages.has(p.image_url) && (
+                  <Image src={p.image_url} alt={p.title} width={800} height={350} className="cy-proj-img"
+                    onError={() => setFailedImages((prev) => new Set([...prev, p.image_url!]))} />
+                )}
                   <div className="cy-proj-name">{p.title}</div>
                   {p.outcome && <div className="cy-proj-outcome">{p.outcome}</div>}
                   <div className="cy-proj-desc">

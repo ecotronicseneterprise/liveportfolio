@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
 
 const css = `
@@ -251,6 +251,7 @@ const css = `
 
 export default function Designer({ content }: { content: PortfolioContent }) {
   const rootRef = useRef<HTMLDivElement>(null)
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const sections = rootRef.current?.querySelectorAll('.ds-section')
@@ -321,8 +322,9 @@ export default function Designer({ content }: { content: PortfolioContent }) {
           <div className="ds-case-grid">
             {works.map((p, i) => (
               <div key={i} className="ds-case-card">
-                {p.image_url && (
-                  <Image src={p.image_url} alt={p.title} width={1200} height={450} className="ds-case-img" />
+                {p.image_url && !failedImages.has(p.image_url) && (
+                  <Image src={p.image_url} alt={p.title} width={1200} height={450} className="ds-case-img"
+                    onError={() => setFailedImages((prev) => new Set([...prev, p.image_url!]))} />
                 )}
                 <div className="ds-case-body">
                   <div className="ds-case-title">{p.title}</div>

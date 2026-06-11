@@ -254,6 +254,7 @@ const css = `
 export default function Developer({ content }: { content: PortfolioContent }) {
   const [activeSection, setActiveSection] = useState('about')
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const mainRef = useRef<HTMLDivElement>(null)
 
   const navItems = [
@@ -402,8 +403,9 @@ export default function Developer({ content }: { content: PortfolioContent }) {
               <div className="dv-projects-list">
                 {content.projects.map((p, i) => (
                   <div key={i} className="dv-project-card">
-                    {p.image_url && (
-                      <Image src={p.image_url} alt={p.title} width={800} height={450} className="dv-project-img" />
+                    {p.image_url && !failedImages.has(p.image_url) && (
+                      <Image src={p.image_url} alt={p.title} width={800} height={450} className="dv-project-img"
+                        onError={() => setFailedImages((prev) => new Set([...prev, p.image_url!]))} />
                     )}
                     <div className="dv-project-body">
                       <div className="dv-project-name">{p.title}</div>

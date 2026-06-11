@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
 
 const css = `
@@ -207,6 +207,7 @@ const css = `
 `
 
 export default function Graduate({ content }: { content: PortfolioContent }) {
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -326,7 +327,10 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
           <div className="gr-projects">
             {content.projects.map((p, i) => (
               <div key={i} className="gr-proj-card">
-                {p.image_url && <Image src={p.image_url} alt={p.title} width={640} height={360} className="gr-proj-img" />}
+                {p.image_url && !failedImages.has(p.image_url) && (
+                  <Image src={p.image_url} alt={p.title} width={640} height={360} className="gr-proj-img"
+                    onError={() => setFailedImages((prev) => new Set([...prev, p.image_url!]))} />
+                )}
                 <div className="gr-proj-body">
                   <div className="gr-proj-name">{p.title}</div>
                   {p.outcome && <div className="gr-proj-outcome">{p.outcome}</div>}

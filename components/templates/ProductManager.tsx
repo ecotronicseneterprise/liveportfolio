@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
 
 const css = `
@@ -249,6 +249,7 @@ function extractStat(text: string): string | null {
 }
 
 export default function ProductManager({ content }: { content: PortfolioContent }) {
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -341,7 +342,10 @@ export default function ProductManager({ content }: { content: PortfolioContent 
           <div className="pm-products">
             {content.projects.map((p, i) => (
               <div key={i} className="pm-product-card">
-                {p.image_url && <Image src={p.image_url} alt={p.title} width={1200} height={450} className="pm-product-img" />}
+                {p.image_url && !failedImages.has(p.image_url) && (
+                  <Image src={p.image_url} alt={p.title} width={1200} height={450} className="pm-product-img"
+                    onError={() => setFailedImages((prev) => new Set([...prev, p.image_url!]))} />
+                )}
                 <div className="pm-product-name">{p.title}</div>
                 {p.outcome && <div className="pm-product-outcome">{p.outcome}</div>}
                 <div className="pm-product-desc">

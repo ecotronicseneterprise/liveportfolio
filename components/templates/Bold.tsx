@@ -40,6 +40,7 @@ export default function Bold({ content }: { content: PortfolioContent }) {
   const [activeSection, setActiveSection] = useState('about')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [visible, setVisible] = useState<Set<string>>(new Set())
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const observerRef = useRef<IntersectionObserver | null>(null)
   const typedRole = useTypewriter(content.role, 60)
 
@@ -325,7 +326,7 @@ export default function Bold({ content }: { content: PortfolioContent }) {
                     key={i}
                     className="bg-[#1C2128] border border-[#30363D] rounded-xl overflow-hidden hover:border-[#58A6FF] transition-all group"
                   >
-                    {project.image_url && (
+                    {project.image_url && !failedImages.has(project.image_url) && (
                       <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
                         <Image
                           src={project.image_url}
@@ -333,6 +334,7 @@ export default function Bold({ content }: { content: PortfolioContent }) {
                           width={640}
                           height={360}
                           className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                          onError={() => setFailedImages((prev) => new Set([...prev, project.image_url!]))}
                         />
                       </div>
                     )}

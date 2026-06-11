@@ -530,6 +530,11 @@ export default function DashboardPage() {
   const [avatarMsg, setAvatarMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [avatarCropperSrc, setAvatarCropperSrc] = useState<string | null>(null)
+  const [projectImageCropperSrc, setProjectImageCropperSrc] = useState<string | null>(null)
+  const [projectImageCropperIndex, setProjectImageCropperIndex] = useState<number>(0)
+  const [projectImageUploading, setProjectImageUploading] = useState<number | null>(null)
+  const [projectImageMsgs, setProjectImageMsgs] = useState<Record<number, { type: 'ok' | 'err'; text: string }>>({})
+  const [projectImagePreviews, setProjectImagePreviews] = useState<Record<number, string>>({})
 
   useEffect(() => {
     loadData()
@@ -581,7 +586,7 @@ export default function DashboardPage() {
     setAvatarCropperSrc(URL.createObjectURL(file))
   }
 
-  // Called after crop — uploads the cropped blob
+  // Called after crop — uploads via server-side route (admin client bypasses RLS)
   const handleAvatarCropped = useCallback(async (blob: Blob) => {
     setAvatarCropperSrc(null)
     setAvatarUploading(true)
@@ -589,13 +594,21 @@ export default function DashboardPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { setAvatarMsg({ type: 'err', text: 'Session expired.' }); return }
-      const path = `${session.user.id}.jpg`
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
-      if (uploadError) throw uploadError
-      const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(path)
-      const newUrl = publicData.publicUrl
+
+      const formData = new FormData()
+      formData.append('file', blob, 'avatar.jpg')
+
+      const uploadRes = await fetch('/api/upload-avatar', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: formData,
+      })
+      if (!uploadRes.ok) {
+        const { error } = await uploadRes.json()
+        throw new Error(error || 'Upload failed')
+      }
+      const { url: newUrl } = await uploadRes.json()
+
       const res = await fetch('/api/update', {
         method: 'PATCH',
         headers: {
@@ -616,6 +629,53 @@ export default function DashboardPage() {
       setAvatarUploading(false)
     }
   }, [editContent, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleProjectImageCropped = useCallback(async (blob: Blob) => {
+    setProjectImageCropperSrc(null)
+    const idx = projectImageCropperIndex
+    setProjectImageUploading(idx)
+    setProjectImageMsgs((prev) => { const n = { ...prev }; delete n[idx]; return n })
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setProjectImageMsgs((prev) => ({ ...prev, [idx]: { type: 'err', text: 'Session expired.' } }))
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('file', blob, 'project.jpg')
+      formData.append('index', String(idx))
+
+      const uploadRes = await fetch('/api/upload-project-image', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: formData,
+      })
+      if (!uploadRes.ok) {
+        const { error } = await uploadRes.json()
+        throw new Error(error || 'Upload failed')
+      }
+      const { url: newUrl } = await uploadRes.json()
+
+      const updatedProjects = [...(editContent.projects || [])]
+      updatedProjects[idx] = { ...updatedProjects[idx], image_url: newUrl }
+      const res = await fetch('/api/update', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ content: { ...editContent, projects: updatedProjects } }),
+      })
+      if (!res.ok) throw new Error('Failed to update portfolio')
+      setEditContent((prev) => ({ ...prev, projects: updatedProjects }))
+      setProjectImagePreviews((prev) => ({ ...prev, [idx]: URL.createObjectURL(blob) }))
+      setProjectImageMsgs((prev) => ({ ...prev, [idx]: { type: 'ok', text: 'Image updated' } }))
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[project image upload]', msg)
+      setProjectImageMsgs((prev) => ({ ...prev, [idx]: { type: 'err', text: `Upload failed: ${msg.slice(0, 120)}` } }))
+    } finally {
+      setProjectImageUploading(null)
+    }
+  }, [projectImageCropperIndex, editContent, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = async () => {
     if (!portfolio) return
@@ -732,6 +792,14 @@ export default function DashboardPage() {
         aspectRatio={1}
         onCrop={handleAvatarCropped}
         onCancel={() => setAvatarCropperSrc(null)}
+      />
+    )}
+    {projectImageCropperSrc && (
+      <ImageCropper
+        src={projectImageCropperSrc}
+        aspectRatio={16 / 9}
+        onCrop={handleProjectImageCropped}
+        onCancel={() => setProjectImageCropperSrc(null)}
       />
     )}
     <div className="min-h-screen bg-gray-50">
@@ -1211,6 +1279,75 @@ export default function DashboardPage() {
                 />
               </div>
             </div>
+
+            {/* Project images */}
+            {(editContent.projects?.length ?? 0) > 0 && (
+              <div className="pt-2 border-t border-gray-100">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Project images</label>
+                <p className="text-xs text-gray-400 mb-3">16:9 crop · changes save immediately</p>
+                <div className="space-y-3">
+                  {(editContent.projects || []).map((p, idx) => {
+                    const preview = projectImagePreviews[idx] || p.image_url || null
+                    const isUploading = projectImageUploading === idx
+                    const msg = projectImageMsgs[idx]
+                    return (
+                      <div key={idx} className="flex items-center gap-3">
+                        {/* Thumbnail */}
+                        <div className="flex-shrink-0 w-20 h-[45px] rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                          {preview ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={preview} alt={p.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-[10px] text-gray-400">No image</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Project title + upload button */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-gray-700 truncate mb-1">{p.title || `Project ${idx + 1}`}</p>
+                          <label className="cursor-pointer inline-block">
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                              disabled={isUploading}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (!file) return
+                                if (!file.type.startsWith('image/')) return
+                                if (file.size > 10 * 1024 * 1024) {
+                                  setProjectImageMsgs((prev) => ({ ...prev, [idx]: { type: 'err', text: 'Image must be under 10MB.' } }))
+                                  return
+                                }
+                                setProjectImageCropperIndex(idx)
+                                setProjectImageCropperSrc(URL.createObjectURL(file))
+                                e.target.value = ''
+                              }}
+                            />
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                              isUploading
+                                ? 'border-gray-100 text-gray-300 cursor-not-allowed'
+                                : 'border-[#0A66C2] text-[#0A66C2] hover:bg-[#E8F0F9]'
+                            }`}>
+                              {isUploading ? (
+                                <><span className="w-3 h-3 border-2 border-[#0A66C2] border-t-transparent rounded-full animate-spin" />Uploading…</>
+                              ) : preview ? 'Change' : 'Add image'}
+                            </span>
+                          </label>
+                        </div>
+                        {/* Inline status */}
+                        {msg && (
+                          <p className={`text-xs flex-shrink-0 font-medium ${msg.type === 'ok' ? 'text-green-600' : 'text-red-500'}`}>
+                            {msg.type === 'ok' ? '✓' : '✗'} {msg.text}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="pt-4 border-t border-gray-100">
               <button
