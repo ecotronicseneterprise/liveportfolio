@@ -269,13 +269,6 @@ export default function PortfolioShowcase() {
   return (
     <div className="w-full border-t border-gray-100 py-10 sm:py-14">
       {/* Header */}
-      <div className="px-6 sm:px-10 lg:px-16 mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold text-[#0A0A0A] leading-tight">
-          Portfolios built with LivePortfolio
-        </h2>
-        <p className="text-sm text-gray-400 mt-1">Every one built in under 10 minutes.</p>
-      </div>
-
       {/* Stacked crossfade slideshow */}
       <div
         className="px-6 sm:px-10 lg:px-16"
@@ -299,47 +292,51 @@ export default function PortfolioShowcase() {
       </div>
 
       {/* Dots + arrows */}
-      <div className="flex items-center justify-center sm:justify-start gap-3 mt-6 px-6 sm:px-10 lg:px-16">
-        <button
-          onClick={retreat}
-          aria-label="Previous portfolio"
-          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-400 transition-colors flex-shrink-0"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-
-        <div className="flex items-center gap-2">
-          {PORTFOLIOS.map((p, i) => (
+      <div className="mt-6 px-6 sm:px-10 lg:px-16">
+        <div style={{ maxWidth: CARD_WIDTH, margin: '0 auto' }}>
+          <div className="flex items-center justify-start gap-3">
             <button
-              key={p.slug}
-              onClick={() => { setIndex(i); setPaused(false) }}
-              aria-label={`Go to ${p.name}`}
-              style={{
-                width: i === index ? 20 : 6,
-                height: 6,
-                borderRadius: 99,
-                background: i === index ? PORTFOLIOS[index].accent : '#D1D5DB',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                transition: 'width 300ms ease, background 300ms ease',
-                flexShrink: 0,
-              }}
-            />
-          ))}
-        </div>
+              onClick={retreat}
+              aria-label="Previous portfolio"
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-400 transition-colors flex-shrink-0"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
 
-        <button
-          onClick={advance}
-          aria-label="Next portfolio"
-          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-400 transition-colors flex-shrink-0"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
+            <div className="flex items-center gap-2">
+              {PORTFOLIOS.map((p, i) => (
+                <button
+                  key={p.slug}
+                  onClick={() => { setIndex(i); setPaused(false) }}
+                  aria-label={`Go to ${p.name}`}
+                  style={{
+                    width: i === index ? 20 : 6,
+                    height: 6,
+                    borderRadius: 99,
+                    background: i === index ? PORTFOLIOS[index].accent : '#D1D5DB',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    transition: 'width 300ms ease, background 300ms ease',
+                    flexShrink: 0,
+                  }}
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={advance}
+              aria-label="Next portfolio"
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-400 transition-colors flex-shrink-0"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
