@@ -70,6 +70,7 @@ export default function PricingSection() {
                 'Edit anytime from your dashboard',
                 'Permanent subdomain (yourname.liveportfolio.site)',
                 'Choose from 3 templates',
+                'Switch templates anytime — goes live instantly',
               ].map((f) => (
                 <li key={f} className="flex items-center gap-2">
                   <span className="text-[#0A66C2] font-bold flex-shrink-0">✓</span>{f}
@@ -99,7 +100,7 @@ export default function PricingSection() {
             <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-1">
               {[
                 'Everything in Basic',
-                '7 additional premium templates',
+                '11 professional templates including 8 role-specific',
                 'Analytics dashboard (views, country, referrer)',
                 'Unique visitor count',
                 'QR code for your portfolio',

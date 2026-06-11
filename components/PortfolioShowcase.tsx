@@ -133,17 +133,16 @@ const IFRAME_SCALE = 0.27
 const IFRAME_WIDTH = 1280
 const IFRAME_HEIGHT = Math.round(CARD_HEIGHT / IFRAME_SCALE)
 
-function Card({ p }: { p: ShowcasePortfolio }) {
+function Card({ p, index }: { p: ShowcasePortfolio; index: number }) {
   const isDark = p.mode === 'dark'
   const barBg = isDark ? 'rgba(15,23,42,0.90)' : 'rgba(255,255,255,0.92)'
   const textPrimary = isDark ? '#F8FAFC' : '#0A0A0A'
   const textMuted = isDark ? '#94A3B8' : '#6B7280'
+  const url = `https://${p.slug}.liveportfolio.site`
 
   return (
-    <a
-      href={`https://${p.slug}.liveportfolio.site`}
-      target="_blank"
-      rel="noopener noreferrer"
+    <div
+      onClick={() => window.open(url, '_blank')}
       style={{
         display: 'block',
         borderRadius: 16,
@@ -156,15 +155,16 @@ function Card({ p }: { p: ShowcasePortfolio }) {
           ? '0 4px 24px rgba(0,0,0,0.4)'
           : '0 2px 16px rgba(0,0,0,0.07)',
         height: CARD_HEIGHT,
-        textDecoration: 'none',
+        cursor: 'pointer',
       }}
     >
       {/* Scaled iframe preview */}
       <div style={{ width: IFRAME_WIDTH * IFRAME_SCALE, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative' }}>
         <iframe
-          src={`https://${p.slug}.liveportfolio.site`}
+          src={url}
           title={`${p.name} portfolio`}
           scrolling="no"
+          loading={index < 3 ? 'eager' : 'lazy'}
           style={{
             width: IFRAME_WIDTH,
             height: IFRAME_HEIGHT,
@@ -201,7 +201,11 @@ function Card({ p }: { p: ShowcasePortfolio }) {
             {p.role}
           </p>
         </div>
-        <span
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
           style={{
             fontSize: 10,
             fontWeight: 600,
@@ -212,12 +216,13 @@ function Card({ p }: { p: ShowcasePortfolio }) {
             borderRadius: 99,
             textTransform: 'uppercase',
             flexShrink: 0,
+            textDecoration: 'none',
           }}
         >
           {p.template}
-        </span>
+        </a>
       </div>
-    </a>
+    </div>
   )
 }
 
@@ -371,7 +376,7 @@ export default function PortfolioShowcase() {
                 marginRight: 12,
               }}
             >
-              <Card p={p} />
+              <Card p={p} index={i} />
             </div>
           ))}
         </div>

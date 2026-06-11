@@ -117,7 +117,7 @@ export default function LandingPage() {
               {
                 step: '03',
                 title: 'Publish and share',
-                desc: 'Your portfolio goes live at yourname.liveportfolio.site. Edit anytime from your dashboard. Track who views you.',
+                desc: 'Your portfolio goes live at yourname.liveportfolio.site. Not happy with your template? Switch in one click — your portfolio updates live.',
               },
             ].map((item, i) => (
               <div

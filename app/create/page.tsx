@@ -64,6 +64,36 @@ const GENERATION_LABELS = [
 
 const PRO_TEMPLATE_IDS = ['developer', 'designer', 'data-scientist', 'product-manager', 'finance', 'graduate', 'cybersecurity']
 
+const TEMPLATE_DISPLAY_NAMES: Record<string, string> = {
+  'cybersecurity': 'Cybersecurity',
+  'finance': 'Finance',
+  'designer': 'Designer',
+  'data-scientist': 'Data Scientist',
+  'product-manager': 'Product Manager',
+  'creative': 'Creative',
+  'graduate': 'Graduate',
+  'developer': 'Developer',
+  'bold': 'Bold',
+  'minimal': 'Minimal',
+}
+
+function suggestTemplate(role: string): string {
+  try {
+    const r = role.toLowerCase()
+    if (/security|cyber|pentest|soc|infosec|hacker/.test(r)) return 'cybersecurity'
+    if (/finance|financial|analyst|banking|invest|cfa|acca|accounting/.test(r)) return 'finance'
+    if (/design|ux|ui|product design|visual|figma|framer/.test(r)) return 'designer'
+    if (/data scien|machine learn|ml |ai |analytics|statistician/.test(r)) return 'data-scientist'
+    if (/product manag|pm |program manag/.test(r)) return 'product-manager'
+    if (/market|brand|content|copywr|social media|seo|growth/.test(r)) return 'creative'
+    if (/graduat|student|junior|intern|entry|nysc|fresher/.test(r)) return 'graduate'
+    if (/engineer|develop|software|frontend|backend|fullstack|devops|cloud|mobile|ios|android|react|node/.test(r)) return 'developer'
+    return 'minimal'
+  } catch {
+    return 'minimal'
+  }
+}
+
 function ProgressBar({ step, total }: { step: number; total: number }) {
   return (
     <div className="mb-8">
@@ -227,6 +257,8 @@ export default function CreatePage() {
   const [uploadingCv, setUploadingCv] = useState(false)
   const [slugTimer, setSlugTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [showAccountForm, setShowAccountForm] = useState(false)
+  const [suggestedTemplate, setSuggestedTemplate] = useState<string | null>(null)
+  const [userOverrodeSuggestion, setUserOverrodeSuggestion] = useState(false)
   const [cropperSrc, setCropperSrc] = useState<string | null>(null)
   const [cropperAspect, setCropperAspect] = useState<number>(1)
   const [cropperTarget, setCropperTarget] = useState<'avatar' | number>('avatar')
@@ -415,7 +447,12 @@ export default function CreatePage() {
   const handleNext = () => {
     const err = validateStep()
     if (err) { setError(err); return }
-    setStep((s) => s + 1)
+    const nextStep = step + 1
+    // Auto-apply suggestion when arriving at Step 3 (template picker) if user hasn't manually picked
+    if (nextStep === 3 && suggestedTemplate && !userOverrodeSuggestion) {
+      update('template', suggestedTemplate)
+    }
+    setStep(nextStep)
     window.scrollTo(0, 0)
   }
 
@@ -482,7 +519,7 @@ export default function CreatePage() {
       // Upload avatar
       let avatarUrl: string | undefined
       if (form.avatarFile) {
-        const path = `avatars/${authData.user!.id}.jpg`
+        const path = `${authData.user!.id}.jpg`
         const { error: uploadError } = await supabase.storage
           .from('avatars')
           .upload(path, form.avatarFile, { upsert: true, contentType: 'image/jpeg' })
@@ -702,7 +739,13 @@ export default function CreatePage() {
                 <input
                   type="text"
                   value={form.role}
-                  onChange={(e) => update('role', e.target.value.slice(0, 80))}
+                  onChange={(e) => {
+                    const val = e.target.value.slice(0, 80)
+                    update('role', val)
+                    const suggestion = suggestTemplate(val)
+                    setSuggestedTemplate(suggestion !== 'minimal' ? suggestion : null)
+                    setUserOverrodeSuggestion(false)
+                  }}
                   placeholder="Data Scientist"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                 />
@@ -1096,6 +1139,23 @@ export default function CreatePage() {
               <p className="text-gray-500 text-sm">Free templates are available now. Pro templates unlock after publishing.</p>
             </div>
 
+            {/* Suggestion banner */}
+            {suggestedTemplate && !userOverrodeSuggestion && (
+              <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#E8F0F9] border border-[#C7DCED] rounded-xl text-sm">
+                <p className="text-[#0A66C2]">
+                  <span className="font-semibold">✦ Based on your role,</span> we suggest the{' '}
+                  <span className="font-semibold">{TEMPLATE_DISPLAY_NAMES[suggestedTemplate] ?? suggestedTemplate}</span> template
+                </p>
+                <button
+                  onClick={() => setUserOverrodeSuggestion(true)}
+                  className="text-xs text-[#0A66C2] opacity-60 hover:opacity-100 flex-shrink-0"
+                  aria-label="Dismiss suggestion"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             {/* Free templates */}
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Free</p>
@@ -1176,7 +1236,7 @@ export default function CreatePage() {
                 ].map((t) => (
                   <div
                     key={t.id}
-                    onClick={() => update('template', t.id)}
+                    onClick={() => { update('template', t.id); setUserOverrodeSuggestion(true) }}
                     className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${
                       form.template === t.id ? 'border-[#0A66C2] shadow-sm' : 'border-gray-100 hover:border-gray-200'
                     }`}
@@ -1216,7 +1276,7 @@ export default function CreatePage() {
                   return (
                     <div
                       key={t.id}
-                      onClick={() => update('template', t.id)}
+                      onClick={() => { update('template', t.id); setUserOverrodeSuggestion(true) }}
                       className={`cursor-pointer rounded-xl border-2 p-3 transition-all relative ${
                         isSelected ? 'border-[#0A66C2]' : 'border-gray-100 hover:border-gray-200'
                       }`}

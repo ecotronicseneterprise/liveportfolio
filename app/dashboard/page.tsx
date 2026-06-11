@@ -589,7 +589,7 @@ export default function DashboardPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { setAvatarMsg({ type: 'err', text: 'Session expired.' }); return }
-      const path = `avatars/${session.user.id}.jpg`
+      const path = `${session.user.id}.jpg`
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
@@ -1106,7 +1106,8 @@ export default function DashboardPage() {
 
             {/* Template switcher — all 10, Pro gated */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Template</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
+              <p className="text-xs text-gray-400 mb-3">Your current template — tap any card to switch instantly</p>
               {lockedTemplateMsg && (
                 <div className="mb-3 p-3 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-xl text-xs text-[#0A66C2] font-medium flex items-center justify-between gap-3">
                   <span>{lockedTemplateMsg}</span>
@@ -1141,9 +1142,10 @@ export default function DashboardPage() {
                       }}
                       className="relative rounded-xl border-2 p-3 text-left transition-all"
                       style={{
-                        background: t.dark ? '#0D1117' : '#F9FAFB',
+                        background: isSelected ? '#E8F0F9' : t.dark ? '#0D1117' : '#F9FAFB',
                         borderColor: isSelected ? '#0A66C2' : '#e5e7eb',
                         opacity: isLocked ? 0.7 : 1,
+                        transform: isSelected ? 'scale(1.02)' : 'scale(1)',
                       }}
                     >
                       {/* Colour swatch */}
@@ -1157,11 +1159,11 @@ export default function DashboardPage() {
                         }}
                       >
                         {t.dark
-                          ? <span style={{ fontSize: 7, color: '#58A6FF', fontFamily: 'monospace', letterSpacing: 1 }}>Dark</span>
-                          : <span style={{ fontSize: 7, color: '#0A66C2', fontFamily: 'monospace', letterSpacing: 1 }}>Light</span>
+                          ? <span style={{ fontSize: 8, color: '#58A6FF', fontFamily: 'monospace', letterSpacing: 1, fontWeight: 600 }}>Dark</span>
+                          : <span style={{ fontSize: 8, color: '#0A66C2', fontFamily: 'monospace', letterSpacing: 1, fontWeight: 600 }}>Light</span>
                         }
                       </div>
-                      <p className="text-xs font-semibold" style={{ color: t.dark ? '#F9FAFB' : '#111827' }}>{t.name}</p>
+                      <p className="font-semibold" style={{ fontSize: 14, color: isSelected ? '#0A66C2' : t.dark ? '#F9FAFB' : '#111827' }}>{t.name}</p>
                       {t.pro && (
                         <span className="absolute top-1.5 right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#0A66C2', color: '#fff' }}>
                           {isPro ? 'Pro' : '🔒'}
