@@ -46,10 +46,10 @@ const css = `
     border-bottom: 1px solid var(--border);
   }
   .ds-hero-name {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(28px, 6vw, 76px);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: clamp(26px, 5.2vw, 64px);
     font-weight: 800;
-    line-height: 1.0;
+    line-height: 1.05;
     letter-spacing: -0.03em;
     color: var(--text);
     margin-bottom: 12px;

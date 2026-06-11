@@ -125,13 +125,22 @@ function darkBg(p: ShowcasePortfolio): string {
 }
 
 const CARD_HEIGHT = 500
-const IFRAME_SCALE = 0.27
 const IFRAME_WIDTH = 1280
-const IFRAME_HEIGHT = Math.round(CARD_HEIGHT / IFRAME_SCALE)
-const CARD_WIDTH = Math.round(IFRAME_WIDTH * IFRAME_SCALE)
 const ROTATE_MS = 7000
 
-function Card({ p, active }: { p: ShowcasePortfolio; active: boolean }) {
+function Card({
+  p,
+  active,
+  iframeScale,
+  iframeHeight,
+  cardWidth,
+}: {
+  p: ShowcasePortfolio
+  active: boolean
+  iframeScale: number
+  iframeHeight: number
+  cardWidth: number
+}) {
   const isDark = p.mode === 'dark'
   const barBg = isDark ? 'rgba(15,23,42,0.90)' : 'rgba(255,255,255,0.92)'
   const textPrimary = isDark ? '#F8FAFC' : '#0A0A0A'
@@ -161,7 +170,7 @@ function Card({ p, active }: { p: ShowcasePortfolio; active: boolean }) {
       }}
     >
       {/* Scaled iframe */}
-      <div style={{ width: CARD_WIDTH, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative' }}>
+      <div style={{ width: cardWidth, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative' }}>
         {active ? (
           <iframe
             src={url}
@@ -170,15 +179,15 @@ function Card({ p, active }: { p: ShowcasePortfolio; active: boolean }) {
             loading="lazy"
             style={{
               width: IFRAME_WIDTH,
-              height: IFRAME_HEIGHT,
+              height: iframeHeight,
               border: 'none',
-              transform: `scale(${IFRAME_SCALE})`,
+              transform: `scale(${iframeScale})`,
               transformOrigin: 'top left',
               pointerEvents: 'none',
             }}
           />
         ) : (
-          <div aria-hidden style={{ width: CARD_WIDTH, height: CARD_HEIGHT }} />
+          <div aria-hidden style={{ width: cardWidth, height: CARD_HEIGHT }} />
         )}
       </div>
 
@@ -236,11 +245,28 @@ export default function PortfolioShowcase() {
   const total = PORTFOLIOS.length
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [iframeScale, setIframeScale] = useState(0.33)
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
 
+  useEffect(() => {
+    const updateScale = () => {
+      const w = window.innerWidth
+      if (w < 640) setIframeScale(0.30)
+      else if (w < 1024) setIframeScale(0.33)
+      else setIframeScale(0.36)
+    }
+
+    updateScale()
+    window.addEventListener('resize', updateScale)
+    return () => window.removeEventListener('resize', updateScale)
+  }, [])
+
   const advance = () => setIndex((i) => (i + 1) % total)
   const retreat = () => setIndex((i) => (i - 1 + total) % total)
+
+  const iframeHeight = Math.round(CARD_HEIGHT / iframeScale)
+  const cardWidth = Math.round(IFRAME_WIDTH * iframeScale)
 
   useEffect(() => {
     if (paused) return
@@ -281,19 +307,26 @@ export default function PortfolioShowcase() {
           style={{
             position: 'relative',
             height: CARD_HEIGHT,
-            maxWidth: CARD_WIDTH,
+            maxWidth: cardWidth,
             margin: '0 auto',
           }}
         >
           {PORTFOLIOS.map((p, i) => (
-            <Card key={p.slug} p={p} active={i === index} />
+            <Card
+              key={p.slug}
+              p={p}
+              active={i === index}
+              iframeScale={iframeScale}
+              iframeHeight={iframeHeight}
+              cardWidth={cardWidth}
+            />
           ))}
         </div>
       </div>
 
       {/* Dots + arrows */}
       <div className="mt-6 px-6 sm:px-10 lg:px-16">
-        <div style={{ maxWidth: CARD_WIDTH, margin: '0 auto' }}>
+        <div style={{ maxWidth: cardWidth, margin: '0 auto' }}>
           <div className="flex items-center justify-start gap-3">
             <button
               onClick={retreat}
