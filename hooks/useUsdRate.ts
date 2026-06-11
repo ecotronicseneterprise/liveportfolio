@@ -63,7 +63,7 @@ export function useUsdRate(): UsdRateResult {
       fetch('/api/exchange-rate', { signal: controller.signal })
         .then((r) => r.json())
         .then((data) => {
-          const rate = data?.rates?.USD
+          const rate = data?.rate
           if (typeof rate === 'number' && rate > 0) {
             writeCachedRate(rate)
             setBasicUsd(calcUsd(BASIC_NGN, rate))
