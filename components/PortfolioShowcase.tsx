@@ -129,6 +129,7 @@ const IFRAME_SCALE = 0.27
 const IFRAME_WIDTH = 1280
 const IFRAME_HEIGHT = Math.round(CARD_HEIGHT / IFRAME_SCALE)
 const CARD_WIDTH = Math.round(IFRAME_WIDTH * IFRAME_SCALE)
+const ROTATE_MS = 7000
 
 function Card({ p, active }: { p: ShowcasePortfolio; active: boolean }) {
   const isDark = p.mode === 'dark'
@@ -239,7 +240,7 @@ export default function PortfolioShowcase() {
 
   useEffect(() => {
     if (paused) return
-    const id = setInterval(advance, 5000)
+    const id = setInterval(advance, ROTATE_MS)
     return () => clearInterval(id)
   }, [paused]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -284,6 +285,7 @@ export default function PortfolioShowcase() {
             position: 'relative',
             height: CARD_HEIGHT,
             maxWidth: CARD_WIDTH,
+            margin: '0 auto',
           }}
         >
           {PORTFOLIOS.map((p, i) => (
@@ -293,7 +295,7 @@ export default function PortfolioShowcase() {
       </div>
 
       {/* Dots + arrows */}
-      <div className="flex items-center justify-start gap-3 mt-6 px-6 sm:px-10 lg:px-16">
+      <div className="flex items-center justify-center sm:justify-start gap-3 mt-6 px-6 sm:px-10 lg:px-16">
         <button
           onClick={retreat}
           aria-label="Previous portfolio"
