@@ -123,8 +123,9 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
 
             <ul className="space-y-1.5 flex-1">
               <PlanFeature text="Publish your portfolio" />
-              <PlanFeature text="Edit anytime" />
+              <PlanFeature text="Edit anytime from your dashboard" />
               <PlanFeature text="Permanent subdomain" />
+              <PlanFeature text="Choose from 3 templates" />
             </ul>
 
             <button
@@ -156,8 +157,9 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
 
             <ul className="space-y-1.5 flex-1">
               <PlanFeature text="Everything in Basic" />
-              <PlanFeature text="Analytics + career score" />
-              <PlanFeature text="Custom domain + export pack" />
+              <PlanFeature text="7 additional premium templates" />
+              <PlanFeature text="Analytics (views, country, referrer)" />
+              <PlanFeature text="QR code + weekly career score" />
             </ul>
 
             <button

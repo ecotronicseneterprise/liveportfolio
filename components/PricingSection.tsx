@@ -30,7 +30,7 @@ export default function PricingSection() {
             <p className="text-3xl font-bold text-gray-900 mb-1">₦0</p>
             <p className="text-sm text-gray-400 mb-5">Always free</p>
             <ul className="space-y-2 text-sm text-gray-500 mb-6 flex-1">
-              {['Generate your portfolio', 'Preview all three templates', 'Saved to your account'].map((f) => (
+              {['Generate your portfolio', 'Preview all 10 templates', 'Saved to your account'].map((f) => (
                 <li key={f} className="flex items-center gap-2">
                   <span className="text-gray-300 flex-shrink-0">✓</span>{f}
                 </li>
@@ -67,9 +67,9 @@ export default function PricingSection() {
             <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-1">
               {[
                 'Publish your portfolio',
-                'Edit anytime',
-                'Up to 3 portfolios',
+                'Edit anytime from your dashboard',
                 'Permanent subdomain (yourname.liveportfolio.site)',
+                'Choose from 3 templates',
               ].map((f) => (
                 <li key={f} className="flex items-center gap-2">
                   <span className="text-[#0A66C2] font-bold flex-shrink-0">✓</span>{f}
@@ -99,11 +99,11 @@ export default function PricingSection() {
             <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-1">
               {[
                 'Everything in Basic',
-                'Analytics dashboard (views, company, country, referrer)',
-                'QR code sharing',
+                '7 additional premium templates',
+                'Analytics dashboard (views, country, referrer)',
+                'Unique visitor count',
+                'QR code for your portfolio',
                 'Weekly AI career score',
-                'Custom domain (connect your own)',
-                'Export pack (PDF, LinkedIn summary, cover letter)',
               ].map((f) => (
                 <li key={f} className="flex items-center gap-2">
                   <span className="text-[#0A66C2] font-bold flex-shrink-0">✓</span>{f}
