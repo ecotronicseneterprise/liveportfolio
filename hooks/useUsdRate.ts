@@ -60,7 +60,7 @@ export function useUsdRate(): UsdRateResult {
       controller = new AbortController()
       timeout = setTimeout(() => controller.abort(), 4000)
 
-      fetch('https://api.frankfurter.app/latest?from=NGN&to=USD', { signal: controller.signal })
+      fetch('/api/exchange-rate', { signal: controller.signal })
         .then((r) => r.json())
         .then((data) => {
           const rate = data?.rates?.USD

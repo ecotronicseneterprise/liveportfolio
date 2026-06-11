@@ -138,7 +138,7 @@ function Card({ p, index }: { p: ShowcasePortfolio; index: number }) {
   const barBg = isDark ? 'rgba(15,23,42,0.90)' : 'rgba(255,255,255,0.92)'
   const textPrimary = isDark ? '#F8FAFC' : '#0A0A0A'
   const textMuted = isDark ? '#94A3B8' : '#6B7280'
-  const url = `https://${p.slug}.liveportfolio.site`
+  const url = `https://liveportfolio.site/${p.slug}`
 
   return (
     <div
