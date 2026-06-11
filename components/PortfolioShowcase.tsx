@@ -15,6 +15,7 @@ interface ShowcasePortfolio {
 }
 
 const PORTFOLIOS: ShowcasePortfolio[] = [
+  // dark
   {
     slug: 'james-chen',
     name: 'James Chen',
@@ -26,6 +27,7 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     skills: ['Go', 'Rust', 'TypeScript', 'Kubernetes'],
     highlight: '$2.3B processed · 60% latency reduction',
   },
+  // light
   {
     slug: 'sofia-martinez',
     name: 'Sofia Martinez',
@@ -37,6 +39,7 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     skills: ['Figma', 'Framer', 'User Research', 'Design Systems'],
     highlight: '34% retention increase · 8M+ daily users',
   },
+  // dark
   {
     slug: 'fatima-hassan',
     name: 'Fatima Hassan',
@@ -48,6 +51,7 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     skills: ['Python', 'SQL', 'TensorFlow', 'dbt'],
     highlight: '₦4.2B in approved loans · 55% false rejection reduction',
   },
+  // light
   {
     slug: 'david-mensah',
     name: 'David Mensah',
@@ -59,28 +63,7 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     skills: ['Product Strategy', 'SQL', 'A/B Testing', 'OKRs'],
     highlight: '50,000 merchants onboarded · $2M ARR',
   },
-  {
-    slug: 'priya-sharma',
-    name: 'Priya Sharma',
-    role: 'Brand & Content Strategist',
-    template: 'Creative',
-    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/priya-sharma.jpg',
-    accent: '#BE185D',
-    mode: 'light',
-    skills: ['Brand Strategy', 'Content Marketing', 'SEO', 'Copywriting'],
-    highlight: '340K monthly sessions · £600K paid spend saved',
-  },
-  {
-    slug: 'chidi-okafor',
-    name: 'Chidi Okafor',
-    role: 'Software Engineering Graduate',
-    template: 'Graduate',
-    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/chidi_okafor.jpg',
-    accent: '#4F46E5',
-    mode: 'light',
-    skills: ['React', 'Node.js', 'Python', 'SQL'],
-    highlight: '300+ active users · First role ready',
-  },
+  // dark
   {
     slug: 'michael-roberts',
     name: 'Michael Roberts',
@@ -92,6 +75,19 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     skills: ['Financial Modelling', 'Excel', 'SQL', 'Power BI'],
     highlight: '£2B+ in M&A transactions · CFA Charterholder',
   },
+  // light
+  {
+    slug: 'priya-sharma',
+    name: 'Priya Sharma',
+    role: 'Brand & Content Strategist',
+    template: 'Creative',
+    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/priya-sharma.jpg',
+    accent: '#BE185D',
+    mode: 'light',
+    skills: ['Brand Strategy', 'Content Marketing', 'SEO', 'Copywriting'],
+    highlight: '340K monthly sessions · £600K paid spend saved',
+  },
+  // dark
   {
     slug: 'elena-vasquez',
     name: 'Elena Vasquez',
@@ -102,6 +98,18 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     mode: 'dark',
     skills: ['Penetration Testing', 'Python', 'AWS Security', 'OSCP'],
     highlight: 'Zero incidents 18 months · SOC 2 Type II',
+  },
+  // light
+  {
+    slug: 'chidi-okafor',
+    name: 'Chidi Okafor',
+    role: 'Software Engineering Graduate',
+    template: 'Graduate',
+    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/chidi_okafor.jpg',
+    accent: '#4F46E5',
+    mode: 'light',
+    skills: ['React', 'Node.js', 'Python', 'SQL'],
+    highlight: '300+ active users · First role ready',
   },
 ]
 
