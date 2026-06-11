@@ -44,6 +44,19 @@ export interface PortfolioContent {
     period: string
     bullets: string[]
   }[]
+  education?: {
+    degree: string
+    institution: string
+    year: string
+    grade?: string
+  }[]
+  certifications?: string[]
+  testimonials?: {
+    text: string
+    author: string
+    role: string
+    company?: string
+  }[]
 }
 
 export default function Minimal({ content }: { content: PortfolioContent }) {
@@ -249,6 +262,40 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
                       </ul>
                     )}
                   </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Education */}
+        {content.education && content.education.length > 0 && (
+          <section id="education" className={`w-full border-b border-gray-100 ${fadeIn('education')}`}>
+            <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-8">Education</p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {content.education.map((ed, i) => (
+                  <div key={i} className="flex flex-col gap-0.5">
+                    <p className="font-semibold text-[#0A0A0A] text-base">{ed.degree}</p>
+                    <p className="text-[#0A66C2] text-sm font-medium">{ed.institution}</p>
+                    <p className="text-xs text-gray-400">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Certifications */}
+        {content.certifications && content.certifications.length > 0 && (
+          <section id="certifications" className={`w-full border-b border-gray-100 ${fadeIn('certifications')}`}>
+            <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-6">Certifications</p>
+              <div className="flex flex-wrap gap-2">
+                {content.certifications.map((cert) => (
+                  <span key={cert} className="px-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-full text-gray-700">
+                    {cert}
+                  </span>
                 ))}
               </div>
             </div>

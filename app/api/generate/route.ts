@@ -61,8 +61,10 @@ interface InputData {
   github_url?: string
   linkedin_url?: string
   skills: string[]
+  certifications?: string[]
   projects: Array<{ title: string; description: string; stack: string[]; url?: string; image_url?: string }>
   experience?: Array<{ company: string; role: string; period: string; bullets: string[] }>
+  education?: Array<{ degree: string; institution: string; year: string; grade?: string }>
   template: string
 }
 
@@ -76,6 +78,7 @@ function parseInput(body: Partial<InputData>) {
     github_url: body.github_url ? stripHtml(body.github_url).slice(0, 200) : undefined,
     linkedin_url: body.linkedin_url ? stripHtml(body.linkedin_url).slice(0, 200) : undefined,
     skills: (body.skills || []).slice(0, 15).map((s) => stripHtml(s).slice(0, 50)),
+    certifications: (body.certifications || []).slice(0, 20).map((c) => stripHtml(c).slice(0, 80)),
     projects: (body.projects || []).slice(0, 4).map((p) => ({
       title: stripHtml(p.title || '').slice(0, 80),
       description: stripHtml(p.description || '').slice(0, 200),
@@ -89,7 +92,16 @@ function parseInput(body: Partial<InputData>) {
       period: stripHtml(e.period || '').slice(0, 40),
       bullets: (e.bullets || []).slice(0, 4).map((b) => stripHtml(b).slice(0, 200)),
     })),
-    template: body.template === 'bold' ? 'bold' : body.template === 'creative' ? 'creative' : 'minimal',
+    education: (body.education || []).slice(0, 3).map((e) => ({
+      degree: stripHtml(e.degree || '').slice(0, 100),
+      institution: stripHtml(e.institution || '').slice(0, 100),
+      year: stripHtml(e.year || '').slice(0, 20),
+      grade: e.grade ? stripHtml(e.grade).slice(0, 40) : undefined,
+    })),
+    template: (() => {
+      const allowed = ['minimal', 'bold', 'creative', 'developer', 'designer', 'data-scientist', 'product-manager', 'finance', 'graduate', 'cybersecurity']
+      return allowed.includes(body.template || '') ? (body.template as string) : 'minimal'
+    })(),
   }
 }
 
@@ -218,7 +230,7 @@ export async function POST(req: NextRequest) {
     image_url: input.projects[i]?.image_url || null,
   }))
 
-  // Ensure required fields have fallbacks
+  // Ensure required fields have fallbacks; preserve education/certifications from user input
   const content = {
     ...fallbackContent(input),
     ...portfolioContent,
@@ -229,6 +241,13 @@ export async function POST(req: NextRequest) {
     github_url: input.github_url || null,
     linkedin_url: input.linkedin_url || null,
     projects: mergedProjects,
+    // Education/certifications: prefer AI output, fall back to user-provided data
+    education: (portfolioContent.education as unknown[] | undefined)?.length
+      ? portfolioContent.education
+      : input.education?.length ? input.education : undefined,
+    certifications: (portfolioContent.certifications as string[] | undefined)?.length
+      ? portfolioContent.certifications
+      : input.certifications?.length ? input.certifications : undefined,
   }
 
   const healthScore = calculateHealthScore(content)

@@ -16,6 +16,7 @@ export const buildGenerationPrompt = (input: {
   github_url?: string
   linkedin_url?: string
   skills: string[]
+  certifications?: string[]
   projects: Array<{
     title: string
     description: string
@@ -27,6 +28,12 @@ export const buildGenerationPrompt = (input: {
     role: string
     period: string
     bullets: string[]
+  }>
+  education?: Array<{
+    degree: string
+    institution: string
+    year: string
+    grade?: string
   }>
 }) => {
   return `Given this professional information, generate a complete portfolio content object.
@@ -42,6 +49,7 @@ BIO (raw, rewrite this professionally):
 ${input.bio || 'Not provided — infer from role and projects'}
 
 SKILLS: ${input.skills.join(', ')}
+${input.certifications && input.certifications.length > 0 ? `CERTIFICATIONS: ${input.certifications.join(', ')}` : ''}
 
 PROJECTS:
 ${input.projects.map((p, i) => `${i + 1}. ${p.title}
@@ -51,6 +59,9 @@ ${input.projects.map((p, i) => `${i + 1}. ${p.title}
 
 ${input.experience && input.experience.length > 0 ? `EXPERIENCE:
 ${input.experience.map(e => `${e.role} at ${e.company} (${e.period})`).join('\n')}` : ''}
+
+${input.education && input.education.length > 0 ? `EDUCATION:
+${input.education.map(e => `${e.degree} — ${e.institution}${e.year ? ` (${e.year})` : ''}${e.grade ? `, ${e.grade}` : ''}`).join('\n')}` : ''}
 
 Return a JSON object with EXACTLY this structure:
 {
@@ -83,6 +94,15 @@ Return a JSON object with EXACTLY this structure:
       "bullets": ["2-3 accomplishment bullets, specific and metric-driven"]
     }
   ],
+  "education": [
+    {
+      "degree": "string",
+      "institution": "string",
+      "year": "string",
+      "grade": "string or null"
+    }
+  ],
+  "certifications": ["array of certification name strings — use provided list if any"],
   "seo_title": "string — '[Name] | [Role] Portfolio' format",
   "seo_description": "string — compelling meta description, max 155 chars"
 }`

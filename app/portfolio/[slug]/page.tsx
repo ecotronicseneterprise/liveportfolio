@@ -1,3 +1,4 @@
+import React from 'react'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createHash } from 'crypto'
@@ -7,6 +8,13 @@ import { getIpInfo } from '@/lib/ipinfo'
 import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
 import Creative from '@/components/templates/Creative'
+import Developer from '@/components/templates/Developer'
+import Designer from '@/components/templates/Designer'
+import DataScientist from '@/components/templates/DataScientist'
+import ProductManager from '@/components/templates/ProductManager'
+import Finance from '@/components/templates/Finance'
+import Graduate from '@/components/templates/Graduate'
+import Cybersecurity from '@/components/templates/Cybersecurity'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import ClientAnalytics from './ClientAnalytics'
 import AcquisitionBar from './AcquisitionBar'
@@ -392,6 +400,7 @@ export default async function PortfolioPage({ params }: Props) {
     .from('users')
     .select(`
       slug,
+      plan,
       portfolios(id, template, content)
     `)
     .eq('slug', slug)
@@ -435,7 +444,24 @@ export default async function PortfolioPage({ params }: Props) {
     )
   }).catch(() => {})
 
-  const Template = portfolio.template === 'bold' ? Bold : portfolio.template === 'creative' ? Creative : Minimal
+  const TEMPLATE_MAP: Record<string, React.ComponentType<{ content: PortfolioContent }>> = {
+    minimal: Minimal,
+    bold: Bold,
+    creative: Creative,
+    developer: Developer,
+    designer: Designer,
+    'data-scientist': DataScientist,
+    'product-manager': ProductManager,
+    finance: Finance,
+    graduate: Graduate,
+    cybersecurity: Cybersecurity,
+  }
+  const PRO_TEMPLATES = new Set(['developer', 'designer', 'data-scientist', 'product-manager', 'finance', 'graduate', 'cybersecurity'])
+  // Gate Pro templates: only render if user has pro plan. Basic/free fall back to Minimal.
+  // The stored template value is preserved — upgrading to Pro activates it automatically.
+  const isPro = (data as { plan?: string }).plan === 'pro'
+  const effectiveTemplate = (PRO_TEMPLATES.has(portfolio.template) && !isPro) ? 'minimal' : portfolio.template
+  const Template = TEMPLATE_MAP[effectiveTemplate] ?? Minimal
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
   const c = portfolio.content
 

@@ -1,18 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRegion } from '@/hooks/useRegion'
+import { useUsdRate } from '@/hooks/useUsdRate'
 
 const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ''
 const BASIC_PLAN_CODE = process.env.NEXT_PUBLIC_PAYSTACK_BASIC_PLAN_CODE || ''
 const PRO_PLAN_CODE = process.env.NEXT_PUBLIC_PAYSTACK_PRO_PLAN_CODE || ''
 const TEST_PLAN_CODE = 'PLN_gzi13ks4vajcdhx' // ₦500 live test plan — hidden from users
-
-const BASIC_NGN = 15000
-const PRO_NGN = 45000
-const FALLBACK_BASIC_USD = 10
-const FALLBACK_PRO_USD = 30
-const CACHE_KEY = 'lp_ngn_usd_rate'
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 interface UpgradeModalProps {
   isOpen: boolean
@@ -31,55 +26,14 @@ function PlanFeature({ text }: { text: string }) {
   )
 }
 
-function useUsdEquivalent() {
-  const [basicUsd, setBasicUsd] = useState<number | null>(null)
-  const [proUsd, setProUsd] = useState<number | null>(null)
-
-  useEffect(() => {
-    // Check cache first
-    try {
-      const cached = localStorage.getItem(CACHE_KEY)
-      if (cached) {
-        const { rate, ts } = JSON.parse(cached)
-        if (Date.now() - ts < CACHE_TTL_MS && typeof rate === 'number') {
-          setBasicUsd(Math.round(BASIC_NGN * rate))
-          setProUsd(Math.round(PRO_NGN * rate))
-          return
-        }
-      }
-    } catch { /* ignore */ }
-
-    // Fetch live rate — NGN → USD
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 4000)
-
-    fetch('https://api.frankfurter.app/latest?from=NGN&to=USD', { signal: controller.signal })
-      .then((r) => r.json())
-      .then((data) => {
-        const rate = data?.rates?.USD
-        if (typeof rate === 'number' && rate > 0) {
-          try {
-            localStorage.setItem(CACHE_KEY, JSON.stringify({ rate, ts: Date.now() }))
-          } catch { /* ignore */ }
-          setBasicUsd(Math.round(BASIC_NGN * rate))
-          setProUsd(Math.round(PRO_NGN * rate))
-        }
-      })
-      .catch(() => {
-        // API failed — fall back to static approximations
-        setBasicUsd(FALLBACK_BASIC_USD)
-        setProUsd(FALLBACK_PRO_USD)
-      })
-      .finally(() => clearTimeout(timeout))
-
-    return () => { controller.abort(); clearTimeout(timeout) }
-  }, [])
-
-  return { basicUsd, proUsd }
-}
+const PriceSkeleton = () => (
+  <span style={{ display: 'inline-block', width: 80, height: 20, background: '#e5e7eb', borderRadius: 4, verticalAlign: 'middle' }} />
+)
 
 export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, onPaymentStarted }: UpgradeModalProps) {
-  const { basicUsd, proUsd } = useUsdEquivalent()
+  const { basicUsd, proUsd, rateLoading } = useUsdRate()
+  const { region } = useRegion()
+  const isIntl = region === 'INTL'
 
   // Load Paystack inline script
   useEffect(() => {
@@ -156,10 +110,10 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
                   Basic
                 </span>
                 <p className="text-2xl font-bold text-gray-900 mt-0.5">
-                  ₦15,000<span className="text-sm font-normal text-gray-400">/year</span>
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {basicUsd !== null ? `≈ $${basicUsd}/year` : '…'}
+                  {isIntl
+                    ? (rateLoading || basicUsd === null ? <PriceSkeleton /> : <>${basicUsd}</>)
+                    : '₦15,000'}
+                  <span className="text-sm font-normal text-gray-400">/year</span>
                 </p>
               </div>
               <span className="bg-[#0A66C2] text-white text-xs font-bold px-2.5 py-1 rounded-full">
@@ -190,10 +144,10 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
                   Pro
                 </span>
                 <p className="text-2xl font-bold text-gray-900 mt-0.5">
-                  ₦45,000<span className="text-sm font-normal text-gray-400">/year</span>
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {proUsd !== null ? `≈ $${proUsd}/year` : '…'}
+                  {isIntl
+                    ? (rateLoading || proUsd === null ? <PriceSkeleton /> : <>${proUsd}</>)
+                    : '₦45,000'}
+                  <span className="text-sm font-normal text-gray-400">/year</span>
                 </p>
               </div>
               <span className="bg-gray-100 text-gray-500 text-xs font-semibold px-2.5 py-1 rounded-full">

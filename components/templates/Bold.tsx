@@ -440,6 +440,58 @@ export default function Bold({ content }: { content: PortfolioContent }) {
             </section>
           )}
 
+          {/* Education */}
+          {content.education && content.education.length > 0 && (
+            <section
+              id="education"
+              className={`mb-16 transition-all duration-700 ${visible.has('education') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              style={{ transitionDelay: '220ms' }}
+            >
+              <h3
+                className="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-6"
+                style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+              >
+                Education
+              </h3>
+              <div className="space-y-4">
+                {content.education.map((ed, i) => (
+                  <div key={i}>
+                    <p className="font-bold text-[#F0F6FF] text-sm" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>{ed.degree}</p>
+                    <p className="text-[#58A6FF] text-xs mt-0.5">{ed.institution}</p>
+                    <p className="text-[#8B949E] text-xs mt-0.5">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Certifications */}
+          {content.certifications && content.certifications.length > 0 && (
+            <section
+              id="certifications"
+              className={`mb-16 transition-all duration-700 ${visible.has('certifications') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              style={{ transitionDelay: '230ms' }}
+            >
+              <h3
+                className="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-5"
+                style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+              >
+                Certifications
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {content.certifications.map((cert) => (
+                  <span
+                    key={cert}
+                    className="px-3 py-1 text-xs bg-[#1C2128] border border-[#30363D] rounded text-[#8B949E] hover:border-[#58A6FF] hover:text-[#58A6FF] transition-all"
+                    style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+                  >
+                    {cert}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Contact */}
           <section
             id="contact"

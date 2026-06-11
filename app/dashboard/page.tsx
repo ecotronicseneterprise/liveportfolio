@@ -511,7 +511,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [template, setTemplate] = useState<'minimal' | 'bold' | 'creative'>('minimal')
+  const [template, setTemplate] = useState<string>('minimal')
+  const [lockedTemplateMsg, setLockedTemplateMsg] = useState<string | null>(null)
   const [editContent, setEditContent] = useState<Partial<PortfolioContent>>({})
   const [activeTab, setActiveTab] = useState<'overview' | 'edit' | 'settings'>('overview')
   const [userPlan, setUserPlan] = useState<'free' | 'basic' | 'pro'>('free')
@@ -524,6 +525,9 @@ export default function DashboardPage() {
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleteMsg, setDeleteMsg] = useState('')
   const [uniqueVisitors, setUniqueVisitors] = useState<number | null>(null)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarMsg, setAvatarMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
@@ -557,10 +561,52 @@ export default function DashboardPage() {
 
     if (!portfolioData) { router.push('/create'); return }
     setPortfolio(portfolioData as Portfolio)
-    setTemplate((portfolioData.template as 'minimal' | 'bold' | 'creative') || 'minimal')
+    setTemplate((portfolioData.template as string) || 'minimal')
     setEditContent(portfolioData.content as PortfolioContent)
     setLoading(false)
   }, [router])
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      setAvatarMsg({ type: 'err', text: 'Only JPEG, PNG, or WebP files are accepted.' })
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarMsg({ type: 'err', text: 'Photo must be under 2MB.' })
+      return
+    }
+    setAvatarUploading(true)
+    setAvatarMsg(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { setAvatarMsg({ type: 'err', text: 'Session expired.' }); return }
+      const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
+      const path = `avatars/${session.user.id}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, contentType: file.type })
+      if (uploadError) throw uploadError
+      const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(path)
+      const newUrl = publicData.publicUrl
+      // Update portfolio content via /api/update
+      const res = await fetch('/api/update', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ content: { ...editContent, avatar_url: newUrl } }),
+      })
+      if (!res.ok) throw new Error('Failed to update portfolio')
+      setEditContent((prev) => ({ ...prev, avatar_url: newUrl }))
+      setAvatarPreview(newUrl)
+      setAvatarMsg({ type: 'ok', text: 'Photo updated' })
+    } catch {
+      setAvatarMsg({ type: 'err', text: 'Upload failed. Please try again.' })
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
 
   const handleSave = async () => {
     if (!portfolio) return
@@ -1040,23 +1086,77 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* Template switcher */}
+            {/* Template switcher — all 10, Pro gated */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Template</label>
-              <div className="flex gap-2">
-                {(['minimal', 'bold', 'creative'] as const).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTemplate(t)}
-                    className={`px-4 py-2 text-sm rounded-full border capitalize transition-all ${
-                      template === t
-                        ? 'bg-gray-900 text-white border-gray-900'
-                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
+              <label className="block text-sm font-medium text-gray-700 mb-3">Template</label>
+              {lockedTemplateMsg && (
+                <div className="mb-3 p-3 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-xl text-xs text-[#0A66C2] font-medium flex items-center justify-between gap-3">
+                  <span>{lockedTemplateMsg}</span>
+                  <button onClick={() => { setLockedTemplateMsg(null); setShowUpgradeModal(true) }} className="underline flex-shrink-0">Upgrade →</button>
+                </div>
+              )}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                {[
+                  { id: 'minimal', name: 'Minimal', dark: false, pro: false },
+                  { id: 'bold', name: 'Bold', dark: true, pro: false },
+                  { id: 'creative', name: 'Creative', dark: false, pro: false },
+                  { id: 'developer', name: 'Developer', dark: true, pro: true },
+                  { id: 'designer', name: 'Designer', dark: false, pro: true },
+                  { id: 'data-scientist', name: 'Data Sci', dark: true, pro: true },
+                  { id: 'product-manager', name: 'PM', dark: false, pro: true },
+                  { id: 'finance', name: 'Finance', dark: true, pro: true },
+                  { id: 'graduate', name: 'Graduate', dark: false, pro: true },
+                  { id: 'cybersecurity', name: 'Cyber', dark: true, pro: true },
+                ].map((t) => {
+                  const isLocked = t.pro && !isPro
+                  const isSelected = template === t.id
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        if (isLocked) {
+                          setLockedTemplateMsg(`"${t.name}" is a Pro template.`)
+                          return
+                        }
+                        setLockedTemplateMsg(null)
+                        setTemplate(t.id)
+                      }}
+                      className="relative rounded-xl border-2 p-3 text-left transition-all"
+                      style={{
+                        background: t.dark ? '#0D1117' : '#F9FAFB',
+                        borderColor: isSelected ? '#0A66C2' : '#e5e7eb',
+                        opacity: isLocked ? 0.7 : 1,
+                      }}
+                    >
+                      {/* Colour swatch */}
+                      <div
+                        className="w-full rounded-lg mb-2 flex items-end justify-end p-1.5"
+                        style={{
+                          height: 36,
+                          background: t.dark
+                            ? 'linear-gradient(135deg, #1C2128 60%, #58A6FF 100%)'
+                            : 'linear-gradient(135deg, #f3f4f6 60%, #0A66C2 100%)',
+                        }}
+                      >
+                        {t.dark
+                          ? <span style={{ fontSize: 7, color: '#58A6FF', fontFamily: 'monospace', letterSpacing: 1 }}>Dark</span>
+                          : <span style={{ fontSize: 7, color: '#0A66C2', fontFamily: 'monospace', letterSpacing: 1 }}>Light</span>
+                        }
+                      </div>
+                      <p className="text-xs font-semibold" style={{ color: t.dark ? '#F9FAFB' : '#111827' }}>{t.name}</p>
+                      {t.pro && (
+                        <span className="absolute top-1.5 right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#0A66C2', color: '#fff' }}>
+                          {isPro ? 'Pro' : '🔒'}
+                        </span>
+                      )}
+                      {isSelected && (
+                        <span className="absolute bottom-1.5 right-1.5 w-4 h-4 bg-[#0A66C2] rounded-full flex items-center justify-center">
+                          <span className="text-white text-[9px]">✓</span>
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
@@ -1107,6 +1207,60 @@ export default function DashboardPage() {
         {/* ── SETTINGS TAB ── */}
         {activeTab === 'settings' && (
           <div className="space-y-5">
+
+            {/* Avatar upload — available to all plan types */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-6">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">Profile photo</h2>
+              <div className="flex items-center gap-5">
+                {/* Current avatar or placeholder */}
+                <div className="relative flex-shrink-0">
+                  {(avatarPreview || editContent.avatar_url) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={avatarPreview || editContent.avatar_url || ''}
+                      alt="Profile"
+                      className="w-20 h-20 rounded-full object-cover border border-gray-100"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-[#E8F0F9] flex items-center justify-center border border-gray-100">
+                      <span className="text-2xl font-bold text-[#0A66C2]">
+                        {user.email[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {/* Upload controls */}
+                <div>
+                  <label className="cursor-pointer inline-block">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])}
+                      disabled={avatarUploading}
+                    />
+                    <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
+                      avatarUploading
+                        ? 'border-gray-100 text-gray-300 cursor-not-allowed'
+                        : 'border-[#0A66C2] text-[#0A66C2] hover:bg-[#E8F0F9]'
+                    }`}>
+                      {avatarUploading ? (
+                        <>
+                          <span className="w-3.5 h-3.5 border-2 border-[#0A66C2] border-t-transparent rounded-full animate-spin" />
+                          Uploading…
+                        </>
+                      ) : 'Update photo'}
+                    </span>
+                  </label>
+                  <p className="text-xs text-gray-400 mt-1.5">JPEG, PNG, or WebP · max 2MB</p>
+                  {avatarMsg && (
+                    <p className={`text-xs mt-1.5 font-medium ${avatarMsg.type === 'ok' ? 'text-green-600' : 'text-red-500'}`}>
+                      {avatarMsg.type === 'ok' ? '✓ ' : ''}{avatarMsg.text}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
 
             {/* Account info */}
             <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-4">

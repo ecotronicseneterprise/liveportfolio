@@ -1,11 +1,10 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
 
-const creativeFonts = `
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300;1,9..144,600&family=JetBrains+Mono:wght@400;500&display=swap');
-`
+const creativeFonts = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300;1,9..144,600&family=JetBrains+Mono:wght@400;500&display=swap');`
 
 const css = `
   .nt-root {
@@ -133,6 +132,13 @@ const css = `
   }
   .nt-meta-desc { font-size: 12px; color: var(--muted); line-height: 1.6; padding-top: 2px; }
   .nt-meta-desc strong { display: block; color: var(--ink); font-size: 13px; margin-bottom: 2px; }
+
+  /* Avatar */
+  .nt-avatar-circle {
+    width: 72px; height: 72px; border-radius: 50%;
+    object-fit: cover; margin-bottom: 16px;
+    border: 2px solid var(--border);
+  }
 
   /* Section */
   .nt-section {
@@ -388,7 +394,6 @@ const css = `
 export default function Creative({ content }: { content: PortfolioContent }) {
   const rootRef = useRef<HTMLDivElement>(null)
 
-  // Fade-in on scroll
   useEffect(() => {
     const els = rootRef.current?.querySelectorAll('.nt-fade')
     if (!els) return
@@ -405,7 +410,6 @@ export default function Creative({ content }: { content: PortfolioContent }) {
     return () => obs.disconnect()
   }, [])
 
-  // Extract hero stats from project outcomes that contain numbers
   const statsProjects = content.projects
     .filter(p => p.outcome && /\d/.test(p.outcome))
     .slice(0, 3)
@@ -417,6 +421,9 @@ export default function Creative({ content }: { content: PortfolioContent }) {
       {/* Header */}
       <header className="nt-header">
         <div>
+          {content.avatar_url && (
+            <Image src={content.avatar_url} alt={content.name} width={72} height={72} className="nt-avatar-circle" style={{ borderRadius: '50%', objectFit: 'cover' }} />
+          )}
           <h1 className="nt-name">{content.name}</h1>
           <div className="nt-badge">{content.role}</div>
         </div>
@@ -459,7 +466,6 @@ export default function Creative({ content }: { content: PortfolioContent }) {
           </div>
         </div>
 
-        {/* Stats from project outcomes */}
         <div>
           {statsProjects.map((p, i) => {
             const match = p.outcome.match(/[\d,]+[%+kKmMbB₦$£€]?|\d+[\w.]+/)
@@ -493,31 +499,28 @@ export default function Creative({ content }: { content: PortfolioContent }) {
           </div>
           <div className="nt-projects-grid">
             {content.projects.map((p, i) => {
-              // First card: always full-width featured
-              // Remaining cards: if the remaining count is odd and this is the last, span full width
               const remaining = content.projects.length - 1
               const isLastOdd = i > 0 && remaining % 2 !== 0 && i === content.projects.length - 1
               return (
-              <div key={i} className={`nt-project-card${i === 0 ? ' nt-featured' : ''}${isLastOdd ? ' nt-featured' : ''}`}>
-                {p.image_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.image_url} alt={p.title} className="nt-project-img" />
-                )}
-                <div className="nt-project-body">
-                  <div className="nt-p-label">{p.stack.slice(0, 3).join(' · ')}</div>
-                  <div className="nt-p-name">{p.title}</div>
-                  <div className="nt-p-desc">{p.problem} {p.solution}</div>
-                  {p.outcome && <div className="nt-p-outcome">{p.outcome}</div>}
-                  <div className="nt-p-stack">
-                    {p.stack.map((s, j) => <span key={j} className="nt-stack-tag">{s}</span>)}
-                  </div>
-                  {p.url && (
-                    <a href={p.url} target="_blank" rel="noopener noreferrer" className="nt-p-link">
-                      View project →
-                    </a>
+                <div key={i} className={`nt-project-card${i === 0 ? ' nt-featured' : ''}${isLastOdd ? ' nt-featured' : ''}`}>
+                  {p.image_url && (
+                    <Image src={p.image_url} alt={p.title} width={1200} height={675} className="nt-project-img" />
                   )}
+                  <div className="nt-project-body">
+                    <div className="nt-p-label">{p.stack.slice(0, 3).join(' · ')}</div>
+                    <div className="nt-p-name">{p.title}</div>
+                    <div className="nt-p-desc">{p.problem} {p.solution}</div>
+                    {p.outcome && <div className="nt-p-outcome">{p.outcome}</div>}
+                    <div className="nt-p-stack">
+                      {p.stack.map((s, j) => <span key={j} className="nt-stack-tag">{s}</span>)}
+                    </div>
+                    {p.url && (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className="nt-p-link">
+                        View project →
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </div>
               )
             })}
           </div>
@@ -577,6 +580,45 @@ export default function Creative({ content }: { content: PortfolioContent }) {
               ))}
             </div>
           )}
+        </section>
+      )}
+
+      {/* Education */}
+      {content.education && content.education.length > 0 && (
+        <section className="nt-section nt-fade" id="education">
+          <div className="nt-section-header">
+            <span className="nt-section-num">04</span>
+            <h2 className="nt-section-title">Education</h2>
+            <div className="nt-section-line" />
+          </div>
+          <div>
+            {content.education.map((ed, i) => (
+              <div key={i} className="nt-exp-item">
+                <div className="nt-exp-date">{ed.year}</div>
+                <div>
+                  <div className="nt-exp-role">{ed.degree}</div>
+                  <div className="nt-exp-company">{ed.institution}</div>
+                  {ed.grade && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{ed.grade}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Certifications */}
+      {content.certifications && content.certifications.length > 0 && (
+        <section className="nt-section nt-fade" id="certifications">
+          <div className="nt-section-header">
+            <span className="nt-section-num">05</span>
+            <h2 className="nt-section-title">Certifications</h2>
+            <div className="nt-section-line" />
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {content.certifications.map((cert) => (
+              <span key={cert} className="nt-stack-tag" style={{ fontSize: 12, padding: '5px 12px' }}>{cert}</span>
+            ))}
+          </div>
         </section>
       )}
 
