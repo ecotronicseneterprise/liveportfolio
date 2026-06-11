@@ -239,7 +239,7 @@ export default function PortfolioShowcase() {
 
   useEffect(() => {
     if (paused) return
-    const id = setInterval(advance, 4000)
+    const id = setInterval(advance, 5000)
     return () => clearInterval(id)
   }, [paused]) // eslint-disable-line react-hooks/exhaustive-deps
 
