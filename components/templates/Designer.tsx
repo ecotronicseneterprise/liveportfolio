@@ -43,10 +43,6 @@ const css = `
   /* Hero */
   .ds-hero {
     padding: 80px 7vw 64px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 48px;
-    align-items: start;
     border-bottom: 1px solid var(--border);
   }
   .ds-hero-name {
@@ -88,23 +84,6 @@ const css = `
     transition: all 0.2s;
   }
   .ds-cta-ghost:hover { border-color: var(--primary); background: rgba(109,40,217,0.04); }
-  .ds-avatar-wrap {
-    flex-shrink: 0;
-  }
-  .ds-avatar {
-    width: 160px; height: 160px;
-    border-radius: 20px;
-    object-fit: cover;
-    box-shadow: 0 16px 48px rgba(109,40,217,0.18);
-  }
-  .ds-avatar-placeholder {
-    width: 160px; height: 160px;
-    border-radius: 20px;
-    background: linear-gradient(135deg, var(--border), var(--accent));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 56px;
-    box-shadow: 0 16px 48px rgba(109,40,217,0.18);
-  }
 
   /* Section wrapper */
   .ds-section {
@@ -240,9 +219,6 @@ const css = `
   .ds-footer a:hover { color: var(--primary); }
 
   @media (max-width: 700px) {
-    .ds-hero { grid-template-columns: 1fr; }
-    .ds-avatar-wrap { order: -1; }
-    .ds-avatar, .ds-avatar-placeholder { width: 100px; height: 100px; }
     .ds-process { grid-template-columns: 1fr; }
     .ds-nav-links { display: none; }
     .ds-contact { padding: 48px 6vw; }
@@ -302,15 +278,6 @@ export default function Designer({ content }: { content: PortfolioContent }) {
               <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="ds-cta-ghost">GitHub</a>
             )}
           </div>
-        </div>
-        <div className="ds-avatar-wrap">
-          {content.avatar_url ? (
-            <Image src={content.avatar_url} alt={content.name} width={160} height={160} className="ds-avatar" />
-          ) : (
-            <div className="ds-avatar-placeholder" style={{ fontSize: '48px', fontWeight: 600, fontFamily: 'sans-serif' }}>
-              {content.name.charAt(0).toUpperCase()}
-            </div>
-          )}
         </div>
       </section>
 

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
-const CACHE_KEY = 'lp_pricing_region'
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
+const CACHE_KEY = 'lp_pricing_region_v2'
+const CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
 
 interface RegionCache {
   region: 'NG' | 'INTL'
@@ -11,8 +11,8 @@ interface RegionCache {
   cachedAt: number
 }
 
-export function useRegion(): { region: 'NG' | 'INTL'; loading: boolean } {
-  const [region, setRegion] = useState<'NG' | 'INTL'>('NG')
+export function useRegion(): { region: 'NG' | 'INTL' | null; loading: boolean } {
+  const [region, setRegion] = useState<'NG' | 'INTL' | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

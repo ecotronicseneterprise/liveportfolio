@@ -12,6 +12,7 @@ export default function PricingSection() {
   const { region } = useRegion()
   const { basicUsd, proUsd, rateLoading } = useUsdRate()
   const isIntl = region === 'INTL'
+  const regionLoading = region === null
 
   return (
     <section className="w-full bg-gray-50 border-b border-gray-100">
@@ -58,9 +59,11 @@ export default function PricingSection() {
             </div>
             <p className="text-xs font-bold text-[#0A66C2] uppercase tracking-widest mb-2 mt-2">Basic</p>
             <p className="text-3xl font-bold text-gray-900 mb-1">
-              {isIntl
-                ? (rateLoading || basicUsd === null ? <PriceSkeleton /> : <>${basicUsd}</>)
-                : '₦15,000'}
+              {regionLoading
+                ? <PriceSkeleton />
+                : isIntl
+                  ? (rateLoading || basicUsd === null ? <PriceSkeleton /> : <>${basicUsd}</>)
+                  : '₦15,000'}
               <span className="text-base font-normal text-gray-400">/year</span>
             </p>
             <p className="text-sm text-gray-400 mb-0.5">The core product</p>
@@ -91,9 +94,11 @@ export default function PricingSection() {
               Pro
             </p>
             <p className="text-3xl font-bold text-gray-900 mb-1">
-              {isIntl
-                ? (rateLoading || proUsd === null ? <PriceSkeleton /> : <>${proUsd}</>)
-                : '₦45,000'}
+              {regionLoading
+                ? <PriceSkeleton />
+                : isIntl
+                  ? (rateLoading || proUsd === null ? <PriceSkeleton /> : <>${proUsd}</>)
+                  : '₦45,000'}
               <span className="text-base font-normal text-gray-400">/year</span>
             </p>
             <p className="text-sm text-gray-400 mb-0.5">Power users</p>

@@ -133,12 +133,6 @@ const css = `
   .nt-meta-desc { font-size: 12px; color: var(--muted); line-height: 1.6; padding-top: 2px; }
   .nt-meta-desc strong { display: block; color: var(--ink); font-size: 13px; margin-bottom: 2px; }
 
-  /* Avatar */
-  .nt-avatar-circle {
-    width: 72px; height: 72px; border-radius: 50%;
-    object-fit: cover; margin-bottom: 16px;
-    border: 2px solid var(--border);
-  }
 
   /* Section */
   .nt-section {
@@ -430,9 +424,6 @@ export default function Creative({ content }: { content: PortfolioContent }) {
             </h1>
             <div className="nt-badge">{content.role}</div>
           </div>
-          {content.avatar_url && (
-            <Image src={content.avatar_url} alt={content.name} width={72} height={72} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, marginTop: 4 }} />
-          )}
         </div>
         <div className="nt-header-right">
           <nav className="nt-nav">

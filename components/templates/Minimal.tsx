@@ -136,9 +136,6 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
                     <span key={i} style={{ display: 'block' }}>{part}</span>
                   ))}
                 </h1>
-                {content.avatar_url && (
-                  <Image src={content.avatar_url} alt={content.name} width={80} height={80} className="rounded-full object-cover object-top flex-shrink-0 mt-1" />
-                )}
               </div>
               <div className="w-8 h-0.5 bg-[#0A66C2] my-4" />
               <p className="text-xl text-gray-500 mb-6">{content.role}</p>

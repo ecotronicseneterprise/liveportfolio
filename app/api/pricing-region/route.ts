@@ -14,7 +14,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const { country } = await getIpInfo(ip, ipHash, supabaseAdmin)
 
-    const region: 'NG' | 'INTL' = country === 'Nigeria' ? 'NG' : 'INTL'
+    const region: 'NG' | 'INTL' = (country === 'NG' || country === 'Nigeria') ? 'NG' : 'INTL'
 
     return NextResponse.json({ region, country })
   } catch {

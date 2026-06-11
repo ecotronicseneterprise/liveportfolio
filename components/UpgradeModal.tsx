@@ -34,6 +34,7 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
   const { basicUsd, proUsd, rateLoading } = useUsdRate()
   const { region } = useRegion()
   const isIntl = region === 'INTL'
+  const regionLoading = region === null
 
   // Load Paystack inline script
   useEffect(() => {
@@ -110,9 +111,11 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
                   Basic
                 </span>
                 <p className="text-2xl font-bold text-gray-900 mt-0.5">
-                  {isIntl
-                    ? (rateLoading || basicUsd === null ? <PriceSkeleton /> : <>${basicUsd}</>)
-                    : '₦15,000'}
+                  {regionLoading
+                    ? <PriceSkeleton />
+                    : isIntl
+                      ? (rateLoading || basicUsd === null ? <PriceSkeleton /> : <>${basicUsd}</>)
+                      : '₦15,000'}
                   <span className="text-sm font-normal text-gray-400">/year</span>
                 </p>
               </div>
@@ -144,9 +147,11 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
                   Pro
                 </span>
                 <p className="text-2xl font-bold text-gray-900 mt-0.5">
-                  {isIntl
-                    ? (rateLoading || proUsd === null ? <PriceSkeleton /> : <>${proUsd}</>)
-                    : '₦45,000'}
+                  {regionLoading
+                    ? <PriceSkeleton />
+                    : isIntl
+                      ? (rateLoading || proUsd === null ? <PriceSkeleton /> : <>${proUsd}</>)
+                      : '₦45,000'}
                   <span className="text-sm font-normal text-gray-400">/year</span>
                 </p>
               </div>
