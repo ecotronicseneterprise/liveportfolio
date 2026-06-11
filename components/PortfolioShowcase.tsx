@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface ShowcasePortfolio {
   slug: string
@@ -124,16 +124,13 @@ function darkBg(p: ShowcasePortfolio): string {
   return DARK_BG[p.template] ?? '#1E293B'
 }
 
-// Card height in px — iframe viewport will be computed from this + scale
-const CARD_HEIGHT = 420
-// Scale the iframe desktop layout (1280px wide) down to fit the card
+const CARD_HEIGHT = 500
 const IFRAME_SCALE = 0.27
-// The iframe renders at 1280px wide; after scaling the visible width = 1280 * 0.27 = ~346px
-// We want the card wrapper to be that visual width, so overflow is clipped correctly.
 const IFRAME_WIDTH = 1280
 const IFRAME_HEIGHT = Math.round(CARD_HEIGHT / IFRAME_SCALE)
+const CARD_WIDTH = Math.round(IFRAME_WIDTH * IFRAME_SCALE)
 
-function Card({ p, index }: { p: ShowcasePortfolio; index: number }) {
+function Card({ p, active }: { p: ShowcasePortfolio; active: boolean }) {
   const isDark = p.mode === 'dark'
   const barBg = isDark ? 'rgba(15,23,42,0.90)' : 'rgba(255,255,255,0.92)'
   const textPrimary = isDark ? '#F8FAFC' : '#0A0A0A'
@@ -144,27 +141,31 @@ function Card({ p, index }: { p: ShowcasePortfolio; index: number }) {
     <div
       onClick={() => window.open(url, '_blank')}
       style={{
-        display: 'block',
+        position: 'absolute',
+        inset: 0,
         borderRadius: 16,
         overflow: 'hidden',
-        position: 'relative',
         border: isDark
           ? `1px solid rgba(255,255,255,0.07)`
           : `2px solid ${p.accent}`,
         boxShadow: isDark
           ? '0 4px 24px rgba(0,0,0,0.4)'
           : '0 2px 16px rgba(0,0,0,0.07)',
-        height: CARD_HEIGHT,
         cursor: 'pointer',
+        opacity: active ? 1 : 0,
+        zIndex: active ? 1 : 0,
+        pointerEvents: active ? 'auto' : 'none',
+        transition: 'opacity 300ms ease',
+        background: isDark ? darkBg(p) : '#fff',
       }}
     >
-      {/* Scaled iframe preview */}
-      <div style={{ width: IFRAME_WIDTH * IFRAME_SCALE, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative' }}>
+      {/* Scaled iframe */}
+      <div style={{ width: CARD_WIDTH, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative' }}>
         <iframe
           src={url}
           title={`${p.name} portfolio`}
           scrolling="no"
-          loading={index < 3 ? 'eager' : 'lazy'}
+          loading="eager"
           style={{
             width: IFRAME_WIDTH,
             height: IFRAME_HEIGHT,
@@ -176,7 +177,7 @@ function Card({ p, index }: { p: ShowcasePortfolio; index: number }) {
         />
       </div>
 
-      {/* Info bar overlay pinned to bottom */}
+      {/* Info bar pinned to bottom */}
       <div
         style={{
           position: 'absolute',
@@ -226,93 +227,21 @@ function Card({ p, index }: { p: ShowcasePortfolio; index: number }) {
   )
 }
 
-// How many clones to append at the end (enough to fill the peek)
-const CLONE_COUNT = 3
-
 export default function PortfolioShowcase() {
   const total = PORTFOLIOS.length
-  // real index into PORTFOLIOS (0..total-1), used for dots + accent colour
-  const [realIndex, setRealIndex] = useState(0)
+  const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
-  const trackRef = useRef<HTMLDivElement>(null)
-  const transitioning = useRef(false)
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
-  // track position as a raw slot index (0..total+CLONE_COUNT-1)
-  const slotRef = useRef(0)
 
-  // The rendered list: real cards + clones of the first CLONE_COUNT
-  const items = [...PORTFOLIOS, ...PORTFOLIOS.slice(0, CLONE_COUNT)]
+  const advance = () => setIndex((i) => (i + 1) % total)
+  const retreat = () => setIndex((i) => (i - 1 + total) % total)
 
-  const getCardWidth = useCallback((): number => {
-    const track = trackRef.current
-    if (!track) return 0
-    const first = track.firstElementChild as HTMLElement | null
-    if (!first) return 0
-    return first.offsetWidth + 12
-  }, [])
-
-  const moveTo = useCallback((slot: number, animated: boolean) => {
-    const track = trackRef.current
-    if (!track) return
-    const cardWidth = getCardWidth()
-    track.style.transition = animated
-      ? 'transform 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-      : 'none'
-    track.style.transform = `translateX(-${slot * cardWidth}px)`
-    slotRef.current = slot
-  }, [getCardWidth])
-
-  const advance = useCallback(() => {
-    if (transitioning.current) return
-    transitioning.current = true
-    const nextSlot = slotRef.current + 1
-    const nextReal = nextSlot % total
-    setRealIndex(nextReal)
-    moveTo(nextSlot, true)
-
-    // After transition ends, if we've hit a clone, silently jump to the real position
-    setTimeout(() => {
-      if (nextSlot >= total) {
-        moveTo(nextSlot % total, false)
-      }
-      transitioning.current = false
-    }, 620)
-  }, [moveTo, total])
-
-  const retreat = useCallback(() => {
-    if (transitioning.current) return
-    transitioning.current = true
-    let prevSlot = slotRef.current - 1
-    // If already at 0, silently jump to the equivalent clone position then slide back
-    if (prevSlot < 0) {
-      moveTo(total, false)
-      prevSlot = total - 1
-    }
-    const prevReal = prevSlot % total
-    setRealIndex(prevReal)
-    // Small delay lets the silent jump paint before we animate
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        moveTo(prevSlot < 0 ? total - 1 : prevSlot, true)
-        setTimeout(() => { transitioning.current = false }, 620)
-      })
-    })
-  }, [moveTo, total])
-
-  // Auto-advance every 4 seconds
   useEffect(() => {
     if (paused) return
     const id = setInterval(advance, 4000)
     return () => clearInterval(id)
-  }, [paused, advance])
-
-  // Recalculate position on resize
-  useEffect(() => {
-    const handler = () => moveTo(slotRef.current, false)
-    window.addEventListener('resize', handler)
-    return () => window.removeEventListener('resize', handler)
-  }, [moveTo])
+  }, [paused]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
@@ -332,13 +261,6 @@ export default function PortfolioShowcase() {
     setPaused(false)
   }
 
-  const jumpTo = (i: number) => {
-    if (transitioning.current) return
-    setRealIndex(i)
-    moveTo(i, true)
-    setPaused(false)
-  }
-
   return (
     <div className="w-full border-t border-gray-100 py-10 sm:py-14">
       {/* Header */}
@@ -349,41 +271,29 @@ export default function PortfolioShowcase() {
         <p className="text-sm text-gray-400 mt-1">Every one built in under 10 minutes.</p>
       </div>
 
-      {/* Slideshow */}
+      {/* Stacked crossfade slideshow */}
       <div
-        style={{ overflow: 'hidden', position: 'relative', paddingLeft: 24 }}
+        className="px-6 sm:px-10 lg:px-16"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
         <div
-          ref={trackRef}
           style={{
-            display: 'flex',
-            willChange: 'transform',
+            position: 'relative',
+            height: CARD_HEIGHT,
+            maxWidth: CARD_WIDTH,
           }}
         >
-          {items.map((p, i) => (
-            <div
-              key={`${p.slug}-${i}`}
-              style={{
-                flexShrink: 0,
-                // Mobile: full width minus the 24px left padding + 24px right breathing room
-                // Desktop: ~78% so next card peeks ~18% on the right
-                width: 'clamp(280px, calc(100vw - 72px), 520px)',
-                maxWidth: '78vw',
-                marginRight: 12,
-              }}
-            >
-              <Card p={p} index={i} />
-            </div>
+          {PORTFOLIOS.map((p, i) => (
+            <Card key={p.slug} p={p} active={i === index} />
           ))}
         </div>
       </div>
 
       {/* Dots + arrows */}
-      <div className="flex items-center justify-center gap-3 mt-6 px-6">
+      <div className="flex items-center justify-start gap-3 mt-6 px-6 sm:px-10 lg:px-16">
         <button
           onClick={retreat}
           aria-label="Previous portfolio"
@@ -398,13 +308,13 @@ export default function PortfolioShowcase() {
           {PORTFOLIOS.map((p, i) => (
             <button
               key={p.slug}
-              onClick={() => jumpTo(i)}
+              onClick={() => { setIndex(i); setPaused(false) }}
               aria-label={`Go to ${p.name}`}
               style={{
-                width: i === realIndex ? 20 : 6,
+                width: i === index ? 20 : 6,
                 height: 6,
                 borderRadius: 99,
-                background: i === realIndex ? PORTFOLIOS[realIndex].accent : '#D1D5DB',
+                background: i === index ? PORTFOLIOS[index].accent : '#D1D5DB',
                 border: 'none',
                 padding: 0,
                 cursor: 'pointer',

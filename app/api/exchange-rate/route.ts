@@ -5,7 +5,7 @@ export const revalidate = 86400
 export async function GET() {
   try {
     const res = await fetch(
-      'https://api.frankfurter.app/latest?from=NGN&to=USD',
+      'https://open.er-api.com/v6/latest/NGN',
       { next: { revalidate: 86400 } }
     )
     if (!res.ok) throw new Error('fetch failed')

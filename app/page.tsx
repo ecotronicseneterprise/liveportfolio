@@ -2,7 +2,11 @@ import Link from 'next/link'
 import LandingNav from '@/components/LandingNav'
 import SupportButton from '@/components/SupportButton'
 import PricingSection from '@/components/PricingSection'
-import PortfolioShowcase from '@/components/PortfolioShowcase'
+import dynamic from 'next/dynamic'
+const PortfolioShowcase = dynamic(
+  () => import('@/components/PortfolioShowcase'),
+  { ssr: false }
+)
 
 const jsonLd = {
   '@context': 'https://schema.org',
