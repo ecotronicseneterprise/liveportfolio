@@ -51,12 +51,15 @@ const css = `
   }
   .ds-hero-name {
     font-family: 'Syne', sans-serif;
-    font-size: clamp(44px, 6vw, 76px);
+    font-size: clamp(28px, 6vw, 76px);
     font-weight: 800;
     line-height: 1.0;
     letter-spacing: -0.03em;
     color: var(--text);
     margin-bottom: 12px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
   }
   .ds-hero-role {
     font-family: 'DM Sans', sans-serif;
@@ -303,7 +306,9 @@ export default function Designer({ content }: { content: PortfolioContent }) {
           {content.avatar_url ? (
             <Image src={content.avatar_url} alt={content.name} width={160} height={160} className="ds-avatar" />
           ) : (
-            <div className="ds-avatar-placeholder">✦</div>
+            <div className="ds-avatar-placeholder" style={{ fontSize: '48px', fontWeight: 600, fontFamily: 'sans-serif' }}>
+              {content.name.charAt(0).toUpperCase()}
+            </div>
           )}
         </div>
       </section>
@@ -339,25 +344,6 @@ export default function Designer({ content }: { content: PortfolioContent }) {
           </div>
         </section>
       )}
-
-      {/* Process */}
-      <section className="ds-section">
-        <div className="ds-section-eyebrow">How I Work</div>
-        <div className="ds-section-title">My Process</div>
-        <div className="ds-process">
-          {[
-            { num: '01', label: 'Research', desc: 'Understand the problem, users, and constraints before picking up a tool.' },
-            { num: '02', label: 'Design', desc: 'Iterate rapidly from rough concepts to polished solutions with clear rationale.' },
-            { num: '03', label: 'Outcome', desc: 'Measure impact. Ship work that moves a real metric.' },
-          ].map((step) => (
-            <div key={step.num} className="ds-process-step">
-              <div className="ds-process-num">{step.num}</div>
-              <div className="ds-process-label">{step.label}</div>
-              <div className="ds-process-desc">{step.desc}</div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* Skills */}
       {content.skills.length > 0 && (

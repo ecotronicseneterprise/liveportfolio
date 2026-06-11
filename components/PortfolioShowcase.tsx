@@ -124,24 +124,30 @@ function darkBg(p: ShowcasePortfolio): string {
   return DARK_BG[p.template] ?? '#1E293B'
 }
 
+// Card height in px — iframe viewport will be computed from this + scale
+const CARD_HEIGHT = 420
+// Scale the iframe desktop layout (1280px wide) down to fit the card
+const IFRAME_SCALE = 0.27
+// The iframe renders at 1280px wide; after scaling the visible width = 1280 * 0.27 = ~346px
+// We want the card wrapper to be that visual width, so overflow is clipped correctly.
+const IFRAME_WIDTH = 1280
+const IFRAME_HEIGHT = Math.round(CARD_HEIGHT / IFRAME_SCALE)
+
 function Card({ p }: { p: ShowcasePortfolio }) {
   const isDark = p.mode === 'dark'
-  const bg = isDark ? darkBg(p) : '#ffffff'
+  const barBg = isDark ? 'rgba(15,23,42,0.90)' : 'rgba(255,255,255,0.92)'
   const textPrimary = isDark ? '#F8FAFC' : '#0A0A0A'
   const textMuted = isDark ? '#94A3B8' : '#6B7280'
-  const divider = isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6'
 
   return (
     <a
-      href={`/${p.slug}`}
+      href={`https://${p.slug}.liveportfolio.site`}
       target="_blank"
       rel="noopener noreferrer"
       style={{
         display: 'block',
-        background: bg,
         borderRadius: 16,
-        padding: '20px 20px 18px',
-        textDecoration: 'none',
+        overflow: 'hidden',
         position: 'relative',
         border: isDark
           ? `1px solid rgba(255,255,255,0.07)`
@@ -149,12 +155,52 @@ function Card({ p }: { p: ShowcasePortfolio }) {
         boxShadow: isDark
           ? '0 4px 24px rgba(0,0,0,0.4)'
           : '0 2px 16px rgba(0,0,0,0.07)',
-        height: '100%',
-        boxSizing: 'border-box',
+        height: CARD_HEIGHT,
+        textDecoration: 'none',
       }}
     >
-      {/* Template badge */}
-      <div style={{ position: 'absolute', top: 16, right: 16 }}>
+      {/* Scaled iframe preview */}
+      <div style={{ width: IFRAME_WIDTH * IFRAME_SCALE, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative' }}>
+        <iframe
+          src={`https://${p.slug}.liveportfolio.site`}
+          title={`${p.name} portfolio`}
+          scrolling="no"
+          style={{
+            width: IFRAME_WIDTH,
+            height: IFRAME_HEIGHT,
+            border: 'none',
+            transform: `scale(${IFRAME_SCALE})`,
+            transformOrigin: 'top left',
+            pointerEvents: 'none',
+          }}
+        />
+      </div>
+
+      {/* Info bar overlay pinned to bottom */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: barBg,
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          padding: '10px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: textPrimary, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {p.name}
+          </p>
+          <p style={{ margin: '1px 0 0', fontSize: 11, color: textMuted, lineHeight: 1.4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {p.role}
+          </p>
+        </div>
         <span
           style={{
             fontSize: 10,
@@ -165,99 +211,10 @@ function Card({ p }: { p: ShowcasePortfolio }) {
             padding: '3px 8px',
             borderRadius: 99,
             textTransform: 'uppercase',
+            flexShrink: 0,
           }}
         >
           {p.template}
-        </span>
-      </div>
-
-      {/* Identity row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, paddingRight: 80 }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={p.avatar}
-          alt={p.name}
-          width={56}
-          height={56}
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
-            objectFit: 'cover',
-            flexShrink: 0,
-            background: `${p.accent}33`,
-          }}
-          onError={(e) => {
-            const el = e.currentTarget
-            el.style.display = 'none'
-            const ph = el.nextElementSibling as HTMLElement | null
-            if (ph) ph.style.display = 'flex'
-          }}
-        />
-        {/* Initials fallback */}
-        <div
-          aria-hidden="true"
-          style={{
-            display: 'none',
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
-            background: `${p.accent}33`,
-            color: p.accent,
-            fontSize: 20,
-            fontWeight: 700,
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          {p.name.charAt(0)}
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: textPrimary, lineHeight: 1.3 }}>
-            {p.name}
-          </p>
-          <p style={{ margin: '2px 0 0', fontSize: 13, color: textMuted, lineHeight: 1.4 }}>
-            {p.role}
-          </p>
-        </div>
-      </div>
-
-      <div style={{ height: 1, background: divider, marginBottom: 14 }} />
-
-      {/* Skills */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-        {p.skills.map((s) => (
-          <span
-            key={s}
-            style={{
-              fontSize: 11,
-              fontWeight: 500,
-              color: p.accent,
-              background: `${p.accent}1A`,
-              padding: '3px 9px',
-              borderRadius: 99,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {s}
-          </span>
-        ))}
-      </div>
-
-      <div style={{ height: 1, background: divider, marginBottom: 14 }} />
-
-      {/* Highlight stat */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 16 }}>
-        <span style={{ color: p.accent, fontSize: 14, lineHeight: 1, flexShrink: 0, marginTop: 1 }}>✦</span>
-        <p style={{ margin: 0, fontSize: 13, color: isDark ? '#CBD5E1' : '#374151', lineHeight: 1.5, fontWeight: 500 }}>
-          {p.highlight}
-        </p>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: p.accent }}>
-          View portfolio →
         </span>
       </div>
     </a>

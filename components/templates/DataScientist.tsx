@@ -43,21 +43,8 @@ const css = `
 
   /* Hero */
   .sci-hero {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 32px; align-items: center;
     padding: 48px 0 40px;
     border-bottom: 1px solid var(--border);
-  }
-  .sci-avatar {
-    width: 80px; height: 80px; border-radius: 50%;
-    object-fit: cover; border: 2px solid var(--accent);
-  }
-  .sci-avatar-ph {
-    width: 80px; height: 80px; border-radius: 50%;
-    background: var(--surface); border: 2px solid var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 32px; color: var(--muted);
   }
   .sci-hero-name {
     font-family: 'IBM Plex Sans', sans-serif;
@@ -273,13 +260,6 @@ export default function DataScientist({ content }: { content: PortfolioContent }
       <div className="sci-body">
         {/* Hero */}
         <div className="sci-hero">
-          {content.avatar_url ? (
-            <Image src={content.avatar_url} alt={content.name} width={80} height={80} className="sci-avatar" style={{ borderRadius: '50%', objectFit: 'cover' }} />
-          ) : (
-            <div className="sci-avatar-ph" style={{ fontSize: 28, fontWeight: 600, color: '#fff', background: '#0F766E' }}>
-              {content.name.charAt(0).toUpperCase()}
-            </div>
-          )}
           <div>
             <div className="sci-hero-name">{content.name}</div>
             <div className="sci-hero-role">{content.role}</div>

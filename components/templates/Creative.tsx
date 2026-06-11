@@ -20,7 +20,7 @@ const css = `
     color: var(--ink);
     font-family: 'Space Grotesk', sans-serif;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   /* Header */
@@ -179,7 +179,7 @@ const css = `
   /* Skills */
   .nt-skills-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 2px;
     background: var(--border);
     border: 1px solid var(--border);
@@ -383,7 +383,7 @@ const css = `
     .nt-projects-grid { grid-template-columns: 1fr; }
     .nt-project-card.nt-featured { grid-column: 1; }
     .nt-section { padding: 0 5vw; }
-    .nt-skills-grid { grid-template-columns: 1fr 1fr; }
+    .nt-skills-grid { grid-template-columns: 1fr; }
     .nt-contact { flex-direction: column; padding: 32px 5vw; }
     .nt-contact-links { align-items: flex-start; }
     .nt-exp-item { grid-template-columns: 1fr; gap: 6px; }
@@ -567,11 +567,11 @@ export default function Creative({ content }: { content: PortfolioContent }) {
             <div className="nt-section-line" />
           </div>
           {content.skills_grouped && content.skills_grouped.length > 0 ? (
-            <div className="nt-skills-grid" style={{ gridTemplateColumns: `repeat(${content.skills_grouped.filter(g => g.items && g.items.length > 0).length}, 1fr)` }}>
+            <div className="nt-skills-grid">
               {content.skills_grouped.filter(g => g.items && g.items.length > 0).map((g, i) => (
                 <div key={i} className="nt-skill-cell">
                   <div className="nt-skill-cat">{g.category}</div>
-                  <div className="nt-skill-items">{g.items.join('\n').split('\n').map((s, j) => <span key={j}>{s}<br /></span>)}</div>
+                  <div className="nt-skill-items" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>{g.items.map((s, j) => <span key={j}>{s}</span>)}</div>
                 </div>
               ))}
             </div>

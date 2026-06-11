@@ -608,8 +608,10 @@ export default function DashboardPage() {
       setEditContent((prev) => ({ ...prev, avatar_url: newUrl }))
       setAvatarPreview(newUrl)
       setAvatarMsg({ type: 'ok', text: 'Photo updated' })
-    } catch {
-      setAvatarMsg({ type: 'err', text: 'Upload failed. Please try again.' })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[avatar upload]', msg)
+      setAvatarMsg({ type: 'err', text: `Upload failed: ${msg.slice(0, 120)}` })
     } finally {
       setAvatarUploading(false)
     }

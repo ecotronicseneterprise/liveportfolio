@@ -48,22 +48,6 @@ const css = `
   .cy-hero {
     padding: 48px 0 36px;
     border-bottom: 1px solid var(--border);
-    display: grid; grid-template-columns: auto 1fr;
-    gap: 32px; align-items: start;
-  }
-  .cy-avatar {
-    width: 80px; height: 80px; border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--accent);
-    box-shadow: 0 0 12px rgba(74,222,128,0.2);
-  }
-  .cy-avatar-ph {
-    width: 80px; height: 80px; border-radius: 50%;
-    background: var(--surface);
-    border: 2px solid var(--accent);
-    box-shadow: 0 0 12px rgba(74,222,128,0.2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 30px; color: var(--accent);
   }
   .cy-hero-name {
     font-size: clamp(22px, 3.5vw, 40px);
@@ -298,13 +282,6 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
       <div className="cy-body">
         {/* Hero */}
         <div className="cy-hero">
-          {content.avatar_url ? (
-            <Image src={content.avatar_url} alt={content.name} width={80} height={80} className="cy-avatar" style={{ borderRadius: '50%', objectFit: 'cover' }} />
-          ) : (
-            <div className="cy-avatar-ph" style={{ fontSize: 28, fontWeight: 600, color: '#fff', background: '#166534' }}>
-              {content.name.charAt(0).toUpperCase()}
-            </div>
-          )}
           <div>
             <div className="cy-hero-name">{content.name}</div>
             <div className="cy-hero-role">{content.role}</div>

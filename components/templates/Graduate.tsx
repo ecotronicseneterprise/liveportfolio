@@ -285,15 +285,6 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
               )}
             </div>
           ))}
-          {/* If no education entries found in experience, show a placeholder */}
-          {!content.experience.some(e =>
-            /universit|college|school|degree|bsc|msc|ba |ma |phd|polytechnic|institute/i.test(e.company + ' ' + e.role)
-          ) && (
-            <div className="gr-edu-card">
-              <div className="gr-edu-degree">Education details coming soon</div>
-              <div className="gr-edu-institution">—</div>
-            </div>
-          )}
         </div>
       </section>
 

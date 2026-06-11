@@ -44,18 +44,6 @@ const css = `
     padding: 40px 28px;
     display: flex; flex-direction: column; gap: 32px;
   }
-  .fin-avatar {
-    width: 80px; height: 80px;
-    border-radius: 8px; object-fit: cover;
-    border: 1px solid var(--border);
-  }
-  .fin-avatar-ph {
-    width: 80px; height: 80px; border-radius: 8px;
-    background: var(--primary);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px; color: var(--accent);
-    border: 1px solid var(--border);
-  }
   .fin-sidebar-name { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
   .fin-sidebar-role { font-size: 13px; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.02em; }
   .fin-sidebar-meta { font-size: 12px; color: var(--muted); line-height: 1.7; }
@@ -208,14 +196,6 @@ export default function Finance({ content }: { content: PortfolioContent }) {
       <div className="fin-layout">
         {/* Sidebar */}
         <aside className="fin-sidebar">
-          {content.avatar_url ? (
-            <Image src={content.avatar_url} alt={content.name} width={80} height={80} className="fin-avatar" />
-          ) : (
-            <div className="fin-avatar-ph" style={{ fontSize: 28, fontWeight: 600, color: '#fff', background: '#1E3A8A' }}>
-              {content.name.charAt(0).toUpperCase()}
-            </div>
-          )}
-
           <div>
             <div className="fin-sidebar-name">{content.name}</div>
             <div className="fin-sidebar-role">{content.role}</div>
