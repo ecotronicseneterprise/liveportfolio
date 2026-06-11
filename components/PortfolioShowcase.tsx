@@ -162,20 +162,24 @@ function Card({ p, active }: { p: ShowcasePortfolio; active: boolean }) {
     >
       {/* Scaled iframe */}
       <div style={{ width: CARD_WIDTH, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative' }}>
-        <iframe
-          src={url}
-          title={`${p.name} portfolio`}
-          scrolling="no"
-          loading="eager"
-          style={{
-            width: IFRAME_WIDTH,
-            height: IFRAME_HEIGHT,
-            border: 'none',
-            transform: `scale(${IFRAME_SCALE})`,
-            transformOrigin: 'top left',
-            pointerEvents: 'none',
-          }}
-        />
+        {active ? (
+          <iframe
+            src={url}
+            title={`${p.name} portfolio`}
+            scrolling="no"
+            loading="lazy"
+            style={{
+              width: IFRAME_WIDTH,
+              height: IFRAME_HEIGHT,
+              border: 'none',
+              transform: `scale(${IFRAME_SCALE})`,
+              transformOrigin: 'top left',
+              pointerEvents: 'none',
+            }}
+          />
+        ) : (
+          <div aria-hidden style={{ width: CARD_WIDTH, height: CARD_HEIGHT }} />
+        )}
       </div>
 
       {/* Info bar pinned to bottom */}
