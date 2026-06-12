@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 
 const CACHE_KEY = 'lp_pricing_region_v2'
-const CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
 
 interface RegionCache {
   region: 'NG' | 'INTL'
@@ -16,37 +15,47 @@ export function useRegion(): { region: 'NG' | 'INTL' | null; loading: boolean } 
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check localStorage cache first
+    let cachedData: RegionCache | null = null
+
     try {
       const raw = localStorage.getItem(CACHE_KEY)
       if (raw) {
-        const cached: RegionCache = JSON.parse(raw)
-        if (Date.now() - cached.cachedAt < CACHE_TTL_MS) {
-          setRegion(cached.region)
-          setLoading(false)
-          return
-        }
+        cachedData = JSON.parse(raw) as RegionCache
+        setRegion(cachedData.region)
+        setLoading(false)
       }
-    } catch { /* ignore */ }
+    } catch {
+      cachedData = null
+    }
 
-    // Fetch from API
+    // Always revalidate in background — stale-while-revalidate
     const controller = new AbortController()
 
     fetch('/api/pricing-region', { signal: controller.signal })
       .then((r) => r.json())
       .then((data: { region: 'NG' | 'INTL'; country: string | null }) => {
-        const resolved = data?.region === 'INTL' ? 'INTL' : 'NG'
+        const resolved: 'NG' | 'INTL' = data?.region === 'INTL' ? 'INTL' : 'NG'
+        const country = data?.country ?? null
+
+        const changed = !cachedData ||
+          cachedData.region !== resolved ||
+          cachedData.country !== country
+
+        if (changed) {
+          setRegion(resolved)
+        }
+
         try {
-          const entry: RegionCache = { region: resolved, country: data?.country ?? null, cachedAt: Date.now() }
-          localStorage.setItem(CACHE_KEY, JSON.stringify(entry))
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ region: resolved, country, cachedAt: Date.now() }))
         } catch { /* ignore */ }
-        setRegion(resolved)
-        setLoading(false)
+
+        if (!cachedData) setLoading(false)
       })
       .catch(() => {
-        // Any failure → safe default
-        setRegion('NG')
-        setLoading(false)
+        if (!cachedData) {
+          setRegion('NG')
+          setLoading(false)
+        }
       })
 
     return () => controller.abort()
