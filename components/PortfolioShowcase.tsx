@@ -13,6 +13,7 @@ interface ShowcasePortfolio {
   skills: string[]
   highlight: string
   preview: string
+  objectPosition?: string
 }
 
 // Screenshots are static PNGs in the Supabase 'showcase' bucket.
@@ -86,6 +87,7 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     skills: ['Financial Modelling', 'Excel', 'SQL', 'Power BI'],
     highlight: '£2B+ in M&A transactions · CFA Charterholder',
     preview: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/showcase/michael-roberts.png',
+    objectPosition: 'center top',
   },
   // light
   {
@@ -193,7 +195,7 @@ function Card({
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            objectPosition: 'top',
+            objectPosition: p.objectPosition ?? 'top',
             display: 'block',
             borderRadius: 'inherit',
           }}
@@ -257,13 +259,23 @@ export default function PortfolioShowcase() {
   const total = PORTFOLIOS.length
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [cardWidth, setCardWidth] = useState(400)
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
 
   const advance = () => setIndex((i) => (i + 1) % total)
   const retreat = () => setIndex((i) => (i - 1 + total) % total)
 
-  const cardWidth = 400
+  useEffect(() => {
+    const updateWidth = () => {
+      const w = window.innerWidth
+      const padding = w < 640 ? 32 : 80  // px-4 (16*2) vs px-10 (40*2)
+      setCardWidth(Math.min(w - padding, 400))
+    }
+    updateWidth()
+    window.addEventListener('resize', updateWidth)
+    return () => window.removeEventListener('resize', updateWidth)
+  }, [])
 
   useEffect(() => {
     if (paused) return
