@@ -10,7 +10,7 @@ export async function GET() {
     )
     if (!res.ok) throw new Error('fetch failed')
     const data = await res.json()
-    const rate = data?.rates?.USD
+    const rate = data?.rates?.USD ?? data?.rate
     if (!rate) throw new Error('no rate')
     return NextResponse.json({ rate }, {
       headers: { 'Cache-Control': 'public, max-age=86400' }
