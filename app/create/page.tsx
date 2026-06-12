@@ -615,6 +615,12 @@ export default function CreatePage() {
       if (!genData.portfolio_id) throw new Error('Generation failed — please try again')
 
       clearInterval(labelInterval)
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'signup_complete', {
+          method: form.avatarFile ? 'with_photo' : 'no_photo',
+          template: form.template,
+        })
+      }
       router.push(`/preview/${genData.portfolio_id}`)
     } catch (err) {
       clearInterval(labelInterval)

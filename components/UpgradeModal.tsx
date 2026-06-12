@@ -73,6 +73,15 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
       plan: planCode,
       ref: `lp-${portfolioId}-${tier}-${Date.now()}`,
       callback: () => {
+        if (typeof window !== 'undefined' && window.gtag) {
+          window.gtag('event', 'publish_success', {
+            plan: tier,
+            currency: isIntl ? 'USD' : 'NGN',
+            value: isIntl
+              ? Number(tier === 'pro' ? proUsd : basicUsd)
+              : (tier === 'pro' ? 45000 : 15000),
+          })
+        }
         onClose()
         onPaymentStarted?.()
       },

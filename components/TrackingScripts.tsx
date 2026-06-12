@@ -2,6 +2,12 @@
 
 import { useEffect } from 'react'
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void
+  }
+}
+
 export default function TrackingScripts() {
   useEffect(() => {
     const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
