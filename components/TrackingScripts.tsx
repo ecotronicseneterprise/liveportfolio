@@ -1,12 +1,4 @@
-"use client"
-
 import Script from 'next/script'
-
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void
-  }
-}
 
 export default function TrackingScripts() {
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
