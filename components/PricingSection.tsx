@@ -28,7 +28,7 @@ export default function PricingSection() {
           {/* FREE */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Free</p>
-            <p className="text-3xl font-bold text-gray-900 mb-1">₦0</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{isIntl ? '$0' : '₦0'}</p>
             <p className="text-sm text-gray-400 mb-5">Always free</p>
             <ul className="space-y-2 text-sm text-gray-500 mb-6 flex-1">
               {['Generate your portfolio', 'Preview all 10 templates', 'Saved to your account'].map((f) => (
