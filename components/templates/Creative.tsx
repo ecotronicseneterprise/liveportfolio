@@ -129,8 +129,10 @@ const css = `
     color: var(--accent);
     line-height: 1;
     min-width: 64px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
-  .nt-meta-desc { font-size: 12px; color: var(--muted); line-height: 1.6; padding-top: 2px; }
+  .nt-meta-desc { font-size: 12px; color: var(--muted); line-height: 1.6; padding-top: 2px; min-width: 0; word-break: break-word; }
   .nt-meta-desc strong { display: block; color: var(--ink); font-size: 13px; margin-bottom: 2px; }
 
 
@@ -370,10 +372,10 @@ const css = `
     .nt-header { flex-direction: column; gap: 16px; padding: 20px 5vw 16px; }
     .nt-header-right { text-align: left; }
     .nt-nav { justify-content: flex-start; }
-    .nt-hero { grid-template-columns: 1fr; padding: 0 5vw; gap: 32px; margin-top: 36px; }
-    .nt-meta-item { flex-direction: column; gap: 6px; }
-    .nt-meta-num { min-width: 0; font-size: 26px; }
-    .nt-meta-desc { padding-top: 0; }
+    .nt-hero { grid-template-columns: 1fr; padding: 0 5vw; gap: 28px; margin-top: 36px; }
+    .nt-meta-item { flex-direction: row; gap: 12px; align-items: flex-start; }
+    .nt-meta-num { min-width: 0; width: auto; font-size: 22px; flex-shrink: 0; line-height: 1.1; }
+    .nt-meta-desc { padding-top: 0; flex: 1; min-width: 0; word-break: break-word; }
     .nt-projects-grid { grid-template-columns: 1fr; }
     .nt-project-card.nt-featured { grid-column: 1; }
     .nt-section { padding: 0 5vw; }
@@ -464,7 +466,7 @@ export default function Creative({ content }: { content: PortfolioContent }) {
           </div>
         </div>
 
-        <div>
+        <div style={{ minWidth: 0, overflow: 'hidden' }}>
           {statsProjects.map((p, i) => {
             const match = p.outcome.match(/[\d,]+[%+kKmMbB₦$£€]?|\d+[\w.]+/)
             return (

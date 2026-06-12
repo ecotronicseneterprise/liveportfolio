@@ -1,6 +1,8 @@
 import React from 'react'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
+
+export const revalidate = 43200 // 12 hours — revalidatePath in /api/update busts this on every save
 import { createHash } from 'crypto'
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase'

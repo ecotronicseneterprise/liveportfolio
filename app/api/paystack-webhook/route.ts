@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { revalidatePath } from 'next/cache'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { sendEmail, emailTemplates } from '@/lib/email'
 
@@ -40,6 +41,7 @@ export async function POST(req: NextRequest) {
 
     const planCode = planData?.plan_code as string
     const customerEmail = customer?.email as string
+    const subscriptionCode = data.subscription_code as string
 
     const TEST_PLAN_CODE = 'PLN_gzi13ks4vajcdhx' // ₦500 test plan — maps to basic
     const plan: 'basic' | 'pro' =
@@ -53,6 +55,19 @@ export async function POST(req: NextRequest) {
     if (!customerEmail) {
       console.error('[webhook] subscription.create: missing customer email')
       return NextResponse.json({ received: true })
+    }
+
+    // Idempotency — skip if this subscription was already processed
+    if (subscriptionCode) {
+      const { data: existing } = await supabaseAdmin
+        .from('payments')
+        .select('id')
+        .eq('ls_order_id', subscriptionCode)
+        .maybeSingle()
+      if (existing) {
+        console.log('[webhook] subscription.create: duplicate event, skipping:', subscriptionCode)
+        return NextResponse.json({ received: true })
+      }
     }
 
     const { data: userData } = await supabaseAdmin
@@ -81,12 +96,25 @@ export async function POST(req: NextRequest) {
           : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
       })
 
+    // Insert payments row for audit trail and idempotency
+    if (subscriptionCode) {
+      await supabaseAdmin.from('payments').insert({
+        user_id,
+        ls_order_id: subscriptionCode,
+        product_tier: plan,
+        amount_cents: (planData?.amount as number) ?? 0,
+      })
+    }
+
     // Update users.plan → keeps Realtime celebration flow working
     const { error: updateError } = await supabaseAdmin
       .from('users')
       .update({ plan, published_at: new Date().toISOString() })
       .eq('id', user_id)
     if (updateError) console.error('[webhook] subscription.create: failed to update user plan', updateError.message)
+
+    // Bust ISR cache so the newly-published portfolio renders immediately
+    revalidatePath(`/portfolio/${userData.slug}`)
 
     // Send confirmation email
     if (process.env.RESEND_API_KEY) {
@@ -125,6 +153,19 @@ export async function POST(req: NextRequest) {
   const customerEmail = customerData?.email as string
   if (!customerEmail) return NextResponse.json({ received: true })
 
+  // Idempotency — skip if this reference was already processed
+  if (reference) {
+    const { data: existing } = await supabaseAdmin
+      .from('payments')
+      .select('id')
+      .eq('ls_order_id', reference)
+      .maybeSingle()
+    if (existing) {
+      console.log('[webhook] charge.success: duplicate event, skipping:', reference)
+      return NextResponse.json({ received: true })
+    }
+  }
+
   // Determine plan tier from reference string (format: lp-{portfolioId}-{tier}-{timestamp})
   // Reference is set by us in UpgradeModal — reliable across all payment methods
   const plan: 'basic' | 'pro' = reference?.includes('-pro-') ? 'pro' : 'basic'
@@ -137,7 +178,7 @@ export async function POST(req: NextRequest) {
 
   if (!userData) return NextResponse.json({ received: true })
 
-  // Skip if already activated (idempotency)
+  // Skip if already activated (belt-and-braces — payments check above is primary guard)
   if (userData.plan !== 'unpublished') return NextResponse.json({ received: true })
 
   await supabaseAdmin
@@ -150,11 +191,22 @@ export async function POST(req: NextRequest) {
       expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
     })
 
+  // Insert payments row for audit trail and idempotency
+  await supabaseAdmin.from('payments').insert({
+    user_id: userData.id,
+    ls_order_id: reference,
+    product_tier: plan,
+    amount_cents: (data.amount as number) ?? 0,
+  })
+
   const { error: updateError } = await supabaseAdmin
     .from('users')
     .update({ plan, published_at: new Date().toISOString() })
     .eq('id', userData.id)
   if (updateError) console.error('[webhook] charge.success: failed to update user plan', updateError.message)
+
+  // Bust ISR cache so the newly-published portfolio renders immediately
+  revalidatePath(`/portfolio/${userData.slug}`)
 
   if (process.env.RESEND_API_KEY) {
     try {

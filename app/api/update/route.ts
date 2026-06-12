@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
@@ -90,6 +91,17 @@ export async function PATCH(req: NextRequest) {
 
   if (error) {
     return NextResponse.json({ error: 'Update failed' }, { status: 500 })
+  }
+
+  // Bust the 12-hour ISR cache so the live portfolio reflects changes immediately
+  const { data: userRow } = await supabaseAdmin
+    .from('users')
+    .select('slug')
+    .eq('id', user.id)
+    .single()
+
+  if (userRow?.slug) {
+    revalidatePath(`/portfolio/${userRow.slug}`)
   }
 
   return NextResponse.json(updated)
