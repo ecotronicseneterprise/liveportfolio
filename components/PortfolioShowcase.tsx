@@ -12,15 +12,8 @@ interface ShowcasePortfolio {
   mode: 'dark' | 'light'
   skills: string[]
   highlight: string
-  preview: string
 }
 
-// Screenshots are static PNGs in the Supabase 'showcase' bucket.
-// To refresh after demo content changes:
-// 1. Open https://liveportfolio.site/{slug} in Chrome
-// 2. DevTools (F12) → Device Toolbar (Ctrl+Shift+M) → set width to 1280px
-// 3. Command menu (Ctrl+Shift+P) → "Capture full size screenshot"
-// 4. Upload to Supabase showcase bucket, same filename (overwrites existing)
 const PORTFOLIOS: ShowcasePortfolio[] = [
   // dark
   {
@@ -33,7 +26,6 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     mode: 'dark',
     skills: ['Go', 'Rust', 'TypeScript', 'Kubernetes'],
     highlight: '$2.3B processed · 60% latency reduction',
-    preview: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/showcase/james-chen.png',
   },
   // light
   {
@@ -46,7 +38,6 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     mode: 'light',
     skills: ['Figma', 'Framer', 'User Research', 'Design Systems'],
     highlight: '34% retention increase · 8M+ daily users',
-    preview: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/showcase/sofia-martinez.png',
   },
   // dark
   {
@@ -59,7 +50,6 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     mode: 'dark',
     skills: ['Python', 'SQL', 'TensorFlow', 'dbt'],
     highlight: '₦4.2B in approved loans · 55% false rejection reduction',
-    preview: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/showcase/fatima-hassan.png',
   },
   // light
   {
@@ -72,7 +62,6 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     mode: 'light',
     skills: ['Product Strategy', 'SQL', 'A/B Testing', 'OKRs'],
     highlight: '50,000 merchants onboarded · $2M ARR',
-    preview: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/showcase/david-mensah.png',
   },
   // dark
   {
@@ -85,7 +74,6 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     mode: 'dark',
     skills: ['Financial Modelling', 'Excel', 'SQL', 'Power BI'],
     highlight: '£2B+ in M&A transactions · CFA Charterholder',
-    preview: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/showcase/michael-roberts.png',
   },
   // light
   {
@@ -98,7 +86,6 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     mode: 'light',
     skills: ['Brand Strategy', 'Content Marketing', 'SEO', 'Copywriting'],
     highlight: '340K monthly sessions · £600K paid spend saved',
-    preview: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/showcase/priya-sharma.png',
   },
   // dark
   {
@@ -111,7 +98,6 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     mode: 'dark',
     skills: ['Penetration Testing', 'Python', 'AWS Security', 'OSCP'],
     highlight: 'Zero incidents 18 months · SOC 2 Type II',
-    preview: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/showcase/elena-vasquez.png',
   },
   // light
   {
@@ -124,7 +110,6 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     mode: 'light',
     skills: ['React', 'Node.js', 'Python', 'SQL'],
     highlight: '300+ active users · First role ready',
-    preview: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/showcase/chidi-okafor.png',
   },
 ]
 
@@ -140,18 +125,23 @@ function darkBg(p: ShowcasePortfolio): string {
 }
 
 const CARD_HEIGHT = 500
+// Render at 960px (tablet width) — text is naturally larger relative to layout,
+// making it more legible at the scaled-down preview sizes.
+const IFRAME_WIDTH = 960
 const ROTATE_MS = 7000
 
 function Card({
   p,
   active,
+  iframeScale,
+  iframeHeight,
   cardWidth,
-  cardIndex,
 }: {
   p: ShowcasePortfolio
   active: boolean
+  iframeScale: number
+  iframeHeight: number
   cardWidth: number
-  cardIndex: number
 }) {
   const isDark = p.mode === 'dark'
   const barBg = isDark ? 'rgba(15,23,42,0.90)' : 'rgba(255,255,255,0.92)'
@@ -181,26 +171,27 @@ function Card({
         background: isDark ? darkBg(p) : '#fff',
       }}
     >
-      {/* Screenshot image */}
+      {/* Scaled iframe */}
       <div style={{ width: cardWidth, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={p.preview}
-          alt={`${p.name} portfolio preview`}
-          loading={cardIndex < 2 ? 'eager' : 'lazy'}
-          decoding="async"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'top',
-            display: 'block',
-            borderRadius: 'inherit',
-          }}
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).style.display = 'none'
-          }}
-        />
+        {active ? (
+          <iframe
+            src={url}
+            title={`${p.name} portfolio`}
+            scrolling="no"
+            loading="lazy"
+            style={{
+              width: IFRAME_WIDTH,
+              height: iframeHeight,
+              border: 'none',
+              transform: `scale(${iframeScale})`,
+              transformOrigin: 'top left',
+              pointerEvents: 'none',
+              display: 'block',
+            }}
+          />
+        ) : (
+          <div aria-hidden style={{ width: cardWidth, height: CARD_HEIGHT }} />
+        )}
       </div>
 
       {/* Info bar pinned to bottom */}
@@ -257,13 +248,32 @@ export default function PortfolioShowcase() {
   const total = PORTFOLIOS.length
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [iframeScale, setIframeScale] = useState(0.33)
+  const containerRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
+
+  useEffect(() => {
+    const updateScale = () => {
+      const containerWidth = containerRef.current?.offsetWidth ?? window.innerWidth
+      // 32px total horizontal padding inside the card area
+      const availableWidth = containerWidth - 32
+      // Cap card width at 400px on large screens
+      const effectiveWidth = Math.min(availableWidth, 400)
+      setIframeScale(effectiveWidth / IFRAME_WIDTH)
+    }
+
+    updateScale()
+    window.addEventListener('resize', updateScale)
+    return () => window.removeEventListener('resize', updateScale)
+  }, [])
 
   const advance = () => setIndex((i) => (i + 1) % total)
   const retreat = () => setIndex((i) => (i - 1 + total) % total)
 
-  const cardWidth = 400
+  const cardWidth = Math.round(IFRAME_WIDTH * iframeScale)
+  const actualScale = cardWidth / IFRAME_WIDTH
+  const iframeHeight = Math.round(CARD_HEIGHT / actualScale)
 
   useEffect(() => {
     if (paused) return
@@ -304,6 +314,7 @@ export default function PortfolioShowcase() {
 
       {/* Stacked crossfade slideshow */}
       <div
+        ref={containerRef}
         className="px-4 sm:px-10 lg:px-16"
         style={{ width: '100%', maxWidth: '100vw', boxSizing: 'border-box', overflow: 'hidden' }}
         onMouseEnter={() => setPaused(true)}
@@ -324,8 +335,9 @@ export default function PortfolioShowcase() {
               key={p.slug}
               p={p}
               active={i === index}
+              iframeScale={actualScale}
+              iframeHeight={iframeHeight}
               cardWidth={cardWidth}
-              cardIndex={i}
             />
           ))}
         </div>
