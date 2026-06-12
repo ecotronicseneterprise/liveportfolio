@@ -83,18 +83,31 @@ export async function POST(req: NextRequest) {
 
     const user_id = userData.id
 
-    // Insert subscription row
-    await supabaseAdmin
+    // Insert subscription row — skip if a row was already inserted in the last 5 min
+    // (charge.success and subscription.create both fire for the same payment)
+    const { data: recentSubCreate } = await supabaseAdmin
       .from('subscriptions')
-      .insert({
-        user_id,
-        plan,
-        status: 'active',
-        started_at: new Date().toISOString(),
-        expires_at: nextPaymentDate
-          ? new Date(nextPaymentDate).toISOString()
-          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-      })
+      .select('id')
+      .eq('user_id', user_id)
+      .eq('status', 'active')
+      .gte('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
+      .maybeSingle()
+
+    if (!recentSubCreate) {
+      await supabaseAdmin
+        .from('subscriptions')
+        .insert({
+          user_id,
+          plan,
+          status: 'active',
+          started_at: new Date().toISOString(),
+          expires_at: nextPaymentDate
+            ? new Date(nextPaymentDate).toISOString()
+            : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+    } else {
+      console.log('[webhook] subscription.create: skipping duplicate subscriptions insert:', user_id)
+    }
 
     // Insert payments row for audit trail and idempotency
     if (subscriptionCode) {
@@ -181,15 +194,29 @@ export async function POST(req: NextRequest) {
   // Skip if already activated (belt-and-braces — payments check above is primary guard)
   if (userData.plan !== 'unpublished') return NextResponse.json({ received: true })
 
-  await supabaseAdmin
+  // Insert subscription row — skip if a row was already inserted in the last 5 min
+  // (charge.success and subscription.create both fire for the same payment)
+  const { data: recentSubCharge } = await supabaseAdmin
     .from('subscriptions')
-    .insert({
-      user_id: userData.id,
-      plan,
-      status: 'active',
-      started_at: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-    })
+    .select('id')
+    .eq('user_id', userData.id)
+    .eq('status', 'active')
+    .gte('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
+    .maybeSingle()
+
+  if (!recentSubCharge) {
+    await supabaseAdmin
+      .from('subscriptions')
+      .insert({
+        user_id: userData.id,
+        plan,
+        status: 'active',
+        started_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+      })
+  } else {
+    console.log('[webhook] charge.success: skipping duplicate subscriptions insert:', userData.id)
+  }
 
   // Insert payments row for audit trail and idempotency
   await supabaseAdmin.from('payments').insert({

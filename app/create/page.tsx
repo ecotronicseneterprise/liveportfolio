@@ -505,18 +505,28 @@ export default function CreatePage() {
       const projectImageUrls: (string | null)[] = await Promise.all(
         form.projects.map(async (p, i) => {
           if (!p.imageFile) return null
-          const ext = p.imageFile.type === 'image/png' ? 'png' : p.imageFile.type === 'image/webp' ? 'webp' : 'jpg'
-          const path = `${authData.user!.id}-${i}.${ext}`
-          const { error: uploadError } = await supabase.storage
-            .from('project-images')
-            .upload(path, p.imageFile, { upsert: true, contentType: p.imageFile.type || 'image/jpeg' })
-          if (uploadError) {
-            console.error('[create project image upload]', uploadError.message)
+          const fd = new FormData()
+          fd.append('file', p.imageFile)
+          fd.append('index', String(i))
+          try {
+            const res = await fetch('/api/upload-project-image', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${authData.session!.access_token}` },
+              body: fd,
+            })
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}))
+              console.error('[create project image upload]', err)
+              imageFailures.push(p.title || `Project ${i + 1}`)
+              return null
+            }
+            const { url } = await res.json()
+            return url as string
+          } catch (err) {
+            console.error('[create project image upload]', err)
             imageFailures.push(p.title || `Project ${i + 1}`)
             return null
           }
-          const { data: publicData } = supabase.storage.from('project-images').getPublicUrl(path)
-          return publicData.publicUrl
         })
       )
       if (imageFailures.length > 0) {
@@ -527,16 +537,23 @@ export default function CreatePage() {
       // Upload avatar
       let avatarUrl: string | undefined
       if (form.avatarFile) {
-        const path = `${authData.user!.id}.jpg`
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(path, form.avatarFile, { upsert: true, contentType: 'image/jpeg' })
-        if (uploadError) {
-          console.error('Avatar upload failed:', uploadError)
-          setError('Photo upload failed — your portfolio will be created without a photo. You can add one from your dashboard.')
-        } else {
-          const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(path)
-          avatarUrl = publicData.publicUrl
+        const fd = new FormData()
+        fd.append('file', form.avatarFile)
+        try {
+          const res = await fetch('/api/upload-avatar', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${authData.session!.access_token}` },
+            body: fd,
+          })
+          if (res.ok) {
+            const { url } = await res.json()
+            avatarUrl = url as string
+          } else {
+            const err = await res.json().catch(() => ({}))
+            console.error('[create avatar upload]', err)
+          }
+        } catch (err) {
+          console.error('[create avatar upload]', err)
         }
       }
 
