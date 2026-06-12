@@ -552,6 +552,31 @@ ADMIN_METRICS_SECRET, CRON_SECRET, IPINFO_TOKEN
 RESEND_API_KEY=... ADMIN_METRICS_SECRET=... bash /home/deploy/apps/liveportfolio/scripts/health-check.sh
 ```
 
+### VPS incident playbook (2026-06-12 — kernel/network SIGKILL)
+
+**What happened:** A transient kernel/network issue made specific IP ranges (Cloudflare
+1.0.0.1/104.18.x.x, Google 142.251.x.x) unreachable. Any process making outbound HTTPS
+to those ranges was SIGKILLed — this hit curl, Node.js, and Next.js itself (which needs
+Supabase on startup). Separately, a debugging session had run `pm2 delete liveportfolio`,
+removing the app from PM2's process list entirely. A reboot fixed the network issue
+(likely cleared corrupted kernel conntrack state, possibly triggered by heavy port-scan
+traffic or an upstream Hetzner network blip).
+
+**Fix:** `sudo reboot`, wait 60s, then if the app isn't in PM2's list:
+```bash
+pm2 start /home/deploy/apps/liveportfolio/ecosystem.config.js --env production
+pm2 save
+curl -I https://liveportfolio.site   # confirm live
+```
+
+**PM2 rule — never delete, only stop:**
+- `pm2 stop liveportfolio` — keeps it in the saved process list ✓
+- `pm2 delete liveportfolio` — removes it entirely, survives reboots as gone ✗
+
+**Mandatory last step after any VPS debugging session involving process restarts:**
+Always run `pm2 save` and `curl -I https://liveportfolio.site` to confirm the site
+is live before ending the session. This applies to any AI tool or human operator.
+
 ---
 
 ## Templates

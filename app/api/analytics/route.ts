@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
+const DEMO_SLUGS = new Set([
+  'james-chen', 'sofia-martinez', 'fatima-hassan',
+  'david-mensah', 'priya-sharma', 'chidi-okafor',
+  'michael-roberts', 'elena-vasquez',
+])
+
 // In-memory deduplication: IP+slug → timestamp
 const seen = new Map<string, number>()
 const HOUR_MS = 60 * 60 * 1000
@@ -47,6 +53,8 @@ export async function POST(req: NextRequest) {
     if (!slug || typeof slug !== 'string') {
       return NextResponse.json({}, { status: 200 })
     }
+
+    if (DEMO_SLUGS.has(slug)) return NextResponse.json({}, { status: 200 })
 
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
     const key = `${ip}:${slug}`

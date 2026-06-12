@@ -22,6 +22,12 @@ import ClientAnalytics from './ClientAnalytics'
 import AcquisitionBar from './AcquisitionBar'
 import DemoToggle from './DemoToggle'
 
+const DEMO_SLUGS = new Set([
+  'james-chen', 'sofia-martinez', 'fatima-hassan',
+  'david-mensah', 'priya-sharma', 'chidi-okafor',
+  'michael-roberts', 'elena-vasquez',
+])
+
 const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'creative'; content: PortfolioContent }> = {
   amara: {
     template: 'bold',
@@ -426,25 +432,28 @@ export default async function PortfolioPage({ params }: Props) {
 
   // Fire-and-forget: record portfolio_view event with company/country enrichment.
   // Does not block render. Uses server-side headers — raw IP never stored.
-  const headersList = await headers()
-  const rawIp = headersList.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || headersList.get('x-real-ip')
-    || 'unknown'
-  const referrer = headersList.get('referer') || null
-  const ipHash = createHash('sha256').update(rawIp).digest('hex').slice(0, 16)
+  // Skip demo/showcase slugs to prevent slideshow traffic inflating analytics.
+  if (!DEMO_SLUGS.has(slug)) {
+    const headersList = await headers()
+    const rawIp = headersList.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || headersList.get('x-real-ip')
+      || 'unknown'
+    const referrer = headersList.get('referer') || null
+    const ipHash = createHash('sha256').update(rawIp).digest('hex').slice(0, 16)
 
-  getIpInfo(rawIp, ipHash, supabaseAdmin).then(({ company, country }) => {
-    void Promise.resolve(
-      supabaseAdmin.from('analytics_events').insert({
-        portfolio_id: portfolio.id,
-        event_type: 'portfolio_view',
-        referrer,
-        ip_hash: ipHash,
-        company,
-        country,
-      })
-    )
-  }).catch(() => {})
+    getIpInfo(rawIp, ipHash, supabaseAdmin).then(({ company, country }) => {
+      void Promise.resolve(
+        supabaseAdmin.from('analytics_events').insert({
+          portfolio_id: portfolio.id,
+          event_type: 'portfolio_view',
+          referrer,
+          ip_hash: ipHash,
+          company,
+          country,
+        })
+      )
+    }).catch(() => {})
+  }
 
   const TEMPLATE_MAP: Record<string, React.ComponentType<{ content: PortfolioContent }>> = {
     minimal: Minimal,
