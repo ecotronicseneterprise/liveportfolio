@@ -89,7 +89,7 @@ export default function LandingPage() {
               >
                 Create My Portfolio →
               </Link>
-              <span className="text-sm text-gray-400">Free to build. Plans from $10/year to publish.</span>
+              <span className="text-sm text-gray-400">Free to build and preview.</span>
             </div>
           </div>
         </div>
@@ -278,11 +278,11 @@ export default function LandingPage() {
         <div className="w-full px-6 sm:px-10 lg:px-16 py-12 lg:text-center lg:flex lg:flex-col lg:items-center">
           <h2 className="text-sm font-semibold text-gray-400 mb-4">The fastest way to look hireable online</h2>
           <p className="text-sm text-gray-400 leading-relaxed max-w-3xl">
-            LivePortfolio helps job seekers in Nigeria and across Africa create a professional portfolio website and online CV in minutes — no design or coding skills needed.
-            Upload your CV or answer a few questions, and we write your portfolio copy for you: your headline, your project descriptions, your about section.
-            Share your portfolio link in job applications, on LinkedIn, or via WhatsApp, and see exactly when recruiters and hiring managers view your profile.
-            Whether you&apos;re a developer, designer, data scientist, product manager, or career switcher, a live portfolio page makes you impossible to overlook.
-            Start free. Plans from $10/year. Your online resume website is ready in under 10 minutes.
+            LivePortfolio helps anyone create a professional portfolio website in minutes — no design or coding skills needed.
+            Upload your CV or answer a few questions, and we write your portfolio copy for you.
+            Publish and share your portfolio link in job applications, on LinkedIn, or via WhatsApp, and see when people view your profile.
+            Whether you&apos;re a developer, designer, data scientist, product manager, or career switcher, our portfolio page makes you impossible to overlook.
+            Start free. Your online resume website is ready in under 10 minutes.
           </p>
         </div>
       </section>
