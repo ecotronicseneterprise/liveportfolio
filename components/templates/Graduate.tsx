@@ -268,10 +268,25 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
         <div className="gr-section-eyebrow">Academic Background</div>
         <div className="gr-section-title">Education</div>
         <div className="gr-edu-list">
-          {content.experience.filter(e =>
-            /universit|college|school|degree|bsc|msc|ba |ma |phd|polytechnic|institute/i.test(e.company + ' ' + e.role)
-          ).map((e, i) => (
-            <div key={i} className="gr-edu-card">
+          {/* content.education[] — primary source */}
+          {content.education && content.education.map((ed, i) => (
+            <div key={`edu-${i}`} className="gr-edu-card">
+              <div className="gr-edu-degree">{ed.degree}</div>
+              <div className="gr-edu-institution">{ed.institution}</div>
+              <div className="gr-edu-meta">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
+            </div>
+          ))}
+          {/* experience-filtered fallback — skip entries already covered by content.education[] */}
+          {content.experience.filter(e => {
+            const isEduEntry = /universit|college|school|degree|bsc|msc|ba |ma |phd|polytechnic|institute/i.test(e.company + ' ' + e.role)
+            if (!isEduEntry) return false
+            // Skip if institution already in content.education
+            if (content.education && content.education.some(
+              ed => ed.institution.toLowerCase().trim() === e.company.toLowerCase().trim()
+            )) return false
+            return true
+          }).map((e, i) => (
+            <div key={`exp-edu-${i}`} className="gr-edu-card">
               <div className="gr-edu-degree">{e.role}</div>
               <div className="gr-edu-institution">{e.company}</div>
               <div className="gr-edu-meta">{e.period}</div>

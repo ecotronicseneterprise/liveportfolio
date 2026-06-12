@@ -1,7 +1,7 @@
 'use client'
 
-import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import type { PortfolioContent } from './Minimal'
 
 const css = `
@@ -203,9 +203,57 @@ const css = `
   .cy-footer a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
   .cy-footer a:hover { color: var(--accent); }
 
+  /* Mobile hamburger */
+  .cy-hamburger {
+    display: none;
+    background: none; border: none;
+    cursor: pointer; padding: 4px;
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px;
+  }
+  .cy-mobile-menu {
+    display: none;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 6vw;
+    flex-direction: column; gap: 2px;
+  }
+  .cy-mobile-menu.open { display: flex; }
+  .cy-mobile-menu-link {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: var(--muted);
+    text-decoration: none; letter-spacing: 0.1em;
+    text-transform: uppercase; transition: color 0.2s;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(22,101,52,0.3);
+    display: block;
+  }
+  .cy-mobile-menu-link:last-child { border-bottom: none; }
+  .cy-mobile-menu-link::before { content: '// '; color: var(--muted); opacity: 0.6; }
+  .cy-mobile-menu-link:hover { color: var(--accent); }
+
+  /* Education */
+  .cy-edu-list { display: flex; flex-direction: column; gap: 16px; }
+  .cy-edu-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 16px 20px;
+    transition: border-color 0.2s;
+  }
+  .cy-edu-item:hover { border-color: var(--accent); }
+  .cy-edu-degree {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; color: var(--accent);
+    margin-bottom: 4px; letter-spacing: 0.04em;
+  }
+  .cy-edu-institution { font-size: 12px; color: var(--text); margin-bottom: 2px; }
+  .cy-edu-year { font-size: 11px; color: var(--muted); }
+
   @media (max-width: 700px) {
     .cy-hero { grid-template-columns: 1fr; }
     .cy-nav-links { display: none; }
+    .cy-hamburger { display: block; }
     .cy-cert-cards { grid-template-columns: 1fr 1fr; }
   }
 `
@@ -240,6 +288,7 @@ function extractCerts(skills: string[]): string[] {
 
 export default function Cybersecurity({ content }: { content: PortfolioContent }) {
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -276,9 +325,25 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
           <a href="#skills" className="cy-nav-link">Skills</a>
           {content.projects.length > 0 && <a href="#projects" className="cy-nav-link">Projects</a>}
           {content.experience.length > 0 && <a href="#experience" className="cy-nav-link">Experience</a>}
+          {content.education && content.education.length > 0 && <a href="#education" className="cy-nav-link">Education</a>}
           <a href="#contact" className="cy-nav-link">Contact</a>
         </div>
+        <button
+          className="cy-hamburger"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? '✕' : '☰'}
+        </button>
       </nav>
+      <div className={`cy-mobile-menu${mobileMenuOpen ? ' open' : ''}`}>
+        {certs.length > 0 && <a href="#certs" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Certs</a>}
+        <a href="#skills" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Skills</a>
+        {content.projects.length > 0 && <a href="#projects" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Projects</a>}
+        {content.experience.length > 0 && <a href="#experience" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Experience</a>}
+        {content.education && content.education.length > 0 && <a href="#education" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Education</a>}
+        <a href="#contact" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Contact</a>
+      </div>
 
       <div className="cy-body">
         {/* Hero */}
@@ -308,7 +373,6 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
               {certs.map((c) => (
                 <div key={c} className="cy-cert-card">
                   <div className="cy-cert-name">{c}</div>
-                  <div className="cy-cert-meta">Security certification</div>
                 </div>
               ))}
             </div>
@@ -381,6 +445,22 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
                       ))}
                     </ul>
                   )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Education */}
+        {content.education && content.education.length > 0 && (
+          <section id="education" className="cy-section">
+            <div className="cy-section-label">Education</div>
+            <div className="cy-edu-list">
+              {content.education.map((ed, i) => (
+                <div key={i} className="cy-edu-item">
+                  <div className="cy-edu-degree">{ed.degree}</div>
+                  <div className="cy-edu-institution">{ed.institution}</div>
+                  <div className="cy-edu-year">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
                 </div>
               ))}
             </div>

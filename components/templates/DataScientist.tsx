@@ -254,6 +254,7 @@ export default function DataScientist({ content }: { content: PortfolioContent }
           <a href="#skills" className="sci-nav-link">Stack</a>
           <a href="#projects" className="sci-nav-link">Projects</a>
           {content.experience.length > 0 && <a href="#experience" className="sci-nav-link">Experience</a>}
+          {content.education && content.education.length > 0 && <a href="#education" className="sci-nav-link">Education</a>}
           <a href="#contact" className="sci-nav-link">Contact</a>
         </div>
       </nav>
@@ -354,6 +355,35 @@ export default function DataScientist({ content }: { content: PortfolioContent }
             <div className="sci-gh-card">
               <div className="sci-gh-text">Notebooks, experiments, and open source projects on GitHub.</div>
               <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="sci-gh-link">View repositories →</a>
+            </div>
+          </section>
+        )}
+
+        {/* Education */}
+        {content.education && content.education.length > 0 && (
+          <section id="education" className="sci-section">
+            <div className="sci-section-label">Education</div>
+            <div className="sci-exp-list">
+              {content.education.map((ed, i) => (
+                <div key={i} className="sci-exp-item">
+                  <div className="sci-exp-dot" />
+                  <div className="sci-exp-role">{ed.degree}</div>
+                  <div className="sci-exp-co">{ed.institution}</div>
+                  <div className="sci-exp-period">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Certifications */}
+        {content.certifications && content.certifications.length > 0 && (
+          <section id="certifications" className="sci-section">
+            <div className="sci-section-label">Certifications</div>
+            <div className="sci-matrix-pills">
+              {content.certifications.map((cert) => (
+                <span key={cert} className="sci-matrix-pill" style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}>{cert}</span>
+              ))}
             </div>
           </section>
         )}

@@ -294,6 +294,7 @@ export default function ProductManager({ content }: { content: PortfolioContent 
           <a href="#products" className="pm-nav-link">Work</a>
           <a href="#skills" className="pm-nav-link">Skills</a>
           {content.experience.length > 0 && <a href="#experience" className="pm-nav-link">Experience</a>}
+          {(content.education && content.education.length > 0) && <a href="#education" className="pm-nav-link">Education</a>}
           <a href="#contact" className="pm-nav-link">Contact</a>
         </div>
       </nav>
@@ -404,6 +405,37 @@ export default function ProductManager({ content }: { content: PortfolioContent 
                   </ul>
                 )}
               </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Education */}
+      {content.education && content.education.length > 0 && (
+        <section id="education" className="pm-section">
+          <div className="pm-section-eyebrow">Background</div>
+          <div className="pm-section-title">Education</div>
+          <div className="pm-exp-list">
+            {content.education.map((ed, i) => (
+              <div key={i} className="pm-exp-item">
+                <div className="pm-exp-dot" />
+                <div className="pm-exp-role">{ed.degree}</div>
+                <div className="pm-exp-co">{ed.institution}</div>
+                <div className="pm-exp-period">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Certifications */}
+      {content.certifications && content.certifications.length > 0 && (
+        <section id="certifications" className="pm-section">
+          <div className="pm-section-eyebrow">Credentials</div>
+          <div className="pm-section-title">Certifications</div>
+          <div className="pm-skill-pills">
+            {content.certifications.map((cert) => (
+              <span key={cert} className="pm-skill-pill" style={{ color: 'var(--primary)', borderColor: 'var(--primary)', fontWeight: 600 }}>{cert}</span>
             ))}
           </div>
         </section>

@@ -78,6 +78,7 @@ const css = `
   .fin-contact-link:hover { color: var(--accent); }
   .fin-footer-link { font-size: 10px; color: #1E3A8A; text-decoration: none; margin-top: auto; transition: color 0.2s; }
   .fin-footer-link:hover { color: var(--accent); }
+  .fin-mobile-footer { display: none; }
 
   /* Right main */
   .fin-main { padding: 40px 40px; overflow-y: auto; }
@@ -225,6 +226,32 @@ export default function Finance({ content }: { content: PortfolioContent }) {
             </div>
           )}
 
+          {content.education && content.education.length > 0 && (
+            <div className="fin-sidebar-block">
+              <div className="fin-block-title">Education</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {content.education.map((ed, i) => (
+                  <div key={i}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{ed.degree}</div>
+                    <div style={{ fontSize: 12, color: 'var(--accent)', marginTop: 1 }}>{ed.institution}</div>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {content.certifications && content.certifications.length > 0 && (
+            <div className="fin-sidebar-block">
+              <div className="fin-block-title">Certifications</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {content.certifications.map((cert) => (
+                  <span key={cert} className="fin-skill-pill" style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}>{cert}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="fin-sidebar-block" id="contact">
             <div className="fin-block-title">Contact</div>
             <div className="fin-contact-links">
@@ -312,9 +339,8 @@ export default function Finance({ content }: { content: PortfolioContent }) {
         </main>
       </div>
 
-      {/* Mobile footer — only visible when sidebar is hidden */}
+      {/* Mobile footer — only visible when sidebar is hidden (display controlled by CSS media query) */}
       <footer style={{
-        display: 'none',
         padding: '16px 6vw',
         borderTop: '1px solid rgba(30,58,138,0.4)',
         justifyContent: 'space-between',

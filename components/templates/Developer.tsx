@@ -263,6 +263,8 @@ export default function Developer({ content }: { content: PortfolioContent }) {
     { id: 'projects', label: 'Projects' },
     { id: 'experience', label: 'Experience' },
     ...(content.github_url ? [{ id: 'github', label: 'GitHub' }] : []),
+    ...(content.education && content.education.length > 0 ? [{ id: 'education', label: 'Education' }] : []),
+    ...(content.certifications && content.certifications.length > 0 ? [{ id: 'certifications', label: 'Certifications' }] : []),
     { id: 'contact', label: 'Contact' },
   ]
 
@@ -469,6 +471,35 @@ export default function Developer({ content }: { content: PortfolioContent }) {
                 <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="dv-gh-link">
                   View GitHub →
                 </a>
+              </div>
+            </section>
+          )}
+
+          {/* Education */}
+          {content.education && content.education.length > 0 && (
+            <section id="education" className="dv-section">
+              <div className="dv-section-label">Education</div>
+              <div className="dv-exp-list">
+                {content.education.map((ed, i) => (
+                  <div key={i} className="dv-exp-item">
+                    <div className="dv-exp-dot" />
+                    <div className="dv-exp-role">{ed.degree}</div>
+                    <div className="dv-exp-company">{ed.institution}</div>
+                    <div className="dv-exp-period">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Certifications */}
+          {content.certifications && content.certifications.length > 0 && (
+            <section id="certifications" className="dv-section">
+              <div className="dv-section-label">Certifications</div>
+              <div className="dv-skills-grid">
+                {content.certifications.map((cert) => (
+                  <span key={cert} className="dv-skill-pill" style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}>{cert}</span>
+                ))}
               </div>
             </section>
           )}
