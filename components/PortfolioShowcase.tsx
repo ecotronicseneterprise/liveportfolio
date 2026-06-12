@@ -125,7 +125,9 @@ function darkBg(p: ShowcasePortfolio): string {
 }
 
 const CARD_HEIGHT = 500
-const IFRAME_WIDTH = 1280
+// Render at 960px (tablet width) — text is naturally larger relative to layout,
+// making it more legible at the scaled-down preview sizes.
+const IFRAME_WIDTH = 960
 const ROTATE_MS = 7000
 
 function Card({
@@ -247,15 +249,18 @@ export default function PortfolioShowcase() {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const [iframeScale, setIframeScale] = useState(0.33)
+  const containerRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
 
   useEffect(() => {
     const updateScale = () => {
-      const w = window.innerWidth
-      if (w < 640) setIframeScale(0.30)
-      else if (w < 1024) setIframeScale(0.33)
-      else setIframeScale(0.36)
+      const containerWidth = containerRef.current?.offsetWidth ?? window.innerWidth
+      // 32px total horizontal padding inside the card area
+      const availableWidth = containerWidth - 32
+      // Cap card width at 400px on large screens
+      const effectiveWidth = Math.min(availableWidth, 400)
+      setIframeScale(effectiveWidth / IFRAME_WIDTH)
     }
 
     updateScale()
@@ -297,9 +302,21 @@ export default function PortfolioShowcase() {
   return (
     <div className="w-full border-t border-gray-100 py-10 sm:py-14">
       {/* Header */}
+      <div className="px-6 sm:px-10 lg:px-16 mb-8">
+        <p className="text-xs font-bold text-[#0A66C2] tracking-widest uppercase mb-2">
+          Real portfolios
+        </p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-[#0A0A0A] leading-tight">
+          Portfolios built with LivePortfolio
+        </h2>
+        <p className="text-sm text-gray-400 mt-1">Every one built in under 10 minutes.</p>
+      </div>
+
       {/* Stacked crossfade slideshow */}
       <div
-        className="px-6 sm:px-10 lg:px-16"
+        ref={containerRef}
+        className="px-4 sm:px-10 lg:px-16"
+        style={{ width: '100%', maxWidth: '100vw', boxSizing: 'border-box', overflow: 'hidden' }}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={onTouchStart}
@@ -327,7 +344,7 @@ export default function PortfolioShowcase() {
       </div>
 
       {/* Dots + arrows */}
-      <div className="mt-6 px-6 sm:px-10 lg:px-16">
+      <div className="mt-6 px-4 sm:px-10 lg:px-16">
         <div style={{ maxWidth: cardWidth, margin: '0 auto' }}>
           <div className="flex items-center justify-center gap-3">
             <button

@@ -33,7 +33,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How does billing work?',
-    a: 'Plans are billed annually — ₦15,000/year for Basic, ₦45,000/year for Pro (approximately $10 and $30). You get a 7-day refund guarantee, no questions asked. Cancel anytime.',
+    a: 'Plans are billed annually — from $10/year for Basic to $30/year for Pro (₦15,000 and ₦45,000 in Nigeria). 7-day refund guarantee, no questions asked. Cancel anytime.',
   },
   {
     q: 'Can I edit my portfolio after publishing?',
@@ -89,7 +89,7 @@ export default function LandingPage() {
               >
                 Create My Portfolio →
               </Link>
-              <span className="text-sm text-gray-400">Free to build. From ₦15,000/year to publish.</span>
+              <span className="text-sm text-gray-400">Free to build. Plans from $10/year to publish.</span>
             </div>
           </div>
         </div>
@@ -282,7 +282,7 @@ export default function LandingPage() {
             Upload your CV or answer a few questions, and we write your portfolio copy for you: your headline, your project descriptions, your about section.
             Share your portfolio link in job applications, on LinkedIn, or via WhatsApp, and see exactly when recruiters and hiring managers view your profile.
             Whether you&apos;re a developer, designer, data scientist, product manager, or career switcher, a live portfolio page makes you impossible to overlook.
-            Start free. Publish from ₦15,000/year. Your online resume website is ready in under 10 minutes.
+            Start free. Plans from $10/year. Your online resume website is ready in under 10 minutes.
           </p>
         </div>
       </section>

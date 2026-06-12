@@ -76,7 +76,9 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-3">5. Payment Terms</h2>
             <p>
               Publishing your portfolio requires an annual subscription. We offer two plans: Basic at ₦15,000/year
-              and Pro at ₦45,000/year. Subscriptions are billed annually and renew automatically unless cancelled.
+              (approx. $10) and Pro at ₦45,000/year (approx. $30). All charges are processed in Nigerian Naira (NGN)
+              regardless of your location; your bank will convert to your local currency at the prevailing exchange rate.
+              Subscriptions are billed annually and renew automatically unless cancelled.
               Payment is processed securely by Paystack — we never handle or store your card details.
             </p>
             <p className="mt-3">

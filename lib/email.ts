@@ -90,7 +90,7 @@ export const emailTemplates = {
           Your portfolio is ready.
         </h1>
         <p style="color: #555; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
-          You were this close. One click publishes it — starting at ₦15,000/year.
+          You were this close. One click publishes it — starting at $10/year.
         </p>
         <a href="${previewUrl}"
            style="display: inline-block; background: #0A66C2; color: white;
