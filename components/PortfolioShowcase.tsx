@@ -301,17 +301,6 @@ export default function PortfolioShowcase() {
 
   return (
     <div className="w-full border-t border-gray-100 py-10 sm:py-14">
-      {/* Header */}
-      <div className="px-6 sm:px-10 lg:px-16 mb-8">
-        <p className="text-xs font-bold text-[#0A66C2] tracking-widest uppercase mb-2">
-          Real portfolios
-        </p>
-        <h2 className="text-2xl sm:text-3xl font-bold text-[#0A0A0A] leading-tight">
-          Portfolios built with LivePortfolio
-        </h2>
-        <p className="text-sm text-gray-400 mt-1">Every one built in under 10 minutes.</p>
-      </div>
-
       {/* Stacked crossfade slideshow */}
       <div
         ref={containerRef}
