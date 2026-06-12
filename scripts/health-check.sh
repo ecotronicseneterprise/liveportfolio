@@ -58,9 +58,25 @@ if [ -n "$EXPIRY" ]; then
 fi
 
 # ── 3. Pull SaaS metrics ───────────────────────────────────────────────────────
-METRICS_JSON=$(curl -4 -s --max-time 15 \
-  -H "x-metrics-secret: ${ADMIN_METRICS_SECRET:-}" \
-  "$METRICS_URL" || echo "{}")
+# curl exits 137 (OOM-killed) on this VPS for localhost requests — use Node instead
+METRICS_JSON=$(node -e "
+  const http = require('http');
+  const req = http.request({
+    hostname: 'localhost',
+    port: 3001,
+    path: '/api/admin/metrics',
+    method: 'GET',
+    headers: { 'x-metrics-secret': process.env.ADMIN_METRICS_SECRET || '' },
+    timeout: 15000
+  }, (res) => {
+    let body = '';
+    res.on('data', d => body += d);
+    res.on('end', () => process.stdout.write(body));
+  });
+  req.on('error', () => process.stdout.write('{}'));
+  req.on('timeout', () => { req.destroy(); process.stdout.write('{}'); });
+  req.end();
+" 2>/dev/null || echo "{}")
 
 echo "$METRICS_JSON" > /tmp/lp_metrics.json
 
@@ -235,9 +251,25 @@ except:
 " 2>/dev/null || echo "<tr><td colspan=3>?</td></tr>")
 
 # ── 4. Pull VPS health (FIX 4 & 5) ───────────────────────────────────────────
-VPS_JSON=$(curl -4 -s --max-time 10 \
-  -H "x-metrics-secret: ${ADMIN_METRICS_SECRET:-}" \
-  "$VPS_HEALTH_URL" || echo "{}")
+# curl exits 137 (OOM-killed) on this VPS for localhost requests — use Node instead
+VPS_JSON=$(node -e "
+  const http = require('http');
+  const req = http.request({
+    hostname: 'localhost',
+    port: 3001,
+    path: '/api/admin/vps-health',
+    method: 'GET',
+    headers: { 'x-metrics-secret': process.env.ADMIN_METRICS_SECRET || '' },
+    timeout: 10000
+  }, (res) => {
+    let body = '';
+    res.on('data', d => body += d);
+    res.on('end', () => process.stdout.write(body));
+  });
+  req.on('error', () => process.stdout.write('{}'));
+  req.on('timeout', () => { req.destroy(); process.stdout.write('{}'); });
+  req.end();
+" 2>/dev/null || echo "{}")
 
 echo "$VPS_JSON" > /tmp/lp_vps.json
 
