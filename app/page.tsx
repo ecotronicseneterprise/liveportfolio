@@ -91,7 +91,7 @@ export default function LandingPage() {
                 href="/create"
                 className="px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20"
               >
-                Build Mine Free →
+                Build Portfolio →
               </Link>
             </div>
             <div className="flex flex-col gap-1">
@@ -118,13 +118,13 @@ export default function LandingPage() {
               },
               {
                 step: '02',
-                title: 'We write your copy',
-                desc: 'Our AI rewrites your experience into recruiter-ready copy — professional, specific, and human. This is the part most people spend weeks on. You skip it entirely.',
+                title: 'We tell your story',
+                desc: 'We rewrite your experience into professional portfolio. This is the part most people spend weeks on. You skip it entirely.',
               },
               {
                 step: '03',
                 title: 'Publish and share',
-                desc: 'Your portfolio goes live at yourname.liveportfolio.site — a real link you can add to your CV, LinkedIn, and job applications today. Switch templates anytime, changes go live instantly.',
+                desc: 'Your portfolio goes live !!! A real link you can add to your CV, LinkedIn, and job applications today. Switch templates anytime, changes go live instantly.',
               },
             ].map((item, i) => (
               <div
@@ -276,7 +276,7 @@ export default function LandingPage() {
             href="/create"
             className="inline-flex items-center gap-2 px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors"
           >
-            Build Mine Free →
+            Build Portfolio →
           </Link>
         </div>
       </section>
@@ -304,16 +304,6 @@ export default function LandingPage() {
 
           {/* Contact links */}
           <div className="flex items-center gap-5">
-            <a
-              href="tel:+2349014545622"
-              className="flex items-center gap-1.5 hover:text-[#0A66C2] transition-colors"
-              aria-label="Call us"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.79a16 16 0 0 0 6.29 6.29l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
-              </svg>
-              +234 901 454 5622
-            </a>
             <a
               href="mailto:support@ecotronicsenterprise.com"
               className="flex items-center gap-1.5 hover:text-[#0A66C2] transition-colors"

@@ -556,7 +556,9 @@ export default function DashboardPage() {
     setUser(userData)
 
     // Fetch plan via server-side getUserPlan (handles subscriptions + legacy users)
-    const planRes = await fetch(`/api/user-plan?userId=${session.user.id}`)
+    const planRes = await fetch(`/api/user-plan?userId=${session.user.id}`, {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
     const { plan } = await planRes.json()
     setUserPlan(plan as 'free' | 'basic' | 'pro')
 
@@ -701,7 +703,7 @@ export default function DashboardPage() {
 
   const copyLink = () => {
     if (!user) return
-    navigator.clipboard.writeText(`${APP_URL}/${user.slug}`)
+    navigator.clipboard.writeText(`https://${user.slug}.liveportfolio.site`)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -772,7 +774,7 @@ export default function DashboardPage() {
 
   if (!user || !portfolio) return null
 
-  const portfolioUrl = `${APP_URL}/${user.slug}`
+  const portfolioUrl = `https://${user.slug}.liveportfolio.site`
   const isPublished = userPlan !== 'free'
   const isPro = userPlan === 'pro'
 
@@ -840,11 +842,11 @@ export default function DashboardPage() {
                     rel="noopener noreferrer"
                     className="text-lg font-semibold text-[#0A66C2] hover:underline"
                   >
-                    {new URL(portfolioUrl).host.replace(/^www\./, '')}/{user.slug}
+                    {user.slug}.liveportfolio.site
                   </a>
                 ) : (
                   <span className="text-lg font-semibold text-gray-400">
-                    {new URL(portfolioUrl).host.replace(/^www\./, '')}/{user.slug}
+                    {user.slug}.liveportfolio.site
                   </span>
                 )}
                 {isPublished && (
@@ -1428,7 +1430,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Portfolio URL</label>
-                <p className="text-sm text-[#0A66C2] font-medium">{APP_URL}/{user.slug}</p>
+                <p className="text-sm text-[#0A66C2] font-medium">https://{user.slug}.liveportfolio.site</p>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Plan</label>

@@ -47,7 +47,7 @@ export default function LandingNav() {
                 href="/create"
                 className="px-5 py-2 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
               >
-                Try Free
+                Free Preview
               </Link>
             </>
           )}

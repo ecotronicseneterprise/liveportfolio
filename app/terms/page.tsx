@@ -82,18 +82,36 @@ export default function TermsPage() {
               Payment is processed securely by Paystack — we never handle or store your card details.
             </p>
             <p className="mt-3">
-              <strong>Refund policy:</strong> If you are not satisfied, email us within 7 days of payment
-              for a full refund — no questions asked. After 7 days, refunds are at our discretion. Contact{' '}
-              <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">support@ecotronicsenterprise.com</a>.
-            </p>
-            <p className="mt-3">
               You may cancel your subscription at any time. Upon cancellation, your portfolio remains live
               until the end of your current billing period, after which it will be unpublished.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">6. Service Availability</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">6. Refunds</h2>
+            <p>
+              We offer refund requests within 7 days of your initial purchase date. To request a refund, email
+              us at{' '}
+              <a href="mailto:support@liveportfolio.site" className="text-[#0A66C2] hover:underline">support@liveportfolio.site</a>{' '}
+              with your account email and reason for the request.
+            </p>
+            <p className="mt-3">
+              Refunds are granted at our discretion and are generally approved for users who have not yet
+              published a portfolio. Once a portfolio has been published and made live, the core service has
+              been delivered and refunds may not apply.
+            </p>
+            <p className="mt-3">
+              We aim to respond to all refund requests within 3 business days. Approved refunds are processed
+              through Paystack and may take 5–10 business days to reflect depending on your bank.
+            </p>
+            <p className="mt-3">
+              If you have any issues with the product, contact us first — we will do our best to resolve it
+              before processing a refund.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">7. Service Availability</h2>
             <p>
               We aim to keep liveportfolio.site available at all times but do not guarantee uninterrupted
               service. We may carry out maintenance that temporarily affects availability, and will endeavour
@@ -102,7 +120,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">7. Account Termination</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">8. Account Termination</h2>
             <p>
               You may request deletion of your account at any time by emailing
               {' '}<a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">support@ecotronicsenterprise.com</a>.
@@ -115,7 +133,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">8. Limitation of Liability</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">9. Limitation of Liability</h2>
             <p>
               liveportfolio.site is provided &quot;as is&quot; without warranties of any kind. We are not liable for
               any indirect, incidental, or consequential damages arising from your use of the service,
@@ -125,7 +143,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">9. Governing Law</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">10. Governing Law</h2>
             <p>
               These terms are governed by the laws of the Federal Republic of Nigeria. Any disputes shall
               be resolved under Nigerian jurisdiction.
@@ -133,7 +151,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">10. Changes to These Terms</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">11. Changes to These Terms</h2>
             <p>
               We may update these terms from time to time. Continued use of the service after changes are
               posted constitutes acceptance of the revised terms. We will update the date at the top of
@@ -142,7 +160,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">11. Contact</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">12. Contact</h2>
             <p>
               For any questions about these terms, email us at{' '}
               <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">

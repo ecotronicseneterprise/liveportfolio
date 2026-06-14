@@ -136,7 +136,7 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
             <ul className="space-y-1.5 flex-1">
               <PlanFeature text="Publish your portfolio" />
               <PlanFeature text="Edit anytime from your dashboard" />
-              <PlanFeature text="Permanent subdomain" />
+              <PlanFeature text="Your own shareable link (yourname.liveportfolio.site)" />
               <PlanFeature text="Choose from 3 templates" />
             </ul>
 

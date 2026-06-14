@@ -125,7 +125,7 @@ export default function PricingSection() {
           </div>
 
         </div>
-        <p className="text-center text-sm text-gray-600 mt-6">Annual billing · ✓ 7-day refund guarantee — no questions asked · Cancel anytime</p>
+        <p className="text-center text-sm text-gray-600 mt-6">Annual billing · Refunds reviewed within 7 days of purchase · Cancel anytime</p>
       </div>
     </section>
   )
