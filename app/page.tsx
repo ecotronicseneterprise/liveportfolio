@@ -3,6 +3,7 @@ import LandingNav from '@/components/LandingNav'
 import SupportButton from '@/components/SupportButton'
 import PricingSection from '@/components/PricingSection'
 import PortfolioShowcaseWrapper from '@/components/PortfolioShowcaseWrapper'
+import PublishedCount from '@/components/PublishedCount'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -72,24 +73,30 @@ export default function LandingPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-full text-xs text-[#0A66C2] font-medium mb-7">
               <span className="w-2 h-2 bg-[#0A66C2] rounded-full animate-pulse flex-shrink-0" />
-              Built for professionals, freelancers, and job seekers.
+              For developers, designers, data scientists, graduates and freelancers — anywhere in the world.
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#0A0A0A] leading-[1.05]">
-              Turn your experience into a portfolio recruiters actually read.
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0A0A0A] leading-[1.05]">
+              The fastest way to look hireable online
             </h1>
           </div>
           <div className="flex flex-col gap-6">
             <p className="text-lg sm:text-xl text-gray-500 leading-relaxed">
-              Not hearing back after sending out multiple job applications hurts. It makes you question everything you've built. A portfolio won't fix the silence, but it makes sure they can't ignore what you've done.<br /><br />Upload your CV or answer a few questions and we turn your experience into a professional portfolio website. Your page is ready in minutes. Share the link in your next application and know exactly when someone views it.
+              Not hearing back after sending out multiple job applications hurts. It makes you question everything you've built. A portfolio won't fix the silence, but it makes sure they can&apos;t ignore what you&apos;ve done.
+            </p>
+            <p className="text-lg sm:text-xl text-gray-500 leading-relaxed">
+              Upload your CV and get a professional portfolio website in minutes. Share the link. Know when recruiters view it.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link
                 href="/create"
                 className="px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20"
               >
-                Create My Portfolio →
+                Build Mine Free →
               </Link>
-              <span className="text-sm text-gray-400">Free to build and preview.</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-sm text-gray-400">Free to build and preview. No credit card needed.</span>
+              <PublishedCount />
             </div>
           </div>
         </div>
@@ -101,7 +108,7 @@ export default function LandingPage() {
       {/* ── How it works ── */}
       <section className="w-full bg-gray-50 border-b border-gray-100">
         <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
-          <p className="text-xs font-bold text-[#0A66C2] tracking-widest uppercase mb-4">How it works</p>
+          <p className="text-sm font-bold text-[#0A66C2] tracking-widest uppercase mb-4">How it works</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-gray-200 rounded-2xl overflow-hidden">
             {[
               {
@@ -112,21 +119,21 @@ export default function LandingPage() {
               {
                 step: '02',
                 title: 'We write your copy',
-                desc: 'We rewrite everything into clean, professional language — specific, human, recruiter-ready. No buzzwords.',
+                desc: 'Our AI rewrites your experience into recruiter-ready copy — professional, specific, and human. This is the part most people spend weeks on. You skip it entirely.',
               },
               {
                 step: '03',
                 title: 'Publish and share',
-                desc: 'Your portfolio goes live at yourname.liveportfolio.site. Not happy with your template? Switch in one click — your portfolio updates live.',
+                desc: 'Your portfolio goes live at yourname.liveportfolio.site — a real link you can add to your CV, LinkedIn, and job applications today. Switch templates anytime, changes go live instantly.',
               },
             ].map((item, i) => (
               <div
                 key={item.step}
                 className={`p-8 sm:p-10 bg-white${i < 2 ? ' border-b sm:border-b-0 sm:border-r border-gray-200' : ''}`}
               >
-                <div className="text-xs font-bold text-[#0A66C2] tracking-widest mb-4">{item.step}</div>
+                <div className="text-sm font-bold text-[#0A66C2] tracking-widest mb-4">{item.step}</div>
                 <h3 className="text-lg font-bold text-gray-900 mb-3">{item.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+                <p className="text-base text-gray-500 leading-[1.7]">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -136,7 +143,7 @@ export default function LandingPage() {
       {/* ── Templates ── */}
       <section className="w-full border-b border-gray-100">
         <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
-          <p className="text-xs font-bold text-[#0A66C2] tracking-widest uppercase mb-4">Templates</p>
+          <p className="text-sm font-bold text-[#0A66C2] tracking-widest uppercase mb-4">Templates</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
             {/* Minimal */}
@@ -238,7 +245,7 @@ export default function LandingPage() {
       {/* ── FAQ ── */}
       <section className="w-full border-b border-gray-100">
         <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
-          <p className="text-xs font-bold text-[#0A66C2] tracking-widest uppercase mb-4">FAQ</p>
+          <p className="text-sm font-bold text-[#0A66C2] tracking-widest uppercase mb-4">FAQ</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-gray-100 rounded-2xl overflow-hidden">
             {FAQ_ITEMS.map((item, i) => (
               <details
@@ -249,7 +256,7 @@ export default function LandingPage() {
                   <span className="text-sm font-semibold text-gray-900">{item.q}</span>
                   <span className="text-gray-400 group-open:rotate-180 transition-transform text-xs flex-shrink-0">▼</span>
                 </summary>
-                <div className="px-6 sm:px-8 pb-5 text-sm text-gray-500 leading-relaxed">{item.a}</div>
+                <div className="px-6 sm:px-8 pb-5 text-base text-gray-600 leading-[1.7]">{item.a}</div>
               </details>
             ))}
           </div>
@@ -259,14 +266,17 @@ export default function LandingPage() {
       {/* ── Final CTA ── */}
       <section className="w-full">
         <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-24 lg:text-center lg:flex lg:flex-col lg:items-center">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#0A0A0A] leading-tight mb-8">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#0A0A0A] leading-tight mb-4">
             Your work is already valuable.<br />It just needs to be seen.
           </h2>
+          <p className="text-lg sm:text-xl font-medium text-gray-600 mb-8">
+            Build your portfolio in the next 3 minutes.
+          </p>
           <Link
             href="/create"
             className="inline-flex items-center gap-2 px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors"
           >
-            Create My Portfolio →
+            Build Mine Free →
           </Link>
         </div>
       </section>

@@ -1,14 +1,16 @@
+import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
-// Simple secret token check — set ADMIN_METRICS_SECRET in .env.local
+// FIX 7: Timing-safe secret check — set ADMIN_METRICS_SECRET in .env.local
 function isAuthorized(req: NextRequest): boolean {
-  const token = req.headers.get('x-metrics-secret')
-  const secret = process.env.ADMIN_METRICS_SECRET
+  const token = req.headers.get('x-metrics-secret') || ''
+  const secret = process.env.ADMIN_METRICS_SECRET || ''
   if (!secret) return false
-  return token === secret
+  if (token.length !== secret.length) return false
+  return timingSafeEqual(Buffer.from(token), Buffer.from(secret))
 }
 
 export async function GET(req: NextRequest) {

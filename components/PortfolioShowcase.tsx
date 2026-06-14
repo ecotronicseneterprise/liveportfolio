@@ -128,7 +128,7 @@ const CARD_HEIGHT = 500
 // Render at 960px (tablet width) — text is naturally larger relative to layout,
 // making it more legible at the scaled-down preview sizes.
 const IFRAME_WIDTH = 960
-const ROTATE_MS = 7000
+const ROTATE_MS = 4000
 
 function Card({
   p,
@@ -136,12 +136,14 @@ function Card({
   iframeScale,
   iframeHeight,
   cardWidth,
+  slideIndex,
 }: {
   p: ShowcasePortfolio
   active: boolean
   iframeScale: number
   iframeHeight: number
   cardWidth: number
+  slideIndex: number
 }) {
   const isDark = p.mode === 'dark'
   const barBg = isDark ? 'rgba(15,23,42,0.90)' : 'rgba(255,255,255,0.92)'
@@ -177,7 +179,7 @@ function Card({
           src={url}
           title={`${p.name} portfolio`}
           scrolling="no"
-          loading="lazy"
+          loading={slideIndex === 0 ? 'eager' : 'lazy'}
           style={{
             width: IFRAME_WIDTH,
             height: iframeHeight,
@@ -243,7 +245,7 @@ function Card({
 export default function PortfolioShowcase() {
   const total = PORTFOLIOS.length
   const [index, setIndex] = useState(0)
-  const [paused, setPaused] = useState(false)
+  const pausedRef = useRef(false)
   const [iframeScale, setIframeScale] = useState(0.33)
   const containerRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef<number | null>(null)
@@ -272,15 +274,16 @@ export default function PortfolioShowcase() {
   const iframeHeight = Math.round(CARD_HEIGHT / actualScale)
 
   useEffect(() => {
-    if (paused) return
-    const id = setInterval(advance, ROTATE_MS)
+    const id = setInterval(() => {
+      if (!pausedRef.current) setIndex(i => (i + 1) % PORTFOLIOS.length)
+    }, ROTATE_MS)
     return () => clearInterval(id)
-  }, [paused]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
     touchStartY.current = e.touches[0].clientY
-    setPaused(true)
+    pausedRef.current = true
   }
 
   const onTouchEnd = (e: React.TouchEvent) => {
@@ -292,7 +295,7 @@ export default function PortfolioShowcase() {
     }
     touchStartX.current = null
     touchStartY.current = null
-    setPaused(false)
+    pausedRef.current = false
   }
 
   return (
@@ -302,8 +305,8 @@ export default function PortfolioShowcase() {
         ref={containerRef}
         className="px-4 sm:px-10 lg:px-16"
         style={{ width: '100%', maxWidth: '100vw', boxSizing: 'border-box', overflow: 'hidden' }}
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
+        onMouseEnter={() => { pausedRef.current = true }}
+        onMouseLeave={() => { pausedRef.current = false }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
@@ -323,6 +326,7 @@ export default function PortfolioShowcase() {
               iframeScale={actualScale}
               iframeHeight={iframeHeight}
               cardWidth={cardWidth}
+              slideIndex={i}
             />
           ))}
         </div>
@@ -346,7 +350,7 @@ export default function PortfolioShowcase() {
               {PORTFOLIOS.map((p, i) => (
                 <button
                   key={p.slug}
-                  onClick={() => { setIndex(i); setPaused(false) }}
+                  onClick={() => { setIndex(i); pausedRef.current = false }}
                   aria-label={`Go to ${p.name}`}
                   style={{
                     width: i === index ? 20 : 6,

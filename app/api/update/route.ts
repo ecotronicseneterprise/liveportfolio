@@ -68,8 +68,21 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
   }
 
-  const mergedContent = contentUpdate
-    ? { ...(portfolio.content as Record<string, unknown>), ...contentUpdate }
+  // FIX 6: Allowlist permitted content fields — drop any unknown keys silently
+  const ALLOWED_CONTENT_KEYS = new Set([
+    'name', 'role', 'about', 'headline', 'location', 'email',
+    'github_url', 'linkedin_url', 'avatar_url',
+    'skills', 'skills_grouped', 'skills_narrative',
+    'projects', 'experience', 'education', 'certifications',
+  ])
+  const sanitizedUpdate = contentUpdate
+    ? Object.fromEntries(
+        Object.entries(contentUpdate as Record<string, unknown>).filter(([k]) => ALLOWED_CONTENT_KEYS.has(k))
+      )
+    : null
+
+  const mergedContent = sanitizedUpdate
+    ? { ...(portfolio.content as Record<string, unknown>), ...sanitizedUpdate }
     : (portfolio.content as Record<string, unknown>)
 
   const healthScore = calculateHealthScore(mergedContent)

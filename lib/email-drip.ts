@@ -1,10 +1,14 @@
+import { createHmac } from 'crypto'
 import { sendEmail } from '@/lib/email'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
 const DASHBOARD_URL = `${APP_URL}/dashboard`
 
 function unsubscribeLink(email: string): string {
-  const token = Buffer.from(email).toString('base64url')
+  // FIX 5: HMAC-signed token prevents arbitrary email unsubscription
+  const secret = process.env.UNSUBSCRIBE_SECRET || 'fallback-change-in-env'
+  const sig = createHmac('sha256', secret).update(email.toLowerCase()).digest('hex')
+  const token = Buffer.from(`${email.toLowerCase()}:${sig}`).toString('base64url')
   return `${APP_URL}/api/unsubscribe?token=${token}`
 }
 

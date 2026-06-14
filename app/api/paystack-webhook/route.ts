@@ -43,9 +43,17 @@ export async function POST(req: NextRequest) {
     const customerEmail = customer?.email as string
     const subscriptionCode = data.subscription_code as string
 
-    const TEST_PLAN_CODE = 'PLN_gzi13ks4vajcdhx' // ₦500 test plan — maps to basic
+    // FIX 9: Test plan code from env var (never hardcoded)
+    const TEST_PLAN_CODE = process.env.PAYSTACK_TEST_PLAN_CODE || ''
+    const isTestPlan = TEST_PLAN_CODE && planCode === TEST_PLAN_CODE
+    // FIX 9: Test plan only accepted for the owner's email — never arbitrary users
+    const TEST_EMAIL_WHITELIST = (process.env.PAYSTACK_TEST_EMAIL || '').toLowerCase()
+    if (isTestPlan && customerEmail.toLowerCase() !== TEST_EMAIL_WHITELIST) {
+      console.warn('[webhook] test plan rejected for non-whitelisted email:', customerEmail)
+      return NextResponse.json({ received: true })
+    }
     const plan: 'basic' | 'pro' =
-      planCode === process.env.PAYSTACK_BASIC_PLAN_CODE || planCode === TEST_PLAN_CODE
+      planCode === process.env.PAYSTACK_BASIC_PLAN_CODE || isTestPlan
         ? 'basic'
         : 'pro'
 

@@ -7,7 +7,7 @@ import { useUsdRate } from '@/hooks/useUsdRate'
 const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ''
 const BASIC_PLAN_CODE = process.env.NEXT_PUBLIC_PAYSTACK_BASIC_PLAN_CODE || ''
 const PRO_PLAN_CODE = process.env.NEXT_PUBLIC_PAYSTACK_PRO_PLAN_CODE || ''
-const TEST_PLAN_CODE = 'PLN_gzi13ks4vajcdhx' // ₦500 live test plan — hidden from users
+const TEST_PLAN_CODE = process.env.NEXT_PUBLIC_PAYSTACK_TEST_PLAN_CODE || ''
 
 interface UpgradeModalProps {
   isOpen: boolean

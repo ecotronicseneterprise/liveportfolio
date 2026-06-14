@@ -54,6 +54,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({}, { status: 200 })
     }
 
+    // FIX 10: Validate slug format before any DB/memory operation
+    if (!/^[a-z0-9-]{2,50}$/.test(slug)) {
+      return NextResponse.json({ ok: false }, { status: 400 })
+    }
+
     if (DEMO_SLUGS.has(slug)) return NextResponse.json({}, { status: 200 })
 
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'

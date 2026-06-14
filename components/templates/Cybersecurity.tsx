@@ -5,7 +5,7 @@ import Image from 'next/image'
 import type { PortfolioContent } from './Minimal'
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap');
+  @import 'https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap';
   .cy-root {
     --bg: #052E16;
     --surface: #14532D;

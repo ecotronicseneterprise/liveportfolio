@@ -74,7 +74,20 @@ ${text}`,
     const content = completion.choices[0]?.message?.content
     if (!content) return NextResponse.json({})
 
-    const extracted = JSON.parse(content)
+    const raw = JSON.parse(content)
+    // FIX 11: Return only known fields — never pass raw AI output directly
+    const extracted = {
+      name: raw.name ?? null,
+      role: raw.role ?? null,
+      email: raw.email ?? null,
+      location: raw.location ?? null,
+      bio: raw.bio ?? null,
+      github_url: raw.github_url ?? null,
+      linkedin_url: raw.linkedin_url ?? null,
+      skills: Array.isArray(raw.skills) ? raw.skills : [],
+      projects: Array.isArray(raw.projects) ? raw.projects : [],
+      experience: Array.isArray(raw.experience) ? raw.experience : [],
+    }
     return NextResponse.json(extracted)
   } catch {
     return NextResponse.json({})

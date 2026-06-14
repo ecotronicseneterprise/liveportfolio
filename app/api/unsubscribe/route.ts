@@ -1,25 +1,37 @@
+// Required env vars: UNSUBSCRIBE_SECRET
+import { createHmac, timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
+const INVALID_PAGE = page('Invalid link', 'This unsubscribe link is invalid or has expired.')
+
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token')
 
   if (!token) {
-    return new NextResponse(page('Invalid link', 'This unsubscribe link is invalid or has expired.'), {
-      headers: { 'Content-Type': 'text/html' },
-    })
+    return new NextResponse(INVALID_PAGE, { headers: { 'Content-Type': 'text/html' } })
   }
 
+  // FIX 5: Verify HMAC signature — token is base64url(email:hmac_hex)
   let email: string
   try {
-    email = Buffer.from(token, 'base64url').toString('utf-8')
-    if (!email.includes('@')) throw new Error('invalid')
+    const decoded = Buffer.from(token, 'base64url').toString('utf-8')
+    const colonIdx = decoded.lastIndexOf(':')
+    if (colonIdx === -1) throw new Error('malformed')
+    email = decoded.slice(0, colonIdx)
+    const providedSig = decoded.slice(colonIdx + 1)
+    if (!email.includes('@')) throw new Error('invalid email')
+
+    const secret = process.env.UNSUBSCRIBE_SECRET || 'fallback-change-in-env'
+    const expectedSig = createHmac('sha256', secret).update(email.toLowerCase()).digest('hex')
+
+    const a = Buffer.from(providedSig)
+    const b = Buffer.from(expectedSig)
+    if (a.length !== b.length || !timingSafeEqual(a, b)) throw new Error('bad sig')
   } catch {
-    return new NextResponse(page('Invalid link', 'This unsubscribe link is invalid or has expired.'), {
-      headers: { 'Content-Type': 'text/html' },
-    })
+    return new NextResponse(INVALID_PAGE, { headers: { 'Content-Type': 'text/html' } })
   }
 
   const supabaseAdmin = getSupabaseAdmin()

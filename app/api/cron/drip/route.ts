@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import {
@@ -55,8 +56,12 @@ async function hasSent(
 }
 
 export async function GET(req: NextRequest) {
-  // Protect with CRON_SECRET
-  if (req.headers.get('x-cron-secret') !== process.env.CRON_SECRET) {
+  // FIX 7: Timing-safe CRON_SECRET comparison
+  const provided = req.headers.get('x-cron-secret') || ''
+  const expected = process.env.CRON_SECRET || ''
+  const match = provided.length === expected.length &&
+    timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
+  if (!match) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

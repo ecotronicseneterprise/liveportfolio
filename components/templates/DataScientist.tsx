@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+  @import 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap';
   .sci-root {
     --bg: #134E4A;
     --surface: #0D3330;

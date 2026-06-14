@@ -17,7 +17,7 @@ export default function PricingSection() {
   return (
     <section className="w-full bg-gray-50 border-b border-gray-100">
       <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
-        <p className="text-xs font-bold text-[#0A66C2] tracking-widest uppercase mb-4">Pricing</p>
+        <p className="text-sm font-bold text-[#0A66C2] tracking-widest uppercase mb-4">Pricing</p>
         <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-3 leading-tight">Simple, honest pricing.</h2>
         <p className="text-gray-500 text-lg leading-relaxed mb-10">
           Build and preview free. Subscribe to publish, track, and grow.
@@ -66,12 +66,12 @@ export default function PricingSection() {
                   : '₦15,000'}
               <span className="text-base font-normal text-gray-400">/year</span>
             </p>
-            <p className="text-sm text-gray-400 mb-0.5">The core product</p>
-            <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-1">
+            <p className="text-sm text-gray-400 mb-0.5">For job seekers</p>
+            <ul className="space-y-2 text-sm text-gray-700 mb-6 flex-1">
               {[
                 'Publish your portfolio',
                 'Edit anytime from your dashboard',
-                'Permanent subdomain (yourname.liveportfolio.site)',
+                'Your own shareable link (yourname.liveportfolio.site)',
                 'Choose from 3 templates',
                 'Switch templates anytime — goes live instantly',
               ].map((f) => (
@@ -101,12 +101,12 @@ export default function PricingSection() {
                   : '₦45,000'}
               <span className="text-base font-normal text-gray-400">/year</span>
             </p>
-            <p className="text-sm text-gray-400 mb-0.5">Power users</p>
-            <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-1">
+            <p className="text-sm text-gray-400 mb-0.5">For serious applicants</p>
+            <ul className="space-y-2 text-sm text-gray-700 mb-6 flex-1">
               {[
                 'Everything in Basic',
                 '11 professional templates including 8 role-specific',
-                'Analytics dashboard (views, country, referrer)',
+                'See who views your portfolio — location, source, and timing',
                 'Unique visitor count',
                 'QR code for your portfolio',
                 'Weekly AI career score',
@@ -125,7 +125,7 @@ export default function PricingSection() {
           </div>
 
         </div>
-        <p className="text-center text-xs text-gray-400 mt-6">Annual billing · 7-day refund guarantee · Cancel anytime</p>
+        <p className="text-center text-sm text-gray-600 mt-6">Annual billing · ✓ 7-day refund guarantee — no questions asked · Cancel anytime</p>
       </div>
     </section>
   )
