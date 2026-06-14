@@ -825,83 +825,112 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-5 py-8">
+      <div className="max-w-5xl mx-auto px-5 py-8 pb-[72px] md:pb-8">
 
-        {/* Portfolio URL header */}
+        {/* Identity header */}
         <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs text-gray-400 mb-1">
-                {isPublished ? 'Your portfolio is live at' : 'Publish to go live at'}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+            {/* Avatar — 64px circle */}
+            <div className="flex-shrink-0">
+              {(avatarPreview || editContent.avatar_url) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarPreview || editContent.avatar_url || ''} alt="Profile"
+                  className="w-16 h-16 rounded-full object-cover border border-gray-100" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-[#E8F0F9] flex items-center justify-center border border-gray-100">
+                  <span className="text-xl font-bold text-[#0A66C2]">{user.email[0].toUpperCase()}</span>
+                </div>
+              )}
+            </div>
+            {/* Name + role — left on desktop, centered on mobile */}
+            <div className="flex-1 text-center sm:text-left">
+              <h1 className="text-2xl font-bold text-gray-900 leading-tight">
+                {(editContent as Record<string, string>).name || user.email.split('@')[0]}
+              </h1>
+              <p className="text-[0.95rem] text-gray-500 mt-0.5">
+                {(editContent as Record<string, string>).role || ''}
               </p>
+            </div>
+            {/* Right side — URL chip + plan badge + CTA */}
+            <div className="flex flex-col items-center sm:items-end gap-2 w-full sm:w-auto">
+              {isPublished ? (
+                <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
+                  className="text-sm text-[#0A66C2] font-medium px-3 py-1 bg-[#E8F0F9] rounded-full hover:bg-[#d4e4f7] transition-colors">
+                  {user.slug}.liveportfolio.site ↗
+                </a>
+              ) : (
+                <span className="text-sm text-gray-400 px-3 py-1 bg-gray-50 rounded-full">
+                  {user.slug}.liveportfolio.site
+                </span>
+              )}
               <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                  style={{ background: planBadge.bg, color: planBadge.text }}>
+                  {planBadge.label}
+                </span>
                 {isPublished ? (
-                  <a
-                    href={portfolioUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-lg font-semibold text-[#0A66C2] hover:underline"
-                  >
-                    {user.slug}.liveportfolio.site
+                  <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-gray-600 border border-gray-200 px-3 py-1.5 rounded-full hover:border-gray-300 transition-colors">
+                    View live →
                   </a>
                 ) : (
-                  <span className="text-lg font-semibold text-gray-400">
-                    {user.slug}.liveportfolio.site
-                  </span>
-                )}
-                {isPublished && (
-                  <button
-                    onClick={copyLink}
-                    className="text-xs text-gray-400 hover:text-gray-600 px-2 py-0.5 border border-gray-100 rounded"
-                  >
-                    {copied ? '✓ Copied' : 'Copy'}
+                  <button onClick={() => setShowUpgradeModal(true)}
+                    className="px-4 py-2 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors">
+                    Publish →
                   </button>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              {/* Plan badge — clean text pill, no dot */}
-              <span
-                className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                style={{ background: planBadge.bg, color: planBadge.text }}
-              >
-                {planBadge.label}
-              </span>
-              {isPublished ? (
-                <a
-                  href={portfolioUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-gray-600 border border-gray-200 px-3 py-1.5 rounded-full hover:border-gray-300 transition-colors"
-                >
-                  View live →
-                </a>
-              ) : (
-                <a
-                  href={`/preview/${portfolio.id}`}
-                  className="px-4 py-2 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
-                >
-                  Publish portfolio →
-                </a>
-              )}
-            </div>
           </div>
         </div>
 
-        {/* Tabs — active: blue underline + blue text */}
-        <div className="flex mb-6 bg-white border border-gray-100 rounded-xl overflow-hidden w-fit">
+        {/* Tabs — active: blue underline + blue text — desktop only */}
+        <div className="hidden md:flex mb-6 bg-white border border-gray-100 rounded-xl overflow-hidden w-fit">
           {(['overview', 'edit', 'settings'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className="px-5 py-2.5 text-sm font-medium capitalize transition-all"
+              className="px-5 py-2.5 text-sm font-medium transition-all"
               style={{
                 color: activeTab === tab ? '#0A66C2' : '#6b7280',
                 borderBottom: activeTab === tab ? '2px solid #0A66C2' : '2px solid transparent',
                 background: 'transparent',
               }}
             >
-              {tab}
+              {tab === 'overview' ? 'My Portfolio' : tab === 'edit' ? 'Edit Content' : 'Account'}
+            </button>
+          ))}
+        </div>
+
+        {/* Mobile bottom nav */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex md:hidden" style={{ height: 56 }}>
+          {([
+            { key: 'overview', label: 'My Portfolio', icon: (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+              </svg>
+            )},
+            { key: 'edit', label: 'Edit Content', icon: (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            )},
+            { key: 'settings', label: 'Account', icon: (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+            )},
+          ] as const).map(({ key, label, icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors"
+              style={{ color: activeTab === key ? '#0A66C2' : '#9ca3af' }}
+            >
+              {icon}
+              <span style={{ fontSize: 10, fontWeight: activeTab === key ? 600 : 400 }}>{label}</span>
             </button>
           ))}
         </div>
@@ -909,6 +938,107 @@ export default function DashboardPage() {
         {/* ── OVERVIEW TAB ── */}
         {activeTab === 'overview' && (
           <div className={`grid grid-cols-1 gap-4 ${isPublished ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
+
+            {/* Portfolio preview panel */}
+            <div className="col-span-full mb-2">
+              {isPublished ? (
+                <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10)' }}>
+                  {/* Toolbar */}
+                  <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
+                    <span className="text-sm text-gray-400">Your portfolio</span>
+                    <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
+                      className="text-xs font-semibold text-[#0A66C2] hover:text-[#084D9A] transition-colors">
+                      Open full screen ↗
+                    </a>
+                  </div>
+                  <div className="h-[280px] sm:h-[400px]">
+                    <iframe
+                      src={`https://${user.slug}.liveportfolio.site?dashboard=true`}
+                      className="w-full h-full"
+                      style={{ border: 'none' }}
+                      title="Portfolio preview"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl h-[280px] sm:h-[400px] flex items-center justify-center">
+                  <p className="text-gray-400 text-[0.95rem] text-center px-6">
+                    Publish your portfolio to see a live preview here
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Template switcher */}
+            <div className="col-span-full">
+              <p className="text-sm font-semibold text-gray-700 mb-3">Your template</p>
+              {lockedTemplateMsg && (
+                <div className="mb-3 p-3 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-xl text-xs text-[#0A66C2] font-medium flex items-center justify-between gap-3">
+                  <span>{lockedTemplateMsg}</span>
+                  <button onClick={() => { setLockedTemplateMsg(null); setShowUpgradeModal(true) }} className="underline flex-shrink-0">Upgrade →</button>
+                </div>
+              )}
+              <div className="flex gap-3 overflow-x-auto pb-2 md:flex-wrap md:overflow-visible">
+                {[
+                  { id: 'minimal', name: 'Minimal', dark: false, pro: false },
+                  { id: 'bold', name: 'Bold', dark: true, pro: false },
+                  { id: 'creative', name: 'Creative', dark: false, pro: false },
+                  { id: 'developer', name: 'Developer', dark: true, pro: true },
+                  { id: 'designer', name: 'Designer', dark: false, pro: true },
+                  { id: 'data-scientist', name: 'Data Sci', dark: true, pro: true },
+                  { id: 'product-manager', name: 'PM', dark: false, pro: true },
+                  { id: 'finance', name: 'Finance', dark: true, pro: true },
+                  { id: 'graduate', name: 'Graduate', dark: false, pro: true },
+                  { id: 'cybersecurity', name: 'Cyber', dark: true, pro: true },
+                ].map((t) => {
+                  const isLocked = t.pro && !isPro
+                  const isSelected = template === t.id
+                  return (
+                    <div key={t.id} className="flex-shrink-0 flex flex-col items-center gap-1">
+                      <button
+                        onClick={() => {
+                          if (isLocked) { setLockedTemplateMsg(`"${t.name}" is a Pro template.`); setShowUpgradeModal(true); return }
+                          setLockedTemplateMsg(null)
+                          setTemplate(t.id)
+                        }}
+                        className="relative rounded-xl border-2 overflow-hidden transition-all"
+                        style={{
+                          width: 120, height: 80,
+                          background: t.dark ? '#0D1117' : '#F9FAFB',
+                          borderColor: isSelected ? '#0A66C2' : '#e5e7eb',
+                          opacity: isLocked ? 0.5 : 1,
+                        }}
+                      >
+                        {/* Color swatch */}
+                        <div className="absolute inset-0"
+                          style={{
+                            background: t.dark
+                              ? 'linear-gradient(135deg, #1C2128 60%, #58A6FF 100%)'
+                              : 'linear-gradient(135deg, #f3f4f6 60%, #0A66C2 100%)',
+                          }} />
+                        {/* Active badge */}
+                        {isSelected && (
+                          <span className="absolute top-1.5 right-1.5 bg-[#0A66C2] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                            Active
+                          </span>
+                        )}
+                        {/* Lock icon */}
+                        {isLocked && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                      <span className="text-[0.75rem] text-center text-gray-500">{t.name}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
 
             {/* Portfolio strength */}
             <div className="sm:col-span-1">
@@ -944,7 +1074,7 @@ export default function DashboardPage() {
               {!isPro && isPublished && (
                 <ProBlurOverlay
                   headline="Unique visitor count"
-                  subtext="Upgrade to Pro to see unique visitors"
+                  subtext="See exactly who's visiting"
                   onUpgrade={() => setShowUpgradeModal(true)}
                 />
               )}
@@ -1350,6 +1480,162 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
+
+            {/* Skills */}
+            <div className="pt-2 border-t border-gray-100">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {(editContent.skills || []).map((skill, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => setEditContent(prev => ({
+                        ...prev,
+                        skills: (prev.skills || []).filter((_, idx) => idx !== i)
+                      }))}
+                      className="text-gray-400 hover:text-gray-700 leading-none ml-0.5"
+                    >×</button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Add a skill and press Enter"
+                  className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
+                  style={{ fontSize: '16px' }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      const val = (e.target as HTMLInputElement).value.trim()
+                      if (!val) return
+                      setEditContent(prev => ({ ...prev, skills: [...(prev.skills || []), val] }))
+                      ;(e.target as HTMLInputElement).value = ''
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Experience */}
+            <div className="pt-2 border-t border-gray-100">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Experience</label>
+              <div className="space-y-4">
+                {(editContent.experience || []).map((exp, i) => (
+                  <div key={i} className="p-4 border border-gray-100 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Position {i + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditContent(prev => ({
+                          ...prev,
+                          experience: (prev.experience || []).filter((_, idx) => idx !== i)
+                        }))}
+                        className="text-xs text-red-500 hover:text-red-700"
+                      >Remove</button>
+                    </div>
+                    <input type="text" placeholder="Company" value={exp.company || ''}
+                      onChange={(e) => {
+                        const updated = [...(editContent.experience || [])]
+                        updated[i] = { ...updated[i], company: e.target.value }
+                        setEditContent(prev => ({ ...prev, experience: updated }))
+                      }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    <input type="text" placeholder="Role / Title" value={exp.role || ''}
+                      onChange={(e) => {
+                        const updated = [...(editContent.experience || [])]
+                        updated[i] = { ...updated[i], role: e.target.value }
+                        setEditContent(prev => ({ ...prev, experience: updated }))
+                      }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    <input type="text" placeholder="Period (e.g. 2023 – Present)" value={exp.period || ''}
+                      onChange={(e) => {
+                        const updated = [...(editContent.experience || [])]
+                        updated[i] = { ...updated[i], period: e.target.value }
+                        setEditContent(prev => ({ ...prev, experience: updated }))
+                      }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    <textarea placeholder={"- Led team of 5 engineers...\n- Built payment integration..."}
+                      value={(exp.bullets || []).join('\n')}
+                      onChange={(e) => {
+                        const updated = [...(editContent.experience || [])]
+                        updated[i] = { ...updated[i], bullets: e.target.value.split('\n') }
+                        setEditContent(prev => ({ ...prev, experience: updated }))
+                      }}
+                      rows={4}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }} />
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditContent(prev => ({
+                  ...prev,
+                  experience: [...(prev.experience || []), { company: '', role: '', period: '', bullets: [] }]
+                }))}
+                className="mt-3 text-sm font-semibold text-[#0A66C2] hover:text-[#084D9A] transition-colors"
+              >+ Add experience</button>
+            </div>
+
+            {/* Projects */}
+            <div className="pt-2 border-t border-gray-100">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Projects</label>
+              <div className="space-y-4">
+                {(editContent.projects || []).map((proj, i) => (
+                  <div key={i} className="p-4 border border-gray-100 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Project {i + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditContent(prev => ({
+                          ...prev,
+                          projects: (prev.projects || []).filter((_, idx) => idx !== i)
+                        }))}
+                        className="text-xs text-red-500 hover:text-red-700"
+                      >Remove</button>
+                    </div>
+                    <input type="text" placeholder="Project title" value={proj.title || ''}
+                      onChange={(e) => {
+                        const updated = [...(editContent.projects || [])]
+                        updated[i] = { ...updated[i], title: e.target.value }
+                        setEditContent(prev => ({ ...prev, projects: updated }))
+                      }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    <textarea placeholder="What did you build and why?" value={proj.solution || ''}
+                      onChange={(e) => {
+                        const updated = [...(editContent.projects || [])]
+                        updated[i] = { ...updated[i], solution: e.target.value }
+                        setEditContent(prev => ({ ...prev, projects: updated }))
+                      }}
+                      rows={3}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }} />
+                    <input type="text" placeholder="Tech stack (React, Node.js, PostgreSQL)" value={(proj.stack || []).join(', ')}
+                      onChange={(e) => {
+                        const updated = [...(editContent.projects || [])]
+                        updated[i] = { ...updated[i], stack: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }
+                        setEditContent(prev => ({ ...prev, projects: updated }))
+                      }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    <input type="url" placeholder="Live URL (optional)" value={proj.url || ''}
+                      onChange={(e) => {
+                        const updated = [...(editContent.projects || [])]
+                        updated[i] = { ...updated[i], url: e.target.value }
+                        setEditContent(prev => ({ ...prev, projects: updated }))
+                      }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditContent(prev => ({
+                  ...prev,
+                  projects: [...(prev.projects || []), { title: '', problem: '', solution: '', outcome: '', stack: [], url: '' }]
+                }))}
+                className="mt-3 text-sm font-semibold text-[#0A66C2] hover:text-[#084D9A] transition-colors"
+              >+ Add project</button>
+            </div>
 
             <div className="pt-4 border-t border-gray-100">
               <button
