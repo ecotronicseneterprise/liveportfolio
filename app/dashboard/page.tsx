@@ -134,25 +134,29 @@ function CareerScoreCard({
   isPro,
   portfolioId,
   userId,
+  token,
   onUpgrade,
 }: {
   isPro: boolean
   portfolioId: string
   userId: string
+  token: string
   onUpgrade: () => void
 }) {
   const [data, setData] = useState<CareerScoreData | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!isPro) return
+    if (!isPro || !token) return
     setLoading(true)
-    fetch(`/api/score?portfolioId=${portfolioId}&userId=${userId}`)
+    fetch(`/api/score?portfolioId=${portfolioId}&userId=${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((r) => r.json())
       .then((d) => { if (d.score !== undefined) setData(d) })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [isPro, portfolioId, userId])
+  }, [isPro, portfolioId, userId, token])
 
   // Circular ring metrics
   const RADIUS = 36
@@ -333,27 +337,32 @@ function AnalyticsSection({
   isPro,
   portfolioId,
   userId,
+  token,
   onUpgrade,
   onSummaryLoaded,
 }: {
   isPro: boolean
   portfolioId: string
   userId: string
+  token: string
   onUpgrade: () => void
   onSummaryLoaded?: (totalUniqueVisitors: number) => void
 }) {
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
 
   useEffect(() => {
-    if (!isPro) return
-    fetch(`/api/analytics/summary?portfolioId=${portfolioId}&userId=${userId}`)
+    if (!isPro || !token) return
+    fetch(`/api/analytics/summary?portfolioId=${portfolioId}&userId=${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((r) => r.json())
       .then((d: AnalyticsSummary) => {
+        if (!d.viewsByDay) return // guard against error responses
         setSummary(d)
         onSummaryLoaded?.(d.totalUniqueVisitors ?? 0)
       })
       .catch(() => {})
-  }, [isPro, portfolioId, userId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isPro, portfolioId, userId, token]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const bars = isPro && summary ? summary.viewsByDay : PLACEHOLDER_BARS
   const maxBar = Math.max(...bars, 1)
@@ -526,6 +535,7 @@ export default function DashboardPage() {
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleteMsg, setDeleteMsg] = useState('')
   const [uniqueVisitors, setUniqueVisitors] = useState<number | null>(null)
+  const [accessToken, setAccessToken] = useState<string>('')
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [avatarMsg, setAvatarMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
@@ -543,6 +553,7 @@ export default function DashboardPage() {
   const loadData = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { router.push('/create'); return }
+    setAccessToken(session.access_token)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sb = supabase as any
@@ -1236,6 +1247,7 @@ export default function DashboardPage() {
                 isPro={isPro}
                 portfolioId={portfolio.id}
                 userId={user.id}
+                token={accessToken}
                 onUpgrade={() => setShowUpgradeModal(true)}
               />
             )}
@@ -1246,6 +1258,7 @@ export default function DashboardPage() {
                 isPro={isPro}
                 portfolioId={portfolio.id}
                 userId={user.id}
+                token={accessToken}
                 onUpgrade={() => setShowUpgradeModal(true)}
                 onSummaryLoaded={(n) => setUniqueVisitors(n)}
               />

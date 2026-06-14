@@ -169,7 +169,7 @@ function Card({
         opacity: active ? 1 : 0,
         zIndex: active ? 1 : 0,
         pointerEvents: active ? 'auto' : 'none',
-        transition: 'opacity 300ms ease',
+        transition: 'opacity 600ms ease',
         background: isDark ? darkBg(p) : '#fff',
       }}
     >
