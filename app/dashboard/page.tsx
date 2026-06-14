@@ -964,7 +964,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="h-[280px] sm:h-[400px]">
                     <iframe
-                      src={`https://${user.slug}.liveportfolio.site?dashboard=true`}
+                      src={`${APP_URL}/${user.slug}?dashboard=true`}
                       className="w-full h-full"
                       style={{ border: 'none' }}
                       title="Portfolio preview"
