@@ -171,27 +171,23 @@ function Card({
         background: isDark ? darkBg(p) : '#fff',
       }}
     >
-      {/* Scaled iframe */}
+      {/* Scaled iframe — always mounted; parent opacity handles visibility */}
       <div style={{ width: cardWidth, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative' }}>
-        {active ? (
-          <iframe
-            src={url}
-            title={`${p.name} portfolio`}
-            scrolling="no"
-            loading="lazy"
-            style={{
-              width: IFRAME_WIDTH,
-              height: iframeHeight,
-              border: 'none',
-              transform: `scale(${iframeScale})`,
-              transformOrigin: 'top left',
-              pointerEvents: 'none',
-              display: 'block',
-            }}
-          />
-        ) : (
-          <div aria-hidden style={{ width: cardWidth, height: CARD_HEIGHT }} />
-        )}
+        <iframe
+          src={url}
+          title={`${p.name} portfolio`}
+          scrolling="no"
+          loading="lazy"
+          style={{
+            width: IFRAME_WIDTH,
+            height: iframeHeight,
+            border: 'none',
+            transform: `scale(${iframeScale})`,
+            transformOrigin: 'top left',
+            pointerEvents: 'none',
+            display: 'block',
+          }}
+        />
       </div>
 
       {/* Info bar pinned to bottom */}
