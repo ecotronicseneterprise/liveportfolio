@@ -342,6 +342,13 @@ export default function PreviewPage() {
     }
 
     setLoading(false)
+
+    if (typeof window.gtag !== 'undefined') {
+      window.gtag('event', 'preview_viewed', {
+        template: (portfolio.template as string) || 'minimal',
+        has_photo: !!(portfolio.content as PortfolioContent).avatar_url,
+      })
+    }
   }, [portfolioId, router])
 
   // Listen for real-time payment updates + poll as fallback
@@ -429,6 +436,12 @@ export default function PreviewPage() {
     })
     setSavingEmail(false)
     setEmailSaved(true)
+    if (typeof window.fbq !== 'undefined') {
+      window.fbq('track', 'Lead', {
+        content_name: 'portfolio_preview',
+        content_category: 'job_seeker',
+      })
+    }
   }
 
   if (loading) {

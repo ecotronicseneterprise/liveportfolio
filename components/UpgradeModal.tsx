@@ -55,6 +55,18 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
     return () => window.removeEventListener('keydown', handler)
   }, [isOpen, onClose])
 
+  // begin_checkout when modal opens
+  useEffect(() => {
+    if (!isOpen) return
+    if (typeof window.gtag !== 'undefined') {
+      window.gtag('event', 'begin_checkout', {
+        currency: isIntl ? 'USD' : 'NGN',
+        value: isIntl ? Number(basicUsd) : 15000,
+        items: [{ item_name: 'basic', item_category: 'subscription' }],
+      })
+    }
+  }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!isOpen) return null
 
   const isTestMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('test') === '1'
@@ -67,19 +79,36 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
       return
     }
 
+    if (typeof window.gtag !== 'undefined') {
+      window.gtag('event', 'payment_modal_open', {
+        plan: tier,
+        currency: isIntl ? 'USD' : 'NGN',
+      })
+    }
+
+    const payAmount = isIntl
+      ? Number(tier === 'pro' ? proUsd : basicUsd)
+      : (tier === 'pro' ? 45000 : 15000)
+    const payCurrency = isIntl ? 'USD' : 'NGN'
+
     const handler = PaystackPop.setup({
       key: PAYSTACK_PUBLIC_KEY,
       email: userEmail,
       plan: planCode,
       ref: `lp-${portfolioId}-${tier}-${Date.now()}`,
       callback: () => {
-        if (typeof window !== 'undefined' && window.gtag) {
+        if (typeof window.gtag !== 'undefined') {
           window.gtag('event', 'publish_success', {
             plan: tier,
-            currency: isIntl ? 'USD' : 'NGN',
-            value: isIntl
-              ? Number(tier === 'pro' ? proUsd : basicUsd)
-              : (tier === 'pro' ? 45000 : 15000),
+            currency: payCurrency,
+            value: payAmount,
+          })
+        }
+        if (typeof window.fbq !== 'undefined') {
+          window.fbq('track', 'Purchase', {
+            value: payAmount,
+            currency: payCurrency,
+            content_name: tier,
           })
         }
         onClose()

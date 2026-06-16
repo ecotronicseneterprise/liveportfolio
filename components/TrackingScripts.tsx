@@ -1,9 +1,26 @@
+'use client'
+
 import Script from 'next/script'
+import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function TrackingScripts() {
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
   const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+
+  const pathname = usePathname()
+
+  useEffect(() => {
+    if (typeof window.gtag === 'undefined') return
+    if (process.env.NODE_ENV !== 'production') return
+    window.gtag('event', 'page_view', {
+      page_path: pathname,
+      page_location: window.location.href,
+    })
+  }, [pathname])
+
   if (!pixelId && !gaId) return null
+  if (process.env.NODE_ENV !== 'production') return null
 
   return (
     <>

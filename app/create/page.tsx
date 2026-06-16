@@ -78,6 +78,16 @@ const TEMPLATE_DISPLAY_NAMES: Record<string, string> = {
   'minimal': 'Minimal',
 }
 
+function getStepName(step: number): string {
+  const names: Record<number, string> = {
+    1: 'basic_info',
+    2: 'experience',
+    3: 'projects',
+    4: 'review',
+  }
+  return names[step] || `step_${step}`
+}
+
 function suggestTemplate(role: string): string {
   try {
     const r = role.toLowerCase()
@@ -315,6 +325,9 @@ export default function CreatePage() {
           bullets: (e.bullets || []).join('\n'),
         })))
       }
+      if (typeof window.gtag !== 'undefined') {
+        window.gtag('event', 'cv_uploaded', { file_type: 'pdf' })
+      }
     } catch {
       // Silent fail — CV parsing is optional
     } finally {
@@ -454,6 +467,12 @@ export default function CreatePage() {
       update('template', suggestedTemplate)
     }
     setStep(nextStep)
+    if (typeof window.gtag !== 'undefined') {
+      window.gtag('event', 'form_step', {
+        step: step,
+        step_name: getStepName(step),
+      })
+    }
     window.scrollTo(0, 0)
   }
 
