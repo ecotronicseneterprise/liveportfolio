@@ -17,10 +17,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: `${appUrl}/login`,
+      url: `${appUrl}/terms`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.3,
+    },
+    {
+      url: `${appUrl}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
     },
     {
       url: `${appUrl}/blog`,

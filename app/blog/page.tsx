@@ -2,13 +2,18 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Blog — liveportfolio.site',
-  description: 'Guides on building a tech portfolio, landing remote jobs from Africa, and standing out to global recruiters. Practical, honest, no fluff.',
+  title: 'Blog — LivePortfolio',
+  description: 'Guides on building a tech portfolio, landing remote jobs, and standing out to global recruiters. Practical advice for developers and job seekers.',
   openGraph: {
-    title: 'Blog — liveportfolio.site',
-    description: 'Guides on building a tech portfolio, landing remote jobs from Africa, and standing out to global recruiters.',
+    title: 'Blog — LivePortfolio',
+    description: 'Guides on building a tech portfolio and standing out to global recruiters.',
     url: 'https://liveportfolio.site/blog',
-    siteName: 'liveportfolio.site',
+    siteName: 'LivePortfolio',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Blog — LivePortfolio',
+    description: 'Guides on building a tech portfolio and standing out to global recruiters.',
   },
 }
 

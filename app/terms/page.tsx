@@ -1,4 +1,14 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service — LivePortfolio',
+  description: 'Terms of service for LivePortfolio. Build and publish professional portfolio websites online.',
+  openGraph: {
+    title: 'Terms of Service — LivePortfolio',
+    siteName: 'LivePortfolio',
+  },
+}
 
 export default function TermsPage() {
   return (

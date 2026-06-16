@@ -5,6 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
+      disallow: ['/dashboard', '/api/', '/preview/'],
     },
     sitemap: 'https://liveportfolio.site/sitemap.xml',
   }

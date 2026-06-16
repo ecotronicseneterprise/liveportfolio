@@ -7,7 +7,7 @@ import PublishedCount from '@/components/PublishedCount'
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
+  '@type': 'WebApplication',
   name: 'LivePortfolio',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
@@ -15,14 +15,13 @@ const jsonLd = {
   description: 'Create a professional portfolio website for job applications in minutes. Upload your CV, get AI-written copy, and share your link with recruiters.',
   offers: {
     '@type': 'Offer',
-    price: '15000',
-    priceCurrency: 'NGN',
-    priceValidUntil: '2027-12-31',
+    price: '0',
+    priceCurrency: 'USD',
+    description: 'Free to build and preview',
   },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.8',
-    reviewCount: '47',
+  audience: {
+    '@type': 'Audience',
+    audienceType: 'Job seekers, developers, designers, data scientists, freelancers',
   },
 }
 

@@ -3,26 +3,28 @@ import './globals.css'
 import TrackingScripts from '@/components/TrackingScripts'
 
 export const metadata: Metadata = {
-  title: 'LivePortfolio — Create a Professional Portfolio Website for Job Seekers',
-  description: 'Build a professional portfolio website in minutes. Upload your CV or answer a few questions and share your portfolio link in job applications. Track who views you.',
+  title: 'LivePortfolio — Create a Professional Portfolio Website in minutes',
+  description: 'Turn your CV into a professional portfolio website in minutes. Used by developers, designers, and job seekers worldwide.',
   keywords: [
-    'online portfolio for job seekers',
-    'CV website',
-    'create portfolio for job applications',
-    'online resume website',
-    'portfolio website Nigeria',
-    'job application portfolio',
-    'professional portfolio builder',
-    'online CV Africa',
+    'portfolio website',
+    'professional portfolio',
+    'AI portfolio builder',
+    'job seeker portfolio',
+    'developer portfolio',
+    'data scientist portfolio',
+    'remote jobs portfolio',
+    'hireable online',
+    'CV to portfolio',
+    'portfolio for job seekers',
   ],
   icons: {
     icon: '/logo.svg',
   },
   openGraph: {
-    title: 'LivePortfolio — Create a Professional Portfolio Website for Job Seekers',
-    description: 'Build a professional portfolio website in minutes. Upload your CV, share your link in job applications, and know exactly when someone views it.',
+    title: 'LivePortfolio — Create a Professional Portfolio Website in minutes',
+    description: 'Turn your CV into a professional portfolio website in minutes. Used by developers, designers, and job seekers worldwide.',
     url: 'https://liveportfolio.site',
-    siteName: 'liveportfolio.site',
+    siteName: 'LivePortfolio',
     type: 'website',
     images: [
       {
@@ -35,8 +37,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LivePortfolio — Create a Professional Portfolio Website for Job Seekers',
-    description: 'Build a professional portfolio website in minutes. Upload your CV, share your link in job applications, and know exactly when someone views it.',
+    title: 'LivePortfolio — Build a Portfolio That Gets You Hired',
+    description: 'Build a professional portfolio website in minutes. Share your link in job applications.',
     images: ['https://liveportfolio.site/logo-1024.png'],
   },
   alternates: {
