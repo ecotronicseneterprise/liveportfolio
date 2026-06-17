@@ -13,6 +13,7 @@ export default function PublishedCount() {
         .from('users')
         .select('*', { count: 'exact', head: true })
         .not('published_at', 'is', null)
+        .neq('plan', 'unpublished')
         .then(({ count: c }) => {
           if (c && c > 0) setCount(c)
         })
@@ -25,7 +26,7 @@ export default function PublishedCount() {
 
   return (
     <p className="text-sm text-gray-500">
-      ✦ {count} portfolios published and live
+      ✦ Join {count} professionals with a live portfolio
     </p>
   )
 }
