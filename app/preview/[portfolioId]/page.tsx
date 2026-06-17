@@ -335,12 +335,20 @@ export default function PreviewPage() {
         setSlug(user.slug || '')
         setUserEmail((user as { email?: string }).email || '')
 
+        // Invite users are already Pro — set immediately, don't wait for API
+        if (isInvited) {
+          setIsPaid(true)
+          setIsPro(true)
+        }
+
         // Check plan via server-side getUserPlan (handles both subscriptions + legacy)
         const planRes = await fetch(`/api/user-plan?userId=${portfolio.user_id}`)
         const { plan } = await planRes.json()
         const paid = plan !== 'free'
-        setIsPaid(paid)
-        setIsPro(plan === 'pro')
+        if (!isInvited) {
+          setIsPaid(paid)
+          setIsPro(plan === 'pro')
+        }
 
         // Already paid — send straight to dashboard, unless this is an invite landing
         if (paid && !isInvited) {
@@ -527,7 +535,7 @@ export default function PreviewPage() {
       />
 
       {/* Invite success banner */}
-      {isInvited && isPaid && (
+      {isInvited && (
         <div style={{ background: 'linear-gradient(135deg, #0A66C2, #0052a3)', color: 'white', padding: '16px 24px', textAlign: 'center' }}>
           <p style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>🎉 Your Pro portfolio is live!</p>
           <p style={{ fontSize: 14, margin: '0 0 16px', opacity: 0.9 }}>Your portfolio is published at your personal link below.</p>
