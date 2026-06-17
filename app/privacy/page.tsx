@@ -1,4 +1,18 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy — LivePortfolio',
+  description: 'Privacy policy for LivePortfolio. How we collect, use, and protect your data.',
+  alternates: {
+    canonical: 'https://liveportfolio.site/privacy',
+  },
+  openGraph: {
+    title: 'Privacy Policy — LivePortfolio',
+    siteName: 'LivePortfolio',
+    url: 'https://liveportfolio.site/privacy',
+  },
+}
 
 export default function PrivacyPage() {
   return (
@@ -64,7 +78,7 @@ export default function PrivacyPage() {
             </p>
             <p className="mt-3">
               Portfolio content you choose to make public (i.e., after publishing) is accessible at
-              yourname.liveportfolio.site. This is intentional — it is the product you paid for.
+              liveportfolio.site/yourname. This is intentional — it is the product you paid for.
             </p>
           </section>
 

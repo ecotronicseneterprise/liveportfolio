@@ -41,9 +41,6 @@ export const metadata: Metadata = {
     description: 'Build a professional portfolio website in minutes. Share your link in job applications.',
     images: ['https://liveportfolio.site/logo-1024.png'],
   },
-  alternates: {
-    canonical: 'https://liveportfolio.site',
-  },
 }
 
 export default function RootLayout({

@@ -4,12 +4,25 @@ import { PullQuote, Callout, StepCard, Checklist, KeyTakeaway, CTASection, Relat
 export const metadata: Metadata = {
   title: 'What Recruiters Actually Look For in a Portfolio — liveportfolio.site',
   description: 'A recruiter has 7 seconds before they decide. Here is exactly what they are scanning for, and the red flags that get candidates skipped immediately.',
+  authors: [{ name: 'LivePortfolio Team' }],
   openGraph: {
     title: 'What Recruiters Actually Look For in a Portfolio',
     description: 'The 7-second scan, projects with outcomes, and the red flags that get candidates skipped.',
     url: 'https://liveportfolio.site/blog/what-recruiters-look-for-in-a-portfolio',
     siteName: 'liveportfolio.site',
     type: 'article',
+    publishedTime: '2026-05-22T00:00:00Z',
+    authors: ['https://liveportfolio.site'],
+    images: [{
+      url: 'https://liveportfolio.site/logo-1024.png',
+      width: 1024,
+      height: 1024,
+      alt: 'What Recruiters Actually Look For in a Portfolio',
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['https://liveportfolio.site/logo-1024.png'],
   },
   alternates: {
     canonical: 'https://liveportfolio.site/blog/what-recruiters-look-for-in-a-portfolio',
@@ -38,6 +51,9 @@ export default function Article() {
       {/* Hero */}
       <section className="bg-[#E8F0F9] px-5 py-14 sm:py-20">
         <div className="max-w-2xl mx-auto">
+          <div style={{ marginBottom: 16 }}>
+            <a href="/blog" style={{ fontSize: 13, color: '#6B7280', textDecoration: 'none' }}>← Blog</a>
+          </div>
           <span className="inline-block text-xs font-semibold text-[#0A66C2] uppercase tracking-widest mb-4 bg-white px-3 py-1 rounded-full">
             Recruiter insight
           </span>
@@ -81,7 +97,7 @@ export default function Article() {
         </p>
 
         <StepCard number={1} title="Your project descriptions">
-          This is the most important section of your portfolio. Recruiters want to understand three things about every project: what problem existed, what you built to solve it, and what happened as a result. A project described as "e-commerce website" tells them nothing. A project described as "built a checkout flow for a Lagos fashion brand that processed 1,200 orders in its first month" tells them everything they need.
+          This is the most important section of your portfolio. Recruiters want to understand three things about every project: what problem existed, what you built to solve it, and what happened as a result. A project described as "e-commerce website" tells them nothing. A project described as "built a checkout flow for an online fashion brand that processed 1,200 orders in its first month" tells them everything they need.
         </StepCard>
 
         <StepCard number={2} title="Evidence of the stack you claim">

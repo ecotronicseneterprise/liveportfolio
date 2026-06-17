@@ -3,13 +3,26 @@ import { PullQuote, Callout, Checklist, KeyTakeaway, CTASection, RelatedArticles
 
 export const metadata: Metadata = {
   title: 'How to Get a Remote Tech Job From Nigeria in 2026 — liveportfolio.site',
-  description: 'A practical guide to landing remote tech work from Nigeria. Covers the skills that get hired, where to apply, and why 100+ applications before your first offer is normal.',
+  description: 'A practical guide to landing remote tech work from Nigeria. Covers the skills that get hired, where to apply, and why rejection is normal.',
+  authors: [{ name: 'LivePortfolio Team' }],
   openGraph: {
     title: 'How to Get a Remote Tech Job From Nigeria in 2026',
     description: 'The skills that get hired, where to apply, and why 100 applications before your first offer is completely normal.',
     url: 'https://liveportfolio.site/blog/how-to-get-a-remote-tech-job-from-nigeria',
     siteName: 'liveportfolio.site',
     type: 'article',
+    publishedTime: '2026-05-08T00:00:00Z',
+    authors: ['https://liveportfolio.site'],
+    images: [{
+      url: 'https://liveportfolio.site/logo-1024.png',
+      width: 1024,
+      height: 1024,
+      alt: 'How to Get a Remote Tech Job From Nigeria in 2026',
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['https://liveportfolio.site/logo-1024.png'],
   },
   alternates: {
     canonical: 'https://liveportfolio.site/blog/how-to-get-a-remote-tech-job-from-nigeria',
@@ -38,6 +51,9 @@ export default function Article() {
       {/* Hero */}
       <section className="bg-[#E8F0F9] px-5 py-14 sm:py-20">
         <div className="max-w-2xl mx-auto">
+          <div style={{ marginBottom: 16 }}>
+            <a href="/blog" style={{ fontSize: 13, color: '#6B7280', textDecoration: 'none' }}>← Blog</a>
+          </div>
           <span className="inline-block text-xs font-semibold text-[#0A66C2] uppercase tracking-widest mb-4 bg-white px-3 py-1 rounded-full">
             Remote work
           </span>
@@ -45,7 +61,7 @@ export default function Article() {
             How to Get a Remote Tech Job From Nigeria in 2026
           </h1>
           <p className="text-gray-600 text-lg mb-4">
-            The remote work market is real and growing. Nigerian developers are landing roles at companies in the UK, Canada, Germany, and the US every single week.
+            The remote work market is real and growing. Developers from emerging markets are landing roles at companies in the UK, Canada, Germany, and the US every single week.
           </p>
           <p className="text-xs text-gray-400">7 min read</p>
         </div>
@@ -55,7 +71,7 @@ export default function Article() {
       <article className="max-w-[720px] mx-auto px-5 py-12">
 
         <p className="text-base text-gray-700 leading-relaxed mb-6">
-          Getting a remote tech job from Nigeria is not easy. But it is very possible, and it is happening for more people every year.
+          Getting a remote tech job is not easy. But it is very possible, and it is happening for more people every year — regardless of where in the world you are based.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-6">
           The companies hiring remotely in 2026 are not doing you a favour. They are solving a problem: they cannot find good developers locally at the salary they can afford. Your skills are the solution to their problem.
@@ -89,7 +105,7 @@ export default function Article() {
         <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Why a Portfolio Beats a CV for Remote Roles</h2>
 
         <p className="text-base text-gray-700 leading-relaxed mb-4">
-          When you apply to a company in another country, you are an unknown name with a document full of claims. The recruiter cannot call your reference in Lagos quickly. They cannot verify your university credentials easily.
+          When you apply to a company in another country, you are an unknown name with a document full of claims. The recruiter cannot easily verify your experience or call your references across time zones.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-4">
           But if you send them a link to a live product you built, a GitHub with active commits, and a portfolio that clearly explains your projects and their outcomes, the conversation changes completely.
@@ -116,7 +132,7 @@ export default function Article() {
           'AngelList / Wellfound — startup roles, often remote-first',
           'Toptal — for senior engineers, competitive vetting but high rates',
           'Turing.com — AI-matched remote roles, strong for developers with portfolios',
-          'Andela — specifically supports African engineers finding remote work',
+          'Andela — strong track record placing engineers from emerging markets in remote roles',
         ]} />
 
         <Callout emoji="💡" title="Apply even if you meet 60% of the requirements" color="blue">
@@ -147,10 +163,10 @@ export default function Article() {
         </p>
 
         <Checklist items={[
-          'Wise (wise.com) — best rates for USD/GBP/EUR transfers to Nigerian bank accounts',
+          'Wise (wise.com) — best rates for international USD/GBP/EUR transfers to local bank accounts',
           'Payoneer — widely accepted by US and EU companies for contractor payments',
-          'Geegpay — built specifically for African remote workers, easy setup',
-          'Chipper Cash — growing option for cross-border payments within Africa and globally',
+          'Deel — all-in-one platform for international contractor contracts and payments',
+          'Remote.com — handles compliance, contracts, and payroll for distributed teams',
         ]} />
 
         <Callout emoji="⚠️" title="Sort this out early" color="amber">
@@ -167,7 +183,7 @@ export default function Article() {
         </p>
 
         <KeyTakeaway>
-          Remote tech jobs from Nigeria are real and growing. The developers who land them have three things in common: relevant skills, a portfolio that proves those skills, and the persistence to apply consistently. Start with the portfolio. Everything else follows.
+          Remote tech jobs are real and growing — wherever you are based. The developers who land them have three things in common: relevant skills, a portfolio that proves those skills, and the persistence to apply consistently. Start with the portfolio. Everything else follows.
         </KeyTakeaway>
 
         <CTASection

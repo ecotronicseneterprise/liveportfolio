@@ -10,6 +10,9 @@ export const metadata: Metadata = {
     url: 'https://liveportfolio.site/blog',
     siteName: 'LivePortfolio',
   },
+  alternates: {
+    canonical: 'https://liveportfolio.site/blog',
+  },
   twitter: {
     card: 'summary_large_image',
     title: 'Blog — LivePortfolio',

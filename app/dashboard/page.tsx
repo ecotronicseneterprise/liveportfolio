@@ -324,7 +324,8 @@ function AnalyticsSection({
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
 
   useEffect(() => {
-    if (!isPro || !token) return
+    if (!isPro || !token || !portfolioId || !userId) return
+    console.log('[analytics] fetching for portfolioId:', portfolioId)
     fetch(`/api/analytics/summary?portfolioId=${portfolioId}&userId=${userId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -720,7 +721,7 @@ export default function DashboardPage() {
 
   const copyLink = () => {
     if (!user) return
-    navigator.clipboard.writeText(`https://${user.slug}.liveportfolio.site`)
+    navigator.clipboard.writeText(`https://liveportfolio.site/${user.slug}`)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -824,7 +825,7 @@ export default function DashboardPage() {
 
   if (!user || !portfolio) return null
 
-  const portfolioUrl = `https://${user.slug}.liveportfolio.site`
+  const portfolioUrl = `https://liveportfolio.site/${user.slug}`
   const isPublished = userPlan !== 'free'
   const isPro = userPlan === 'pro'
 
@@ -907,11 +908,11 @@ export default function DashboardPage() {
               {isPublished ? (
                 <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
                   className="text-sm text-[#0A66C2] font-medium px-3 py-1 bg-[#E8F0F9] rounded-full hover:bg-[#d4e4f7] transition-colors">
-                  {user.slug}.liveportfolio.site ↗
+                  liveportfolio.site/{user.slug} ↗
                 </a>
               ) : (
                 <span className="text-sm text-gray-400 px-3 py-1 bg-gray-50 rounded-full">
-                  {user.slug}.liveportfolio.site
+                  liveportfolio.site/{user.slug}
                 </span>
               )}
               <div className="flex items-center gap-2">
@@ -1267,7 +1268,7 @@ export default function DashboardPage() {
             )}
 
             {/* Analytics — blurred preview for Basic, full data for Pro */}
-            {isPublished && (
+            {isPublished && portfolio?.id && (
               <AnalyticsSection
                 isPro={isPro}
                 portfolioId={portfolio.id}
@@ -1834,7 +1835,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Portfolio URL</label>
-                <p className="text-sm text-[#0A66C2] font-medium">https://{user.slug}.liveportfolio.site</p>
+                <p className="text-sm text-[#0A66C2] font-medium">https://liveportfolio.site/{user.slug}</p>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Plan</label>

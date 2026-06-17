@@ -2,14 +2,27 @@ import type { Metadata } from 'next'
 import { PullQuote, Callout, StepCard, KeyTakeaway, CTASection, RelatedArticles } from '../BlogComponents'
 
 export const metadata: Metadata = {
-  title: 'How Bootcamp Graduates Can Build a Portfolio With Little Experience — liveportfolio.site',
+  title: 'Bootcamp Graduate Portfolio Guide — LivePortfolio',
   description: 'You have more to show than you think. A guide for ALX, Andela, and bootcamp graduates on turning coursework into a portfolio that gets callbacks.',
+  authors: [{ name: 'LivePortfolio Team' }],
   openGraph: {
     title: 'How Bootcamp Graduates Can Build a Portfolio With Little Experience',
     description: 'How to turn coursework and side projects into a portfolio that gets responses, even when you are just starting out.',
     url: 'https://liveportfolio.site/blog/portfolio-for-bootcamp-graduates',
     siteName: 'liveportfolio.site',
     type: 'article',
+    publishedTime: '2026-05-29T00:00:00Z',
+    authors: ['https://liveportfolio.site'],
+    images: [{
+      url: 'https://liveportfolio.site/logo-1024.png',
+      width: 1024,
+      height: 1024,
+      alt: 'How Bootcamp Graduates Can Build a Portfolio With Little Experience',
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['https://liveportfolio.site/logo-1024.png'],
   },
   alternates: {
     canonical: 'https://liveportfolio.site/blog/portfolio-for-bootcamp-graduates',
@@ -38,6 +51,9 @@ export default function Article() {
       {/* Hero */}
       <section className="bg-[#E8F0F9] px-5 py-14 sm:py-20">
         <div className="max-w-2xl mx-auto">
+          <div style={{ marginBottom: 16 }}>
+            <a href="/blog" style={{ fontSize: 13, color: '#6B7280', textDecoration: 'none' }}>← Blog</a>
+          </div>
           <span className="inline-block text-xs font-semibold text-[#0A66C2] uppercase tracking-widest mb-4 bg-white px-3 py-1 rounded-full">
             For beginners
           </span>

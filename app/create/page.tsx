@@ -656,41 +656,68 @@ export default function CreatePage() {
           <div className="mb-10">
             <a href="/"><Logo /></a>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Create your portfolio</h1>
-          <p className="text-gray-500 text-sm mb-8">How would you like to get started?</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* CV path */}
-            <label className="group cursor-pointer">
-              <input
-                type="file"
-                accept="application/pdf"
-                className="hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0]
-                  if (!file) return
-                  setEntryChoice('cv')
-                  await handleCvUpload(file)
-                }}
-              />
-              <div className="h-full border-2 border-gray-100 rounded-2xl p-6 flex flex-col gap-4 hover:border-[#0A66C2] hover:shadow-sm transition-all group-hover:bg-[#FAFCFF]">
-                <p className="font-semibold text-gray-900 text-base">Build from your CV</p>
-                <span className="mt-auto inline-flex items-center gap-1 text-sm font-semibold text-[#0A66C2]">
-                  Upload PDF →
-                </span>
-              </div>
-            </label>
+          <h1 className="text-2xl font-bold text-gray-900">Build your portfolio</h1>
+          <p style={{ fontSize: 15, color: '#6B7280', marginTop: 8, marginBottom: 32 }}>
+            You&apos;re seconds away from a professional portfolio website.
+          </p>
 
-            {/* Manual path */}
+          {/* Social proof */}
+          <p style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', marginBottom: 24 }}>
+            Join professionals who&apos;ve published their portfolio on LivePortfolio
+          </p>
+
+          {/* Primary path — CV upload */}
+          <label className="group cursor-pointer block">
+            <input
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
+                setEntryChoice('cv')
+                await handleCvUpload(file)
+              }}
+            />
+            <div style={{
+              borderLeft: '4px solid #0A66C2',
+              background: '#F0F7FF',
+              borderRadius: 12,
+              padding: 24,
+              cursor: 'pointer',
+              width: '100%',
+            }}>
+              <p style={{ fontWeight: 700, fontSize: 18, color: '#0A0A0A', margin: 0 }}>Upload your CV</p>
+              <p style={{ fontSize: 14, color: '#6B7280', marginTop: 4, marginBottom: 12 }}>
+                We read your CV and pre-fill your form automatically. Takes 10 seconds.
+              </p>
+              <span style={{
+                background: '#0A66C2',
+                color: 'white',
+                fontSize: 11,
+                padding: '2px 8px',
+                borderRadius: 99,
+                fontWeight: 600,
+              }}>
+                ⚡ Fastest way to start
+              </span>
+            </div>
+          </label>
+
+          {/* Secondary path — manual */}
+          <p style={{ fontSize: 14, color: '#6B7280', textAlign: 'center', marginTop: 16, cursor: 'pointer' }}>
             <button
               onClick={() => setEntryChoice('manual')}
-              className="h-full border-2 border-gray-100 rounded-2xl p-6 flex flex-col gap-4 hover:border-[#0A66C2] hover:shadow-sm transition-all text-left hover:bg-[#FAFCFF]"
+              style={{ background: 'none', border: 'none', fontSize: 14, color: '#6B7280', cursor: 'pointer' }}
             >
-              <p className="font-semibold text-gray-900 text-base">Tell us about yourself</p>
-              <span className="mt-auto inline-flex items-center gap-1 text-sm font-semibold text-[#0A66C2]">
-                Answer a few questions →
-              </span>
+              Prefer to fill it in manually →
             </button>
-          </div>
+          </p>
+
+          {/* Account creation warning */}
+          <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 24 }}>
+            You&apos;ll create a free account at the end to save your portfolio.
+          </p>
         </div>
       </div>
     )
@@ -1374,8 +1401,8 @@ export default function CreatePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Your portfolio URL</label>
               <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#0A66C2]">
-                <span className="px-4 py-3 text-sm text-gray-400 bg-gray-50 border-r border-gray-200 flex-shrink-0">
-                  yourname
+                <span className="px-3 py-3 text-sm text-gray-400 bg-gray-50 border-r border-gray-200 flex-shrink-0 select-none">
+                  liveportfolio.site/
                 </span>
                 <input
                   type="text"
@@ -1385,19 +1412,22 @@ export default function CreatePage() {
                     update('slug', val)
                     checkSlug(val)
                   }}
-                  placeholder="adaeze"
+                  placeholder="yourname"
                   className="flex-1 px-3 py-3 text-sm focus:outline-none" style={{ fontSize: '16px' }}
                 />
-                <span className="px-4 py-3 text-sm text-gray-400 bg-gray-50 border-l border-gray-200 flex-shrink-0">
-                  .liveportfolio.site
-                </span>
               </div>
+              <p style={{ fontSize: 12, color: '#6B7280', marginTop: 4 }}>
+                Your link:{' '}
+                <strong style={{ color: '#0A66C2' }}>
+                  https://liveportfolio.site/{form.slug || 'yourname'}
+                </strong>
+              </p>
 
               {form.slug.length >= 3 && (
                 <div className="mt-2">
                   {slugStatus === 'checking' && <p className="text-xs text-gray-400">Checking availability…</p>}
                   {slugStatus === 'available' && (
-                    <p className="text-xs text-[#0A66C2] font-medium">✓ {form.slug}.liveportfolio.site is available</p>
+                    <p className="text-xs text-[#0A66C2] font-medium">✓ liveportfolio.site/{form.slug} is available</p>
                   )}
                   {slugStatus === 'taken' && (
                     <div>
@@ -1407,7 +1437,7 @@ export default function CreatePage() {
                           onClick={() => { update('slug', slugSuggestion); checkSlug(slugSuggestion) }}
                           className="text-xs text-[#0A66C2] hover:underline mt-0.5"
                         >
-                          Try {slugSuggestion}.liveportfolio.site instead →
+                          Try liveportfolio.site/{slugSuggestion} instead →
                         </button>
                       )}
                     </div>
@@ -1509,6 +1539,21 @@ export default function CreatePage() {
             </button>
           )}
         </div>
+        {step === 1 && (
+          <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 12 }}>
+            Next: your projects and experience
+          </p>
+        )}
+        {step === 2 && (
+          <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 12 }}>
+            Next: choose your template
+          </p>
+        )}
+        {step === 3 && (
+          <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 12 }}>
+            Almost done — claim your portfolio link
+          </p>
+        )}
       </div>
     </div>
     </>

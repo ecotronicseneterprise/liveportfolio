@@ -4,12 +4,25 @@ import { PullQuote, Callout, StepCard, Checklist, KeyTakeaway, CTASection, Relat
 export const metadata: Metadata = {
   title: 'How to Create a Developer Portfolio That Gets You Hired — liveportfolio.site',
   description: 'Learn exactly what to include in a developer portfolio, the 6 sections that matter, and the common mistakes that get candidates skipped.',
+  authors: [{ name: 'LivePortfolio Team' }],
   openGraph: {
     title: 'How to Create a Developer Portfolio That Gets You Hired',
     description: 'The 6 sections every portfolio needs, the mistakes that get you skipped, and how to build one fast.',
     url: 'https://liveportfolio.site/blog/how-to-create-a-developer-portfolio',
     siteName: 'liveportfolio.site',
     type: 'article',
+    publishedTime: '2026-05-01T00:00:00Z',
+    authors: ['https://liveportfolio.site'],
+    images: [{
+      url: 'https://liveportfolio.site/logo-1024.png',
+      width: 1024,
+      height: 1024,
+      alt: 'How to Create a Developer Portfolio That Gets You Hired',
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['https://liveportfolio.site/logo-1024.png'],
   },
   alternates: {
     canonical: 'https://liveportfolio.site/blog/how-to-create-a-developer-portfolio',
@@ -38,6 +51,9 @@ export default function Article() {
       {/* Hero */}
       <section className="bg-[#E8F0F9] px-5 py-14 sm:py-20">
         <div className="max-w-2xl mx-auto">
+          <div style={{ marginBottom: 16 }}>
+            <a href="/blog" style={{ fontSize: 13, color: '#6B7280', textDecoration: 'none' }}>← Blog</a>
+          </div>
           <span className="inline-block text-xs font-semibold text-[#0A66C2] uppercase tracking-widest mb-4 bg-white px-3 py-1 rounded-full">
             Portfolio basics
           </span>
@@ -159,7 +175,7 @@ export default function Article() {
         <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Do You Need a Custom Domain?</h2>
 
         <p className="text-base text-gray-700 leading-relaxed mb-4">
-          No. A clean URL like yourname.liveportfolio.site is professional and memorable. What matters is that your portfolio loads fast, looks good on mobile, and has no broken elements.
+          No. A clean URL like liveportfolio.site/yourname is professional and memorable. What matters is that your portfolio loads fast, looks good on mobile, and has no broken elements.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-8">
           Recruiters do not care about your domain name. They care about what is on the page.

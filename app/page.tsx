@@ -1,5 +1,12 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import LandingNav from '@/components/LandingNav'
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: 'https://liveportfolio.site',
+  },
+}
 import SupportButton from '@/components/SupportButton'
 import PricingSection from '@/components/PricingSection'
 import PortfolioShowcaseWrapper from '@/components/PortfolioShowcaseWrapper'
@@ -41,7 +48,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What do I get when I publish?',
-    a: 'Basic gives you a live portfolio at yourname.liveportfolio.site, all three templates, and full editing from your dashboard. Pro adds an analytics dashboard (see who views you and from where), QR code sharing, weekly career score, custom domain, and an export pack (PDF, LinkedIn summary, cover letter).',
+    a: 'Basic gives you a live portfolio at liveportfolio.site/yourname, all three templates, and full editing from your dashboard. Pro adds an analytics dashboard (see who views you and from where), QR code sharing, weekly career score, custom domain, and an export pack (PDF, LinkedIn summary, cover letter).',
   },
   {
     q: 'Who is this for?',

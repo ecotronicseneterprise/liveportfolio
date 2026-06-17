@@ -3,13 +3,26 @@ import { PullQuote, Callout, Checklist, KeyTakeaway, CTASection, RelatedArticles
 
 export const metadata: Metadata = {
   title: 'Portfolio Tips for African Tech Professionals — liveportfolio.site',
-  description: 'How to stand out to global recruiters as an African tech professional. Frame your projects with outcomes, signal remote readiness, and build a portfolio that travels.',
+  description: 'How to stand out to global recruiters as an African tech professional. Frame your projects with outcomes and build a portfolio that travels.',
+  authors: [{ name: 'LivePortfolio Team' }],
   openGraph: {
     title: 'Portfolio Tips for African Tech Professionals',
     description: 'How to present your work to global recruiters, frame outcomes with numbers, and signal that you are ready for remote roles.',
     url: 'https://liveportfolio.site/blog/portfolio-tips-for-african-tech-professionals',
     siteName: 'liveportfolio.site',
     type: 'article',
+    publishedTime: '2026-05-15T00:00:00Z',
+    authors: ['https://liveportfolio.site'],
+    images: [{
+      url: 'https://liveportfolio.site/logo-1024.png',
+      width: 1024,
+      height: 1024,
+      alt: 'Portfolio Tips for African Tech Professionals',
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['https://liveportfolio.site/logo-1024.png'],
   },
   alternates: {
     canonical: 'https://liveportfolio.site/blog/portfolio-tips-for-african-tech-professionals',
@@ -38,6 +51,9 @@ export default function Article() {
       {/* Hero */}
       <section className="bg-[#E8F0F9] px-5 py-14 sm:py-20">
         <div className="max-w-2xl mx-auto">
+          <div style={{ marginBottom: 16 }}>
+            <a href="/blog" style={{ fontSize: 13, color: '#6B7280', textDecoration: 'none' }}>← Blog</a>
+          </div>
           <span className="inline-block text-xs font-semibold text-[#0A66C2] uppercase tracking-widest mb-4 bg-white px-3 py-1 rounded-full">
             Career tips
           </span>
@@ -58,7 +74,7 @@ export default function Article() {
           The gap between a great developer and a hired developer is often just communication. You can build excellent products but still lose out if your portfolio does not tell the story clearly.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-8">
-          These tips are specifically for African tech professionals presenting their work to global recruiters and international companies.
+          These tips are for tech professionals presenting their work to global recruiters and international companies — especially those applying from outside the traditional hiring hubs.
         </p>
 
         <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4">Frame Every Project With Numbers</h2>
@@ -88,7 +104,7 @@ export default function Article() {
           Remote recruiters filter by remote-readiness before they filter by skill. Your portfolio should make it obvious within the first few seconds that you are available for remote work and have experience working asynchronously.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-4">
-          Put your location in your profile. "Lagos, Nigeria. Open to remote roles." This builds trust. It tells the recruiter you are not hiding where you are, and it signals that you have thought about the practical realities of remote work.
+          Put your location in your profile. "Nairobi, Kenya. Open to remote roles." or "Bangalore, India. Available for remote work." This builds trust. It tells the recruiter you are not hiding where you are, and it signals that you have thought about the practical realities of remote work.
         </p>
 
         <Checklist items={[
@@ -134,17 +150,17 @@ export default function Article() {
         <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Writing for a Global Recruiter Who Does Not Know Your Context</h2>
 
         <p className="text-base text-gray-700 leading-relaxed mb-4">
-          When you describe a project to someone in your city, you can assume shared context. A recruiter in Germany does not know what NIBSS is, what the Nigerian stock exchange is, or what a borehole management system solves.
+          When you describe a project to someone in your city, you can assume shared context. A recruiter in Germany or Canada may not know the local systems, market conditions, or infrastructure constraints your project was built around.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-4">
-          Explain your projects for someone who knows nothing about Nigeria. Describe the problem in plain, universal language. Then explain what you built and what it achieved.
+          Explain your projects for someone with no local context. Describe the problem in plain, universal language. Then explain what you built and what it achieved.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-8">
           This is not dumbing down. It is good writing. Clarity is a professional skill.
         </p>
 
         <KeyTakeaway>
-          African tech professionals win global remote roles by doing three things well: showing outcomes with numbers, signaling remote readiness explicitly, and writing project descriptions that any international recruiter can understand. Your skills are world-class. Make sure your portfolio says so.
+          Tech professionals win global remote roles by doing three things well: showing outcomes with numbers, signaling remote readiness explicitly, and writing project descriptions that any international recruiter can understand. Your skills are world-class. Make sure your portfolio says so.
         </KeyTakeaway>
 
         <CTASection

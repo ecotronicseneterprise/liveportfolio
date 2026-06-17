@@ -179,7 +179,7 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'creative
         {
           title: 'liveportfolio.site — AI Portfolio Builder',
           problem: 'African tech professionals with strong experience but no professional online presence to show recruiters.',
-          solution: 'Solo-built SaaS that turns a 4-step form into a full portfolio website using GPT-4o-mini — generates polished copy, three designer templates, and publishes permanently at yourname.liveportfolio.site.',
+          solution: 'Solo-built SaaS that turns a 4-step form into a full portfolio website using GPT-4o-mini — generates polished copy, three designer templates, and publishes permanently at liveportfolio.site/yourname.',
           outcome: 'Live product. First users onboarded. Built and deployed in under 30 days.',
           stack: ['Next.js 15', 'Supabase', 'OpenAI', 'Paystack', 'Resend'],
           url: 'https://liveportfolio.site',
@@ -327,8 +327,15 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'creative
   },
 }
 
+// Module-level cache: ip_hash → timestamp. Prevents duplicate inserts within 1 hour.
+const serverViewCache = new Map<string, number>()
+const SERVER_CACHE_TTL = 60 * 60 * 1000 // 1 hour
+
+const BOT_PATTERN = /bot|crawler|spider|crawling|facebookexternalhit|Twitterbot|LinkedInBot|Googlebot|bingbot|Slurp|DuckDuckBot|YandexBot|Baiduspider|Sogou|Exabot|facebot|ia_archiver|AhrefsBot|SemrushBot|MJ12bot|DotBot|rogerbot|proximic|archiver|curl|wget|python|java|ruby|php|perl|libwww/i
+
 interface Props {
   params: Promise<{ slug: string }>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -389,7 +396,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function PortfolioPage({ params }: Props) {
+export default async function PortfolioPage({ params, searchParams }: Props) {
   const { slug: rawSlug } = await params
   const slug = rawSlug.toLowerCase()
 
@@ -435,26 +442,50 @@ export default async function PortfolioPage({ params }: Props) {
   // Fire-and-forget: record portfolio_view event with company/country enrichment.
   // Does not block render. Uses server-side headers — raw IP never stored.
   // Skip demo/showcase slugs to prevent slideshow traffic inflating analytics.
-  if (!DEMO_SLUGS.has(slug)) {
+  const resolvedSearchParams = searchParams ? await searchParams : {}
+  const isDashboardPreview = resolvedSearchParams['dashboard'] === 'true'
+
+  if (!DEMO_SLUGS.has(slug) && !isDashboardPreview) {
     const headersList = await headers()
+    const userAgent = headersList.get('user-agent') || ''
     const rawIp = headersList.get('x-forwarded-for')?.split(',')[0]?.trim()
       || headersList.get('x-real-ip')
       || 'unknown'
     const referrer = headersList.get('referer') || null
     const ipHash = createHash('sha256').update(rawIp).digest('hex').slice(0, 16)
 
-    getIpInfo(rawIp, ipHash, supabaseAdmin).then(({ company, country }) => {
-      void Promise.resolve(
-        supabaseAdmin.from('analytics_events').insert({
-          portfolio_id: portfolio.id,
-          event_type: 'portfolio_view',
-          referrer,
-          ip_hash: ipHash,
-          company,
-          country,
-        })
-      )
-    }).catch(() => {})
+    // FIX 3: Skip bots and crawlers
+    if (!BOT_PATTERN.test(userAgent)) {
+      // FIX 2: 1-hour server-side dedup — same IP+slug pair only counts once per hour
+      const cacheKey = `${ipHash}:${portfolio.id}`
+      const lastSeen = serverViewCache.get(cacheKey)
+      const now = Date.now()
+
+      if (!lastSeen || now - lastSeen > SERVER_CACHE_TTL) {
+        serverViewCache.set(cacheKey, now)
+
+        // Evict oldest entries when cache grows large
+        if (serverViewCache.size > 1000) {
+          const oldest = [...serverViewCache.entries()]
+            .sort((a, b) => a[1] - b[1])
+            .slice(0, 200)
+          oldest.forEach(([key]) => serverViewCache.delete(key))
+        }
+
+        getIpInfo(rawIp, ipHash, supabaseAdmin).then(({ company, country }) => {
+          void Promise.resolve(
+            supabaseAdmin.from('analytics_events').insert({
+              portfolio_id: portfolio.id,
+              event_type: 'portfolio_view',
+              referrer,
+              ip_hash: ipHash,
+              company,
+              country,
+            })
+          )
+        }).catch(() => {})
+      }
+    }
   }
 
   const TEMPLATE_MAP: Record<string, React.ComponentType<{ content: PortfolioContent }>> = {

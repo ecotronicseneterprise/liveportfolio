@@ -71,7 +71,7 @@ export default function PricingSection() {
               {[
                 'Publish your portfolio',
                 'Edit anytime from your dashboard',
-                'Your own shareable link (yourname.liveportfolio.site)',
+                'Your own shareable link (liveportfolio.site/yourname)',
                 'Choose from 3 templates',
                 'Switch templates anytime — goes live instantly',
               ].map((f) => (

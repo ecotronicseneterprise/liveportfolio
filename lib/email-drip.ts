@@ -54,7 +54,7 @@ const FLOW_A: Record<number, { subject: string; html: (email: string) => string 
     html: (email) => baseLayout(`
       ${heading('Your portfolio is ready.')}
       ${para('You built it. It looks great. The only thing left is making it live so recruiters can actually find you.')}
-      ${para('Publishing takes one click. Your portfolio goes live instantly at <strong>yourname.liveportfolio.site</strong> — permanent, no expiry.')}
+      ${para('Publishing takes one click. Your portfolio goes live instantly at <strong>liveportfolio.site/yourname</strong> — permanent, no expiry.')}
       ${ctaButton('Publish my portfolio — from $10/year (₦15,000 in Nigeria)', DASHBOARD_URL)}
     `, email),
   },
@@ -119,7 +119,7 @@ const FLOW_B: Record<number, { subject: string; html: (email: string) => string 
     subject: 'One feature that changes everything',
     html: (email) => baseLayout(`
       ${heading('Your own domain. Your name, not a subdomain.')}
-      ${para('cliffordnwanna.com instead of cliffordnwanna.liveportfolio.site. Recruiters notice the difference. It signals that you take your professional presence seriously.')}
+      ${para('cliffordnwanna.com instead of liveportfolio.site/cliffordnwanna. Recruiters notice the difference. It signals that you take your professional presence seriously.')}
       ${para('Custom domain is a Pro feature. One upgrade, yours forever, at $30/year.')}
       ${ctaButton('Connect your domain', DASHBOARD_URL)}
     `, email),
