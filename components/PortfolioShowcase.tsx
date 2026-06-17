@@ -152,9 +152,13 @@ function Card({
   const url = `https://liveportfolio.site/${p.slug}`
 
   return (
-    <div
-      onClick={() => window.open(url, '_blank')}
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
       style={{
+        display: 'block',
+        textDecoration: 'none',
         position: 'absolute',
         inset: 0,
         borderRadius: 16,
@@ -174,7 +178,7 @@ function Card({
       }}
     >
       {/* Scaled iframe — always mounted; parent opacity handles visibility */}
-      <div style={{ width: cardWidth, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative' }}>
+      <div style={{ width: cardWidth, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative', pointerEvents: 'none', touchAction: 'none' }}>
         <iframe
           src={url}
           title={`${p.name} portfolio`}
@@ -187,6 +191,7 @@ function Card({
             transform: `scale(${iframeScale})`,
             transformOrigin: 'top left',
             pointerEvents: 'none',
+            touchAction: 'none',
             display: 'block',
           }}
         />
@@ -217,11 +222,7 @@ function Card({
             {p.role}
           </p>
         </div>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
+        <div
           style={{
             fontSize: 10,
             fontWeight: 600,
@@ -236,9 +237,9 @@ function Card({
           }}
         >
           {p.template}
-        </a>
+        </div>
       </div>
-    </div>
+    </a>
   )
 }
 
