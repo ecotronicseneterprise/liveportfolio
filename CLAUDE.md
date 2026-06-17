@@ -579,6 +579,52 @@ is live before ending the session. This applies to any AI tool or human operator
 
 ---
 
+### VPS crontab playbook — immutable file hardening
+
+The deploy crontab file is intentionally locked with `chattr +i` as a security measure.
+This means `crontab -e` (even with `sudo`) will always fail with "rename: Operation not permitted".
+
+**Never try to fix the rename error by changing directory permissions** — the lock is intentional.
+
+**To add or edit a cron line:**
+```bash
+# 1. Check the lock is there
+sudo lsattr /var/spool/cron/crontabs/
+
+# 2. Remove the immutable flag
+sudo chattr -i /var/spool/cron/crontabs/deploy
+
+# 3. Append the new line directly (bypass crontab's rename dance)
+echo '...' | sudo tee -a /var/spool/cron/crontabs/deploy
+
+# 4. Verify
+sudo cat /var/spool/cron/crontabs/deploy
+
+# 5. Re-lock immediately
+sudo chattr +i /var/spool/cron/crontabs/deploy
+
+# 6. Confirm lock is back
+sudo lsattr /var/spool/cron/crontabs/
+```
+
+**Critical: cron does NOT read .env.local — never use $CRON_SECRET in cron lines.**
+Always hardcode the literal secret value in single quotes, same pattern as the drip cron:
+```
+0 7 * * * curl -s -H 'x-cron-secret: '"YOUR_LITERAL_SECRET"'' http://localhost:3001/api/cron/drip
+```
+
+**Current cron lines (as of 2026-06-17):**
+```
+0 7 * * *   curl drip → localhost:3001/api/cron/drip (literal secret, daily 07:00 UTC)
+0 6 * * *   health-check.sh (daily 06:00 UTC)
+30 7 * * 1  curl affiliate → liveportfolio.site/api/cron/affiliate (Mondays 07:30 UTC)
+```
+
+⚠️ The affiliate cron line currently uses `$CRON_SECRET` which will NOT expand in cron.
+Fix it by replacing `$CRON_SECRET` with the literal secret value (same as the drip line).
+
+---
+
 ## Templates
 
 ### Minimal.tsx

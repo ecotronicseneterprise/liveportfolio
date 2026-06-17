@@ -143,6 +143,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const { searchParams } = new URL(req.url)
+  const adminOnly = searchParams.get('admin_only') === 'true'
+
   const supabaseAdmin = getSupabaseAdmin()
   const weekEnding = new Date().toDateString()
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
@@ -204,23 +207,27 @@ export async function GET(req: NextRequest) {
     const lifetimeCommissionCents = Math.round(lifetimeRevenueCents * partner.commission)
 
     // ── Send partner email ───────────────────────────────────────────────────
-    try {
-      await sendEmail({
-        to: partner.email,
-        subject: `Your LivePortfolio affiliate report — ${weekEnding}`,
-        html: partnerEmailHtml(
-          partnerKey,
-          weekEnding,
-          weekSignups ?? 0,
-          weekPayingUsers,
-          weekCommissionCents,
-          lifetimeSignups ?? 0,
-          lifetimeCommissionCents,
-        ),
-      })
-      log.push(`partner_report → ${partner.email} (${partnerKey})`)
-    } catch (err) {
-      log.push(`partner_report FAILED → ${partner.email}: ${err}`)
+    if (!adminOnly) {
+      try {
+        await sendEmail({
+          to: partner.email,
+          subject: `Your LivePortfolio affiliate report — ${weekEnding}`,
+          html: partnerEmailHtml(
+            partnerKey,
+            weekEnding,
+            weekSignups ?? 0,
+            weekPayingUsers,
+            weekCommissionCents,
+            lifetimeSignups ?? 0,
+            lifetimeCommissionCents,
+          ),
+        })
+        log.push(`partner_report → ${partner.email} (${partnerKey})`)
+      } catch (err) {
+        log.push(`partner_report FAILED → ${partner.email}: ${err}`)
+      }
+    } else {
+      log.push(`partner_report SKIPPED (admin_only) → ${partner.email} (${partnerKey})`)
     }
 
     // Accumulate for admin summary
