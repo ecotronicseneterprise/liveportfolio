@@ -246,6 +246,29 @@ export default function CreatePage() {
     })
   }, [router]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Capture ?ref= affiliate param — first-touch attribution, 90-day expiry
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const ref = params.get('ref')
+      if (!ref || ref.trim() === '') return
+
+      const existing = localStorage.getItem('lp_referral')
+      if (existing) {
+        try {
+          const parsed = JSON.parse(existing)
+          if (parsed.expires > Date.now()) return // first-touch: don't overwrite
+        } catch {}
+      }
+
+      const NINETY_DAYS = 90 * 24 * 60 * 60 * 1000
+      localStorage.setItem('lp_referral', JSON.stringify({
+        partner: ref.trim().toLowerCase(),
+        expires: Date.now() + NINETY_DAYS,
+      }))
+    } catch {}
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Pre-fill location from IP detection
   useEffect(() => {
     fetch('/api/pricing-region')
@@ -500,11 +523,28 @@ export default function CreatePage() {
       if (signUpError) throw new Error(signUpError.message)
       if (!authData.session) throw new Error('Check your email for a verification link, then come back to generate your portfolio.')
 
+      // Read referral attribution from localStorage
+      let referralPartner: string | null = null
+      try {
+        const stored = localStorage.getItem('lp_referral')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (parsed.expires > Date.now()) {
+            referralPartner = parsed.partner
+          }
+        }
+      } catch {}
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sb = supabase as any
       const { error: userError } = await sb
         .from('users')
-        .insert({ id: authData.user!.id, email: form.email, slug: form.slug })
+        .insert({
+          id: authData.user!.id,
+          email: form.email,
+          slug: form.slug,
+          ...(referralPartner ? { referral_partner: referralPartner } : {}),
+        })
 
       if (userError) {
         const { data: existingUser } = await sb
@@ -519,6 +559,9 @@ export default function CreatePage() {
           throw new Error('Failed to save user profile')
         }
       }
+
+      // Clear referral after successful user creation — attribution is now stored in DB
+      try { localStorage.removeItem('lp_referral') } catch {}
 
       // Upload project images
       setGenerationStep(0) // "Uploading your images…"

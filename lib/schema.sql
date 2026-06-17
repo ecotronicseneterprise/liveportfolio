@@ -179,3 +179,14 @@ ALTER TABLE analytics_events
   ADD COLUMN IF NOT EXISTS company text;
 ALTER TABLE analytics_events
   ADD COLUMN IF NOT EXISTS country text;
+
+-- ─────────────────────────────────────────────
+-- Migration: affiliate tracking
+-- Run in Supabase SQL Editor BEFORE deploying
+-- the create page changes (Step 2/3 below).
+-- ─────────────────────────────────────────────
+-- ALTER TABLE users
+--   ADD COLUMN IF NOT EXISTS referral_partner text;
+-- CREATE INDEX IF NOT EXISTS users_referral_partner
+--   ON users(referral_partner)
+--   WHERE referral_partner IS NOT NULL;
