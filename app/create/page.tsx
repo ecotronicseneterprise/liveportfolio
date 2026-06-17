@@ -613,7 +613,9 @@ export default function CreatePage() {
         clearInterval(labelInterval)
         clearTimeout(msgTimer5)
         clearTimeout(msgTimer10)
-        router.push('/dashboard')
+        // Give Supabase session time to propagate before hard navigation
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+        window.location.href = '/dashboard'
         return
       }
 
