@@ -56,11 +56,11 @@ type EntryChoice = 'none' | 'cv' | 'manual'
 const STEPS = ['Your Basics', 'Projects & Experience', 'Template', 'Claim Your URL']
 
 const GENERATION_LABELS = [
-  'Uploading your images…',
-  'Parsing your information…',
-  'Writing your story…',
-  'Crafting your case studies…',
-  'Finalising your portfolio…',
+  'Writing your summary',
+  'Organising your experience',
+  'Creating portfolio pages',
+  'Preparing your public link',
+  'Finishing up',
 ]
 
 const PRO_TEMPLATE_IDS = ['developer', 'designer', 'data-scientist', 'product-manager', 'finance', 'graduate', 'cybersecurity']
@@ -267,7 +267,7 @@ export default function CreatePage() {
   const [slugSuggestion, setSlugSuggestion] = useState('')
   const [uploadingCv, setUploadingCv] = useState(false)
   const [slugTimer, setSlugTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
-  const [showAccountForm, setShowAccountForm] = useState(false)
+  const [generationMessage, setGenerationMessage] = useState('')
   const [suggestedTemplate, setSuggestedTemplate] = useState<string | null>(null)
   const [userOverrodeSuggestion, setUserOverrodeSuggestion] = useState(false)
   const [cropperSrc, setCropperSrc] = useState<string | null>(null)
@@ -450,10 +450,8 @@ export default function CreatePage() {
     if (step === 4) {
       if (!form.slug.trim()) return 'Please choose a URL slug'
       if (slugStatus !== 'available') return 'Please choose an available slug'
-      if (showAccountForm) {
-        if (!form.password || form.password.length < 8) return 'Password must be at least 8 characters'
-        if (!form.agreeTerms) return 'Please agree to the terms'
-      }
+      if (!form.password || form.password.length < 8) return 'Password must be at least 8 characters'
+      if (!form.agreeTerms) return 'Please agree to the terms'
     }
     return ''
   }
@@ -481,6 +479,7 @@ export default function CreatePage() {
     if (err) { setError(err); return }
 
     setGenerating(true)
+    setGenerationMessage('')
     setError('')
 
     let labelIndex = 0
@@ -488,6 +487,9 @@ export default function CreatePage() {
       labelIndex = Math.min(labelIndex + 1, GENERATION_LABELS.length - 1)
       setGenerationStep(labelIndex)
     }, 1800)
+
+    const msgTimer5 = setTimeout(() => setGenerationMessage('Almost ready…'), 5000)
+    const msgTimer10 = setTimeout(() => setGenerationMessage('Putting the finishing touches on your portfolio…'), 10000)
 
     try {
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -634,6 +636,8 @@ export default function CreatePage() {
       if (!genData.portfolio_id) throw new Error('Generation failed — please try again')
 
       clearInterval(labelInterval)
+      clearTimeout(msgTimer5)
+      clearTimeout(msgTimer10)
       if (typeof window !== 'undefined' && window.gtag) {
         window.gtag('event', 'signup_complete', {
           method: form.avatarFile ? 'with_photo' : 'no_photo',
@@ -643,6 +647,8 @@ export default function CreatePage() {
       router.push(`/preview/${genData.portfolio_id}`)
     } catch (err) {
       clearInterval(labelInterval)
+      clearTimeout(msgTimer5)
+      clearTimeout(msgTimer10)
       setError(err instanceof Error ? err.message : 'Something went wrong')
       setGenerating(false)
     }
@@ -656,67 +662,67 @@ export default function CreatePage() {
           <div className="mb-10">
             <a href="/"><Logo /></a>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Build your portfolio</h1>
-          <p style={{ fontSize: 15, color: '#6B7280', marginTop: 8, marginBottom: 32 }}>
-            You&apos;re seconds away from a professional portfolio website.
+
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+            Create a portfolio that stands out
+          </h1>
+          <p className="text-gray-500 mb-6" style={{ fontSize: 15 }}>
+            Turn your CV into a professional portfolio you can share with recruiters, clients and your network.
           </p>
 
-          {/* Social proof */}
-          <p style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', marginBottom: 24 }}>
-            Join professionals who&apos;ve published their portfolio on LivePortfolio
-          </p>
-
-          {/* Primary path — CV upload */}
-          <label className="group cursor-pointer block">
-            <input
-              type="file"
-              accept="application/pdf"
-              className="hidden"
-              onChange={async (e) => {
-                const file = e.target.files?.[0]
-                if (!file) return
-                setEntryChoice('cv')
-                await handleCvUpload(file)
-              }}
-            />
-            <div style={{
-              borderLeft: '4px solid #0A66C2',
-              background: '#F0F7FF',
-              borderRadius: 12,
-              padding: 24,
-              cursor: 'pointer',
-              width: '100%',
-            }}>
-              <p style={{ fontWeight: 700, fontSize: 18, color: '#0A0A0A', margin: 0 }}>Upload your CV</p>
-              <p style={{ fontSize: 14, color: '#6B7280', marginTop: 4, marginBottom: 12 }}>
-                We read your CV and pre-fill your form automatically. Takes 10 seconds.
-              </p>
-              <span style={{
-                background: '#0A66C2',
-                color: 'white',
-                fontSize: 11,
-                padding: '2px 8px',
-                borderRadius: 99,
-                fontWeight: 600,
-              }}>
-                ⚡ Fastest way to start
+          {/* Benefit pills */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            {['✓ Live in minutes', '✓ No design skills needed', '✓ Free to start'].map((chip) => (
+              <span key={chip} className="rounded-full bg-gray-100 text-gray-700 text-sm px-3 py-1">
+                {chip}
               </span>
-            </div>
-          </label>
+            ))}
+          </div>
 
-          {/* Secondary path — manual */}
-          <p style={{ fontSize: 14, color: '#6B7280', textAlign: 'center', marginTop: 16, cursor: 'pointer' }}>
+          {/* Two equal path cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            {/* CV upload card */}
+            <label className="cursor-pointer block h-full">
+              <input
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  setEntryChoice('cv')
+                  await handleCvUpload(file)
+                }}
+              />
+              <div className="h-full rounded-2xl border border-blue-200 bg-blue-50 hover:border-blue-400 hover:shadow-md transition-all p-6 flex flex-col items-center text-center">
+                <span className="text-3xl mb-3">📄</span>
+                <p className="font-semibold text-gray-900 mb-2">Upload your CV</p>
+                <p className="text-sm text-gray-500 mb-4 flex-1">
+                  Skip the typing. We&apos;ll fill in your experience, skills and projects automatically.
+                </p>
+                <span className="text-xs text-[#0A66C2] font-medium">Recommended · Fastest option</span>
+              </div>
+            </label>
+
+            {/* Manual card */}
             <button
               onClick={() => setEntryChoice('manual')}
-              style={{ background: 'none', border: 'none', fontSize: 14, color: '#6B7280', cursor: 'pointer' }}
+              className="h-full rounded-2xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-md transition-all p-6 flex flex-col items-center text-center w-full"
             >
-              Prefer to fill it in manually →
+              <span className="text-3xl mb-3">✏️</span>
+              <p className="font-semibold text-gray-900 mb-2">Fill in manually</p>
+              <p className="text-sm text-gray-500 mb-4 flex-1">
+                Add your details step by step.
+              </p>
+              <span className="text-xs text-gray-400">Takes a few minutes</span>
             </button>
-          </p>
 
-          {/* Account creation warning */}
-          <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 24 }}>
-            You&apos;ll create a free account at the end to save your portfolio.
+          </div>
+
+          {/* Account note */}
+          <p className="text-xs text-gray-400 text-center mt-6">
+            No account needed to start — you create one at the end to save your work.
           </p>
         </div>
       </div>
@@ -740,6 +746,8 @@ export default function CreatePage() {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="text-center max-w-sm">
+          <p className="text-xl font-bold text-gray-900 mb-2">Creating your portfolio</p>
+          <p className="text-sm text-gray-400 mb-8">We&apos;re turning your information into a professional portfolio.</p>
           <div className="w-12 h-12 border-4 border-[#0A66C2] border-t-transparent rounded-full animate-spin mx-auto mb-8" />
           <div className="space-y-2">
             {GENERATION_LABELS.map((label, i) => (
@@ -753,10 +761,13 @@ export default function CreatePage() {
                     : 'text-gray-300 opacity-50'
                 }`}
               >
-                {i < generationStep ? '✓ ' : i === generationStep ? '→ ' : '  '}{label}
+                {i < generationStep ? '✓ ' : ''}{label}
               </p>
             ))}
           </div>
+          {generationMessage && (
+            <p className="text-xs text-gray-400 mt-6 transition-all duration-500">{generationMessage}</p>
+          )}
         </div>
       </div>
     )
@@ -1394,10 +1405,11 @@ export default function CreatePage() {
         {step === 4 && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Claim your URL</h1>
-              <p className="text-gray-500 text-sm">Your portfolio will live here permanently after publishing.</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Choose your portfolio URL</h1>
+              <p className="text-gray-500 text-sm">Choose your URL and create your account.</p>
             </div>
 
+            {/* Slug */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Your portfolio URL</label>
               <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#0A66C2]">
@@ -1422,7 +1434,6 @@ export default function CreatePage() {
                   https://liveportfolio.site/{form.slug || 'yourname'}
                 </strong>
               </p>
-
               {form.slug.length >= 3 && (
                 <div className="mt-2">
                   {slugStatus === 'checking' && <p className="text-xs text-gray-400">Checking availability…</p>}
@@ -1446,50 +1457,44 @@ export default function CreatePage() {
               )}
             </div>
 
-            {showAccountForm && (
-              <div className="border border-gray-100 rounded-xl p-5 space-y-4 bg-gray-50">
-                <div>
-                  <h2 className="text-base font-semibold text-gray-900 mb-1">Create your account</h2>
-                  <p className="text-xs text-gray-400">Your portfolio will be saved to this account.</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    value={form.email}
-                    disabled
-                    className="w-full border border-gray-100 rounded-xl px-4 py-3 text-sm bg-white text-gray-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    value={form.password}
-                    onChange={(e) => update('password', e.target.value)}
-                    placeholder="Min 8 characters"
-                    autoFocus
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent bg-white" style={{ fontSize: '16px' }}
-                  />
-                </div>
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.agreeTerms}
-                    onChange={(e) => update('agreeTerms', e.target.checked)}
-                    className="mt-0.5 accent-[#0A66C2]"
-                  />
-                  <span className="text-sm text-gray-500">
-                    I agree to the{' '}
-                    <a href="/terms" className="text-[#0A66C2] hover:underline">terms of service</a>
-                    {' '}and{' '}
-                    <a href="/privacy" className="text-[#0A66C2] hover:underline">privacy policy</a>
-                  </span>
-                </label>
+            {/* Account fields — always visible */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  disabled
+                  className="w-full border border-gray-100 rounded-xl px-4 py-3 text-sm bg-gray-50 text-gray-500"
+                />
               </div>
-            )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => update('password', e.target.value)}
+                  placeholder="Min 8 characters"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
+                />
+              </div>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.agreeTerms}
+                  onChange={(e) => update('agreeTerms', e.target.checked)}
+                  className="mt-0.5 accent-[#0A66C2]"
+                />
+                <span className="text-sm text-gray-500">
+                  I agree to the{' '}
+                  <a href="/terms" className="text-[#0A66C2] hover:underline">terms of service</a>
+                  {' '}and{' '}
+                  <a href="/privacy" className="text-[#0A66C2] hover:underline">privacy policy</a>
+                </span>
+              </label>
+            </div>
           </div>
         )}
 
@@ -1518,24 +1523,12 @@ export default function CreatePage() {
             >
               Continue →
             </button>
-          ) : !showAccountForm ? (
-            <button
-              onClick={() => {
-                if (!form.slug.trim()) { setError('Please choose a URL slug'); return }
-                if (slugStatus !== 'available') { setError('Please choose an available slug'); return }
-                setError('')
-                setShowAccountForm(true)
-              }}
-              className="px-6 py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
-            >
-              Generate my portfolio →
-            </button>
           ) : (
             <button
               onClick={handleSubmit}
               className="px-6 py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
             >
-              Create account &amp; generate →
+              Build my portfolio →
             </button>
           )}
         </div>
