@@ -190,3 +190,24 @@ ALTER TABLE analytics_events
 -- CREATE INDEX IF NOT EXISTS users_referral_partner
 --   ON users(referral_partner)
 --   WHERE referral_partner IS NOT NULL;
+
+-- ─────────────────────────────────────────────
+-- Migration: affiliate invite tokens
+-- Run in Supabase SQL Editor BEFORE deploying
+-- the invite system.
+-- ─────────────────────────────────────────────
+-- CREATE TABLE IF NOT EXISTS invite_tokens (
+--   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+--   token           text UNIQUE NOT NULL,
+--   partner_key     text NOT NULL,
+--   recipient_email text,
+--   recipient_name  text,
+--   free_pro        boolean DEFAULT true,
+--   used            boolean DEFAULT false,
+--   used_by_user_id uuid REFERENCES users(id),
+--   used_at         timestamptz,
+--   expires_at      timestamptz NOT NULL,
+--   created_at      timestamptz DEFAULT now()
+-- );
+-- CREATE INDEX IF NOT EXISTS invite_tokens_token
+--   ON invite_tokens(token);

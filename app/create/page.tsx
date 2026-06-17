@@ -247,25 +247,48 @@ export default function CreatePage() {
   }, [router]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Capture ?ref= affiliate param — first-touch attribution, 90-day expiry
+  // Also capture ?invite= token and ?free= flag if present
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search)
-      const ref = params.get('ref')
-      if (!ref || ref.trim() === '') return
 
-      const existing = localStorage.getItem('lp_referral')
-      if (existing) {
-        try {
-          const parsed = JSON.parse(existing)
-          if (parsed.expires > Date.now()) return // first-touch: don't overwrite
-        } catch {}
+      const ref = params.get('ref')
+      if (ref && ref.trim() !== '') {
+        const existing = localStorage.getItem('lp_referral')
+        if (existing) {
+          try {
+            const parsed = JSON.parse(existing)
+            if (parsed.expires > Date.now()) {
+              // first-touch: don't overwrite active referral
+            } else {
+              throw new Error('expired')
+            }
+          } catch {
+            const NINETY_DAYS = 90 * 24 * 60 * 60 * 1000
+            localStorage.setItem('lp_referral', JSON.stringify({
+              partner: ref.trim().toLowerCase(),
+              expires: Date.now() + NINETY_DAYS,
+            }))
+          }
+        } else {
+          const NINETY_DAYS = 90 * 24 * 60 * 60 * 1000
+          localStorage.setItem('lp_referral', JSON.stringify({
+            partner: ref.trim().toLowerCase(),
+            expires: Date.now() + NINETY_DAYS,
+          }))
+        }
       }
 
-      const NINETY_DAYS = 90 * 24 * 60 * 60 * 1000
-      localStorage.setItem('lp_referral', JSON.stringify({
-        partner: ref.trim().toLowerCase(),
-        expires: Date.now() + NINETY_DAYS,
-      }))
+      const invite = params.get('invite')
+      const free = params.get('free') === 'true'
+      if (invite) {
+        localStorage.setItem('lp_invite', JSON.stringify({
+          token: invite,
+          free_pro: free,
+          expires: Date.now() + 24 * 60 * 60 * 1000,
+        }))
+        if (free) setIsInvitedFree(true)
+      }
     } catch {}
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -282,6 +305,7 @@ export default function CreatePage() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [entryChoice, setEntryChoice] = useState<EntryChoice>('none')
+  const [isInvitedFree, setIsInvitedFree] = useState(false)
   const [step, setStep] = useState(1)
   const [generating, setGenerating] = useState(false)
   const [generationStep, setGenerationStep] = useState(0)
@@ -563,6 +587,30 @@ export default function CreatePage() {
       // Clear referral after successful user creation — attribution is now stored in DB
       try { localStorage.removeItem('lp_referral') } catch {}
 
+      // Consume invite token if present
+      let inviteUpgraded = false
+      try {
+        const storedInvite = localStorage.getItem('lp_invite')
+        if (storedInvite) {
+          const parsedInvite = JSON.parse(storedInvite)
+          if (parsedInvite.expires > Date.now() && parsedInvite.token) {
+            const consumeRes = await fetch('/api/admin/invite/consume', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${authData.session!.access_token}`,
+              },
+              body: JSON.stringify({ token: parsedInvite.token, user_id: authData.user!.id }),
+            })
+            const consumeData = await consumeRes.json()
+            if (consumeData.upgraded) inviteUpgraded = true
+          }
+          try { localStorage.removeItem('lp_invite') } catch {}
+        }
+      } catch {}
+      // inviteUpgraded is available for future use (e.g. skip payment prompt)
+      void inviteUpgraded
+
       // Upload project images
       setGenerationStep(0) // "Uploading your images…"
       const imageFailures: string[] = []
@@ -705,6 +753,21 @@ export default function CreatePage() {
           <div className="mb-10">
             <a href="/"><Logo /></a>
           </div>
+
+          {isInvitedFree && (
+            <div style={{
+              background: 'linear-gradient(135deg, #0A66C2, #0052a3)',
+              color: 'white',
+              padding: '12px 20px',
+              borderRadius: 12,
+              marginBottom: 24,
+              textAlign: 'center' as const,
+              fontSize: 14,
+              fontWeight: 600,
+            }}>
+              🎁 You&apos;ve been invited — your Pro account is free
+            </div>
+          )}
 
           <h1 className="text-2xl font-bold text-gray-900 mb-3">
             Create a portfolio that stands out
