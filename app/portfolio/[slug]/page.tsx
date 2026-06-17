@@ -499,7 +499,9 @@ export default async function PortfolioPage({ params }: Props) {
       />
       <Template content={portfolio.content} />
       <ClientAnalytics slug={slug} />
-      <AcquisitionBar />
+      {(data as { plan?: string }).plan !== 'basic' && (data as { plan?: string }).plan !== 'pro' && (
+        <AcquisitionBar />
+      )}
     </>
   )
 }

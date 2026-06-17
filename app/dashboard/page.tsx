@@ -1134,37 +1134,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Portfolio preview panel */}
-            <div>
-              {isPublished ? (
-                <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10)', border: '1px solid #E5E7EB' }}>
-                  <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
-                    <span className="text-sm text-gray-400">Your portfolio</span>
-                    <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
-                      className="text-xs font-semibold text-[#0A66C2] hover:text-[#084D9A] transition-colors">
-                      Open full screen ↗
-                    </a>
-                  </div>
-                  <div className="h-[280px] sm:h-[400px]">
-                    <iframe
-                      src={`${APP_URL}/${user.slug}?dashboard=true`}
-                      className="w-full h-full"
-                      style={{ border: 'none' }}
-                      title="Portfolio preview"
-                      loading="lazy"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl h-[280px] sm:h-[400px] flex items-center justify-center"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-                  <p className="text-gray-400 text-[0.95rem] text-center px-6">
-                    Publish your portfolio to see a live preview here
-                  </p>
-                </div>
-              )}
-            </div>
-
             {/* Share — available to all published users */}
             {isPublished && (
               <div className="bg-white rounded-2xl p-5" style={{ border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
@@ -1372,22 +1341,73 @@ export default function DashboardPage() {
             {/* Template switcher — all 10, Pro gated */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
-              {/* CHANGE 4: Live preview iframe */}
-              {isPublished && (
-                <div style={{ marginBottom: 12 }}>
-                  <p className="text-xs text-gray-400 mb-2">Template preview</p>
-                  <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', height: 160 }} className="sm:h-[200px]">
-                    <iframe
-                      key={previewTemplate}
-                      src={`${APP_URL}/${user.slug}?template=${previewTemplate}&dashboard=true`}
-                      style={{ width: '100%', height: '100%', border: 'none' }}
-                      title="Template preview"
-                      loading="lazy"
-                    />
+              {/* Template preview card */}
+              {(() => {
+                const TEMPLATE_DEMOS: Record<string, string> = {
+                  'developer': 'https://liveportfolio.site/james-chen',
+                  'designer': 'https://liveportfolio.site/sofia-martinez',
+                  'data-scientist': 'https://liveportfolio.site/fatima-hassan',
+                  'product-manager': 'https://liveportfolio.site/david-mensah',
+                  'finance': 'https://liveportfolio.site/michael-roberts',
+                  'creative': 'https://liveportfolio.site/priya-sharma',
+                  'cybersecurity': 'https://liveportfolio.site/elena-vasquez',
+                  'graduate': 'https://liveportfolio.site/chidi-okafor',
+                  'minimal': 'https://liveportfolio.site/amara',
+                  'bold': 'https://liveportfolio.site/emeka',
+                }
+                const TEMPLATE_DESCS: Record<string, string> = {
+                  'developer': 'Dark, technical. Built for engineers.',
+                  'designer': 'Editorial, light. Built for creatives.',
+                  'data-scientist': 'Teal, data-focused. For analysts.',
+                  'product-manager': 'Clean, structured. For PMs.',
+                  'finance': 'Navy, formal. For finance professionals.',
+                  'creative': 'Warm editorial. For brand and content.',
+                  'cybersecurity': 'Dark green. For security engineers.',
+                  'graduate': 'Clean, minimal. For recent graduates.',
+                  'minimal': 'Minimal, works for any role.',
+                  'bold': 'Bold dark mode, developer style.',
+                }
+                const displayName = previewTemplate.split('-').map((w: string) => w[0].toUpperCase() + w.slice(1)).join(' ')
+                const desc = TEMPLATE_DESCS[previewTemplate] ?? ''
+                const demoUrl = TEMPLATE_DEMOS[previewTemplate]
+                const isCurrent = previewTemplate === template
+                return (
+                  <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, padding: 20, marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                      <div>
+                        <p style={{ fontSize: 15, fontWeight: 700, color: '#0A0A0A', margin: '0 0 4px' }}>{displayName}</p>
+                        <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>{desc}</p>
+                      </div>
+                      {isCurrent ? (
+                        <span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF', background: '#F3F4F6', padding: '4px 10px', borderRadius: 99, flexShrink: 0 }}>
+                          Current template
+                        </span>
+                      ) : (
+                        <button
+                          onClick={async () => {
+                            setTemplate(previewTemplate)
+                            await handleSave()
+                          }}
+                          disabled={saving}
+                          style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#0A66C2', border: 'none', borderRadius: 99, padding: '6px 14px', cursor: saving ? 'not-allowed' : 'pointer', flexShrink: 0, opacity: saving ? 0.6 : 1 }}
+                        >
+                          Apply this template →
+                        </button>
+                      )}
+                    </div>
+                    {demoUrl && (
+                      <a
+                        href={demoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: 'inline-block', marginTop: 12, fontSize: 13, color: '#0A66C2', textDecoration: 'none', fontWeight: 500 }}
+                      >
+                        View example →
+                      </a>
+                    )}
                   </div>
-                  <p className="text-xs text-gray-400 mt-2">Select a template below to preview it live</p>
-                </div>
-              )}
+                )
+              })()}
               {lockedTemplateMsg && (
                 <div className="mb-3 p-3 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-xl text-xs text-[#0A66C2] font-medium flex items-center justify-between gap-3">
                   <span>{lockedTemplateMsg}</span>
