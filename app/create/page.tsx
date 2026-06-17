@@ -608,8 +608,14 @@ export default function CreatePage() {
           try { localStorage.removeItem('lp_invite') } catch {}
         }
       } catch {}
-      // inviteUpgraded is available for future use (e.g. skip payment prompt)
-      void inviteUpgraded
+
+      if (inviteUpgraded) {
+        clearInterval(labelInterval)
+        clearTimeout(msgTimer5)
+        clearTimeout(msgTimer10)
+        router.push('/dashboard')
+        return
+      }
 
       // Upload project images
       setGenerationStep(0) // "Uploading your images…"
