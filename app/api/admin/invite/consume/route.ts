@@ -54,6 +54,10 @@ export async function POST(req: NextRequest) {
   if (new Date(invite.expires_at) < new Date()) {
     return NextResponse.json({ error: 'Invite expired' }, { status: 400 })
   }
+  // Lock to recipient email if one was specified when the token was created
+  if (invite.recipient_email && invite.recipient_email !== user.email) {
+    return NextResponse.json({ error: 'This invite was sent to a different email address' }, { status: 403 })
+  }
 
   // Atomically mark as used — WHERE used = false prevents race conditions
   const { error: consumeError } = await supabaseAdmin

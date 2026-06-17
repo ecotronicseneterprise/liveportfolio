@@ -625,6 +625,57 @@ Fix it by replacing `$CRON_SECRET` with the literal secret value (same as the dr
 
 ---
 
+### Affiliate invite link system
+
+Invite links give affiliates a one-time URL that lands the recipient at `/create` pre-loaded
+with free Pro on signup. Each token is single-use, expires in 7 days, and is stored in
+`invite_tokens` (Supabase).
+
+**Generate an invite link — run on VPS:**
+```bash
+curl -s -X POST \
+  -H 'x-cron-secret: '"643a3fc36a90600238f9ccd59f7fece4bdacd72acaea9aae8ac84851151d87d8"'' \
+  -H "Content-Type: application/json" \
+  -d '{
+    "partner_key": "esther",
+    "recipient_email": "anaguesther2@gmail.com",
+    "recipient_name": "Esther Anagu",
+    "free_pro": true,
+    "expires_days": 7
+  }' \
+  http://localhost:3001/api/admin/invite
+```
+
+Use `localhost:3001` not the public domain — avoids the curl-gets-killed issue on the VPS.
+
+Response:
+```json
+{
+  "url": "https://liveportfolio.site/invite/<token>",
+  "token": "<64-char hex>",
+  "expires_at": "..."
+}
+```
+
+**To onboard a different affiliate**, change `partner_key`, `recipient_email`, `recipient_name`.
+The `partner_key` must exist in the `PARTNERS` map in `app/api/cron/affiliate/route.ts` —
+add the new partner there first, then redeploy, then generate the link.
+
+**When to build an admin UI:**
+Come back to this when you have 5+ active affiliates, or are generating links more than
+twice a week. At that point, build a simple `/admin` page (password protected) with a form.
+For now, the VPS curl command is the right tool.
+
+**How the invite flow works end-to-end:**
+1. You run the curl command → get a URL like `liveportfolio.site/invite/<token>`
+2. Send that URL to the affiliate's referral (or let the affiliate share it)
+3. Recipient visits the link → server validates token → redirects to `/create?ref=esther&invite=<token>&free=true`
+4. Recipient sees "🎁 You've been invited — your Pro account is free" banner
+5. They complete the form and sign up → `invite_tokens` is marked used → `users.plan` set to `pro`
+6. Token cannot be reused — `WHERE used = false` in the UPDATE prevents race conditions
+
+---
+
 ## Templates
 
 ### Minimal.tsx

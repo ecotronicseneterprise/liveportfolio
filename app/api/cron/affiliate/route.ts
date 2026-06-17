@@ -16,6 +16,11 @@ const PARTNERS: Record<string, {
     email: 'anaguesther2@gmail.com',
     commission: 0.30,
   },
+  'clifford': {
+    name: 'Clifford Nwanna',
+    email: 'nwannachumaclifford@gmail.com',
+    commission: 0,
+  },
 }
 
 const ADMIN_EMAIL = 'nwannachumaclifford@gmail.com'
