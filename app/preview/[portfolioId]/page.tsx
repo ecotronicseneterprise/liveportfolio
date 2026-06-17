@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
 import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
@@ -253,6 +253,8 @@ function calculateHealth(content: PortfolioContent): { score: number; items: Hea
 export default function PreviewPage() {
   const { portfolioId } = useParams() as { portfolioId: string }
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isInvited = searchParams.get('invited') === 'true'
   let supabase: ReturnType<typeof getSupabaseClient>
   try {
     supabase = getSupabaseClient()
@@ -340,8 +342,8 @@ export default function PreviewPage() {
         setIsPaid(paid)
         setIsPro(plan === 'pro')
 
-        // Already paid — send straight to dashboard, no need to show preview again
-        if (paid) {
+        // Already paid — send straight to dashboard, unless this is an invite landing
+        if (paid && !isInvited) {
           router.push('/dashboard')
           return
         }
@@ -523,6 +525,17 @@ export default function PreviewPage() {
         portfolioId={portfolioId}
         onPaymentStarted={() => { setShowUpgradeModal(false); setPaying(true) }}
       />
+
+      {/* Invite success banner */}
+      {isInvited && isPaid && (
+        <div style={{ background: 'linear-gradient(135deg, #0A66C2, #0052a3)', color: 'white', padding: '16px 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>🎉 Your Pro portfolio is live!</p>
+          <p style={{ fontSize: 14, margin: '0 0 16px', opacity: 0.9 }}>Your portfolio is published at your personal link below.</p>
+          <a href="/dashboard" style={{ background: 'white', color: '#0A66C2', padding: '10px 24px', borderRadius: 99, fontSize: 14, fontWeight: 700, textDecoration: 'none', display: 'inline-block' }}>
+            Go to your dashboard →
+          </a>
+        </div>
+      )}
 
       {/* Preview header bar */}
       <div className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">

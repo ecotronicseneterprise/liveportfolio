@@ -609,16 +609,6 @@ export default function CreatePage() {
         }
       } catch {}
 
-      if (inviteUpgraded) {
-        clearInterval(labelInterval)
-        clearTimeout(msgTimer5)
-        clearTimeout(msgTimer10)
-        // Give Supabase session time to propagate before hard navigation
-        await new Promise((resolve) => setTimeout(resolve, 1500))
-        window.location.href = '/dashboard'
-        return
-      }
-
       // Upload project images
       setGenerationStep(0) // "Uploading your images…"
       const imageFailures: string[] = []
@@ -743,7 +733,11 @@ export default function CreatePage() {
           template: form.template,
         })
       }
-      router.push(`/preview/${genData.portfolio_id}`)
+      if (inviteUpgraded) {
+        window.location.href = `/preview/${genData.portfolio_id}?invited=true`
+      } else {
+        router.push(`/preview/${genData.portfolio_id}`)
+      }
     } catch (err) {
       clearInterval(labelInterval)
       clearTimeout(msgTimer5)
