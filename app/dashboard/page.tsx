@@ -584,6 +584,12 @@ export default function DashboardPage() {
     }
   }, [router])
 
+  useEffect(() => {
+    const handleFocus = () => { loadData() }
+    window.addEventListener('focus', handleFocus)
+    return () => { window.removeEventListener('focus', handleFocus) }
+  }, [loadData])
+
   // Open cropper on file select
   const handleAvatarUpload = (file: File) => {
     if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
@@ -920,6 +926,13 @@ export default function DashboardPage() {
                   style={{ background: planBadge.bg, color: planBadge.text }}>
                   {planBadge.label}
                 </span>
+                <button
+                  onClick={() => loadData()}
+                  title="Refresh"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 4, borderRadius: 4, fontSize: 12 }}
+                >
+                  ↻
+                </button>
                 {isPublished ? (
                   <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
                     className="text-xs text-gray-600 border border-gray-200 px-3 py-1.5 rounded-full hover:border-gray-300 transition-colors">
