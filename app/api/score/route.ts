@@ -127,7 +127,9 @@ Be honest and calibrated. A score of 72 is good. 90+ requires standout outcomes 
     }
 
     const aiResult = await response.json()
-    const parsed = JSON.parse(aiResult.choices[0].message.content)
+    const rawContent = aiResult.choices?.[0]?.message?.content
+    if (!rawContent) throw new Error('OpenAI returned empty response')
+    const parsed = JSON.parse(rawContent)
 
     const score = Math.min(100, Math.max(0, Math.round(parsed.score || 50)))
     const breakdown = parsed.breakdown || { presence: 0, projects: 0, experience: 0, skills: 0 }

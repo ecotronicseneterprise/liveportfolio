@@ -24,98 +24,103 @@ function calculateHealthScore(content: Record<string, unknown>): number {
 }
 
 export async function PATCH(req: NextRequest) {
-  const supabaseAdmin = getSupabaseAdmin()
-  const authHeader = req.headers.get('authorization')
-  const token = authHeader?.replace('Bearer ', '')
+  try {
+    const supabaseAdmin = getSupabaseAdmin()
+    const authHeader = req.headers.get('authorization')
+    const token = authHeader?.replace('Bearer ', '')
 
-  if (!token) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-  const supabaseUser = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-  const { data: { user }, error: authError } = await supabaseUser.auth.getUser(token)
+    const supabaseUser = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const { data: { user }, error: authError } = await supabaseUser.auth.getUser(token)
 
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-  const { content: contentUpdate, template } = await req.json()
+    const { content: contentUpdate, template } = await req.json()
 
-  // Content editing requires the Pro plan; template switching is open to all authenticated users
-  if (contentUpdate) {
-    const { data: userRecord } = await supabaseAdmin
+    // Content editing requires the Pro plan; template switching is open to all authenticated users
+    if (contentUpdate) {
+      const { data: userRecord } = await supabaseAdmin
+        .from('users')
+        .select('plan')
+        .eq('id', user.id)
+        .single()
+
+      if (!userRecord || userRecord.plan !== 'pro') {
+        return NextResponse.json({ error: 'Editing requires the Pro plan' }, { status: 403 })
+      }
+    }
+
+    // Get current portfolio
+    const { data: portfolio } = await supabaseAdmin
+      .from('portfolios')
+      .select('id, content')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!portfolio) {
+      return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
+    }
+
+    // FIX 6: Allowlist permitted content fields — drop any unknown keys silently
+    const ALLOWED_CONTENT_KEYS = new Set([
+      'name', 'role', 'about', 'headline', 'location', 'email',
+      'github_url', 'linkedin_url', 'avatar_url',
+      'skills', 'skills_grouped', 'skills_narrative',
+      'projects', 'experience', 'education', 'certifications',
+    ])
+    const sanitizedUpdate = contentUpdate
+      ? Object.fromEntries(
+          Object.entries(contentUpdate as Record<string, unknown>).filter(([k]) => ALLOWED_CONTENT_KEYS.has(k))
+        )
+      : null
+
+    const mergedContent = sanitizedUpdate
+      ? { ...(portfolio.content as Record<string, unknown>), ...sanitizedUpdate }
+      : (portfolio.content as Record<string, unknown>)
+
+    const healthScore = calculateHealthScore(mergedContent)
+
+    const updateData: Record<string, unknown> = {
+      content: mergedContent,
+      health_score: healthScore,
+      edit_count: ((portfolio as unknown as { edit_count?: number }).edit_count || 0) + 1,
+    }
+
+    if (template) updateData.template = template
+
+    const { data: updated, error } = await supabaseAdmin
+      .from('portfolios')
+      .update(updateData)
+      .eq('id', portfolio.id)
+      .select('updated_at, health_score')
+      .single()
+
+    if (error) {
+      return NextResponse.json({ error: 'Update failed' }, { status: 500 })
+    }
+
+    // Bust the 12-hour ISR cache so the live portfolio reflects changes immediately
+    const { data: userRow } = await supabaseAdmin
       .from('users')
-      .select('plan')
+      .select('slug')
       .eq('id', user.id)
       .single()
 
-    if (!userRecord || userRecord.plan !== 'pro') {
-      return NextResponse.json({ error: 'Editing requires the Pro plan' }, { status: 403 })
+    if (userRow?.slug) {
+      revalidatePath(`/portfolio/${userRow.slug}`)
     }
+
+    return NextResponse.json(updated)
+  } catch (err) {
+    console.error('[api/update] error:', err)
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
-
-  // Get current portfolio
-  const { data: portfolio } = await supabaseAdmin
-    .from('portfolios')
-    .select('id, content')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!portfolio) {
-    return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
-  }
-
-  // FIX 6: Allowlist permitted content fields — drop any unknown keys silently
-  const ALLOWED_CONTENT_KEYS = new Set([
-    'name', 'role', 'about', 'headline', 'location', 'email',
-    'github_url', 'linkedin_url', 'avatar_url',
-    'skills', 'skills_grouped', 'skills_narrative',
-    'projects', 'experience', 'education', 'certifications',
-  ])
-  const sanitizedUpdate = contentUpdate
-    ? Object.fromEntries(
-        Object.entries(contentUpdate as Record<string, unknown>).filter(([k]) => ALLOWED_CONTENT_KEYS.has(k))
-      )
-    : null
-
-  const mergedContent = sanitizedUpdate
-    ? { ...(portfolio.content as Record<string, unknown>), ...sanitizedUpdate }
-    : (portfolio.content as Record<string, unknown>)
-
-  const healthScore = calculateHealthScore(mergedContent)
-
-  const updateData: Record<string, unknown> = {
-    content: mergedContent,
-    health_score: healthScore,
-    edit_count: ((portfolio as unknown as { edit_count?: number }).edit_count || 0) + 1,
-  }
-
-  if (template) updateData.template = template
-
-  const { data: updated, error } = await supabaseAdmin
-    .from('portfolios')
-    .update(updateData)
-    .eq('id', portfolio.id)
-    .select('updated_at, health_score')
-    .single()
-
-  if (error) {
-    return NextResponse.json({ error: 'Update failed' }, { status: 500 })
-  }
-
-  // Bust the 12-hour ISR cache so the live portfolio reflects changes immediately
-  const { data: userRow } = await supabaseAdmin
-    .from('users')
-    .select('slug')
-    .eq('id', user.id)
-    .single()
-
-  if (userRow?.slug) {
-    revalidatePath(`/portfolio/${userRow.slug}`)
-  }
-
-  return NextResponse.json(updated)
 }

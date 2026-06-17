@@ -30,6 +30,9 @@ interface Portfolio {
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
 
+// ── Pulse keyframes injected once ────────────────────────────────────────────
+const PULSE_STYLE = `@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`
+
 // ── Lock icon SVG ────────────────────────────────────────────────────────────
 function LockIcon({ size = 20 }: { size?: number }) {
   return (
@@ -40,35 +43,14 @@ function LockIcon({ size = 20 }: { size?: number }) {
   )
 }
 
-// ── Frosted blur overlay — padlock by default, full CTA on tap ───────────────
-function ProBlurOverlay({ headline, subtext, onUpgrade }: {
-  headline: string
+// ── Frosted blur overlay — single tap opens upgrade modal ────────────────────
+function ProBlurOverlay({ subtext, onUpgrade }: {
+  headline?: string
   subtext: string
   onUpgrade: () => void
 }) {
-  const [expanded, setExpanded] = useState(false)
-
-  function ProOnlyBadge() {
-    return (
-      <div
-        style={{
-          padding: '6px 12px',
-          borderRadius: 999,
-          background: '#0A66C2',
-          color: '#fff',
-          fontSize: 12,
-          fontWeight: 800,
-          boxShadow: '0 6px 14px rgba(10, 102, 194, 0.25)',
-        }}
-      >
-        Pro Only
-      </div>
-    )
-  }
-
   return (
     <div
-      onClick={() => !expanded && setExpanded(true)}
       style={{
         position: 'absolute',
         inset: 0,
@@ -79,44 +61,31 @@ function ProBlurOverlay({ headline, subtext, onUpgrade }: {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '8px',
+        gap: '10px',
         textAlign: 'center',
         padding: '16px',
         borderRadius: 'inherit',
         zIndex: 10,
-        cursor: expanded ? 'default' : 'pointer',
       }}
     >
-      {expanded ? (
-        <>
-          <LockIcon size={24} />
-          <ProOnlyBadge />
-          <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', margin: 0 }}>{headline}</p>
-          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, maxWidth: 220 }}>{subtext}</p>
-          <button
-            onClick={(e) => { e.stopPropagation(); onUpgrade() }}
-            style={{
-              marginTop: 4,
-              padding: '8px 18px',
-              background: '#0A66C2',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 999,
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            Upgrade to Pro →
-          </button>
-        </>
-      ) : (
-        <>
-          <LockIcon size={22} />
-          <ProOnlyBadge />
-          <p style={{ fontSize: 11, color: '#6b7280', margin: 0, maxWidth: 160, lineHeight: 1.4 }}>{subtext}</p>
-        </>
-      )}
+      <LockIcon size={24} />
+      <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0 }}>Pro feature</p>
+      <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, maxWidth: 220, lineHeight: 1.5 }}>{subtext}</p>
+      <button
+        onClick={onUpgrade}
+        style={{
+          padding: '8px 16px',
+          background: '#0A66C2',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 99,
+          fontSize: 13,
+          fontWeight: 600,
+          cursor: 'pointer',
+        }}
+      >
+        Unlock with Pro →
+      </button>
     </div>
   )
 }
@@ -166,12 +135,12 @@ function CareerScoreCard({
 
   return (
     <div
-      className="col-span-full bg-white border border-gray-100 rounded-2xl p-5"
-      style={{ position: 'relative', overflow: 'hidden' }}
+      className="col-span-full bg-white rounded-2xl p-5"
+      style={{ position: 'relative', overflow: 'hidden', border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}
     >
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-700">AI career score</h3>
+          <h3 style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>AI career score</h3>
           <p className="text-xs text-gray-400 mt-0.5">
             {isPro && data ? (data.cached ? 'Cached · refreshes weekly' : 'Just scored') : 'Scored weekly by AI'}
           </p>
@@ -284,9 +253,9 @@ function CareerScoreCard({
 // ── Portfolio strength bar ───────────────────────────────────────────────────
 function HealthScore({ score }: { score: number }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-5">
+    <div className="bg-white rounded-2xl p-5" style={{ border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-semibold text-gray-700">Portfolio strength</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Portfolio strength</span>
         <span className="text-xl font-bold text-[#0A66C2]">{score}/100</span>
       </div>
       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -340,6 +309,8 @@ function AnalyticsSection({
   token,
   onUpgrade,
   onSummaryLoaded,
+  onActivityLoaded,
+  onCopyLink,
 }: {
   isPro: boolean
   portfolioId: string
@@ -347,6 +318,8 @@ function AnalyticsSection({
   token: string
   onUpgrade: () => void
   onSummaryLoaded?: (totalUniqueVisitors: number) => void
+  onActivityLoaded?: (activity: ActivityEvent[]) => void
+  onCopyLink: () => void
 }) {
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
 
@@ -360,6 +333,7 @@ function AnalyticsSection({
         if (!d.viewsByDay) return // guard against error responses
         setSummary(d)
         onSummaryLoaded?.(d.totalUniqueVisitors ?? 0)
+        onActivityLoaded?.(d.recentActivity ?? [])
       })
       .catch(() => {})
   }, [isPro, portfolioId, userId, token]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -381,10 +355,10 @@ function AnalyticsSection({
   }
 
   return (
-    <div className="col-span-full bg-white border border-gray-100 rounded-2xl overflow-hidden">
+    <div className="col-span-full bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
       {/* Header — always visible */}
       <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
-        <h3 className="text-sm font-semibold text-gray-700">Portfolio analytics</h3>
+        <h3 style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Portfolio analytics</h3>
         {isPro && (
           <span className="text-xs bg-[#E8F0F9] text-[#0A66C2] px-2.5 py-1 rounded-full font-medium">
             Last 30 days
@@ -398,31 +372,35 @@ function AnalyticsSection({
 
           {/* Left — Views over time bar chart */}
           <div>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Link clicks over time</p>
-            <div className="flex items-end gap-1.5 h-24">
+            <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Portfolio views</p>
+            <div className="flex items-end gap-1.5 h-32" style={{ position: 'relative' }}>
               {bars.map((h, i) => (
-                <div
-                  key={i}
-                  className="flex-1 rounded-t"
-                  style={{
-                    height: `${Math.round((h / maxBar) * 100)}%`,
-                    minHeight: h > 0 ? 4 : 0,
-                    background: isPro ? '#0A66C2' : `rgba(10, 102, 194, 0.7)`,
-                    transition: 'height 0.5s ease',
-                  }}
-                />
+                <div key={i} className="flex-1 flex flex-col items-center justify-end" style={{ height: '100%', position: 'relative' }}>
+                  {h > 0 && (
+                    <span style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 2, lineHeight: 1 }}>{h}</span>
+                  )}
+                  <div
+                    className="w-full rounded-t"
+                    style={{
+                      height: `${Math.round((h / maxBar) * 100)}%`,
+                      minHeight: h > 0 ? 4 : 0,
+                      background: isPro ? '#1D9E75' : 'rgba(29, 158, 117, 0.7)',
+                      transition: 'height 0.5s ease',
+                    }}
+                  />
+                </div>
               ))}
             </div>
             <div className="flex justify-between mt-1.5">
               {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                <span key={i} className="flex-1 text-center text-[10px] text-gray-300">{d}</span>
+                <span key={i} className="flex-1 text-center text-xs text-gray-300">{d}</span>
               ))}
             </div>
           </div>
 
           {/* Right — Top sources */}
           <div>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Top sources</p>
+            <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Top sources</p>
             <div className="space-y-3">
               {sources.map((s) => (
                 <div key={s.label}>
@@ -444,11 +422,19 @@ function AnalyticsSection({
 
         {/* Recent visitors */}
         <div className="px-5 pb-5">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Recent visitors</p>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Recent visitors</p>
           {activity.length === 0 ? (
-            <p className="text-xs text-gray-400">
-              No visits recorded yet. Share your portfolio link to start tracking visitors.
-            </p>
+            <div>
+              <p className="text-xs text-gray-400 mb-2">
+                No visits recorded yet. Share your portfolio link to start tracking visitors.
+              </p>
+              <button
+                onClick={onCopyLink}
+                style={{ fontSize: 13, color: '#0A66C2', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+              >
+                Copy portfolio link →
+              </button>
+            </div>
           ) : (
             <div>
               {/* Most recent visit — prominent */}
@@ -460,7 +446,7 @@ function AnalyticsSection({
                   : (a.label ?? a.event_type.replace(/_/g, ' '))
                 return (
                   <div className="mb-3 pb-3 border-b border-gray-100">
-                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1">Most recent visit</p>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Most recent visit</p>
                     <p className="text-sm font-semibold text-gray-800">{label}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{displayTime}</p>
                   </div>
@@ -476,7 +462,7 @@ function AnalyticsSection({
                 return (
                   <div key={i} className="flex items-center justify-between py-1.5 border-t border-gray-50">
                     <span className="text-xs text-gray-600">· {label}</span>
-                    <span className="text-[10px] text-gray-300 ml-3 flex-shrink-0">{displayTime}</span>
+                    <span className="text-xs text-gray-300 ml-3 flex-shrink-0">{displayTime}</span>
                   </div>
                 )
               })}
@@ -522,6 +508,7 @@ export default function DashboardPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [template, setTemplate] = useState<string>('minimal')
+  const [previewTemplate, setPreviewTemplate] = useState<string>('minimal')
   const [lockedTemplateMsg, setLockedTemplateMsg] = useState<string | null>(null)
   const [editContent, setEditContent] = useState<Partial<PortfolioContent>>({})
   const [activeTab, setActiveTab] = useState<'overview' | 'edit' | 'settings'>('overview')
@@ -535,6 +522,7 @@ export default function DashboardPage() {
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleteMsg, setDeleteMsg] = useState('')
   const [uniqueVisitors, setUniqueVisitors] = useState<number | null>(null)
+  const [latestActivity, setLatestActivity] = useState<ActivityEvent[]>([])
   const [accessToken, setAccessToken] = useState<string>('')
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [avatarMsg, setAvatarMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
@@ -545,45 +533,54 @@ export default function DashboardPage() {
   const [projectImageUploading, setProjectImageUploading] = useState<number | null>(null)
   const [projectImageMsgs, setProjectImageMsgs] = useState<Record<number, { type: 'ok' | 'err'; text: string }>>({})
   const [projectImagePreviews, setProjectImagePreviews] = useState<Record<number, string>>({})
+  const [loadError, setLoadError] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
     loadData()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { router.push('/create'); return }
-    setAccessToken(session.access_token)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { router.push('/create'); return }
+      setAccessToken(session.access_token)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sb = supabase as any
-    const { data: userData } = await sb
-      .from('users')
-      .select('id, email, slug, plan, published_at, custom_domain')
-      .eq('id', session.user.id)
-      .single()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sb = supabase as any
+      const { data: userData } = await sb
+        .from('users')
+        .select('id, email, slug, plan, published_at, custom_domain')
+        .eq('id', session.user.id)
+        .single()
 
-    if (!userData) { router.push('/create'); return }
-    setUser(userData)
+      if (!userData) { router.push('/create'); return }
+      setUser(userData)
 
-    // Fetch plan via server-side getUserPlan (handles subscriptions + legacy users)
-    const planRes = await fetch(`/api/user-plan?userId=${session.user.id}`, {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    })
-    const { plan } = await planRes.json()
-    setUserPlan(plan as 'free' | 'basic' | 'pro')
+      // Fetch plan via server-side getUserPlan (handles subscriptions + legacy users)
+      const planRes = await fetch(`/api/user-plan?userId=${session.user.id}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      const { plan } = await planRes.json()
+      setUserPlan(plan as 'free' | 'basic' | 'pro')
 
-    const { data: portfolioData } = await sb
-      .from('portfolios')
-      .select('id, template, content, health_score, view_count, last_viewed_at, updated_at')
-      .eq('user_id', session.user.id)
-      .single()
+      const { data: portfolioData } = await sb
+        .from('portfolios')
+        .select('id, template, content, health_score, view_count, last_viewed_at, updated_at')
+        .eq('user_id', session.user.id)
+        .single()
 
-    if (!portfolioData) { router.push('/create'); return }
-    setPortfolio(portfolioData as Portfolio)
-    setTemplate((portfolioData.template as string) || 'minimal')
-    setEditContent(portfolioData.content as PortfolioContent)
-    setLoading(false)
+      if (!portfolioData) { router.push('/create'); return }
+      setPortfolio(portfolioData as Portfolio)
+      setTemplate((portfolioData.template as string) || 'minimal')
+      setPreviewTemplate((portfolioData.template as string) || 'minimal')
+      setEditContent(portfolioData.content as PortfolioContent)
+    } catch (err) {
+      console.error('[dashboard] loadData failed:', err)
+      setLoadError(true)
+    } finally {
+      setLoading(false)
+    }
   }, [router])
 
   // Open cropper on file select
@@ -693,23 +690,32 @@ export default function DashboardPage() {
   const handleSave = async () => {
     if (!portfolio) return
     setSaving(true)
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-    const res = await fetch('/api/update', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({ content: editContent, template }),
-    })
-    if (res.ok) {
-      const updated = await res.json()
-      setPortfolio((prev) => prev ? { ...prev, health_score: updated.health_score } : prev)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+    setSaveError('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+      const res = await fetch('/api/update', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ content: editContent, template }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setPortfolio((prev) => prev ? { ...prev, health_score: updated.health_score } : prev)
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+      } else {
+        setSaveError('Failed to save. Please try again.')
+      }
+    } catch (err) {
+      console.error('[dashboard] handleSave failed:', err)
+      setSaveError('Failed to save. Please try again.')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   const copyLink = () => {
@@ -783,6 +789,39 @@ export default function DashboardPage() {
     )
   }
 
+  if (loadError) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: 16,
+        fontFamily: 'system-ui, sans-serif',
+      }}>
+        <p style={{ color: '#6B7280', fontSize: 15 }}>
+          Failed to load your dashboard.
+        </p>
+        <button
+          onClick={() => { setLoadError(false); loadData() }}
+          style={{
+            padding: '10px 24px',
+            background: '#0A66C2',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 999,
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Try again
+        </button>
+      </div>
+    )
+  }
+
   if (!user || !portfolio) return null
 
   const portfolioUrl = `https://${user.slug}.liveportfolio.site`
@@ -799,6 +838,7 @@ export default function DashboardPage() {
 
   return (
     <>
+    <style>{PULSE_STYLE}</style>
     {avatarCropperSrc && (
       <ImageCropper
         src={avatarCropperSrc}
@@ -914,7 +954,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Mobile bottom nav */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex md:hidden" style={{ height: 56 }}>
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex md:hidden" style={{ minHeight: 56, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           {([
             { key: 'overview', label: 'My Portfolio', icon: (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -948,13 +988,156 @@ export default function DashboardPage() {
 
         {/* ── OVERVIEW TAB ── */}
         {activeTab === 'overview' && (
-          <div className={`grid grid-cols-1 gap-4 ${isPublished ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
+          <div className="flex flex-col gap-4">
+
+            {/* CHANGE 1: Latest visitor hero card — Pro only */}
+            {isPro && isPublished && (() => {
+              const latest = latestActivity[0]
+              if (!latest) {
+                return (
+                  <div style={{
+                    background: '#F9FAFB',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: 12,
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                  }}>
+                    <span style={{ fontSize: 13, color: '#9CA3AF' }}>Share your portfolio link to start tracking visitors.</span>
+                  </div>
+                )
+              }
+              const isView = latest.event_type === 'portfolio_view'
+              const primaryText = isView
+                ? (latest.country ? `Someone from ${latest.country} viewed your portfolio` : 'Someone viewed your portfolio')
+                : (latest.label ? `Someone clicked ${latest.label}` : 'Someone interacted with your portfolio')
+              const displayTime = typeof latest.time === 'string' && latest.time.includes('ago')
+                ? latest.time
+                : (() => {
+                  const diff = Date.now() - new Date(latest.time).getTime()
+                  const mins = Math.floor(diff / 60000)
+                  if (mins < 1) return 'just now'
+                  if (mins < 60) return `${mins}m ago`
+                  const hours = Math.floor(mins / 60)
+                  if (hours < 24) return `${hours}h ago`
+                  return `${Math.floor(hours / 24)}d ago`
+                })()
+              return (
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03))',
+                  border: '1px solid rgba(16,185,129,0.2)',
+                  borderRadius: 12,
+                  padding: '16px 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                }}>
+                  <div style={{
+                    width: 8,
+                    height: 8,
+                    background: '#10B981',
+                    borderRadius: '50%',
+                    flexShrink: 0,
+                    animation: 'pulse 2s infinite',
+                  }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: '#0A0A0A', margin: 0, lineHeight: 1.4 }}>{primaryText}</p>
+                    <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{displayTime}</p>
+                  </div>
+                  <span style={{
+                    background: 'rgba(16,185,129,0.1)',
+                    color: '#059669',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    padding: '2px 8px',
+                    borderRadius: 99,
+                    flexShrink: 0,
+                  }}>Live</span>
+                </div>
+              )
+            })()}
+
+            {/* CHANGE 1: Basic upgrade prompt (no latest visitor data yet) */}
+            {!isPro && isPublished && (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(10,102,194,0.05), rgba(10,102,194,0.02))',
+                border: '1px solid rgba(10,102,194,0.15)',
+                borderRadius: 12,
+                padding: '14px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+              }}>
+                <LockIcon size={16} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>See who&apos;s viewing your portfolio in real time</p>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0' }}>Country, referrer source, and recent activity — Pro only</p>
+                </div>
+                <button
+                  onClick={() => setShowUpgradeModal(true)}
+                  style={{ background: '#0A66C2', color: '#fff', border: 'none', borderRadius: 99, fontSize: 12, fontWeight: 600, padding: '6px 14px', cursor: 'pointer', flexShrink: 0 }}
+                >
+                  Unlock →
+                </button>
+              </div>
+            )}
+
+            {/* CHANGE 2: Compact 3-column stat row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              {/* Views */}
+              <div style={{
+                background: 'white',
+                border: '1px solid #E5E7EB',
+                borderRadius: 12,
+                padding: 16,
+                textAlign: 'center',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+              }}>
+                <span style={{ fontSize: 28, fontWeight: 800, color: '#0A0A0A', display: 'block', lineHeight: 1 }}>{portfolio.view_count}</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4, display: 'block' }}>Views</span>
+              </div>
+              {/* Visitors */}
+              <div
+                onClick={!isPro ? () => setShowUpgradeModal(true) : undefined}
+                style={{
+                  background: isPro ? 'white' : '#F9FAFB',
+                  border: isPro ? '1px solid #E5E7EB' : '1px dashed #D1D5DB',
+                  borderRadius: 12,
+                  padding: 16,
+                  textAlign: 'center',
+                  boxShadow: isPro ? '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' : 'none',
+                  cursor: isPro ? 'default' : 'pointer',
+                }}
+              >
+                <span style={{ fontSize: 28, fontWeight: 800, color: '#0A0A0A', display: 'block', lineHeight: 1 }}>
+                  {isPro && uniqueVisitors !== null ? uniqueVisitors : '—'}
+                </span>
+                {!isPro && (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', marginBottom: 2 }}>
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                )}
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4, display: 'block' }}>Visitors</span>
+              </div>
+              {/* Score */}
+              <div style={{
+                background: 'white',
+                border: '1px solid #E5E7EB',
+                borderRadius: 12,
+                padding: 16,
+                textAlign: 'center',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+              }}>
+                <span style={{ fontSize: 28, fontWeight: 800, color: '#0A0A0A', display: 'block', lineHeight: 1 }}>{portfolio.health_score}</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4, display: 'block' }}>Score</span>
+              </div>
+            </div>
 
             {/* Portfolio preview panel */}
-            <div className="col-span-full mb-2">
+            <div>
               {isPublished ? (
-                <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10)' }}>
-                  {/* Toolbar */}
+                <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10)', border: '1px solid #E5E7EB' }}>
                   <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
                     <span className="text-sm text-gray-400">Your portfolio</span>
                     <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
@@ -973,7 +1156,8 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl h-[280px] sm:h-[400px] flex items-center justify-center">
+                <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl h-[280px] sm:h-[400px] flex items-center justify-center"
+                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                   <p className="text-gray-400 text-[0.95rem] text-center px-6">
                     Publish your portfolio to see a live preview here
                   </p>
@@ -981,140 +1165,10 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Template switcher */}
-            <div className="col-span-full">
-              <p className="text-sm font-semibold text-gray-700 mb-3">Your template</p>
-              {lockedTemplateMsg && (
-                <div className="mb-3 p-3 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-xl text-xs text-[#0A66C2] font-medium flex items-center justify-between gap-3">
-                  <span>{lockedTemplateMsg}</span>
-                  <button onClick={() => { setLockedTemplateMsg(null); setShowUpgradeModal(true) }} className="underline flex-shrink-0">Upgrade →</button>
-                </div>
-              )}
-              <div className="flex gap-3 overflow-x-auto pb-2 md:flex-wrap md:overflow-visible">
-                {[
-                  { id: 'minimal', name: 'Minimal', dark: false, pro: false },
-                  { id: 'bold', name: 'Bold', dark: true, pro: false },
-                  { id: 'creative', name: 'Creative', dark: false, pro: false },
-                  { id: 'developer', name: 'Developer', dark: true, pro: true },
-                  { id: 'designer', name: 'Designer', dark: false, pro: true },
-                  { id: 'data-scientist', name: 'Data Sci', dark: true, pro: true },
-                  { id: 'product-manager', name: 'PM', dark: false, pro: true },
-                  { id: 'finance', name: 'Finance', dark: true, pro: true },
-                  { id: 'graduate', name: 'Graduate', dark: false, pro: true },
-                  { id: 'cybersecurity', name: 'Cyber', dark: true, pro: true },
-                ].map((t) => {
-                  const isLocked = t.pro && !isPro
-                  const isSelected = template === t.id
-                  return (
-                    <div key={t.id} className="flex-shrink-0 flex flex-col items-center gap-1">
-                      <button
-                        onClick={() => {
-                          if (isLocked) { setLockedTemplateMsg(`"${t.name}" is a Pro template.`); setShowUpgradeModal(true); return }
-                          setLockedTemplateMsg(null)
-                          setTemplate(t.id)
-                        }}
-                        className="relative rounded-xl border-2 overflow-hidden transition-all"
-                        style={{
-                          width: 120, height: 80,
-                          background: t.dark ? '#0D1117' : '#F9FAFB',
-                          borderColor: isSelected ? '#0A66C2' : '#e5e7eb',
-                          opacity: isLocked ? 0.5 : 1,
-                        }}
-                      >
-                        {/* Color swatch */}
-                        <div className="absolute inset-0"
-                          style={{
-                            background: t.dark
-                              ? 'linear-gradient(135deg, #1C2128 60%, #58A6FF 100%)'
-                              : 'linear-gradient(135deg, #f3f4f6 60%, #0A66C2 100%)',
-                          }} />
-                        {/* Active badge */}
-                        {isSelected && (
-                          <span className="absolute top-1.5 right-1.5 bg-[#0A66C2] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                            Active
-                          </span>
-                        )}
-                        {/* Lock icon */}
-                        {isLocked && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                            </svg>
-                          </div>
-                        )}
-                      </button>
-                      <span className="text-[0.75rem] text-center text-gray-500">{t.name}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Portfolio strength */}
-            <div className="sm:col-span-1">
-              <HealthScore score={portfolio.health_score} />
-            </div>
-
-            {/* Total views — real count shown to all; blurred for Basic */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-5" style={{ position: 'relative', overflow: 'hidden' }}>
-              <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">Total views</span>
-              <p className="text-3xl font-bold text-gray-900 mt-1">{portfolio.view_count}</p>
-              {portfolio.last_viewed_at && (
-                <p className="text-xs text-gray-400 mt-1">
-                  Last viewed {new Date(portfolio.last_viewed_at).toLocaleDateString()}
-                </p>
-              )}
-              {/* Blur overlay for Basic users */}
-              {!isPro && isPublished && (
-                <ProBlurOverlay
-                  headline="See your total views"
-                  subtext="Upgrade to Pro to track views"
-                  onUpgrade={() => setShowUpgradeModal(true)}
-                />
-              )}
-            </div>
-
-            {/* Unique visitors — Pro only, blurred for Basic */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-5" style={{ position: 'relative', overflow: 'hidden' }}>
-              <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">Unique visitors</span>
-              <p className="text-3xl font-bold text-gray-900 mt-1">
-                {isPro && uniqueVisitors !== null ? uniqueVisitors : '—'}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">Last 30 days</p>
-              {!isPro && isPublished && (
-                <ProBlurOverlay
-                  headline="Unique visitor count"
-                  subtext="See exactly who's visiting"
-                  onUpgrade={() => setShowUpgradeModal(true)}
-                />
-              )}
-            </div>
-
-            {/* Plan card */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
-              <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">Plan</span>
-              <p className="text-lg font-bold mt-1" style={{ color: planBadge.text }}>{planBadge.label}</p>
-              {user.published_at && (
-                <p className="text-xs text-gray-400 mt-1">
-                  Published {new Date(user.published_at).toLocaleDateString()}
-                </p>
-              )}
-              {!isPublished && (
-                <button
-                  onClick={() => setShowUpgradeModal(true)}
-                  className="mt-3 text-xs font-semibold text-[#0A66C2] hover:text-[#084D9A] transition-colors"
-                >
-                  Publish portfolio →
-                </button>
-              )}
-            </div>
-
             {/* Share — available to all published users */}
             {isPublished && (
-              <div className="col-span-full bg-white border-2 border-[#0A66C2]/20 rounded-2xl p-5">
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">Share your portfolio</h3>
-                <p className="text-xs text-gray-400 mb-5">Add your link to every job application, LinkedIn bio, and email signature.</p>
+              <div className="bg-white rounded-2xl p-5" style={{ border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Share your portfolio</p>
 
                 <div className="flex flex-col sm:flex-row gap-5">
                   {/* QR code — Pro: real QR; Basic: blurred placeholder QR */}
@@ -1131,13 +1185,18 @@ export default function DashboardPage() {
                         />
                         <button
                           onClick={async () => {
-                            const url = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(portfolioUrl)}&color=0A66C2&bgcolor=ffffff&qzone=2&format=png`
-                            const res = await fetch(url)
-                            const blob = await res.blob()
-                            const a = document.createElement('a')
-                            a.href = URL.createObjectURL(blob)
-                            a.download = `${user.slug}-portfolio-qr.png`
-                            a.click()
+                            try {
+                              const url = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(portfolioUrl)}&color=0A66C2&bgcolor=ffffff&qzone=2&format=png`
+                              const res = await fetch(url)
+                              if (!res.ok) throw new Error('QR fetch failed')
+                              const blob = await res.blob()
+                              const a = document.createElement('a')
+                              a.href = URL.createObjectURL(blob)
+                              a.download = `${user.slug}-portfolio-qr.png`
+                              a.click()
+                            } catch (err) {
+                              console.error('[qr] Download failed:', err)
+                            }
                           }}
                           className="text-xs font-semibold text-[#0A66C2] hover:text-[#084D9A] transition-colors"
                         >
@@ -1145,7 +1204,6 @@ export default function DashboardPage() {
                         </button>
                       </>
                     ) : (
-                      /* PLACEHOLDER — shown to Basic users only: blurred real QR for upgrade URL */
                       <div style={{ position: 'relative', width: 140, overflow: 'hidden', borderRadius: 12 }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -1167,29 +1225,16 @@ export default function DashboardPage() {
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: 6,
+                            gap: 8,
                             borderRadius: 12,
                           }}
                         >
                           <LockIcon size={18} />
-                          <div
-                            style={{
-                              padding: '5px 10px',
-                              borderRadius: 999,
-                              background: '#0A66C2',
-                              color: '#fff',
-                              fontSize: 11,
-                              fontWeight: 800,
-                              boxShadow: '0 6px 14px rgba(10, 102, 194, 0.25)',
-                            }}
-                          >
-                            Pro Only
-                          </div>
                           <button
                             onClick={() => setShowUpgradeModal(true)}
-                            style={{ fontSize: 11, fontWeight: 600, color: '#0A66C2', background: 'none', border: 'none', cursor: 'pointer' }}
+                            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#0A66C2', border: 'none', cursor: 'pointer', padding: '5px 12px', borderRadius: 99 }}
                           >
-                            QR — Pro only
+                            Pro only
                           </button>
                         </div>
                       </div>
@@ -1198,7 +1243,7 @@ export default function DashboardPage() {
 
                   {/* Share buttons */}
                   <div className="flex-1">
-                    <p className="text-xs text-gray-500 mb-3">
+                    <p className="text-xs text-gray-400 mb-3">
                       {isPro ? 'Print your QR code and add it to your CV, business card, or email signature.' : 'Copy your link and share it anywhere.'}
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -1211,27 +1256,27 @@ export default function DashboardPage() {
                       <a
                         href={`https://wa.me/?text=${encodeURIComponent(`Check out my professional portfolio: ${portfolioUrl}`)}`}
                         target="_blank" rel="noopener noreferrer"
-                        className="text-sm px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300 transition-colors"
+                        style={{ fontSize: 14, padding: '8px 16px', background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB', borderRadius: 999, textDecoration: 'none', display: 'inline-block' }}
                       >
                         WhatsApp
                       </a>
                       <a
                         href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(portfolioUrl)}`}
                         target="_blank" rel="noopener noreferrer"
-                        className="text-sm px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300 transition-colors"
+                        style={{ fontSize: 14, padding: '8px 16px', background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB', borderRadius: 999, textDecoration: 'none', display: 'inline-block' }}
                       >
                         LinkedIn
                       </a>
                       <a
                         href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out my professional portfolio at ${portfolioUrl} — built with liveportfolio.site`)}`}
                         target="_blank" rel="noopener noreferrer"
-                        className="text-sm px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300 transition-colors"
+                        style={{ fontSize: 14, padding: '8px 16px', background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB', borderRadius: 999, textDecoration: 'none', display: 'inline-block' }}
                       >
                         X / Twitter
                       </a>
                       <a
                         href={`mailto:?subject=My professional portfolio&body=Hi, check out my portfolio: ${portfolioUrl}`}
-                        className="text-sm px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300 transition-colors"
+                        style={{ fontSize: 14, padding: '8px 16px', background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB', borderRadius: 999, textDecoration: 'none', display: 'inline-block' }}
                       >
                         Email
                       </a>
@@ -1261,12 +1306,14 @@ export default function DashboardPage() {
                 token={accessToken}
                 onUpgrade={() => setShowUpgradeModal(true)}
                 onSummaryLoaded={(n) => setUniqueVisitors(n)}
+                onActivityLoaded={(a) => setLatestActivity(a)}
+                onCopyLink={copyLink}
               />
             )}
 
             {/* Unpublished CTA */}
             {!isPublished && (
-              <div className="col-span-full bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-2xl p-5 text-center">
+              <div className="bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-2xl p-5 text-center">
                 <p className="text-sm font-semibold text-gray-800 mb-1">Your portfolio is ready to publish.</p>
                 <p className="text-sm text-gray-500 mb-4">Go live and start tracking who finds you.</p>
                 <button
@@ -1308,19 +1355,39 @@ export default function DashboardPage() {
           <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Edit your portfolio</h2>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-4 py-2 bg-[#0A66C2] text-white text-sm font-medium rounded-full hover:bg-[#084D9A] transition-colors disabled:opacity-50"
-              >
-                {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="px-4 py-2 bg-[#0A66C2] text-white text-sm font-medium rounded-full hover:bg-[#084D9A] transition-colors disabled:opacity-50"
+                >
+                  {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
+                </button>
+                {saveError && (
+                  <p style={{ color: '#EF4444', fontSize: 13, marginTop: 4 }}>{saveError}</p>
+                )}
+              </div>
             </div>
 
             {/* Template switcher — all 10, Pro gated */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
-              <p className="text-xs text-gray-400 mb-3">Your current template — tap any card to switch instantly</p>
+              {/* CHANGE 4: Live preview iframe */}
+              {isPublished && (
+                <div style={{ marginBottom: 12 }}>
+                  <p className="text-xs text-gray-400 mb-2">Template preview</p>
+                  <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', height: 160 }} className="sm:h-[200px]">
+                    <iframe
+                      key={previewTemplate}
+                      src={`${APP_URL}/${user.slug}?template=${previewTemplate}&dashboard=true`}
+                      style={{ width: '100%', height: '100%', border: 'none' }}
+                      title="Template preview"
+                      loading="lazy"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">Select a template below to preview it live</p>
+                </div>
+              )}
               {lockedTemplateMsg && (
                 <div className="mb-3 p-3 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-xl text-xs text-[#0A66C2] font-medium flex items-center justify-between gap-3">
                   <span>{lockedTemplateMsg}</span>
@@ -1351,6 +1418,7 @@ export default function DashboardPage() {
                           return
                         }
                         setLockedTemplateMsg(null)
+                        setPreviewTemplate(t.id)
                         setTemplate(t.id)
                       }}
                       className="relative rounded-xl border-2 p-3 text-left transition-all"
@@ -1507,7 +1575,21 @@ export default function DashboardPage() {
                         ...prev,
                         skills: (prev.skills || []).filter((_, idx) => idx !== i)
                       }))}
-                      className="text-gray-400 hover:text-gray-700 leading-none ml-0.5"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 20,
+                        height: 20,
+                        padding: 12,
+                        marginLeft: 2,
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: '#9CA3AF',
+                        boxSizing: 'content-box',
+                      }}
+                      aria-label={`Remove ${skill}`}
                     >×</button>
                   </span>
                 ))}
@@ -1658,6 +1740,9 @@ export default function DashboardPage() {
               >
                 {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
               </button>
+              {saveError && (
+                <p style={{ color: '#EF4444', fontSize: 13, marginTop: 8 }}>{saveError}</p>
+              )}
             </div>
           </div>
         )}

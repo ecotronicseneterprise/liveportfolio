@@ -62,13 +62,18 @@ function CelebrationOverlay({
   }
 
   const downloadQr = async () => {
-    const url = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(portfolioUrl)}&color=0A66C2&bgcolor=ffffff&qzone=2&format=png`
-    const res = await fetch(url)
-    const blob = await res.blob()
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `${slug}-portfolio-qr.png`
-    a.click()
+    try {
+      const url = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(portfolioUrl)}&color=0A66C2&bgcolor=ffffff&qzone=2&format=png`
+      const res = await fetch(url)
+      if (!res.ok) throw new Error('QR fetch failed')
+      const blob = await res.blob()
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = `${slug}-portfolio-qr.png`
+      a.click()
+    } catch (err) {
+      console.error('[qr] Download failed:', err)
+    }
   }
 
   return (
@@ -299,55 +304,59 @@ export default function PreviewPage() {
   }, [portfolioId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadPortfolio = useCallback(async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sb = supabase as any
-    const { data: portfolio, error } = await sb
-      .from('portfolios')
-      .select('id, template, content, user_id')
-      .eq('id', portfolioId)
-      .single()
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sb = supabase as any
+      const { data: portfolio, error } = await sb
+        .from('portfolios')
+        .select('id, template, content, user_id')
+        .eq('id', portfolioId)
+        .single()
 
-    if (error || !portfolio) {
-      router.push('/create')
-      return
-    }
-
-    setContent(portfolio.content as PortfolioContent)
-    setTemplate((portfolio.template as 'minimal' | 'bold' | 'creative') || 'minimal')
-    setPortfolioUserId(portfolio.user_id)
-
-    // Check if paid + get email for Paystack
-    const { data: user } = await sb
-      .from('users')
-      .select('plan, slug, email')
-      .eq('id', portfolio.user_id)
-      .single()
-
-    if (user) {
-      setSlug(user.slug || '')
-      setUserEmail((user as { email?: string }).email || '')
-
-      // Check plan via server-side getUserPlan (handles both subscriptions + legacy)
-      const planRes = await fetch(`/api/user-plan?userId=${portfolio.user_id}`)
-      const { plan } = await planRes.json()
-      const paid = plan !== 'free'
-      setIsPaid(paid)
-      setIsPro(plan === 'pro')
-
-      // Already paid — send straight to dashboard, no need to show preview again
-      if (paid) {
-        router.push('/dashboard')
+      if (error || !portfolio) {
+        router.push('/create')
         return
       }
-    }
 
-    setLoading(false)
+      setContent(portfolio.content as PortfolioContent)
+      setTemplate((portfolio.template as 'minimal' | 'bold' | 'creative') || 'minimal')
+      setPortfolioUserId(portfolio.user_id)
 
-    if (typeof window.gtag !== 'undefined') {
-      window.gtag('event', 'preview_viewed', {
-        template: (portfolio.template as string) || 'minimal',
-        has_photo: !!(portfolio.content as PortfolioContent).avatar_url,
-      })
+      // Check if paid + get email for Paystack
+      const { data: user } = await sb
+        .from('users')
+        .select('plan, slug, email')
+        .eq('id', portfolio.user_id)
+        .single()
+
+      if (user) {
+        setSlug(user.slug || '')
+        setUserEmail((user as { email?: string }).email || '')
+
+        // Check plan via server-side getUserPlan (handles both subscriptions + legacy)
+        const planRes = await fetch(`/api/user-plan?userId=${portfolio.user_id}`)
+        const { plan } = await planRes.json()
+        const paid = plan !== 'free'
+        setIsPaid(paid)
+        setIsPro(plan === 'pro')
+
+        // Already paid — send straight to dashboard, no need to show preview again
+        if (paid) {
+          router.push('/dashboard')
+          return
+        }
+      }
+
+      if (typeof window.gtag !== 'undefined') {
+        window.gtag('event', 'preview_viewed', {
+          template: (portfolio.template as string) || 'minimal',
+          has_photo: !!(portfolio.content as PortfolioContent).avatar_url,
+        })
+      }
+    } catch (err) {
+      console.error('[preview] loadPortfolio failed:', err)
+    } finally {
+      setLoading(false)
     }
   }, [portfolioId, router])
 
@@ -619,7 +628,7 @@ export default function PreviewPage() {
 
       {/* Mobile CTA (non-paid only) */}
       {!isPaid && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 p-4 sm:hidden">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 p-4 sm:hidden" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}>
           <button
             onClick={() => setShowUpgradeModal(true)}
             className="w-full py-3 bg-[#0A66C2] text-white text-sm font-bold rounded-full hover:bg-[#084D9A] transition-colors"
