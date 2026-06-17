@@ -6,14 +6,15 @@ import type { PortfolioContent } from './Minimal'
 
 const css = `
   @import 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap';
+  @import 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap';
   .fin-root {
     --bg: #0F172A;
     --surface: #1E293B;
     --primary: #1E3A8A;
     --accent: #93C5FD;
     --text: #F8FAFC;
-    --muted: #94A3B8;
-    --border: #1E3A8A;
+    --muted: #A8B8CC;
+    --border: #1E2D4F;
     background: var(--bg);
     color: var(--text);
     font-family: 'Inter', system-ui, sans-serif;
@@ -21,7 +22,7 @@ const css = `
   }
   .fin-nav {
     background: var(--surface);
-    border-bottom: 1px solid rgba(30,58,138,0.4);
+    border-bottom: 1px solid rgba(30,45,79,0.6);
     padding: 14px 6vw;
     display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 50;
@@ -39,26 +40,32 @@ const css = `
 
   /* Left sidebar */
   .fin-sidebar {
-    background: var(--surface);
-    border-right: 1px solid rgba(30,58,138,0.4);
+    background: rgba(30, 41, 59, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(30,45,79,0.6);
     padding: 40px 28px;
     display: flex; flex-direction: column; gap: 32px;
+    position: sticky; top: 49px; height: calc(100vh - 49px); overflow-y: auto;
   }
-  .fin-sidebar-name { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .fin-sidebar-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 4px;
+  }
   .fin-sidebar-role { font-size: 13px; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.02em; }
   .fin-sidebar-meta { font-size: 12px; color: var(--muted); line-height: 1.7; }
   .fin-sidebar-meta a { color: var(--accent); text-decoration: none; }
 
   .fin-sidebar-block {}
   .fin-block-title {
-    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--accent); font-weight: 600;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700;
     margin-bottom: 14px; padding-bottom: 8px;
-    border-bottom: 1px solid rgba(30,58,138,0.4);
+    border-bottom: 1px solid rgba(30,45,79,0.6);
   }
 
   /* About text in sidebar */
-  .fin-about { font-size: 13px; color: var(--muted); line-height: 1.8; }
+  .fin-about { font-size: 15px; color: var(--muted); line-height: 1.7; }
   .fin-about p { margin-bottom: 10px; }
 
   /* Skills in sidebar */
@@ -66,17 +73,18 @@ const css = `
   .fin-skill-cat { font-size: 10px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
   .fin-skill-pills { display: flex; flex-wrap: wrap; gap: 5px; }
   .fin-skill-pill {
-    font-size: 11px; padding: 3px 9px;
+    font-size: 12px; padding: 3px 9px;
     background: rgba(30,58,138,0.3);
     border: 1px solid var(--border);
     border-radius: 3px; color: var(--muted);
+    line-height: 1.7;
   }
 
   /* Contact in sidebar */
   .fin-contact-links { display: flex; flex-direction: column; gap: 8px; }
   .fin-contact-link { font-size: 12px; color: var(--muted); text-decoration: none; transition: color 0.2s; display: flex; align-items: center; gap: 8px; }
   .fin-contact-link:hover { color: var(--accent); }
-  .fin-footer-link { font-size: 10px; color: #1E3A8A; text-decoration: none; margin-top: auto; transition: color 0.2s; }
+  .fin-footer-link { font-size: 10px; color: #475569; text-decoration: none; margin-top: auto; transition: color 0.2s; }
   .fin-footer-link:hover { color: var(--accent); }
   .fin-mobile-footer { display: none; }
 
@@ -90,28 +98,56 @@ const css = `
   }
   .fin-section.visible { opacity: 1; transform: none; }
   .fin-section-label {
-    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--accent); font-weight: 600;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700;
     margin-bottom: 20px; padding-bottom: 8px;
-    border-bottom: 1px solid rgba(30,58,138,0.4);
+    border-bottom: 1px solid rgba(30,45,79,0.6);
     display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* Headline */
+  .fin-headline {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px; font-weight: 700;
+    line-height: 1.3; margin-bottom: 8px;
+    background: linear-gradient(135deg, #F8FAFC 0%, #93C5FD 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Metric chips */
+  .fin-metrics { display: inline-flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .fin-metric-chip {
+    background: rgba(30,58,138,0.3);
+    border: 1px solid rgba(147,197,253,0.2);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #93C5FD;
   }
 
   /* Projects */
   .fin-projects { display: flex; flex-direction: column; gap: 14px; }
   .fin-proj-card {
     background: var(--surface);
-    border: 1px solid rgba(30,58,138,0.4);
+    border: 1px solid rgba(30,45,79,0.6);
     border-radius: 6px; padding: 20px;
-    transition: border-color 0.2s;
+    transition: transform 200ms ease, box-shadow 200ms ease;
   }
-  .fin-proj-card:hover { border-color: var(--accent); }
+  .fin-proj-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
   .fin-proj-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
   .fin-proj-outcome {
     font-size: 13px; font-weight: 600;
     color: var(--accent); margin-bottom: 8px;
   }
-  .fin-proj-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+  .fin-proj-desc { font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 10px; }
   .fin-proj-tags { display: flex; flex-wrap: wrap; gap: 5px; }
   .fin-proj-tag {
     font-size: 10px; padding: 2px 8px;
@@ -130,12 +166,12 @@ const css = `
   .fin-exp-co { font-size: 12px; color: var(--accent); font-weight: 600; margin-bottom: 2px; }
   .fin-exp-period { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
   .fin-exp-bullets { list-style: none; display: flex; flex-direction: column; gap: 4px; }
-  .fin-exp-bullet { font-size: 12px; color: var(--muted); line-height: 1.6; display: flex; gap: 8px; }
+  .fin-exp-bullet { font-size: 14px; color: var(--muted); line-height: 1.7; display: flex; gap: 8px; }
   .fin-bullet-mark { color: var(--accent); flex-shrink: 0; }
 
   @media (max-width: 900px) {
     .fin-layout { grid-template-columns: 1fr; }
-    .fin-sidebar { border-right: none; border-bottom: 1px solid rgba(30,58,138,0.4); padding: 28px 6vw; }
+    .fin-sidebar { border-right: none; border-bottom: 1px solid rgba(30,45,79,0.6); padding: 28px 6vw; position: static; height: auto; overflow-y: visible; }
     .fin-main { padding: 28px 6vw; }
     .fin-nav-links { display: none; }
     .fin-mobile-footer { display: flex !important; }
@@ -156,6 +192,20 @@ function groupFinanceSkills(skills: string[]) {
   return Object.entries(groups).filter(([, items]) => items.length > 0)
 }
 
+function extractMetrics(projects: PortfolioContent['projects']): string[] {
+  const metrics: string[] = []
+  for (const p of projects) {
+    if (metrics.length >= 2) break
+    if (!p.outcome) continue
+    const matches = p.outcome.match(/[\$£€₦]?[\d,]+\.?\d*\s*[%kKmMbBxX+]?/g)
+    if (matches) {
+      const val = matches[0].trim()
+      if (val) metrics.push(val)
+    }
+  }
+  return metrics
+}
+
 export default function Finance({ content }: { content: PortfolioContent }) {
   const mainRef = useRef<HTMLDivElement>(null)
 
@@ -173,6 +223,8 @@ export default function Finance({ content }: { content: PortfolioContent }) {
   const skillGroups: [string, string[]][] = content.skills_grouped?.length > 0
     ? content.skills_grouped.filter(g => g.items?.length > 0).map(g => [g.category, g.items])
     : groupFinanceSkills(content.skills)
+
+  const metrics = extractMetrics(content.projects)
 
   return (
     <div className="fin-root">
@@ -281,9 +333,14 @@ export default function Finance({ content }: { content: PortfolioContent }) {
           {/* Headline */}
           <section className="fin-section">
             <div className="fin-section-label">Overview</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', marginBottom: 8, lineHeight: 1.3 }}>
-              {content.headline}
-            </div>
+            <div className="fin-headline">{content.headline}</div>
+            {metrics.length > 0 && (
+              <div className="fin-metrics">
+                {metrics.map((m, i) => (
+                  <span key={i} className="fin-metric-chip">{m}</span>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Projects */}
@@ -342,7 +399,7 @@ export default function Finance({ content }: { content: PortfolioContent }) {
       {/* Mobile footer — only visible when sidebar is hidden (display controlled by CSS media query) */}
       <footer style={{
         padding: '16px 6vw',
-        borderTop: '1px solid rgba(30,58,138,0.4)',
+        borderTop: '1px solid rgba(30,45,79,0.6)',
         justifyContent: 'space-between',
         alignItems: 'center',
         fontSize: 10,
@@ -350,7 +407,7 @@ export default function Finance({ content }: { content: PortfolioContent }) {
         fontFamily: 'Inter, system-ui, sans-serif',
       }} className="fin-mobile-footer">
         <span>{content.name}</span>
-        <a href="https://liveportfolio.site" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
+        <a href="https://liveportfolio.site" target="_blank" rel="noopener noreferrer" style={{ color: '#475569', textDecoration: 'none' }}>
           liveportfolio.site
         </a>
       </footer>

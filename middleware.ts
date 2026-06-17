@@ -64,7 +64,7 @@ export function middleware(req: NextRequest) {
 
   // Subdomain: *.liveportfolio.site → rewrite to /portfolio/[slug]
   if (hostname.endsWith(`.${ROOT_DOMAIN}`)) {
-    const slug = hostname.replace(`.${ROOT_DOMAIN}`, '')
+    const slug = hostname.replace(`.${ROOT_DOMAIN}`, '').toLowerCase()
 
     // Don't rewrite internal Next.js paths
     if (pathname.startsWith('/_next') || pathname.startsWith('/api') || pathname === '/favicon.ico') {

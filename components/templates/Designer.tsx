@@ -51,11 +51,14 @@ const css = `
     font-weight: 800;
     line-height: 1.05;
     letter-spacing: -0.03em;
-    color: var(--text);
     margin-bottom: 12px;
     word-break: break-word;
     overflow-wrap: break-word;
     max-width: 100%;
+    background: linear-gradient(135deg, #1E1B4B 0%, #6D28D9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   .ds-hero-role {
     font-family: 'DM Sans', sans-serif;
@@ -65,7 +68,13 @@ const css = `
   .ds-hero-bio {
     font-size: 16px; line-height: 1.8;
     color: var(--muted); max-width: 560px;
-    font-weight: 300; margin-bottom: 28px;
+    font-weight: 300; margin-bottom: 16px;
+  }
+  .ds-hero-about {
+    font-size: 16px; font-weight: 300;
+    color: var(--muted); line-height: 1.75;
+    max-width: 560px; margin-top: 12px;
+    margin-bottom: 28px;
   }
   .ds-hero-links { display: flex; gap: 12px; flex-wrap: wrap; }
   .ds-cta-primary {
@@ -113,9 +122,13 @@ const css = `
     border: 1px solid var(--border);
     border-radius: 20px;
     overflow: hidden;
-    transition: box-shadow 0.2s;
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
   }
-  .ds-case-card:hover { box-shadow: 0 12px 40px rgba(109,40,217,0.1); }
+  .ds-case-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(109,40,217,0.12);
+    border-color: rgba(109,40,217,0.4);
+  }
   .ds-case-img { width: 100%; aspect-ratio: 16/6; object-fit: cover; display: block; }
   .ds-case-body { padding: 32px; }
   .ds-case-title {
@@ -123,13 +136,20 @@ const css = `
     font-size: 22px; font-weight: 700;
     color: var(--text); margin-bottom: 12px;
   }
-  .ds-case-problem { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 12px; }
+  .ds-case-label {
+    font-size: 10px; font-weight: 600;
+    color: var(--accent); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 4px;
+  }
+  .ds-case-problem { font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
+  .ds-case-solution { font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
   .ds-case-outcome {
-    font-size: 14px; font-weight: 600;
+    font-size: 15px; font-weight: 600;
     color: var(--primary); margin-bottom: 16px;
     padding: 8px 14px;
     background: rgba(109,40,217,0.06);
     border-radius: 8px; display: inline-block;
+    line-height: 1.7;
   }
   .ds-case-tags { display: flex; flex-wrap: wrap; gap: 6px; }
   .ds-case-tag {
@@ -158,16 +178,22 @@ const css = `
     font-size: 15px; font-weight: 700;
     color: var(--text); margin-bottom: 6px;
   }
-  .ds-process-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .ds-process-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
 
   /* Skills */
   .ds-skills-list { display: flex; flex-wrap: wrap; gap: 8px; }
   .ds-skill {
-    font-size: 13px; padding: 6px 16px;
+    font-size: 15px; padding: 6px 16px;
     background: rgba(167,139,250,0.1);
     border: 1px solid var(--border);
     border-radius: 50px; color: var(--primary);
-    font-weight: 500;
+    font-weight: 500; line-height: 1.7;
+  }
+
+  /* Experience */
+  .ds-exp-bullet {
+    font-size: 15px; color: var(--muted);
+    line-height: 1.7; display: flex; gap: 8px;
   }
 
   /* Testimonials */
@@ -225,6 +251,12 @@ const css = `
   }
 `
 
+const FALLBACK_STEPS = [
+  { label: 'Research', desc: 'Deep dive into user needs, business goals, and competitive landscape to frame the right problem.' },
+  { label: 'Design', desc: 'Translate insights into wireframes, prototypes, and high-fidelity visuals that are tested early and often.' },
+  { label: 'Deliver', desc: 'Collaborate with engineering to ship polished, accessible, and production-ready experiences.' },
+]
+
 export default function Designer({ content }: { content: PortfolioContent }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
@@ -241,6 +273,15 @@ export default function Designer({ content }: { content: PortfolioContent }) {
   }, [])
 
   const works = content.projects
+
+  // Build process steps from skills_grouped categories (top 3), or fall back to hardcoded
+  const processSteps: { label: string; desc: string }[] =
+    content.skills_grouped && content.skills_grouped.length >= 1
+      ? content.skills_grouped.slice(0, 3).map((g) => ({
+          label: g.category,
+          desc: g.items.slice(0, 5).join(' · '),
+        }))
+      : FALLBACK_STEPS
 
   return (
     <div className="ds-root" ref={rootRef}>
@@ -268,7 +309,8 @@ export default function Designer({ content }: { content: PortfolioContent }) {
         <div>
           <h1 className="ds-hero-name">{content.name}</h1>
           <p className="ds-hero-role">{content.role}</p>
-          <p className="ds-hero-bio">{content.headline}</p>
+          {content.headline && <p className="ds-hero-bio">{content.headline}</p>}
+          {content.about && <p className="ds-hero-about">{content.about}</p>}
           <div className="ds-hero-links">
             <a href={`mailto:${content.email}`} className="ds-cta-primary">Get in touch →</a>
             {content.linkedin_url && (
@@ -295,8 +337,24 @@ export default function Designer({ content }: { content: PortfolioContent }) {
                 )}
                 <div className="ds-case-body">
                   <div className="ds-case-title">{p.title}</div>
-                  {p.problem && <div className="ds-case-problem">{p.problem}</div>}
-                  {p.outcome && <div className="ds-case-outcome">{p.outcome}</div>}
+                  {p.problem && (
+                    <>
+                      <div className="ds-case-label">Challenge</div>
+                      <div className="ds-case-problem">{p.problem}</div>
+                    </>
+                  )}
+                  {p.solution && (
+                    <>
+                      <div className="ds-case-label">Approach</div>
+                      <div className="ds-case-solution">{p.solution}</div>
+                    </>
+                  )}
+                  {p.outcome && (
+                    <>
+                      <div className="ds-case-label">Outcome</div>
+                      <div className="ds-case-outcome">{p.outcome}</div>
+                    </>
+                  )}
                   {p.stack.length > 0 && (
                     <div className="ds-case-tags">
                       {p.stack.map((t) => <span key={t} className="ds-case-tag">{t}</span>)}
@@ -313,6 +371,21 @@ export default function Designer({ content }: { content: PortfolioContent }) {
           </div>
         </section>
       )}
+
+      {/* Approach / Process */}
+      <section className="ds-section">
+        <div className="ds-section-eyebrow">How I Work</div>
+        <div className="ds-section-title">Approach</div>
+        <div className="ds-process">
+          {processSteps.map((step, i) => (
+            <div key={i} className="ds-process-step">
+              <div className="ds-process-num">0{i + 1}</div>
+              <div className="ds-process-label">{step.label}</div>
+              <div className="ds-process-desc">{step.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Skills */}
       {content.skills.length > 0 && (
@@ -340,7 +413,7 @@ export default function Designer({ content }: { content: PortfolioContent }) {
                 {e.bullets.length > 0 && (
                   <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {e.bullets.map((b, j) => (
-                      <li key={j} style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6, display: 'flex', gap: 8 }}>
+                      <li key={j} className="ds-exp-bullet">
                         <span style={{ color: 'var(--accent)', flexShrink: 0 }}>→</span>
                         <span>{b}</span>
                       </li>

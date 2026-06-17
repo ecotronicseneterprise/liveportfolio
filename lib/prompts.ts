@@ -5,6 +5,8 @@ Write like a sharp recruiter rewrote their profile — competent, calm, specific
 NEVER USE THESE WORDS OR PHRASES:
 passionate, results-driven, highly motivated, leveraging, cutting-edge, dynamic, innovative, spearheaded, impactful, fast-paced, detail-oriented, proactive, team player, self-starter, thought leader, go-getter, synergy, robust, seamless, scalable solutions, best-in-class, worked on, assisted with, contributed to, various responsibilities, helped with, disruptive.
 
+NEVER USE em dashes (—) anywhere in your output. Use a comma, period, or rewrite the sentence instead.
+
 Return valid JSON only. No preamble, no markdown, no commentary.`
 
 export const buildGenerationPrompt = (input: {

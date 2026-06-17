@@ -246,7 +246,11 @@ export default function PortfolioShowcase() {
   const total = PORTFOLIOS.length
   const [index, setIndex] = useState(0)
   const pausedRef = useRef(false)
-  const [iframeScale, setIframeScale] = useState(0.33)
+  const [iframeScale, setIframeScale] = useState(() => {
+    if (typeof window === 'undefined') return 0.33
+    const containerWidth = Math.min(window.innerWidth - 32, 380)
+    return containerWidth / IFRAME_WIDTH
+  })
   const containerRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
@@ -304,7 +308,7 @@ export default function PortfolioShowcase() {
       <div
         ref={containerRef}
         className="px-4 sm:px-10 lg:px-16"
-        style={{ width: '100%', maxWidth: '100vw', boxSizing: 'border-box', overflow: 'hidden' }}
+        style={{ width: '100%', maxWidth: '100vw', boxSizing: 'border-box', overflow: 'hidden', willChange: 'transform' }}
         onMouseEnter={() => { pausedRef.current = true }}
         onMouseLeave={() => { pausedRef.current = false }}
         onTouchStart={onTouchStart}

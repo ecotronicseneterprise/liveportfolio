@@ -332,7 +332,8 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
+  const { slug: rawSlug } = await params
+  const slug = rawSlug.toLowerCase()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
 
   if (DEMO_PORTFOLIOS[slug]) {
@@ -389,7 +390,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PortfolioPage({ params }: Props) {
-  const { slug } = await params
+  const { slug: rawSlug } = await params
+  const slug = rawSlug.toLowerCase()
 
   if (DEMO_PORTFOLIOS[slug]) {
     const { template, content } = DEMO_PORTFOLIOS[slug]

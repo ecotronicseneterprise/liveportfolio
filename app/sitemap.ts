@@ -71,7 +71,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { data: users } = await supabaseAdmin
       .from('users')
       .select('slug, published_at')
-      .eq('plan', 'pro')
+      .neq('plan', 'unpublished')
       .not('slug', 'is', null)
 
     const portfolioPages: MetadataRoute.Sitemap = (users || []).map((u) => ({
