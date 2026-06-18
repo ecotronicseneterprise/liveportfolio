@@ -331,7 +331,7 @@ const DEMO_PORTFOLIOS: Record<string, { template: 'minimal' | 'bold' | 'creative
 const serverViewCache = new Map<string, number>()
 const SERVER_CACHE_TTL = 60 * 60 * 1000 // 1 hour
 
-const BOT_PATTERN = /bot|crawler|spider|crawling|facebookexternalhit|Twitterbot|LinkedInBot|Googlebot|bingbot|Slurp|DuckDuckBot|YandexBot|Baiduspider|Sogou|Exabot|facebot|ia_archiver|AhrefsBot|SemrushBot|MJ12bot|DotBot|rogerbot|proximic|archiver|curl|wget|python|java|ruby|php|perl|libwww/i
+const BOT_PATTERN = /bot|crawler|spider|crawling|facebookexternalhit|Twitterbot|LinkedInBot|Googlebot|bingbot|Slurp|DuckDuckBot|YandexBot|Baiduspider|Sogou|Exabot|facebot|ia_archiver|AhrefsBot|SemrushBot|MJ12bot|DotBot|rogerbot|proximic|archiver|curl|wget|python|java|ruby|php|perl|libwww|HeadlessChrome|Playwright|PhantomJS|Puppeteer|selenium|headless|chrome-lighthouse|pagespeed/i
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -452,38 +452,42 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
       || headersList.get('x-real-ip')
       || 'unknown'
     const referrer = headersList.get('referer') || null
-    const ipHash = createHash('sha256').update(rawIp).digest('hex').slice(0, 16)
 
-    // FIX 3: Skip bots and crawlers
-    if (!BOT_PATTERN.test(userAgent)) {
-      // FIX 2: 1-hour server-side dedup — same IP+slug pair only counts once per hour
-      const cacheKey = `${ipHash}:${portfolio.id}`
-      const lastSeen = serverViewCache.get(cacheKey)
-      const now = Date.now()
+    // Skip requests with no traceable IP — likely ISR background renders or internal health checks
+    if (rawIp !== 'unknown') {
+      const ipHash = createHash('sha256').update(rawIp).digest('hex').slice(0, 16)
 
-      if (!lastSeen || now - lastSeen > SERVER_CACHE_TTL) {
-        serverViewCache.set(cacheKey, now)
+      // Skip bots, crawlers, and headless browsers (empty UA also excluded)
+      if (userAgent && !BOT_PATTERN.test(userAgent)) {
+        // 1-hour server-side dedup — same IP+slug pair only counts once per hour
+        const cacheKey = `${ipHash}:${portfolio.id}`
+        const lastSeen = serverViewCache.get(cacheKey)
+        const now = Date.now()
 
-        // Evict oldest entries when cache grows large
-        if (serverViewCache.size > 1000) {
-          const oldest = [...serverViewCache.entries()]
-            .sort((a, b) => a[1] - b[1])
-            .slice(0, 200)
-          oldest.forEach(([key]) => serverViewCache.delete(key))
+        if (!lastSeen || now - lastSeen > SERVER_CACHE_TTL) {
+          serverViewCache.set(cacheKey, now)
+
+          // Evict oldest entries when cache grows large
+          if (serverViewCache.size > 1000) {
+            const oldest = [...serverViewCache.entries()]
+              .sort((a, b) => a[1] - b[1])
+              .slice(0, 200)
+            oldest.forEach(([key]) => serverViewCache.delete(key))
+          }
+
+          getIpInfo(rawIp, ipHash, supabaseAdmin).then(({ company, country }) => {
+            void Promise.resolve(
+              supabaseAdmin.from('analytics_events').insert({
+                portfolio_id: portfolio.id,
+                event_type: 'portfolio_view',
+                referrer,
+                ip_hash: ipHash,
+                company,
+                country,
+              })
+            )
+          }).catch(() => {})
         }
-
-        getIpInfo(rawIp, ipHash, supabaseAdmin).then(({ company, country }) => {
-          void Promise.resolve(
-            supabaseAdmin.from('analytics_events').insert({
-              portfolio_id: portfolio.id,
-              event_type: 'portfolio_view',
-              referrer,
-              ip_hash: ipHash,
-              company,
-              country,
-            })
-          )
-        }).catch(() => {})
       }
     }
   }
