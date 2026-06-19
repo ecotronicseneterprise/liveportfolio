@@ -376,8 +376,8 @@ CRON_COUNT=$(echo "$CRON_LINES" | grep -c . 2>/dev/null || echo "0")
 CRON_ALERT=0
 CRON_STATUS="✓ OK — ${CRON_COUNT} jobs"
 CRON_COLOR="#16a34a"
-# Flag if anything other than health-check and drip appears
-if echo "$CRON_LINES" | grep -qvE 'health-check\.sh|cron/drip'; then
+# Flag if anything other than known-good cron jobs appears
+if echo "$CRON_LINES" | grep -qvE 'health-check\.sh|cron/drip|cron/affiliate'; then
   CRON_ALERT=1
   CRON_STATUS="🔴 ALERT — unexpected cron entry!"
   CRON_COLOR="#dc2626"
