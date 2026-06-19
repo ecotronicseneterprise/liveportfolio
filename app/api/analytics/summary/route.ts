@@ -60,18 +60,25 @@ export async function GET(req: NextRequest) {
 
     const allEvents = events || []
 
-    // Build 7-day bar chart — bucket portfolio_view events by day-of-week
-    const dayBuckets = [0, 0, 0, 0, 0, 0, 0] // Sun=0 … Sat=6
-    for (const e of allEvents) {
-      if (e.event_type === 'portfolio_view') {
-        dayBuckets[new Date(e.created_at).getDay()]++
-      }
+    // Build last 7 actual calendar days (oldest → newest), all dates in UTC
+    const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const last7Days: string[] = []
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setUTCDate(d.getUTCDate() - i)
+      last7Days.push(d.toISOString().slice(0, 10)) // YYYY-MM-DD UTC
     }
-    // Re-order Mon–Sun
-    const viewsByDay = [
-      dayBuckets[1], dayBuckets[2], dayBuckets[3], dayBuckets[4],
-      dayBuckets[5], dayBuckets[6], dayBuckets[0],
-    ]
+
+    const viewsByDay = last7Days.map((dateStr) =>
+      allEvents.filter(
+        (e) => e.event_type === 'portfolio_view' && e.created_at.slice(0, 10) === dateStr
+      ).length
+    )
+
+    const dayLabels = last7Days.map((dateStr) => {
+      const d = new Date(dateStr + 'T00:00:00Z')
+      return DAY_NAMES[d.getUTCDay()]
+    })
 
     // Top referrer sources (portfolio_view events only)
     const referrerCounts: Record<string, number> = {}
@@ -137,6 +144,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       viewsByDay,
+      dayLabels,
+      chartPeriod: 'last_7_days',
       topSources: topSources.length > 0 ? topSources : [{ label: 'Direct', pct: 100 }],
       recentActivity,
       totalUniqueVisitors,

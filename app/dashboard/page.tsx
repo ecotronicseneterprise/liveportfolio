@@ -296,6 +296,8 @@ interface ActivityEvent {
 
 interface AnalyticsSummary {
   viewsByDay: number[]
+  dayLabels?: string[]
+  chartPeriod?: string
   topSources: { label: string; pct: number }[]
   recentActivity: ActivityEvent[]
   totalUniqueVisitors: number
@@ -340,6 +342,7 @@ function AnalyticsSection({
   }, [isPro, portfolioId, userId, token]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const bars = isPro && summary ? summary.viewsByDay : PLACEHOLDER_BARS
+  const barLabels = isPro && summary?.dayLabels ? summary.dayLabels : ['M', 'T', 'W', 'T', 'F', 'S', 'S']
   const maxBar = Math.max(...bars, 1)
   const sources = isPro && summary ? summary.topSources : PLACEHOLDER_SOURCES
   const activity = isPro && summary ? summary.recentActivity : PLACEHOLDER_ACTIVITY
@@ -362,7 +365,7 @@ function AnalyticsSection({
         <h3 style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Portfolio analytics</h3>
         {isPro && (
           <span className="text-xs bg-[#E8F0F9] text-[#0A66C2] px-2.5 py-1 rounded-full font-medium">
-            Last 30 days
+            Last 7 days
           </span>
         )}
       </div>
@@ -393,7 +396,7 @@ function AnalyticsSection({
               ))}
             </div>
             <div className="flex justify-between mt-1.5">
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+              {barLabels.map((d, i) => (
                 <span key={i} className="flex-1 text-center text-xs text-gray-300">{d}</span>
               ))}
             </div>
