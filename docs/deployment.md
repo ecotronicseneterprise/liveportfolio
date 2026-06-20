@@ -69,7 +69,7 @@ How to verify DNS is working (check in 30 minutes):
 nslookup test.liveportfolio.site
 
 # Expected output should include:
-# Address: 46.225.186.103
+# Address: 89.167.93.25
 
 # Or use this website: https://dnschecker.org
 # Search for: *.liveportfolio.site
@@ -77,7 +77,7 @@ nslookup test.liveportfolio.site
 
 Part 3 — VPS Setup (one-time, 10 minutes)
 Connect to your VPS
-ssh deploy@46.225.186.103
+ssh deploy@89.167.93.25
 # Type your password when prompted
 # You are now inside the VPS
 
@@ -92,7 +92,7 @@ su -
 # Then add deploy user to sudoers:
 usermod -aG sudo deploy
 exit
-# Then reconnect: ssh deploy@46.225.186.103
+# Then reconnect: ssh deploy@ssh deploy@89.167.93.25
 
 Install everything needed (copy the whole block at once)
 sudo apt update && sudo apt upgrade -y
@@ -119,7 +119,8 @@ sudo systemctl status caddy
 # Look for: Active: active (running)
 
 # Test that port 80 is open (should redirect to HTTPS)
-curl -I http://46.225.186.103
+curl -I http://89.167.93.25
+
 # Expected: HTTP/1.1 308 Permanent Redirect
 
 

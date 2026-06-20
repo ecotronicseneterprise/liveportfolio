@@ -19,16 +19,10 @@ const jsonLd = {
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
   url: 'https://liveportfolio.site',
-  description: 'Create a professional portfolio website for job applications in minutes. Upload your CV, get AI-written copy, and share your link with recruiters.',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-    description: 'Free to build and preview',
-  },
+  description: 'Upload your CV and we turn it into a professional portfolio website. Build your online presence and know when someone views your profile.',
   audience: {
     '@type': 'Audience',
-    audienceType: 'Job seekers, developers, designers, data scientists, freelancers',
+    audienceType: 'Developers, designers, data scientists, product managers, freelancers, career switchers',
   },
 }
 
@@ -52,7 +46,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Who is this for?',
-    a: 'Developers, designers, data scientists, product managers, freelancers — anyone who wants to present their work professionally and know if recruiters are finding them.',
+    a: 'Developers, designers, data scientists, product managers, freelancers — anyone who wants a professional online presence and wants to know when someone views their profile and from where.',
   },
   {
     q: 'Do I need design or coding skills?',
@@ -90,7 +84,7 @@ export default function LandingPage() {
               Not hearing back after sending out multiple job applications hurts. It makes you question everything you've built. A portfolio won't fix the silence, but it makes sure they can&apos;t ignore what you&apos;ve done.
             </p>
             <p className="text-lg sm:text-xl text-gray-500 leading-relaxed">
-              Upload your CV and get a professional portfolio website in minutes. Share the link. Know when recruiters view it.
+              Upload your CV and we tell your story. Get a professional portfolio website that builds your online presence — and see when someone views it, and where they're from.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link
@@ -294,11 +288,12 @@ export default function LandingPage() {
         <div className="w-full px-6 sm:px-10 lg:px-16 py-12 lg:text-center lg:flex lg:flex-col lg:items-center">
           <h2 className="text-sm font-semibold text-gray-400 mb-4">The fastest way to look hireable online</h2>
           <p className="text-sm text-gray-400 leading-relaxed max-w-3xl">
-            LivePortfolio helps anyone create a professional portfolio website in minutes — no design or coding skills needed.
-            Upload your CV or answer a few questions, and we write your portfolio copy for you.
-            Publish and share your portfolio link in job applications, on LinkedIn, or via WhatsApp, and see when people view your profile.
-            Whether you&apos;re a developer, designer, data scientist, product manager, or career switcher, our portfolio page makes you impossible to overlook.
-            Start free. Your online resume website is ready in under 10 minutes.
+            LivePortfolio helps anyone build a professional portfolio website — no design or coding skills needed.
+            Upload your CV or answer a few questions, and we tell your story — turning your raw experience into polished, professional copy.
+            Share your portfolio link on LinkedIn, via WhatsApp, in job applications, or anywhere you want to be found.
+            See when someone views your profile, what country they're from, and what brought them there.
+            Whether you&apos;re a developer, designer, data scientist, product manager, or career switcher, your online presence starts here.
+            Free to preview. No credit card needed.
           </p>
         </div>
       </section>

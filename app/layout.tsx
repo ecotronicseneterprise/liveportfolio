@@ -3,26 +3,28 @@ import './globals.css'
 import TrackingScripts from '@/components/TrackingScripts'
 
 export const metadata: Metadata = {
-  title: 'LivePortfolio — Create a Professional Portfolio Website in minutes',
-  description: 'Turn your CV into a professional portfolio website in minutes. Used by developers, designers, and job seekers worldwide.',
+  title: 'LivePortfolio — We Tell Your Story. Get Hired.',
+  description: 'Upload your CV and we turn it into a professional portfolio website. Build your online presence and know when someone views your profile.',
   keywords: [
     'portfolio website',
     'professional portfolio',
-    'AI portfolio builder',
-    'job seeker portfolio',
+    'online portfolio',
+    'portfolio builder',
     'developer portfolio',
     'data scientist portfolio',
-    'remote jobs portfolio',
+    'product manager portfolio',
+    'CV to portfolio website',
     'hireable online',
-    'CV to portfolio',
     'portfolio for job seekers',
+    'Nigeria portfolio website',
+    'African tech professionals',
   ],
   icons: {
     icon: '/logo.svg',
   },
   openGraph: {
-    title: 'LivePortfolio — Create a Professional Portfolio Website in minutes',
-    description: 'Turn your CV into a professional portfolio website in minutes. Used by developers, designers, and job seekers worldwide.',
+    title: 'LivePortfolio — We Tell Your Story. Get Hired.',
+    description: 'Upload your CV and we turn it into a professional portfolio website. Build your online presence and know when someone views your profile.',
     url: 'https://liveportfolio.site',
     siteName: 'LivePortfolio',
     type: 'website',
@@ -31,14 +33,14 @@ export const metadata: Metadata = {
         url: 'https://liveportfolio.site/logo-1024.png',
         width: 1024,
         height: 1024,
-        alt: 'LivePortfolio — Professional portfolio websites for job seekers',
+        alt: 'LivePortfolio — Professional portfolio website builder',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'LivePortfolio — Build a Portfolio That Gets You Hired',
-    description: 'Build a professional portfolio website in minutes. Share your link in job applications.',
+    description: 'Upload your CV and we tell your story. Build your online presence and see who views your profile — by name, company, and country.',
     images: ['https://liveportfolio.site/logo-1024.png'],
   },
 }
