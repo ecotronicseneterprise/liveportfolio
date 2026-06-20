@@ -41,14 +41,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
-    // Views per day for the last 30 days from analytics_events
-    // We use the existing view_count on portfolios for the total, but build a daily
-    // breakdown from analytics_events where event_type = 'view' (if present).
-    // Since the current analytics route increments view_count via batch flush and doesn't
-    // write to analytics_events, we derive the bar chart from the total and a synthetic
-    // 7-day bucket using last_viewed_at as a proxy until full event-level data accumulates.
-
-    // Pull the last 30 days of raw events for click tracking
+    // Single source of truth: analytics_events for all metrics.
+    // One query, one date window (30 days), all metrics derived in-memory.
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
     const { data: events } = await supabaseAdmin
@@ -60,6 +54,12 @@ export async function GET(req: NextRequest) {
 
     const allEvents = events || []
 
+    // Isolate portfolio_view events — used for Views, Visitors, bar chart, and top sources
+    const viewEvents = allEvents.filter((e) => e.event_type === 'portfolio_view')
+
+    // FIX 1: totalViews from analytics_events, same window as Visitors
+    const totalViews = viewEvents.length
+
     // Build last 7 actual calendar days (oldest → newest), all dates in UTC
     const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     const last7Days: string[] = []
@@ -69,10 +69,9 @@ export async function GET(req: NextRequest) {
       last7Days.push(d.toISOString().slice(0, 10)) // YYYY-MM-DD UTC
     }
 
+    // FIX 4: bar chart uses same viewEvents (portfolio_view only, last 30 days)
     const viewsByDay = last7Days.map((dateStr) =>
-      allEvents.filter(
-        (e) => e.event_type === 'portfolio_view' && e.created_at.slice(0, 10) === dateStr
-      ).length
+      viewEvents.filter((e) => e.created_at.slice(0, 10) === dateStr).length
     )
 
     const dayLabels = last7Days.map((dateStr) => {
@@ -80,10 +79,9 @@ export async function GET(req: NextRequest) {
       return DAY_NAMES[d.getUTCDay()]
     })
 
-    // Top referrer sources (portfolio_view events only)
+    // Top referrer sources (portfolio_view events only, same viewEvents array)
     const referrerCounts: Record<string, number> = {}
-    for (const e of allEvents) {
-      if (e.event_type !== 'portfolio_view') continue
+    for (const e of viewEvents) {
       const ref = e.referrer
       let source = 'Direct'
       if (ref) {
@@ -97,17 +95,19 @@ export async function GET(req: NextRequest) {
       referrerCounts[source] = (referrerCounts[source] || 0) + 1
     }
 
-    const totalEvents = Object.values(referrerCounts).reduce((a, b) => a + b, 0) || 1
+    const totalReferrerEvents = Object.values(referrerCounts).reduce((a, b) => a + b, 0) || 1
     const topSources = Object.entries(referrerCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4)
       .map(([label, count]) => ({
         label,
-        pct: Math.round((count / totalEvents) * 100),
+        pct: Math.round((count / totalReferrerEvents) * 100),
       }))
 
-    // Unique visitors — distinct ip_hash values across all events
-    const uniqueIpHashes = new Set(allEvents.map((e) => (e as { ip_hash?: string }).ip_hash).filter(Boolean))
+    // FIX 2: Unique visitors — distinct ip_hashes from portfolio_view events only
+    const uniqueIpHashes = new Set(
+      viewEvents.map((e) => (e as { ip_hash?: string }).ip_hash).filter(Boolean)
+    )
     const totalUniqueVisitors = uniqueIpHashes.size
 
     // Recent visitors — deduplicated by ip_hash, most recent per unique visitor, max 5
@@ -142,13 +142,18 @@ export async function GET(req: NextRequest) {
       })
     }
 
+    // FIX 5: Sanity guard — visitors can never exceed views by construction (both
+    // derive from viewEvents), but this defensive clamp prevents regressions.
+    const safeUniqueVisitors = Math.min(totalUniqueVisitors, totalViews)
+
     return NextResponse.json({
       viewsByDay,
       dayLabels,
-      chartPeriod: 'last_7_days',
+      chartPeriod: 'last_30_days',
       topSources: topSources.length > 0 ? topSources : [{ label: 'Direct', pct: 100 }],
       recentActivity,
-      totalUniqueVisitors,
+      totalViews,
+      totalUniqueVisitors: safeUniqueVisitors,
       eventCount: allEvents.length,
     })
   } catch {

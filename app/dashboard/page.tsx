@@ -300,6 +300,7 @@ interface AnalyticsSummary {
   chartPeriod?: string
   topSources: { label: string; pct: number }[]
   recentActivity: ActivityEvent[]
+  totalViews: number
   totalUniqueVisitors: number
   eventCount: number
 }
@@ -319,7 +320,7 @@ function AnalyticsSection({
   userId: string
   token: string
   onUpgrade: () => void
-  onSummaryLoaded?: (totalUniqueVisitors: number) => void
+  onSummaryLoaded?: (totalViews: number, totalUniqueVisitors: number) => void
   onActivityLoaded?: (activity: ActivityEvent[]) => void
   onCopyLink: () => void
 }) {
@@ -335,7 +336,7 @@ function AnalyticsSection({
       .then((d: AnalyticsSummary) => {
         if (!d.viewsByDay) return // guard against error responses
         setSummary(d)
-        onSummaryLoaded?.(d.totalUniqueVisitors ?? 0)
+        onSummaryLoaded?.(d.totalViews ?? 0, d.totalUniqueVisitors ?? 0)
         onActivityLoaded?.(d.recentActivity ?? [])
       })
       .catch(() => {})
@@ -525,6 +526,7 @@ export default function DashboardPage() {
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleteMsg, setDeleteMsg] = useState('')
+  const [analyticsViews, setAnalyticsViews] = useState<number | null>(null)
   const [uniqueVisitors, setUniqueVisitors] = useState<number | null>(null)
   const [latestActivity, setLatestActivity] = useState<ActivityEvent[]>([])
   const [accessToken, setAccessToken] = useState<string>('')
@@ -1102,7 +1104,7 @@ export default function DashboardPage() {
 
             {/* CHANGE 2: Compact 3-column stat row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-              {/* Views */}
+              {/* Page Views (30d) — FIX 6: from analytics_events, same window as Visitors */}
               <div style={{
                 background: 'white',
                 border: '1px solid #E5E7EB',
@@ -1111,10 +1113,12 @@ export default function DashboardPage() {
                 textAlign: 'center',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
               }}>
-                <span style={{ fontSize: 28, fontWeight: 800, color: '#0A0A0A', display: 'block', lineHeight: 1 }}>{portfolio.view_count}</span>
-                <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4, display: 'block' }}>Views</span>
+                <span style={{ fontSize: 28, fontWeight: 800, color: '#0A0A0A', display: 'block', lineHeight: 1 }}>
+                  {isPro && analyticsViews !== null ? analyticsViews : portfolio.view_count}
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4, display: 'block' }}>Page Views (30d)</span>
               </div>
-              {/* Visitors */}
+              {/* Unique Visitors (30d) — FIX 6 */}
               <div
                 onClick={!isPro ? () => setShowUpgradeModal(true) : undefined}
                 style={{
@@ -1135,7 +1139,7 @@ export default function DashboardPage() {
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                   </svg>
                 )}
-                <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4, display: 'block' }}>Visitors</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4, display: 'block' }}>Unique Visitors (30d)</span>
               </div>
               {/* Score */}
               <div style={{
@@ -1291,7 +1295,7 @@ export default function DashboardPage() {
                 userId={user.id}
                 token={accessToken}
                 onUpgrade={() => setShowUpgradeModal(true)}
-                onSummaryLoaded={(n) => setUniqueVisitors(n)}
+                onSummaryLoaded={(views, visitors) => { setAnalyticsViews(views); setUniqueVisitors(visitors) }}
                 onActivityLoaded={(a) => setLatestActivity(a)}
                 onCopyLink={copyLink}
               />

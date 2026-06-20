@@ -244,18 +244,27 @@ export async function GET(req: NextRequest) {
 
       const { data: portfolio } = await supabaseAdmin
         .from('portfolios')
-        .select('id, view_count')
+        .select('id')
         .eq('user_id', sub.user_id)
         .single()
 
       if (!portfolio) continue
 
-      // Get top referrer for last 30 days from analytics_events
+      // Live 30-day view count from analytics_events — single source of truth
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+      const { count: monthlyViews } = await supabaseAdmin
+        .from('analytics_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('portfolio_id', portfolio.id)
+        .eq('event_type', 'portfolio_view')
+        .gte('created_at', thirtyDaysAgo)
+
+      // Get top referrer for last 30 days from analytics_events
       const { data: events } = await supabaseAdmin
         .from('analytics_events')
         .select('referrer')
         .eq('portfolio_id', portfolio.id)
+        .eq('event_type', 'portfolio_view')
         .gte('created_at', thirtyDaysAgo)
 
       const referrerCounts: Record<string, number> = {}
@@ -279,9 +288,9 @@ export async function GET(req: NextRequest) {
 
       if (!(await hasSent(supabaseAdmin, userData.email, monthKey))) {
         try {
-          await sendMonthlyViews(userData.email, portfolio.view_count || 0, topSource)
+          await sendMonthlyViews(userData.email, monthlyViews ?? 0, topSource)
           await markSent(supabaseAdmin, userData.email, monthKey)
-          log.push(`flow_c monthly_views → ${userData.email} (${portfolio.view_count} views)`)
+          log.push(`flow_c monthly_views → ${userData.email} (${monthlyViews ?? 0} views)`)
         } catch (err) {
           log.push(`flow_c monthly_views FAILED → ${userData.email}: ${err}`)
         }

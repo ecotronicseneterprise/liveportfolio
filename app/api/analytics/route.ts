@@ -1,89 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabase'
 
-const DEMO_SLUGS = new Set([
-  'james-chen', 'sofia-martinez', 'fatima-hassan',
-  'david-mensah', 'priya-sharma', 'chidi-okafor',
-  'michael-roberts', 'elena-vasquez',
-])
-
-// In-memory deduplication: IP+slug → timestamp
-const seen = new Map<string, number>()
-const HOUR_MS = 60 * 60 * 1000
-
-// Batch buffer: slug → increment count
-const batch = new Map<string, number>()
-
-// Flush batch to Supabase every 5 minutes
-let flushTimer: ReturnType<typeof setInterval> | null = null
-
-function startFlushTimer() {
-  if (flushTimer) return
-  flushTimer = setInterval(async () => {
-    if (batch.size === 0) return
-    const entries = Array.from(batch.entries())
-    batch.clear()
-
-    for (const [slug, count] of entries) {
-      const supabaseAdmin = getSupabaseAdmin()
-      const { data: user } = await supabaseAdmin
-        .from('users')
-        .select('id, portfolios(id, view_count)')
-        .eq('slug', slug)
-        .single()
-
-      if (!user) continue
-      const portfolio = (user.portfolios as unknown as { id: string; view_count: number }[])?.[0]
-      if (!portfolio) continue
-
-      await supabaseAdmin
-        .from('portfolios')
-        .update({
-          view_count: (portfolio.view_count || 0) + count,
-          last_viewed_at: new Date().toISOString(),
-        })
-        .eq('id', portfolio.id)
-    }
-  }, 5 * 60 * 1000)
-}
+// FIX 3: view_count is no longer the source of truth for analytics.
+// analytics_events (written server-side on page render) is the single source of truth.
+// This route is kept alive so existing client-side calls don't error, but it no-ops.
+// portfolios.view_count is still updated by the server-side page render path via
+// last_viewed_at — the column is preserved for the admin metrics and drip emails
+// which have not been migrated yet (see app/api/admin/metrics/route.ts and
+// app/api/cron/drip/route.ts).
 
 export async function POST(req: NextRequest) {
   try {
-    const { slug } = await req.json()
-    if (!slug || typeof slug !== 'string') {
-      return NextResponse.json({}, { status: 200 })
-    }
-
-    // FIX 10: Validate slug format before any DB/memory operation
-    if (!/^[a-z0-9-]{2,50}$/.test(slug)) {
-      return NextResponse.json({ ok: false }, { status: 400 })
-    }
-
-    if (DEMO_SLUGS.has(slug)) return NextResponse.json({}, { status: 200 })
-
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
-    const key = `${ip}:${slug}`
-    const now = Date.now()
-
-    // 1-per-hour deduplication per IP+slug
-    const last = seen.get(key)
-    if (last && now - last < HOUR_MS) {
-      return NextResponse.json({}, { status: 200 })
-    }
-
-    seen.set(key, now)
-
-    // Clean stale entries every N calls
-    if (seen.size > 10000) {
-      for (const [k, t] of seen.entries()) {
-        if (now - t > HOUR_MS) seen.delete(k)
-      }
-    }
-
-    // Buffer the increment
-    batch.set(slug, (batch.get(slug) || 0) + 1)
-    startFlushTimer()
-
+    // Consume the request body so the connection closes cleanly
+    await req.json().catch(() => {})
     return NextResponse.json({}, { status: 200 })
   } catch {
     return NextResponse.json({}, { status: 200 })

@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     paymentsAll,
     paymentsThisMonth,
     portfoliosAll,
-    topViewedAllTime,
+    allTimeViewEvents,
     topViewedThisWeek,
     recentSignups,
     recentPayments,
@@ -59,8 +59,8 @@ export async function GET(req: NextRequest) {
     activePro,
     cancelledThisMonth,
     expiringIn30,
-    // Unique visitors last 30 days
-    uniqueVisitors,
+    // Total portfolio_view count all-time
+    totalViewsResult,
     // Career scores this month
     careerScoresThisMonth,
     // Free users with unpublished portfolios
@@ -89,14 +89,13 @@ export async function GET(req: NextRequest) {
       .gte('created_at', thisMonthStart.toISOString())
       .lt('created_at', thisMonthEnd.toISOString()),
 
-    // Portfolios
-    db.from('portfolios').select('view_count, health_score, template'),
+    // Portfolios — health score and template distribution (view_count no longer maintained)
+    db.from('portfolios').select('health_score, template'),
 
-    // Top 5 most viewed all time
-    db.from('portfolios')
-      .select('id, view_count, content, template')
-      .order('view_count', { ascending: false })
-      .limit(5),
+    // Top 5 most viewed all time — all portfolio_view events, no date cap (all-time cumulative)
+    db.from('analytics_events')
+      .select('portfolio_id')
+      .eq('event_type', 'portfolio_view'),
 
     // Top viewed this week (from analytics_events)
     db.from('analytics_events')
@@ -135,9 +134,10 @@ export async function GET(req: NextRequest) {
       .gt('expires_at', now.toISOString())
       .lt('expires_at', new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()),
 
-    // FIX 6: Unique visitors last 30 days
-    // Disabled: selecting raw ip_hash rows can grow unbounded and destabilize the server.
-    Promise.resolve({ data: [] as Array<{ ip_hash: string }> }),
+    // Total portfolio_view events all-time — single source of truth since view_count no longer increments
+    db.from('analytics_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('event_type', 'portfolio_view'),
 
     // FIX 6: Career scores this month
     db.from('career_scores').select('id', { count: 'exact', head: true })
@@ -156,12 +156,13 @@ export async function GET(req: NextRequest) {
   const totalRevenueKobo = (paymentsAll.data || []).reduce((s, p) => s + (p.amount_cents || 0), 0)
   const monthRevenueKobo = (paymentsThisMonth.data || []).reduce((s, p) => s + (p.amount_cents || 0), 0)
 
-  // Portfolio stats
+  // Portfolio stats — health and template only; view_count no longer maintained
   const allPortfolios = portfoliosAll.data || []
   const avgHealthScore = allPortfolios.length
     ? Math.round(allPortfolios.reduce((s, p) => s + (p.health_score || 0), 0) / allPortfolios.length)
     : 0
-  const totalViews = allPortfolios.reduce((s, p) => s + (p.view_count || 0), 0)
+  // All-time total views from analytics_events — single source of truth
+  const totalViews = totalViewsResult.count ?? 0
 
   // Template split
   const templateCounts = (templateStats.data || []).reduce((acc: Record<string, number>, p) => {
@@ -174,11 +175,34 @@ export async function GET(req: NextRequest) {
     ? (((published.count || 0) / (usersTotal.count || 0)) * 100).toFixed(1)
     : '0.0'
 
-  // FIX 6: Unique visitors (distinct ip_hash) last 30 days
-  // Disabled: see query above.
+  // Unique visitors — disabled (unbounded ip_hash fetch would destabilize the server)
   const uniqueIpHashes = new Set<string>()
 
-  // FIX 6: Top portfolio this week by analytics_events count (best-effort, capped)
+  // Top 5 portfolios all-time — group allTimeViewEvents by portfolio_id, then look up names
+  const allTimeViewCounts: Record<string, number> = {}
+  for (const e of (allTimeViewEvents.data || [])) {
+    allTimeViewCounts[e.portfolio_id] = (allTimeViewCounts[e.portfolio_id] || 0) + 1
+  }
+  const topAllTimeIds = Object.entries(allTimeViewCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([id, count]) => ({ id, count }))
+
+  const topViewedAllTime: { name: string; views: number; template: string }[] = []
+  for (const { id, count } of topAllTimeIds) {
+    const { data: pData } = await db
+      .from('portfolios')
+      .select('content, template')
+      .eq('id', id)
+      .single()
+    topViewedAllTime.push({
+      name: (pData?.content as Record<string, string> | null)?.name ?? 'Unknown',
+      views: count,
+      template: pData?.template ?? 'unknown',
+    })
+  }
+
+  // Top portfolio this week by analytics_events count (best-effort, capped at 5000 rows)
   let topThisWeekName: string | null = null
   let topThisWeekViews = 0
   try {
@@ -254,11 +278,7 @@ export async function GET(req: NextRequest) {
         : null,
       free_unpublished_sample: freeUnpublishedList,
     },
-    top_viewed: (topViewedAllTime.data || []).map(p => ({
-      name: (p.content as Record<string, string> | null)?.name || 'Unknown',
-      views: p.view_count || 0,
-      template: p.template,
-    })),
+    top_viewed: topViewedAllTime,
     recent_signups: (recentSignups.data || []).slice(0, 5).map(u => ({
       email: u.email,
       slug: u.slug,
