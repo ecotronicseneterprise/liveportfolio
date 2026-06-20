@@ -552,6 +552,74 @@ ADMIN_METRICS_SECRET, CRON_SECRET, IPINFO_TOKEN
 RESEND_API_KEY=... ADMIN_METRICS_SECRET=... bash /home/deploy/apps/liveportfolio/scripts/health-check.sh
 ```
 
+### VPS incident playbook (2026-06-20 — XMRig crypto miner / SSH key compromise)
+
+**Full incident log:** `INCIDENT-2026-06-20.md` in the repo root.
+
+**What happened:** Old VPS (`46.225.186.103`) was compromised with XMRig miner since Jun 12.
+New VPS (`89.167.93.25`) was provisioned but attacker re-entered within 2 hours using the
+GitHub Actions SSH private key stolen from the old server. Attacker planted miner at
+`/tmp/.XIN-unix/`, `/tmp/rJEM54` (script, self-deleted), `/var/tmp/.bin`, and added rogue
+SSH keys to both `deploy` and `root` authorized_keys.
+
+**Entry vector:** `40.76.238.186` (Azure relay), fingerprint `SHA256:VHVDYAFOI1YzNd9SOChkAkzdIZmAzJJH7OajnqJ+uAQ`
+
+**Fix applied:**
+- Killed miner processes, deleted all miner files
+- Removed attacker's `beaj` RSA key and two unknown ED25519 keys from authorized_keys
+- Generated new GitHub Actions SSH key — old one was compromised
+- Set `PermitRootLogin no` in sshd_config
+- Locked both authorized_keys files with `chattr +i`
+
+**Lesson: Never reuse SSH keys from a compromised server. Generate new keys first.**
+
+---
+
+### How to detect an active attack — run these immediately if suspicious
+
+```bash
+# 1. One-liner: catches random-named processes (miner signature) + recent SSH logins
+ps aux | grep -E '[a-zA-Z0-9]{6}\s*$' | grep -v "grep\|pts/\|sshd\|systemd\|kworker\|caddy\|next-server\|unattended" ; echo "---LOGINS---" ; sudo grep "Accepted publickey" /var/log/auth.log | tail -10
+
+# 2. Check /tmp and /var/tmp for new files (miners always land here)
+ls -la /tmp/ /var/tmp/ /dev/shm 2>/dev/null
+
+# 3. Check authorized_keys for extra keys (should be exactly 2 lines)
+cat /home/deploy/.ssh/authorized_keys
+sudo cat /root/.ssh/authorized_keys
+
+# 4. CPU top — miner will sit at high CPU with a random name
+ps aux --sort=-%cpu | head -10
+
+# 5. Check for processes running from /tmp (never normal)
+ls /proc/*/cwd 2>/dev/null | xargs -I{} sh -c 'target=$(readlink {} 2>/dev/null); echo "$target {} "; ' 2>/dev/null | grep "/tmp\|/var/tmp\|/dev/shm"
+```
+
+**Clean state looks like:**
+- `deploy` authorized_keys: exactly 2 lines (`clifford@hetzner` + `github-actions-liveportfolio`)
+- `root` authorized_keys: exactly 1 line (`clifford@hetzner`)
+- No processes with working dir `/tmp` or `/var/tmp`
+- No random 6-char process names at top of CPU
+- SSH logins only from: `197.210.x.x` (your Nigerian IP), `145.132.x.x` / `20.102.x.x` (GitHub Actions)
+
+**Known attacker IPs to watch for:** `40.76.238.186` (Azure), `46.225.186.103` (old compromised VPS)
+
+---
+
+### Immutable file inventory (chattr +i locked)
+
+These files are intentionally immutable — never try to edit them without unlocking first:
+```bash
+sudo lsattr /home/deploy/.ssh/authorized_keys    # deploy SSH keys
+sudo lsattr /root/.ssh/authorized_keys           # root SSH keys
+sudo lsattr /var/spool/cron/crontabs/deploy      # crontab
+sudo lsattr /etc/caddy/Caddyfile                 # Caddy config
+```
+
+To unlock any of them: `sudo chattr -i <file>` → edit → `sudo chattr +i <file>`
+
+---
+
 ### VPS incident playbook (2026-06-12 — kernel/network SIGKILL)
 
 **What happened:** A transient kernel/network issue made specific IP ranges (Cloudflare
