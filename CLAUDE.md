@@ -8,7 +8,7 @@ and a one-time payment publishes the portfolio permanently at slug.liveportfolio
 
 **Owner:** Clifford Nwanna / Ecotronics Enterprise  
 **Domain:** liveportfolio.site (Namecheap, active until May 2027)  
-**VPS:** 46.225.186.103 — ssh deploy@46.225.186.103  
+**VPS:** 89.167.93.25 — ssh deploy@89.167.93.25  
 **App port:** 3001 (UpJobs runs on 3000 — never use 3000)  
 **Stack:** Next.js 15, TypeScript, Supabase, OpenAI GPT-4o-mini, Paystack, Resend, IPinfo, PM2, Caddy
 
@@ -19,7 +19,7 @@ and a one-time payment publishes the portfolio permanently at slug.liveportfolio
 ```
 Browser
   ↓
-Caddy (port 80/443, auto-SSL) on 46.225.186.103
+Caddy (port 80/443, auto-SSL) on 89.167.93.25
   ↓
 Next.js app (port 3001)
   ↓
@@ -471,9 +471,9 @@ Push to `main` → GitHub Actions does everything:
 **You never need to SSH into the VPS for a normal deploy.**
 
 ### VPS Details
-- IP: 46.225.186.103
+- IP: 89.167.93.25
 - User: deploy
-- SSH: `ssh deploy@46.225.186.103`
+- SSH: `ssh deploy@89.167.93.25`
 - App directory: `/home/deploy/apps/liveportfolio`
 - App port: 3001 (UpJobs runs on 3000 — never use 3000)
 - PM2 process name: `liveportfolio`
