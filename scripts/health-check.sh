@@ -352,21 +352,27 @@ SSH_KEYS_LIST=$(awk 'NF >= 3 {print $3 " (" $1 ")"}' ~/.ssh/authorized_keys 2>/d
 # Set `SECURITY_ENFORCE=1` (in `.env.local` or the cron environment) to enable auto-kill.
 SECURITY_ENFORCE="${SECURITY_ENFORCE:-0}"
 SUSPICIOUS_PROCS=$(ps aux 2>/dev/null \
-  | grep -E 'xmrig|minerd|kdevtmpfsi|wget.*pastebin|curl.*pastebin|bash -i |bash [A-Z0-9]{6}' \
-  | grep -v grep \
-  | grep -v '^deploy ' || echo "")
+  | grep -E 'xmrig|minerd|kdevtmpfsi|wget.*pastebin|curl.*pastebin|bash -i |bash [A-Za-z0-9]{6}$' \
+  | grep -v grep || echo "")
+# Also catch anything running from /tmp or /var/tmp
+TMP_PROCS=$(ls /proc/*/cwd 2>/dev/null \
+  | xargs -I{} sh -c 'target=$(readlink {} 2>/dev/null); pid=$(echo {} | grep -oE "[0-9]+"); echo "$target $pid"' 2>/dev/null \
+  | grep -E "^/tmp|^/var/tmp|^/dev/shm" || echo "")
 SUSPICIOUS_ALERT=0
 SUSPICIOUS_STATUS="✓ None detected"
 SUSPICIOUS_COLOR="#16a34a"
-if [ -n "$SUSPICIOUS_PROCS" ]; then
+if [ -n "$SUSPICIOUS_PROCS" ] || [ -n "$TMP_PROCS" ]; then
   SUSPICIOUS_ALERT=1
+  DETAIL=""
+  [ -n "$SUSPICIOUS_PROCS" ] && DETAIL="Suspicious process: ${SUSPICIOUS_PROCS}"
+  [ -n "$TMP_PROCS" ] && DETAIL="${DETAIL} | Running from /tmp: ${TMP_PROCS}"
   if [ "$SECURITY_ENFORCE" = "1" ]; then
-    SUSPICIOUS_STATUS="🔴 SUSPICIOUS PROCESSES FOUND — auto-killing (SECURITY_ENFORCE=1)"
+    SUSPICIOUS_STATUS="🔴 MINER/BACKDOOR DETECTED — auto-killing (SECURITY_ENFORCE=1) | ${DETAIL}"
     SUSPICIOUS_COLOR="#dc2626"
-    echo "$SUSPICIOUS_PROCS" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
+    [ -n "$SUSPICIOUS_PROCS" ] && echo "$SUSPICIOUS_PROCS" | awk '{print $2}' | xargs -r kill -9 2>/dev/null || true
   else
-    SUSPICIOUS_STATUS="🔴 SUSPICIOUS PROCESSES FOUND — NOT killing (set SECURITY_ENFORCE=1 to enable)"
-    SUSPICIOUS_COLOR="#f59e0b"
+    SUSPICIOUS_STATUS="🔴 MINER/BACKDOOR DETECTED — ${DETAIL}"
+    SUSPICIOUS_COLOR="#dc2626"
   fi
 fi
 
@@ -413,9 +419,12 @@ FAILED_IPS=$(grep "Failed password\|Invalid user" /var/log/auth.log 2>/dev/null 
   | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | sort -u | head -5 || echo "none")
 
 # Recent logins as HTML rows (flag non-Lagos IPs)
-MY_IP="79.127.207"  # Your IP prefix — update if your ISP changes
+# Known-good SSH source prefixes: your Nigerian IPs + GitHub Actions Azure ranges
+# GitHub Actions uses 4.148.x, 20.x, 140.82.x, 143.55.x, 145.132.x
+# Your Nigerian IPs: 197.210.x
 RECENT_LOGINS_ROWS=$(last -n 5 2>/dev/null | grep -v 'wtmp\|reboot\|^$' | head -5 | python3 -c "
 import sys
+KNOWN_PREFIXES = ('197.210.', '4.148.', '20.', '140.82.', '143.55.', '145.132.')
 rows = ''
 for i, line in enumerate(sys.stdin):
   parts = line.split()
@@ -426,9 +435,9 @@ for i, line in enumerate(sys.stdin):
   date = ' '.join(parts[3:7]) if len(parts) > 6 else '?'
   duration = parts[-1] if 'still' not in line else 'active'
   bg = '#f9fafb' if i % 2 == 0 else '#ffffff'
-  # Flag IPs that don't match known prefix
-  ip_color = '#dc2626' if ip != '?' and not ip.startswith('79.127.207') and not ip.startswith('102.88') and not ip.startswith('102.89') and '.' in ip else '#374151'
-  flag = ' 🚨' if ip_color == '#dc2626' else ''
+  is_known = ip == '?' or not '.' in ip or any(ip.startswith(p) for p in KNOWN_PREFIXES)
+  ip_color = '#374151' if is_known else '#dc2626'
+  flag = ' 🚨' if not is_known else ''
   rows += f\"<tr style='background:{bg}'><td style='padding:6px 10px;font-size:12px;color:#374151'>{user}</td><td style='padding:6px 10px;font-size:12px;color:{ip_color};font-weight:600'>{ip}{flag}</td><td style='padding:6px 10px;font-size:12px;color:#6b7280'>{date}</td><td style='padding:6px 10px;font-size:12px;color:#6b7280;text-align:right'>{duration}</td></tr>\"
 print(rows if rows else '<tr><td colspan=4 style=\"padding:6px 10px;color:#9ca3af\">No data</td></tr>')
 " 2>/dev/null || echo "<tr><td colspan=4>?</td></tr>")
@@ -503,7 +512,7 @@ FIX_SECTION=""
 if [ "$APP_STATUS" = "DOWN" ] || [ "$APP_STATUS" = "WARNING" ]; then
   FIX_SECTION="<div style='margin-top:24px;padding:16px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px'>
     <p style='margin:0 0 8px;font-weight:700;color:#dc2626;font-size:14px'>Action required — fix guide</p>
-    <pre style='margin:0;font-size:12px;color:#374151;white-space:pre-wrap;font-family:monospace'>ssh deploy@46.225.186.103
+    <pre style='margin:0;font-size:12px;color:#374151;white-space:pre-wrap;font-family:monospace'>ssh deploy@89.167.93.25
 pm2 list
 pm2 logs liveportfolio --lines 30
 pm2 restart liveportfolio
