@@ -88,7 +88,7 @@ if [ -z "$RECENT_LOGINS" ]; then
 else
   echo "$RECENT_LOGINS" | while read -r line; do
     IP=$(echo "$line" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | tail -1)
-    if echo "$IP" | grep -qE '^197\.210\.|^145\.132\.|^20\.|^140\.82\.|^143\.55\.'; then
+    if echo "$IP" | grep -qE '^197\.210\.|^197\.211\.|^102\.91\.|^145\.132\.|^20\.|^140\.82\.|^143\.55\.|^64\.236\.'; then
       echo -e "${GREEN}  OK: $line${NC}"
     else
       echo -e "${RED}  ALERT — unknown IP: $line${NC}"

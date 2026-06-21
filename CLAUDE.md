@@ -516,6 +516,49 @@ It is made permanent via `/etc/fstab`. Never delete it.
 The workflow automatically reverts to `liveportfolio__previous`.
 To debug: `pm2 logs liveportfolio --lines 50 --nostream`
 
+### VPS health and security checks — run these every time you SSH in
+
+**Full security scan (miner detection, authorized_keys, SSH logins, /tmp processes):**
+```bash
+bash /home/deploy/apps/liveportfolio/scripts/check-security.sh
+```
+
+**Quick site health check:**
+```bash
+pm2 list && curl -I http://localhost:3001
+```
+
+**Trigger health email manually:**
+```bash
+bash /home/deploy/apps/liveportfolio/scripts/health-check.sh
+```
+
+**Check for active miner in one line:**
+```bash
+ps aux | grep -E 'bash [A-Za-z0-9]{6}' | grep -v grep; ls -la /tmp/ /var/tmp/; cat /home/deploy/.ssh/authorized_keys
+```
+
+**Verify authorized_keys fingerprints (should show exactly 2 known keys):**
+```bash
+ssh-keygen -lf /home/deploy/.ssh/authorized_keys
+# Expected:
+# SHA256:0tBBdl72QwEJ60a1Kyd+ZZ2T3Zgww7qNzaOfpZ4avxQ  clifford@hetzner
+# SHA256:CPR8Hb/4RRDKZ7AhSIrDkoOJptKnuGeRE+54ckf9w6I  github-actions-liveportfolio-4
+```
+
+**Check recent SSH logins (flag anything not from 197.210/197.211/102.91/20.x/64.236):**
+```bash
+sudo grep "Accepted publickey" /var/log/auth.log | tail -20
+```
+
+**Kill miner and clean artifacts (emergency):**
+```bash
+kill -9 $(ps aux | grep -E 'bash [A-Za-z0-9]{6}' | grep -v grep | awk '{print $2}') 2>/dev/null
+rm -rf /tmp/.XIN-unix /var/tmp/.bin
+pm2 restart liveportfolio && sleep 5 && curl -I http://localhost:3001
+pm2 save
+```
+
 ### PM2 commands
 ```bash
 pm2 list                                    # see all running processes
@@ -523,6 +566,8 @@ pm2 logs liveportfolio --lines 50 --nostream # read app logs
 pm2 startOrReload ecosystem.config.js --env production --update-env  # reload with env
 pm2 restart liveportfolio                   # hard restart (brief downtime)
 pm2 stop liveportfolio                      # stop
+pm2 save                                    # persist process list across reboots
+pm2 reset liveportfolio                     # reset restart counter
 ```
 
 ### Caddy config location
@@ -596,13 +641,17 @@ ls /proc/*/cwd 2>/dev/null | xargs -I{} sh -c 'target=$(readlink {} 2>/dev/null)
 ```
 
 **Clean state looks like:**
-- `deploy` authorized_keys: exactly 2 lines (`clifford@hetzner` + `github-actions-liveportfolio`)
+- `deploy` authorized_keys: exactly 2 lines — verify with `ssh-keygen -lf /home/deploy/.ssh/authorized_keys`
+  - `SHA256:0tBBdl72QwEJ60a1Kyd+ZZ2T3Zgww7qNzaOfpZ4avxQ` — clifford@hetzner (your personal key)
+  - `SHA256:CPR8Hb/4RRDKZ7AhSIrDkoOJptKnuGeRE+54ckf9w6I` — github-actions-liveportfolio-4 (forced command, restricted)
 - `root` authorized_keys: exactly 1 line (`clifford@hetzner`)
 - No processes with working dir `/tmp` or `/var/tmp`
 - No random 6-char process names at top of CPU
-- SSH logins only from: `197.210.x.x` (your Nigerian IP), `145.132.x.x` / `20.102.x.x` (GitHub Actions)
+- SSH logins only from: `197.210.x.x` / `197.211.x.x` / `102.91.x.x` (MTN Nigeria), `64.236.x.x` / `20.x.x.x` (GitHub Actions)
 
-**Known attacker IPs to watch for:** `40.76.238.186` (Azure), `46.225.186.103` (old compromised VPS)
+**GitHub Actions key is now restricted** — forced command `/home/deploy/deploy-entrypoint.sh` means stolen key = dead end, no shell access possible.
+
+**Known attacker IPs to watch for:** `40.76.238.186` (Azure), `130.131.55.243` (attacker June 21), `46.225.186.103` (old compromised VPS)
 
 ---
 
