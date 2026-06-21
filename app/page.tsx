@@ -76,7 +76,7 @@ export default function LandingPage() {
               For developers, designers, data scientists, graduates and freelancers — anywhere in the world.
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0A0A0A] leading-[1.05]">
-              A portfolio would prove it. But who has hours to build one?
+              A portfolio would prove it.<br />But who has hours to build one?
             </h1>
             <p className="text-lg text-gray-500 leading-relaxed mt-4">
               A few minutes is all it takes to turn your experience into proof. Build yours and share it with your network today.
