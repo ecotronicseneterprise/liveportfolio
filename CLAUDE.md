@@ -647,7 +647,7 @@ ls /proc/*/cwd 2>/dev/null | xargs -I{} sh -c 'target=$(readlink {} 2>/dev/null)
 - `root` authorized_keys: exactly 1 line (`clifford@hetzner`)
 - No processes with working dir `/tmp` or `/var/tmp`
 - No random 6-char process names at top of CPU
-- SSH logins only from: `197.210.x.x` / `197.211.x.x` / `102.91.x.x` (MTN Nigeria), `64.236.x.x` / `20.x.x.x` (GitHub Actions)
+- SSH logins only from: `197.210.x.x` / `197.211.x.x` / `102.91.x.x` (MTN Nigeria), `64.236.x.x` / `20.x.x.x` / `172.210.x.x` / `48.217.x.x` (GitHub Actions Azure runners)
 
 **GitHub Actions key is now restricted** — forced command `/home/deploy/deploy-entrypoint.sh` means stolen key = dead end, no shell access possible.
 

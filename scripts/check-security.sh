@@ -65,7 +65,7 @@ fi
 echo ""
 echo "[ 4/6 ] Checking authorized_keys..."
 KEY_COUNT=$(grep -c "ssh-" /home/deploy/.ssh/authorized_keys 2>/dev/null || echo 0)
-KNOWN_KEYS=("clifford@hetzner" "github-actions-liveportfolio")
+KNOWN_KEYS=("clifford@hetzner" "github-actions-liveportfolio" "github-actions-cv360")
 UNKNOWN=0
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
@@ -88,7 +88,8 @@ if [ -z "$RECENT_LOGINS" ]; then
 else
   echo "$RECENT_LOGINS" | while read -r line; do
     IP=$(echo "$line" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | tail -1)
-    if echo "$IP" | grep -qE '^197\.210\.|^197\.211\.|^102\.91\.|^145\.132\.|^20\.|^140\.82\.|^143\.55\.|^64\.236\.'; then
+    # Known-good: MTN Nigeria (197.210/197.211/102.91), GitHub Actions Azure (20.x/64.236/172.210/48.217), Hetzner (145.132/140.82/143.55)
+    if echo "$IP" | grep -qE '^197\.210\.|^197\.211\.|^102\.91\.|^145\.132\.|^20\.|^140\.82\.|^143\.55\.|^64\.236\.|^172\.210\.|^48\.217\.'; then
       echo -e "${GREEN}  OK: $line${NC}"
     else
       echo -e "${RED}  ALERT — unknown IP: $line${NC}"
