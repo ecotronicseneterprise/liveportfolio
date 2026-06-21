@@ -87,12 +87,13 @@ if [ -z "$RECENT_LOGINS" ]; then
   echo "  No recent logins found in auth.log"
 else
   echo "$RECENT_LOGINS" | while read -r line; do
-    IP=$(echo "$line" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | tail -1)
-    # Known-good: MTN Nigeria (197.210/197.211/102.91), GitHub Actions Azure (20.x/64.236/172.210/48.217), Hetzner (145.132/140.82/143.55)
-    if echo "$IP" | grep -qE '^197\.210\.|^197\.211\.|^102\.91\.|^145\.132\.|^20\.|^140\.82\.|^143\.55\.|^64\.236\.|^172\.210\.|^48\.217\.'; then
-      echo -e "${GREEN}  OK: $line${NC}"
+    IP=$(echo "$line" | grep -oE 'from [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | awk '{print $2}')
+    [ -z "$IP" ] && continue  # skip sudo/non-SSH lines
+    # Known-good: MTN Nigeria (197.210/197.211/102.91), GitHub Actions Azure (full 172.x, 20.x, 64.236, 48.217), Hetzner (145.132/140.82/143.55)
+    if echo "$IP" | grep -qE '^197\.210\.|^197\.211\.|^102\.91\.|^145\.132\.|^20\.|^140\.82\.|^143\.55\.|^64\.236\.|^172\.|^48\.217\.'; then
+      echo -e "${GREEN}  OK ($IP): $(echo "$line" | grep -oE 'SHA256:[A-Za-z0-9+/]+')${NC}"
     else
-      echo -e "${RED}  ALERT — unknown IP: $line${NC}"
+      echo -e "${RED}  ALERT — unknown IP $IP: $line${NC}"
       CLEAN=0
     fi
   done
