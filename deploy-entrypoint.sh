@@ -16,15 +16,23 @@ if [[ "$CMD" == rsync\ --server* ]]; then
   exit 0
 fi
 
-# Allow mkdir for incoming directory setup
+# Allow mkdir for incoming directory setup (liveportfolio + cv360)
 if [[ "$CMD" == "mkdir -p /home/deploy/apps/liveportfolio__incoming" ]]; then
   exec $CMD
   exit 0
 fi
+if [[ "$CMD" == "rm -rf /home/deploy/apps/cv360__incoming && mkdir -p /home/deploy/apps/cv360__incoming" ]]; then
+  exec bash -c "$CMD"
+  exit 0
+fi
 
-# Allow the deploy script
+# Allow the deploy scripts
 if [[ "$CMD" == "bash /home/deploy/apps/liveportfolio/scripts/vps-deploy.sh" ]]; then
   exec bash /home/deploy/apps/liveportfolio/scripts/vps-deploy.sh
+  exit 0
+fi
+if [[ "$CMD" == "bash /home/deploy/apps/cv360/scripts/vps-deploy.sh" ]]; then
+  exec bash /home/deploy/apps/cv360/scripts/vps-deploy.sh
   exit 0
 fi
 
