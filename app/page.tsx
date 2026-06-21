@@ -76,12 +76,15 @@ export default function LandingPage() {
               For developers, designers, data scientists, graduates and freelancers — anywhere in the world.
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0A0A0A] leading-[1.05]">
-              The fastest way to look hireable online
+              A portfolio would prove it. But who has hours to build one?
             </h1>
+            <p className="text-lg text-gray-500 leading-relaxed mt-4">
+              A few minutes is all it takes to turn your experience into proof. Build yours and share it with your network today.
+            </p>
           </div>
           <div className="flex flex-col gap-6">
             <p className="text-lg sm:text-xl text-gray-500 leading-relaxed">
-              Not hearing back after sending out multiple job applications hurts. It makes you question everything you've built. A portfolio won't fix the silence, but it makes sure they can&apos;t ignore what you&apos;ve done.
+              Not hearing back after sending out multiple job applications hurts. It makes you question everything you've built. A portfolio won't fix the silence, but it makes sure they can't ignore what you've done.
             </p>
             <p className="text-lg sm:text-xl text-gray-500 leading-relaxed">
               Upload your CV and we tell your story. Get a professional portfolio website that builds your online presence — and see when someone views it, and where they're from.
