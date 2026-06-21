@@ -669,6 +669,75 @@ To unlock any of them: `sudo chattr -i <file>` → edit → `sudo chattr +i <fil
 
 ---
 
+### SSH key inventory (authorized_keys)
+
+Three keys are authorised. Expected fingerprints:
+```
+SHA256:0tBBdl72QwEJ60a1Kyd+ZZ2T3Zgww7qNzaOfpZ4avxQ  clifford@hetzner          (your personal key — unrestricted)
+SHA256:CPR8Hb/4RRDKZ7AhSIrDkoOJptKnuGeRE+54ckf9w6I  github-actions-liveportfolio-4  (forced command only)
+SHA256:aGN60hpBFhvBKnUpHFI7258BWbRdH1P9bampL25i+Xc  github-actions-cv360       (forced command only)
+```
+
+Both GitHub Actions keys are restricted with:
+```
+command="/home/deploy/deploy-entrypoint.sh",no-agent-forwarding,no-X11-forwarding,no-pty
+```
+The `deploy-entrypoint.sh` (root-owned at `/home/deploy/deploy-entrypoint.sh`) whitelists
+exactly: rsync, mkdir for incoming dirs, and vps-deploy.sh for each app. Stolen key = dead end.
+
+---
+
+### How to rotate a GitHub Actions SSH key
+
+Use this procedure any time a key may be compromised or you want to cycle keys.
+
+**Step 1 — Generate new keypair on VPS:**
+```bash
+# For liveportfolio:
+ssh-keygen -t ed25519 -C "github-actions-liveportfolio-5" -f /tmp/lp_key -N ""
+# For cv360:
+ssh-keygen -t ed25519 -C "github-actions-cv360-2" -f /tmp/cv360_key -N ""
+```
+
+**Step 2 — Add new key to authorized_keys (unlock → append → lock):**
+```bash
+sudo chattr -i /home/deploy/.ssh/authorized_keys
+echo 'command="/home/deploy/deploy-entrypoint.sh",no-agent-forwarding,no-X11-forwarding,no-pty '$(cat /tmp/lp_key.pub) | sudo tee -a /home/deploy/.ssh/authorized_keys
+sudo chattr +i /home/deploy/.ssh/authorized_keys
+```
+
+**Step 3 — Copy private key to GitHub Actions secret:**
+```bash
+cat /tmp/lp_key   # copy everything including BEGIN/END lines
+```
+Go to: GitHub repo → Settings → Secrets and variables → Actions → update `VPS_SSH_KEY`
+
+**Step 4 — Remove the old key from authorized_keys:**
+```bash
+sudo chattr -i /home/deploy/.ssh/authorized_keys
+# Edit the file and delete the old key line
+sudo nano /home/deploy/.ssh/authorized_keys
+sudo chattr +i /home/deploy/.ssh/authorized_keys
+# Verify
+ssh-keygen -lf /home/deploy/.ssh/authorized_keys
+```
+
+**Step 5 — Clean up:**
+```bash
+rm -f /tmp/lp_key /tmp/lp_key.pub /tmp/cv360_key /tmp/cv360_key.pub
+```
+
+**Step 6 — Verify deploy still works:**
+Push a trivial commit to the repo and confirm GitHub Actions succeeds.
+
+**Rules:**
+- Never reuse a key from a compromised server — generate fresh
+- Never leave private key files in /tmp longer than needed — delete immediately after copying
+- After any rotation, update the fingerprint table above with the new hash
+- `authorized_keys` is `chattr +i` — nobody (not even root) can modify it without the explicit unlock step
+
+---
+
 ### VPS incident playbook (2026-06-12 — kernel/network SIGKILL)
 
 **What happened:** A transient kernel/network issue made specific IP ranges (Cloudflare
