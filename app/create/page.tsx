@@ -587,6 +587,18 @@ export default function CreatePage() {
       // Clear referral after successful user creation — attribution is now stored in DB
       try { localStorage.removeItem('lp_referral') } catch {}
 
+      // Auto-enrol every new signup into email_subscribers so the drip cron picks them up
+      try {
+        await sb.from('email_subscribers').insert({
+          email: form.email,
+          user_id: authData.user!.id,
+          subscribed: true,
+          sent_flows: {},
+          sequence_step: 0,
+          source: referralPartner ? `ref_${referralPartner}` : 'signup',
+        })
+      } catch {}
+
       // Consume invite token if present
       let inviteUpgraded = false
       try {
