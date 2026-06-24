@@ -90,7 +90,7 @@ else
     IP=$(echo "$line" | grep -oE 'from [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | awk '{print $2}')
     [ -z "$IP" ] && continue  # skip sudo/non-SSH lines
     # Known-good: MTN Nigeria (197.210/197.211/102.91), GitHub Actions Azure (full 172.x, 20.x, 64.236, 48.217), Hetzner (145.132/140.82/143.55)
-    if echo "$IP" | grep -qE '^197\.210\.|^197\.211\.|^102\.91\.|^145\.132\.|^20\.|^140\.82\.|^143\.55\.|^64\.236\.|^172\.|^48\.217\.'; then
+    if echo "$IP" | grep -qE '^197\.210\.|^197\.211\.|^102\.(89|90|91|92)\.|^145\.132\.|^20\.|^140\.82\.|^143\.55\.|^64\.236\.|^172\.|^48\.217\.|^52\.'; then
       echo -e "${GREEN}  OK ($IP): $(echo "$line" | grep -oE 'SHA256:[A-Za-z0-9+/]+')${NC}"
     else
       echo -e "${RED}  ALERT — unknown IP $IP: $line${NC}"

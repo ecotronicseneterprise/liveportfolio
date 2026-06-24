@@ -326,8 +326,8 @@ KNOWN_KEY_1="AAAAC3NzaC1lZDI1NTE5AAAAIEDgN/BvoDqFCrQS0a43rfwdd+lv8mFSFv3w4rd3IBs
 KNOWN_KEY_2="AAAAC3NzaC1lZDI1NTE5AAAAIAvBNnRcHUHkzEyi+N1PCD7qZ8YkZEd3mSZD3Hmu1xmi"  # github-actions-liveportfolio-4
 KNOWN_KEY_3="AAAAC3NzaC1lZDI1NTE5AAAAINo70G6YRs4Vp4Bn1sQYYODExPucjkRtfcTdZSiD+jN0"  # github-actions-cv360
 
-# Count authorised keys (only valid SSH keys, not comments)
-SSH_KEY_COUNT=$(grep -cE '^(ssh-rsa|ssh-ed25519|ecdsa-sha2)' ~/.ssh/authorized_keys 2>/dev/null || echo "?")
+# Count authorised keys — include forced-command lines (command="..." ssh-ed25519 ...)
+SSH_KEY_COUNT=$(grep -cE '(ssh-rsa|ssh-ed25519|ecdsa-sha2)' ~/.ssh/authorized_keys 2>/dev/null || echo "?")
 SSH_KEY_ALERT=0
 SSH_KEY_STATUS="✓ OK — ${SSH_KEY_COUNT} trusted keys"
 SSH_KEY_COLOR="#16a34a"
