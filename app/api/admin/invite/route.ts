@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
-const KNOWN_PARTNERS = ['esther', 'clifford']
+const KNOWN_PARTNERS = ['esther', 'clifford', 'pelumi', 'temitope']
 
 function authOk(req: NextRequest): boolean {
   const provided = req.headers.get('x-cron-secret') || ''

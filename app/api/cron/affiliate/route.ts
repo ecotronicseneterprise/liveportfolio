@@ -21,6 +21,16 @@ const PARTNERS: Record<string, {
     email: 'nwannachumaclifford@gmail.com',
     commission: 0,
   },
+  'pelumi': {
+    name: 'Pelumi',
+    email: '',
+    commission: 0.30,
+  },
+  'temitope': {
+    name: 'Temitope',
+    email: '',
+    commission: 0.30,
+  },
 }
 
 const ADMIN_EMAIL = 'nwannachumaclifford@gmail.com'
