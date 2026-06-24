@@ -3,7 +3,7 @@ import './globals.css'
 import TrackingScripts from '@/components/TrackingScripts'
 
 export const metadata: Metadata = {
-  title: 'LivePortfolio — We Tell Your Story. Get Hired.',
+  title: 'LivePortfolio — Build a professional portfolio in minutes',
   description: 'Upload your CV and we turn it into a professional portfolio website. Build your online presence and know when someone views your profile.',
   keywords: [
     'portfolio website',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     icon: '/logo.svg',
   },
   openGraph: {
-    title: 'LivePortfolio — We Tell Your Story. Get Hired.',
+    title: 'LivePortfolio — Build a professional portfolio in minutes',
     description: 'Upload your CV and we turn it into a professional portfolio website. Build your online presence and know when someone views your profile.',
     url: 'https://liveportfolio.site',
     siteName: 'LivePortfolio',

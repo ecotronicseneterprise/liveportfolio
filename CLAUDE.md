@@ -554,9 +554,23 @@ sudo grep "Accepted publickey" /var/log/auth.log | tail -20
 **Kill miner and clean artifacts (emergency):**
 ```bash
 kill -9 $(ps aux | grep -E 'bash [A-Za-z0-9]{6}' | grep -v grep | awk '{print $2}') 2>/dev/null
-rm -rf /tmp/.XIN-unix /var/tmp/.bin
+rm -rf /tmp/.XIN-unix /var/tmp/.bin /var/tmp/.unix /dev/shm/.cm-loader.lock
 pm2 restart liveportfolio && sleep 5 && curl -I http://localhost:3001
 pm2 save
+```
+
+**Miner watchdog pattern (for recognition):**
+- Binary: `javae` — stores itself in `/tmp/.XIN-unix/`, `/var/tmp/.unix/`, `/dev/shm/`
+- Spawns children named `bash XXXXXX` (random 6-char suffix) every few hours
+- Tries `crontab LIST` then `crontab DELETE` every ~30 min in rapid bursts of 3
+- Lock file: `/dev/shm/.cm-loader.lock` — created by the loader on each re-download
+- `chattr +i` on crontab blocks all persistence attempts
+- All three execution dirs now have `noexec` — binary cannot run even if downloaded
+
+**Verify noexec mounts are active (check after every reboot):**
+```bash
+sudo mount | grep -E '/tmp|/var/tmp|/dev/shm'
+# All three should show: noexec
 ```
 
 ### Reading the PM2 restart counter

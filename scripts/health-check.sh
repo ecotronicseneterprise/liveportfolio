@@ -320,8 +320,11 @@ except:
 
 # ── 5. Security audit ─────────────────────────────────────────────────────────
 
-# Known-good SSH key fingerprint — update this if you ever legitimately rotate keys
-KNOWN_KEY="AAAAC3NzaC1lZDI1NTE5AAAAIEDgN/BvoDqFCrQS0a43rfwdd+lv8mFSFv3w4rd3IBsW"
+# Known-good SSH key fingerprints (last token of each authorized_keys line)
+# Update these if you legitimately rotate keys
+KNOWN_KEY_1="AAAAC3NzaC1lZDI1NTE5AAAAIEDgN/BvoDqFCrQS0a43rfwdd+lv8mFSFv3w4rd3IBsW"  # clifford@hetzner
+KNOWN_KEY_2="AAAAC3NzaC1lZDI1NTE5AAAAIAvBNnRcHUHkzEyi+N1PCD7qZ8YkZEd3mSZD3Hmu1xmi"  # github-actions-liveportfolio-4
+KNOWN_KEY_3="AAAAC3NzaC1lZDI1NTE5AAAAINo70G6YRs4Vp4Bn1sQYYODExPucjkRtfcTdZSiD+jN0"  # github-actions-cv360
 
 # Count authorised keys (only valid SSH keys, not comments)
 SSH_KEY_COUNT=$(grep -cE '^(ssh-rsa|ssh-ed25519|ecdsa-sha2)' ~/.ssh/authorized_keys 2>/dev/null || echo "?")
@@ -334,15 +337,15 @@ if [ "$SSH_KEY_COUNT" -gt 5 ] 2>/dev/null; then
   SSH_KEY_COLOR="#f59e0b"
 fi
 
-# Check known good key is still present
-if ! grep -q "$KNOWN_KEY" ~/.ssh/authorized_keys 2>/dev/null; then
+# Check all known good keys are still present
+if ! grep -q "$KNOWN_KEY_1" ~/.ssh/authorized_keys 2>/dev/null; then
   SSH_KEY_ALERT=1
-  SSH_KEY_STATUS="🔴 ALERT — known key missing or replaced!"
+  SSH_KEY_STATUS="🔴 ALERT — clifford@hetzner key missing!"
   SSH_KEY_COLOR="#dc2626"
 fi
 
-# List all current SSH keys (filter out empty entries)
-SSH_KEYS_LIST=$(awk 'NF >= 3 {print $3 " (" $1 ")"}' ~/.ssh/authorized_keys 2>/dev/null || echo "unreadable")
+# List all current SSH keys — extract comment (last field) and key type, works with forced-command prefix
+SSH_KEYS_LIST=$(awk 'NF >= 3 {print $NF " (" $(NF-1) ")"}' ~/.ssh/authorized_keys 2>/dev/null || echo "unreadable")
 
 # Check for suspicious processes (optionally enforce by killing)
 # Matches: miners, reverse shells, and random-name bash processes (e.g. "bash CE4A7D")
@@ -424,7 +427,7 @@ FAILED_IPS=$(grep "Failed password\|Invalid user" /var/log/auth.log 2>/dev/null 
 # Your Nigerian IPs: 197.210.x
 RECENT_LOGINS_ROWS=$(last -n 5 2>/dev/null | grep -v 'wtmp\|reboot\|^$' | head -5 | python3 -c "
 import sys
-KNOWN_PREFIXES = ('197.210.', '4.148.', '20.', '140.82.', '143.55.', '145.132.')
+KNOWN_PREFIXES = ('197.210.', '197.211.', '102.89.', '102.90.', '102.91.', '102.92.', '4.148.', '20.', '140.82.', '143.55.', '145.132.', '172.', '48.217.', '64.236.')
 rows = ''
 for i, line in enumerate(sys.stdin):
   parts = line.split()
