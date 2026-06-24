@@ -23,7 +23,7 @@ const PARTNERS: Record<string, {
   },
   'pelumi': {
     name: 'Pelumi',
-    email: '',
+    email: 'adekunmipelumi@yahoo.com',
     commission: 0.30,
   },
   'temitope': {
