@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
   // ── Flow A: Free users who haven't published ─────────────────────────────
   const { data: freeSubscribers } = await supabaseAdmin
     .from('email_subscribers')
-    .select('email, user_id, created_at, sent_flows')
+    .select('email, user_id, sent_flows')
     .eq('subscribed', true)
 
   for (const sub of freeSubscribers || []) {
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
     // Check if user is still on free plan (not published)
     const { data: userData } = await supabaseAdmin
       .from('users')
-      .select('plan, slug')
+      .select('plan, slug, created_at')
       .eq('id', sub.user_id)
       .single()
 
@@ -100,7 +100,7 @@ export async function GET(req: NextRequest) {
 
     if (activeSub) continue // already a paying user
 
-    const days = daysSince(sub.created_at)
+    const days = daysSince(userData.created_at)
     const portfolioUrl = `${APP_URL}/${userData.slug}`
 
     const flowADays: Array<1 | 3 | 6 | 12> = [1, 3, 6, 12]
