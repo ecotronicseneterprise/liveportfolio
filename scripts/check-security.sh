@@ -79,21 +79,22 @@ if [ $UNKNOWN -eq 0 ]; then
   echo -e "${GREEN}  OK — $KEY_COUNT keys, all known${NC}"
 fi
 
-# 5. Recent SSH logins — flag unknown IPs
+# 5. Recent SSH logins — flag unknown key fingerprints (not IPs, since GitHub Actions rotates across all Azure ranges)
 echo ""
 echo "[ 5/6 ] Recent SSH logins..."
+KNOWN_FINGERPRINTS="SHA256:0tBBdl72QwEJ60a1Kyd+ZZ2T3Zgww7qNzaOfpZ4avxQ SHA256:CPR8Hb/4RRDKZ7AhSIrDkoOJptKnuGeRE+54ckf9w6I SHA256:aGN60hpBFhvBKnUpHFI7258BWbRdH1P9bampL25i+Xc"
 RECENT_LOGINS=$(sudo grep "Accepted publickey" /var/log/auth.log 2>/dev/null | tail -10)
 if [ -z "$RECENT_LOGINS" ]; then
   echo "  No recent logins found in auth.log"
 else
   echo "$RECENT_LOGINS" | while read -r line; do
     IP=$(echo "$line" | grep -oE 'from [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | awk '{print $2}')
-    [ -z "$IP" ] && continue  # skip sudo/non-SSH lines
-    # Known-good: MTN Nigeria (197.210/197.211/102.91), GitHub Actions Azure (full 172.x, 20.x, 64.236, 48.217), Hetzner (145.132/140.82/143.55)
-    if echo "$IP" | grep -qE '^197\.210\.|^197\.211\.|^102\.(89|90|91|92)\.|^145\.132\.|^20\.|^140\.82\.|^143\.55\.|^64\.236\.|^172\.|^48\.217\.|^52\.'; then
-      echo -e "${GREEN}  OK ($IP): $(echo "$line" | grep -oE 'SHA256:[A-Za-z0-9+/]+')${NC}"
+    [ -z "$IP" ] && continue
+    FP=$(echo "$line" | grep -oE 'SHA256:[A-Za-z0-9+/]+')
+    if echo "$KNOWN_FINGERPRINTS" | grep -qF "$FP"; then
+      echo -e "${GREEN}  OK ($IP): $FP${NC}"
     else
-      echo -e "${RED}  ALERT — unknown IP $IP: $line${NC}"
+      echo -e "${RED}  ALERT — unknown key $FP from $IP: $line${NC}"
       CLEAN=0
     fi
   done
