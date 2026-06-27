@@ -11,10 +11,10 @@ if [ -d liveportfolio ] && [ -f liveportfolio/.env.local ]; then
   cp liveportfolio/.env.local liveportfolio__incoming/.env.local
 fi
 
-# Reuse existing node_modules
-if [ -d liveportfolio/node_modules ]; then
-  mv liveportfolio/node_modules liveportfolio__incoming/node_modules
-fi
+# Never carry node_modules forward — always install fresh to prevent
+# persistence via tampered packages surviving across deploys.
+# Also wipe any node_modules that may have been rsynced into incoming.
+rm -rf liveportfolio__incoming/node_modules
 
 # Swap releases
 rm -rf liveportfolio__previous 2>/dev/null || true
@@ -23,22 +23,18 @@ mv liveportfolio__incoming liveportfolio
 
 cd /home/deploy/apps/liveportfolio
 
-# npm install only if package.json changed
-PREV_PKG="/home/deploy/apps/liveportfolio__previous/package.json"
-CURR_PKG="/home/deploy/apps/liveportfolio/package.json"
-if [ ! -d node_modules ] || ! diff -q "$PREV_PKG" "$CURR_PKG" > /dev/null 2>&1; then
-  echo "package.json changed — running npm install"
-  if ! swapon --show | grep -q /swapfile; then
-    sudo swapon /swapfile 2>/dev/null || true
-  fi
-  npm install --omit=dev || {
-    echo "npm install failed — rolling back"
-    cd /home/deploy/apps
-    rm -rf liveportfolio
-    [ -d liveportfolio__previous ] && mv liveportfolio__previous liveportfolio
-    exit 1
-  }
+# Always run npm install fresh — never skip, never reuse prior node_modules
+echo "Running npm install..."
+if ! swapon --show | grep -q /swapfile; then
+  sudo swapon /swapfile 2>/dev/null || true
 fi
+npm ci --omit=dev || {
+  echo "npm install failed — rolling back"
+  cd /home/deploy/apps
+  rm -rf liveportfolio
+  [ -d liveportfolio__previous ] && mv liveportfolio__previous liveportfolio
+  exit 1
+}
 
 set -a
 source /home/deploy/apps/liveportfolio/.env.local

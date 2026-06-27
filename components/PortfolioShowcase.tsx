@@ -136,14 +136,14 @@ function Card({
   iframeScale,
   iframeHeight,
   cardWidth,
-  slideIndex,
+  shouldLoad,
 }: {
   p: ShowcasePortfolio
   active: boolean
   iframeScale: number
   iframeHeight: number
   cardWidth: number
-  slideIndex: number
+  shouldLoad: boolean
 }) {
   const isDark = p.mode === 'dark'
   const barBg = isDark ? 'rgba(15,23,42,0.90)' : 'rgba(255,255,255,0.92)'
@@ -177,24 +177,27 @@ function Card({
         background: isDark ? darkBg(p) : '#fff',
       }}
     >
-      {/* Scaled iframe — always mounted; parent opacity handles visibility */}
+      {/* Only load iframe for active + next slide — prevents 8 simultaneous page loads on mobile */}
       <div style={{ width: cardWidth, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative', pointerEvents: 'none', touchAction: 'none' }}>
-        <iframe
-          src={url}
-          title={`${p.name} portfolio`}
-          scrolling="no"
-          loading={slideIndex === 0 ? 'eager' : 'lazy'}
-          style={{
-            width: IFRAME_WIDTH,
-            height: iframeHeight,
-            border: 'none',
-            transform: `scale(${iframeScale})`,
-            transformOrigin: 'top left',
-            pointerEvents: 'none',
-            touchAction: 'none',
-            display: 'block',
-          }}
-        />
+        {shouldLoad ? (
+          <iframe
+            src={url}
+            title={`${p.name} portfolio`}
+            scrolling="no"
+            style={{
+              width: IFRAME_WIDTH,
+              height: iframeHeight,
+              border: 'none',
+              transform: `scale(${iframeScale})`,
+              transformOrigin: 'top left',
+              pointerEvents: 'none',
+              touchAction: 'none',
+              display: 'block',
+            }}
+          />
+        ) : (
+          <div style={{ width: '100%', height: '100%', background: isDark ? darkBg(p) : '#f8f9fa' }} />
+        )}
       </div>
 
       {/* Info bar pinned to bottom */}
@@ -323,17 +326,20 @@ export default function PortfolioShowcase() {
             margin: '0 auto',
           }}
         >
-          {PORTFOLIOS.map((p, i) => (
-            <Card
-              key={p.slug}
-              p={p}
-              active={i === index}
-              iframeScale={actualScale}
-              iframeHeight={iframeHeight}
-              cardWidth={cardWidth}
-              slideIndex={i}
-            />
-          ))}
+          {PORTFOLIOS.map((p, i) => {
+            const next = (index + 1) % total
+            return (
+              <Card
+                key={p.slug}
+                p={p}
+                active={i === index}
+                iframeScale={actualScale}
+                iframeHeight={iframeHeight}
+                cardWidth={cardWidth}
+                shouldLoad={i === index || i === next}
+              />
+            )
+          })}
         </div>
       </div>
 
