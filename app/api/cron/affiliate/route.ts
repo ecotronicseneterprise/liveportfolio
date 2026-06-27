@@ -143,14 +143,16 @@ function adminEmailHtml(
 
 // ── Cron handler ─────────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
-  // Same auth pattern as /api/cron/drip
-  const provided = req.headers.get('x-cron-secret') || ''
   const expected = process.env.CRON_SECRET || ''
+  const fromHeader = req.headers.get('x-cron-secret') || ''
+  const fromBearer = (req.headers.get('authorization') || '').replace('Bearer ', '')
+  const provided = fromHeader || fromBearer
   let match = false
   try {
+    const safe = (s: string) => Buffer.from(s.padEnd(expected.length || 1))
     match = provided.length > 0 &&
       provided.length === expected.length &&
-      timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
+      timingSafeEqual(safe(provided), safe(expected))
   } catch {
     match = false
   }

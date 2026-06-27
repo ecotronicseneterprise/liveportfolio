@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/drip",
+      "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/health",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/affiliate",
+      "schedule": "30 7 * * 1"
+    }
+  ]
+}

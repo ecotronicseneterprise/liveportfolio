@@ -56,11 +56,14 @@ async function hasSent(
 }
 
 export async function GET(req: NextRequest) {
-  // FIX 7: Timing-safe CRON_SECRET comparison
-  const provided = req.headers.get('x-cron-secret') || ''
   const expected = process.env.CRON_SECRET || ''
+  // Accept x-cron-secret (manual trigger) or Vercel's Authorization: Bearer header (scheduled)
+  const fromHeader = req.headers.get('x-cron-secret') || ''
+  const fromBearer = (req.headers.get('authorization') || '').replace('Bearer ', '')
+  const provided = fromHeader || fromBearer
+  const safe = (s: string) => Buffer.from(s.padEnd(expected.length || 1))
   const match = provided.length === expected.length &&
-    timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
+    timingSafeEqual(safe(provided), safe(expected))
   if (!match) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

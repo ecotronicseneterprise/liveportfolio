@@ -55,7 +55,7 @@ const FLOW_A: Record<number, { subject: string; html: (email: string) => string 
       ${heading('Your portfolio is ready.')}
       ${para('You built it. It looks great. The only thing left is making it live so recruiters can actually find you.')}
       ${para('Publishing takes one click. Your portfolio goes live instantly at <strong>liveportfolio.site/yourname</strong> — permanent, no expiry.')}
-      ${ctaButton('Publish my portfolio — from $10/year (₦15,000 in Nigeria)', DASHBOARD_URL)}
+      ${ctaButton('Publish my portfolio', DASHBOARD_URL)}
     `, email),
   },
   3: {
@@ -72,7 +72,7 @@ const FLOW_A: Record<number, { subject: string; html: (email: string) => string 
     html: (email) => baseLayout(`
       ${heading('Recruiters can\'t find you yet.')}
       ${para('Your portfolio is built and sitting unpublished. While it\'s offline, recruiters searching for your skills are landing on someone else\'s page instead.')}
-      ${para('$10/year — less than one coffee per month to be findable.')}
+      ${para('Your portfolio is already built. One click makes it permanently findable.')}
       ${ctaButton('Publish today', DASHBOARD_URL)}
     `, email),
   },
@@ -103,7 +103,7 @@ const FLOW_B: Record<number, { subject: string; html: (email: string) => string 
       ${heading('Your portfolio is live. But do you know who\'s viewing it?')}
       ${para('Pro shows you the company name, country, and traffic source for every visit. See "Someone from Andela · Nigeria · via LinkedIn" instead of just a number.')}
       ${para('That\'s the difference between knowing your portfolio is working and actually seeing it work.')}
-      ${ctaButton('Upgrade to Pro — $30/year', DASHBOARD_URL)}
+      ${ctaButton('Upgrade to Pro', DASHBOARD_URL)}
     `, email),
   },
   21: {
@@ -120,7 +120,7 @@ const FLOW_B: Record<number, { subject: string; html: (email: string) => string 
     html: (email) => baseLayout(`
       ${heading('Your own domain. Your name, not a subdomain.')}
       ${para('cliffordnwanna.com instead of liveportfolio.site/cliffordnwanna. Recruiters notice the difference. It signals that you take your professional presence seriously.')}
-      ${para('Custom domain is a Pro feature. One upgrade, yours forever, at $30/year.')}
+      ${para('Custom domain is a Pro feature. One upgrade and it\'s yours permanently.')}
       ${ctaButton('Connect your domain', DASHBOARD_URL)}
     `, email),
   },
@@ -180,11 +180,9 @@ export async function sendRenewalReminder(
   const date = new Date(expiresAt).toLocaleDateString('en-GB', {
     day: 'numeric', month: 'long', year: 'numeric',
   })
-  const price = plan === 'pro' ? '$30/year (Pro)' : '$10/year (Basic)'
-
   const html = baseLayout(`
     ${heading('Your LivePortfolio plan renews in 30 days.')}
-    ${para(`Your <strong>${plan === 'pro' ? 'Pro' : 'Basic'} plan</strong> (${price}) renews on <strong>${date}</strong>. Your portfolio stays live automatically — no action needed.`)}
+    ${para(`Your <strong>${plan === 'pro' ? 'Pro' : 'Basic'} plan</strong> renews on <strong>${date}</strong>. Your portfolio stays live automatically — no action needed.`)}
     ${para('If you ever want to cancel or upgrade, you can do that from your dashboard settings.')}
     ${ctaButton('Manage my plan', `${DASHBOARD_URL}?tab=settings`)}
   `, email)
