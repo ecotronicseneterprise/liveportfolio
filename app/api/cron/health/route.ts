@@ -232,7 +232,7 @@ export async function GET(req: NextRequest) {
             <strong style="color:#16a34a">${fmt(activePro.count)}</strong> Pro active
           </td>
           <td align="right" style="font-size:12px;color:#6b7280">
-            <span style="color:#dc2626">${fmt(cancelledMonth.count)}</span> cancelled this month &nbsp;·&nbsp;
+            <span style="color:#dc2626">${fmt(cancelledMonth.count ?? 0)}</span> cancelled this month &nbsp;·&nbsp;
             <span style="color:#d97706">${fmt(expiringIn30.count)}</span> expiring in 30d
           </td>
         </tr></table>

@@ -9,3 +9,4 @@ node_modules
 
 .claude/skills/
 affiliate-commands.sh
+.vercel
