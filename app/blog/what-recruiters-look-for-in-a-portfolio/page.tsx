@@ -2,22 +2,22 @@ import type { Metadata } from 'next'
 import { PullQuote, Callout, StepCard, Checklist, KeyTakeaway, CTASection, RelatedArticles } from '../BlogComponents'
 
 export const metadata: Metadata = {
-  title: 'What Recruiters Actually Look For in a Portfolio — liveportfolio.site',
+  title: 'What Recruiters Actually Value in a Portfolio — liveportfolio.site',
   description: 'A recruiter has 7 seconds before they decide. Here is exactly what they are scanning for, and the red flags that get candidates skipped immediately.',
-  authors: [{ name: 'LivePortfolio Team' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
   openGraph: {
-    title: 'What Recruiters Actually Look For in a Portfolio',
+    title: 'What Recruiters Actually Value in a Portfolio',
     description: 'The 7-second scan, projects with outcomes, and the red flags that get candidates skipped.',
     url: 'https://liveportfolio.site/blog/what-recruiters-look-for-in-a-portfolio',
     siteName: 'liveportfolio.site',
     type: 'article',
     publishedTime: '2026-05-22T00:00:00Z',
-    authors: ['https://liveportfolio.site'],
+    modifiedTime: '2026-07-04T00:00:00Z',
     images: [{
       url: 'https://liveportfolio.site/logo-1024.png',
       width: 1024,
       height: 1024,
-      alt: 'What Recruiters Actually Look For in a Portfolio',
+      alt: 'What Recruiters Actually Value in a Portfolio',
     }],
   },
   twitter: {
@@ -32,12 +32,19 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
-  headline: 'What Recruiters Actually Look For in a Portfolio',
+  headline: 'What Recruiters Actually Value in a Portfolio',
   description: 'The 7-second scan, what makes a portfolio stand out, and the red flags that end applications immediately.',
-  author: { '@type': 'Organization', name: 'liveportfolio.site' },
-  publisher: { '@type': 'Organization', name: 'liveportfolio.site', url: 'https://liveportfolio.site' },
-  datePublished: '2026-05-31',
+  author: {
+    '@type': 'Person',
+    name: 'Clifford Nwanna',
+    email: 'nwannachumaclifford@gmail.com',
+    url: 'https://liveportfolio.site/ezekwe',
+  },
+  publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },
+  datePublished: '2026-05-22T00:00:00Z',
+  dateModified: '2026-07-04T00:00:00Z',
   url: 'https://liveportfolio.site/blog/what-recruiters-look-for-in-a-portfolio',
+  mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://liveportfolio.site/blog/what-recruiters-look-for-in-a-portfolio' },
 }
 
 export default function Article() {
@@ -58,10 +65,10 @@ export default function Article() {
             Recruiter insight
           </span>
           <h1 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-4 leading-tight">
-            What Recruiters Actually Look For in a Portfolio
+            What Recruiters Actually Value in a Portfolio
           </h1>
           <p className="text-gray-600 text-lg mb-4">
-            A recruiter looks at your portfolio for about 7 seconds before deciding whether to keep reading. Here is what they see in those 7 seconds.
+            A recruiter looks at your portfolio for about 7 seconds before deciding whether to keep reading. Here is what they value in those 7 seconds.
           </p>
           <p className="text-xs text-gray-400">5 min read</p>
         </div>
@@ -71,10 +78,10 @@ export default function Article() {
       <article className="max-w-[720px] mx-auto px-5 py-12">
 
         <p className="text-base text-gray-700 leading-relaxed mb-6">
-          Recruiters are not trying to be unfair. They are busy. They have dozens of profiles to review and a job to fill. Your portfolio needs to answer the most important question immediately: can this person do the work?
+          Understanding what recruiters value in portfolios gives you an edge before a single application is sent. They are not trying to be unfair — they are busy, with dozens of profiles to review and a job to fill. Your portfolio needs to answer the most important question immediately: can this person do the work?
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-8">
-          Understanding what they are looking for helps you put the right things in the right places.
+          Knowing what they value helps you put the right things in the right places.
         </p>
 
         <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4">The 7-Second Scan</h2>

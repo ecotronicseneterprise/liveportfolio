@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import LandingNav from '@/components/LandingNav'
+import LocalisedPrice from '@/components/LocalisedPrice'
 
 export const metadata: Metadata = {
   alternates: {
@@ -11,6 +13,61 @@ import SupportButton from '@/components/SupportButton'
 import PricingSection from '@/components/PricingSection'
 import PortfolioShowcaseWrapper from '@/components/PortfolioShowcaseWrapper'
 import PublishedCount from '@/components/PublishedCount'
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Can I preview before paying?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. You can build and preview your full portfolio for free before deciding to publish. No payment needed to see your results.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How does billing work?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Plans are billed annually — from $10/year for Basic to $30/year for Pro (₦15,000/year and ₦45,000/year in Nigeria). 7-day refund guarantee, no questions asked. Cancel anytime.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I edit my portfolio after publishing?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. Log into your dashboard to edit any text, switch templates, or update your projects. Changes go live instantly — no re-generation needed.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What do I get when I publish?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Basic gives you a live portfolio at liveportfolio.site/yourname, all three templates, and full editing from your dashboard. Pro adds an analytics dashboard (see who views you and from where), QR code sharing, weekly career score, custom domain, and an export pack.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Who is this for?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Developers, designers, data scientists, product managers, freelancers — anyone who wants a professional online presence and wants to know when someone views their profile and from where.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Do I need design or coding skills?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'None at all. Add your experience, pick a template, and publish. We handle the writing.',
+      },
+    },
+  ],
+}
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -27,14 +84,14 @@ const jsonLd = {
 }
 
 
-const FAQ_ITEMS = [
+const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
   {
     q: 'Can I preview before paying?',
     a: 'Yes. You can build and preview your full portfolio for free before deciding to publish. No payment needed to see your results.',
   },
   {
     q: 'How does billing work?',
-    a: 'Plans are billed annually — from $10/year for Basic to $30/year for Pro (₦15,000 and ₦45,000 in Nigeria). 7-day refund guarantee, no questions asked. Cancel anytime.',
+    a: <>Plans are billed annually — <LocalisedPrice ngn="₦15,000/year for Basic, ₦45,000/year for Pro" usd="$10/year for Basic, $30/year for Pro" /> . 7-day refund guarantee, no questions asked. Cancel anytime.</>,
   },
   {
     q: 'Can I edit my portfolio after publishing?',
@@ -61,6 +118,10 @@ export default function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
 
       {/* ── Nav ── */}
       <LandingNav />
@@ -76,10 +137,10 @@ export default function LandingPage() {
               For developers, designers, data scientists, graduates and freelancers — anywhere in the world.
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0A0A0A] leading-[1.05]">
-              A portfolio would prove it.<br />But who has hours to build one?
+              Turn Your CV Into a Portfolio in Minutes — No Design Skills Needed
             </h1>
             <p className="text-lg text-gray-500 leading-relaxed mt-4">
-              A few minutes is all it takes to turn your experience into proof. Build yours and share it with your network today.
+              LivePortfolio turns your CV into a portfolio website. We tell your story, you publish it. Free to build and preview — no credit card needed.
             </p>
           </div>
           <div className="flex flex-col gap-6">
@@ -94,7 +155,7 @@ export default function LandingPage() {
                 href="/create"
                 className="px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20"
               >
-                Build Portfolio →
+                Build My Portfolio →
               </Link>
             </div>
             <div className="flex flex-col gap-1">
@@ -111,7 +172,7 @@ export default function LandingPage() {
       {/* ── How it works ── */}
       <section className="w-full bg-gray-50 border-b border-gray-100">
         <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
-          <p className="text-sm font-bold text-[#0A66C2] tracking-widest uppercase mb-4">How it works</p>
+          <h2 className="text-sm font-bold text-[#0A66C2] tracking-widest uppercase mb-4">How it works</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-gray-200 rounded-2xl overflow-hidden">
             {[
               {
@@ -279,8 +340,9 @@ export default function LandingPage() {
             href="/create"
             className="inline-flex items-center gap-2 px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors"
           >
-            Build Portfolio →
+            Build My Portfolio →
           </Link>
+          <p className="text-sm text-gray-400 mt-4">Free to build and preview. No credit card needed. 7-day refund if you publish and change your mind.</p>
         </div>
       </section>
 

@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /preview/
+Disallow: /create
+Disallow: /login
+Disallow: /reset-password
+Disallow: /test-templates
+Disallow: /invite/
+
+Allow: /
+
+Sitemap: https://liveportfolio.site/sitemap.xml

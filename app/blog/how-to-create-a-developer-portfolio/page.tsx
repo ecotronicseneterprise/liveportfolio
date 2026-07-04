@@ -4,7 +4,7 @@ import { PullQuote, Callout, StepCard, Checklist, KeyTakeaway, CTASection, Relat
 export const metadata: Metadata = {
   title: 'How to Create a Developer Portfolio That Gets You Hired — liveportfolio.site',
   description: 'Learn exactly what to include in a developer portfolio, the 6 sections that matter, and the common mistakes that get candidates skipped.',
-  authors: [{ name: 'LivePortfolio Team' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
   openGraph: {
     title: 'How to Create a Developer Portfolio That Gets You Hired',
     description: 'The 6 sections every portfolio needs, the mistakes that get you skipped, and how to build one fast.',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     siteName: 'liveportfolio.site',
     type: 'article',
     publishedTime: '2026-05-01T00:00:00Z',
-    authors: ['https://liveportfolio.site'],
+    modifiedTime: '2026-07-04T00:00:00Z',
     images: [{
       url: 'https://liveportfolio.site/logo-1024.png',
       width: 1024,
@@ -34,10 +34,17 @@ const jsonLd = {
   '@type': 'Article',
   headline: 'How to Create a Developer Portfolio That Gets You Hired',
   description: 'The 6 sections every portfolio needs, the mistakes that get you skipped, and how to build one fast.',
-  author: { '@type': 'Organization', name: 'liveportfolio.site' },
-  publisher: { '@type': 'Organization', name: 'liveportfolio.site', url: 'https://liveportfolio.site' },
-  datePublished: '2026-05-31',
+  author: {
+    '@type': 'Person',
+    name: 'Clifford Nwanna',
+    email: 'nwannachumaclifford@gmail.com',
+    url: 'https://liveportfolio.site/ezekwe',
+  },
+  publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },
+  datePublished: '2026-05-01T00:00:00Z',
+  dateModified: '2026-07-04T00:00:00Z',
   url: 'https://liveportfolio.site/blog/how-to-create-a-developer-portfolio',
+  mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://liveportfolio.site/blog/how-to-create-a-developer-portfolio' },
 }
 
 export default function Article() {

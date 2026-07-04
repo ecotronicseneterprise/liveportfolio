@@ -4,7 +4,7 @@ import { PullQuote, Callout, Checklist, KeyTakeaway, CTASection, RelatedArticles
 export const metadata: Metadata = {
   title: 'How to Get a Remote Tech Job From Nigeria in 2026 — liveportfolio.site',
   description: 'A practical guide to landing remote tech work from Nigeria. Covers the skills that get hired, where to apply, and why rejection is normal.',
-  authors: [{ name: 'LivePortfolio Team' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
   openGraph: {
     title: 'How to Get a Remote Tech Job From Nigeria in 2026',
     description: 'The skills that get hired, where to apply, and why 100 applications before your first offer is completely normal.',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     siteName: 'liveportfolio.site',
     type: 'article',
     publishedTime: '2026-05-08T00:00:00Z',
-    authors: ['https://liveportfolio.site'],
+    modifiedTime: '2026-07-04T00:00:00Z',
     images: [{
       url: 'https://liveportfolio.site/logo-1024.png',
       width: 1024,
@@ -34,10 +34,17 @@ const jsonLd = {
   '@type': 'Article',
   headline: 'How to Get a Remote Tech Job From Nigeria in 2026',
   description: 'A practical guide to landing remote tech work from Nigeria. Covers the skills that get hired, where to apply, and the numbers game.',
-  author: { '@type': 'Organization', name: 'liveportfolio.site' },
-  publisher: { '@type': 'Organization', name: 'liveportfolio.site', url: 'https://liveportfolio.site' },
-  datePublished: '2026-05-31',
+  author: {
+    '@type': 'Person',
+    name: 'Clifford Nwanna',
+    email: 'nwannachumaclifford@gmail.com',
+    url: 'https://liveportfolio.site/ezekwe',
+  },
+  publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },
+  datePublished: '2026-05-08T00:00:00Z',
+  dateModified: '2026-07-04T00:00:00Z',
   url: 'https://liveportfolio.site/blog/how-to-get-a-remote-tech-job-from-nigeria',
+  mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://liveportfolio.site/blog/how-to-get-a-remote-tech-job-from-nigeria' },
 }
 
 export default function Article() {

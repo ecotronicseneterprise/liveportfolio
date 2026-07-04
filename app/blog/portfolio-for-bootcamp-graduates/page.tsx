@@ -4,7 +4,7 @@ import { PullQuote, Callout, StepCard, KeyTakeaway, CTASection, RelatedArticles 
 export const metadata: Metadata = {
   title: 'Bootcamp Graduate Portfolio Guide — LivePortfolio',
   description: 'You have more to show than you think. A guide for ALX, Andela, and bootcamp graduates on turning coursework into a portfolio that gets callbacks.',
-  authors: [{ name: 'LivePortfolio Team' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
   openGraph: {
     title: 'How Bootcamp Graduates Can Build a Portfolio With Little Experience',
     description: 'How to turn coursework and side projects into a portfolio that gets responses, even when you are just starting out.',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     siteName: 'liveportfolio.site',
     type: 'article',
     publishedTime: '2026-05-29T00:00:00Z',
-    authors: ['https://liveportfolio.site'],
+    modifiedTime: '2026-07-04T00:00:00Z',
     images: [{
       url: 'https://liveportfolio.site/logo-1024.png',
       width: 1024,
@@ -34,10 +34,17 @@ const jsonLd = {
   '@type': 'Article',
   headline: 'How Bootcamp Graduates Can Build a Portfolio With Little Experience',
   description: 'Turning coursework into a portfolio that gets responses, even when you are just starting out.',
-  author: { '@type': 'Organization', name: 'liveportfolio.site' },
-  publisher: { '@type': 'Organization', name: 'liveportfolio.site', url: 'https://liveportfolio.site' },
-  datePublished: '2026-05-31',
+  author: {
+    '@type': 'Person',
+    name: 'Clifford Nwanna',
+    email: 'nwannachumaclifford@gmail.com',
+    url: 'https://liveportfolio.site/ezekwe',
+  },
+  publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },
+  datePublished: '2026-05-29T00:00:00Z',
+  dateModified: '2026-07-04T00:00:00Z',
   url: 'https://liveportfolio.site/blog/portfolio-for-bootcamp-graduates',
+  mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://liveportfolio.site/blog/portfolio-for-bootcamp-graduates' },
 }
 
 export default function Article() {

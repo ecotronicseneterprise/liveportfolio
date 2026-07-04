@@ -5,7 +5,8 @@ const RESERVED = new Set([
   'api', 'www', 'app', 'admin', 'blog', 'help', 'dashboard', 'status',
   'support', 'login', 'signup', 'register', 'pricing', 'about', 'contact',
   'terms', 'privacy', 'docs', 'faq', 'team', 'careers', 'demo', 'test',
-  'null', 'undefined', 'liveportfolio',
+  'null', 'undefined', 'liveportfolio', 'invite',
+  'cv-to-portfolio', 'portfolio-builder', 'free-portfolio-website',
 ])
 
 const SLUG_RE = /^[a-z0-9-]{3,30}$/

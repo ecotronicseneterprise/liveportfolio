@@ -54,7 +54,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <TrackingScripts />
-        {children}
+        <main>{children}</main>
       </body>
     </html>
   )
