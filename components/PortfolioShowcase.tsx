@@ -310,7 +310,7 @@ export default function PortfolioShowcase() {
   }
 
   return (
-    <div className="w-full py-10 sm:py-14">
+    <div className="w-full flex flex-col items-center py-3 sm:py-10 lg:py-14">
       {/* Stacked crossfade slideshow */}
       <div
         ref={containerRef}

@@ -240,7 +240,7 @@ export default function LandingPage() {
           </div>
 
           {/* Right: slideshow — on mobile sits directly below H1, on desktop side-by-side */}
-          <div className="w-full border-t lg:border-t-0 border-gray-100 lg:border-l lg:border-gray-100 -mx-6 sm:-mx-10 lg:-mx-0 lg:self-stretch pt-4 lg:pt-0">
+          <div className="w-full border-t lg:border-t-0 border-gray-100 lg:border-l lg:border-gray-100 -mx-6 sm:-mx-10 lg:-mx-0 lg:self-stretch pt-1 lg:pt-0">
             <PortfolioShowcaseWrapper />
           </div>
 
