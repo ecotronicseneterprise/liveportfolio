@@ -206,24 +206,26 @@ export default function LandingPage() {
 
       {/* ── Hero ── */}
       <section className="w-full border-b border-gray-100">
-        <div className="w-full px-6 sm:px-10 lg:px-16 pt-14 sm:pt-20 pb-0 lg:pb-0 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+        <div className="w-full px-6 sm:px-10 lg:px-16 pt-4 sm:pt-14 lg:pt-20 pb-0 lg:pb-0 grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-16 items-start">
 
           {/* Left: headline + CTA */}
-          <div className="flex flex-col gap-6 pb-10 lg:pb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-full text-xs text-[#0A66C2] font-medium w-fit">
+          <div className="flex flex-col pb-0 lg:pb-16">
+            {/* Badge — hidden on mobile, shown on desktop */}
+            <div className="hidden lg:inline-flex items-center gap-2 px-3 py-1.5 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-full text-xs text-[#0A66C2] font-medium w-fit mb-6">
               <span className="w-2 h-2 bg-[#0A66C2] rounded-full animate-pulse flex-shrink-0" />
               For developers, designers, data scientists, graduates and freelancers — anywhere in the world.
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0A0A0A] leading-[1.05]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0A0A0A] leading-[1.05] mt-0 mb-3 lg:mb-6">
               Turn Your CV Into a Portfolio in Minutes. No Design Skills Needed
             </h1>
-            <p className="speakable text-lg text-gray-500 leading-relaxed">
+            {/* Subheadline — hidden on mobile, shown on desktop */}
+            <p className="speakable hidden lg:block text-lg text-gray-500 leading-relaxed mb-6">
               LivePortfolio helps professionals turn their work into opportunities.
             </p>
-            <p className="text-lg text-gray-500 leading-relaxed">
+            <p className="hidden lg:block text-lg text-gray-500 leading-relaxed mb-6">
               Upload your CV or tell us your story, and we'll turn it into a professional portfolio website in minutes. Showcase your projects, skills, and achievements with beautiful templates, real-time visitor analytics, and SEO built in. Free to build and preview. No credit card required.
             </p>
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="hidden lg:flex flex-wrap items-center gap-4 mb-6">
               <Link
                 href="/create"
                 className="px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20"
@@ -231,17 +233,34 @@ export default function LandingPage() {
                 Build My Portfolio →
               </Link>
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="hidden lg:flex flex-col gap-1">
               <span className="text-sm text-gray-400">Free to build and preview. No credit card required. Publish only when you're ready.</span>
               <PublishedCount />
             </div>
           </div>
 
-          {/* Right: slideshow — on mobile sits below headline, on desktop side-by-side */}
-          <div className="w-full border-t lg:border-t-0 border-gray-100 lg:border-l lg:border-gray-100 -mx-6 sm:-mx-10 lg:-mx-0 lg:self-stretch">
+          {/* Right: slideshow — on mobile sits directly below H1, on desktop side-by-side */}
+          <div className="w-full border-t lg:border-t-0 border-gray-100 lg:border-l lg:border-gray-100 -mx-6 sm:-mx-10 lg:-mx-0 lg:self-stretch pt-4 lg:pt-0">
             <PortfolioShowcaseWrapper />
           </div>
 
+        </div>
+
+        {/* Mobile-only copy — shows below the slideshow on small screens */}
+        <div className="lg:hidden px-6 sm:px-10 pt-8 pb-10 flex flex-col gap-5">
+          <p className="speakable text-base text-gray-500 leading-relaxed">
+            LivePortfolio helps professionals turn their work into opportunities. Upload your CV and we turn it into a professional portfolio website in minutes.
+          </p>
+          <Link
+            href="/create"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20"
+          >
+            Build My Portfolio →
+          </Link>
+          <div className="flex flex-col gap-1">
+            <span className="text-sm text-gray-400">Free to build and preview. No credit card required. Publish only when you're ready.</span>
+            <PublishedCount />
+          </div>
         </div>
       </section>
 
@@ -277,6 +296,9 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+          <p className="text-sm text-gray-400 mt-6">
+            Not sure <Link href="/what-is-a-portfolio" className="text-[#0A66C2] hover:underline">what a portfolio is</Link> and whether you need one? We explain it here.
+          </p>
         </div>
       </section>
 

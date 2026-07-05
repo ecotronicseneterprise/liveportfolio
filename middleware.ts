@@ -41,6 +41,7 @@ export function middleware(req: NextRequest) {
         'free-portfolio-website',
         'bootcamp',
         'invite',
+        'what-is-a-portfolio',
         'login',
         'portfolio',
         'portfolio-builder',

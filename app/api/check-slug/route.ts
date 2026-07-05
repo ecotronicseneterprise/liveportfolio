@@ -5,7 +5,7 @@ const RESERVED = new Set([
   'api', 'www', 'app', 'admin', 'blog', 'help', 'dashboard', 'status',
   'support', 'login', 'signup', 'register', 'pricing', 'about', 'contact',
   'terms', 'privacy', 'docs', 'faq', 'team', 'careers', 'demo', 'test',
-  'null', 'undefined', 'liveportfolio', 'invite', 'bootcamp',
+  'null', 'undefined', 'liveportfolio', 'invite', 'bootcamp', 'what-is-a-portfolio',
   'cv-to-portfolio', 'portfolio-builder', 'free-portfolio-website',
 ])
 

@@ -87,8 +87,11 @@ export default function Article() {
         <p className="text-base text-gray-700 leading-relaxed mb-6">
           Asking whether Canva is a portfolio website is one of the most common questions from job seekers who have already built something in Canva and wonder if it is enough.
         </p>
-        <p className="text-base text-gray-700 leading-relaxed mb-8">
+        <p className="text-base text-gray-700 leading-relaxed mb-6">
           The short answer: Canva is excellent at making documents look professional. What it produces is not a website. For some situations, that is fine. For others, it is the gap that costs you the interview.
+        </p>
+        <p className="text-base text-gray-700 leading-relaxed mb-8">
+          If you are still figuring out <a href="/what-is-a-portfolio" className="text-[#0A66C2] underline underline-offset-2">what a portfolio actually is</a> and whether you need one, start there first.
         </p>
 
         <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4">What Canva Does Well</h2>

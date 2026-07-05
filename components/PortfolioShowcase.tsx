@@ -124,7 +124,8 @@ function darkBg(p: ShowcasePortfolio): string {
   return DARK_BG[p.template] ?? '#1E293B'
 }
 
-const CARD_HEIGHT = 500
+const CARD_HEIGHT_DESKTOP = 500
+const CARD_HEIGHT_MOBILE = 420
 // Render at 960px (tablet width) — text is naturally larger relative to layout,
 // making it more legible at the scaled-down preview sizes.
 const IFRAME_WIDTH = 960
@@ -136,6 +137,7 @@ function Card({
   iframeScale,
   iframeHeight,
   cardWidth,
+  cardHeight,
   shouldLoad,
 }: {
   p: ShowcasePortfolio
@@ -143,6 +145,7 @@ function Card({
   iframeScale: number
   iframeHeight: number
   cardWidth: number
+  cardHeight: number
   shouldLoad: boolean
 }) {
   const isDark = p.mode === 'dark'
@@ -178,7 +181,7 @@ function Card({
       }}
     >
       {/* Only load iframe for active + next slide — prevents 8 simultaneous page loads on mobile */}
-      <div style={{ width: cardWidth, height: CARD_HEIGHT, overflow: 'hidden', position: 'relative', pointerEvents: 'none', touchAction: 'none' }}>
+      <div style={{ width: cardWidth, height: cardHeight, overflow: 'hidden', position: 'relative', pointerEvents: 'none', touchAction: 'none' }}>
         {shouldLoad ? (
           <iframe
             src={url}
@@ -250,11 +253,10 @@ export default function PortfolioShowcase() {
   const total = PORTFOLIOS.length
   const [index, setIndex] = useState(0)
   const pausedRef = useRef(false)
-  const [iframeScale, setIframeScale] = useState(() => {
-    if (typeof window === 'undefined') return 0.33
-    // Initial estimate — will be corrected by useEffect once containerRef is measured
-    return Math.min(window.innerWidth - 32, 500) / IFRAME_WIDTH
-  })
+  // Safe SSR initializers — no window/DOM reads at init time.
+  // useEffect sets real values after mount.
+  const [iframeScale, setIframeScale] = useState(0.33)
+  const [cardHeight, setCardHeight] = useState(CARD_HEIGHT_DESKTOP)
   const containerRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
@@ -262,11 +264,11 @@ export default function PortfolioShowcase() {
   useEffect(() => {
     const updateScale = () => {
       const containerWidth = containerRef.current?.offsetWidth ?? window.innerWidth
-      // 32px total horizontal padding inside the card area
       const availableWidth = containerWidth - 32
       // Cap card width at 560px — enough to fill the right column on desktop
       const effectiveWidth = Math.min(availableWidth, 560)
       setIframeScale(effectiveWidth / IFRAME_WIDTH)
+      setCardHeight(window.innerWidth < 640 ? CARD_HEIGHT_MOBILE : CARD_HEIGHT_DESKTOP)
     }
 
     updateScale()
@@ -277,6 +279,7 @@ export default function PortfolioShowcase() {
   const advance = () => setIndex((i) => (i + 1) % total)
   const retreat = () => setIndex((i) => (i - 1 + total) % total)
 
+  const CARD_HEIGHT = cardHeight
   const cardWidth = Math.round(IFRAME_WIDTH * iframeScale)
   const actualScale = cardWidth / IFRAME_WIDTH
   const iframeHeight = Math.round(CARD_HEIGHT / actualScale)
@@ -336,6 +339,7 @@ export default function PortfolioShowcase() {
                 iframeScale={actualScale}
                 iframeHeight={iframeHeight}
                 cardWidth={cardWidth}
+                cardHeight={CARD_HEIGHT}
                 shouldLoad={i === index || i === next}
               />
             )
