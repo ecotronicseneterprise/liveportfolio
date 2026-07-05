@@ -180,6 +180,22 @@ ALTER TABLE analytics_events
 ALTER TABLE analytics_events
   ADD COLUMN IF NOT EXISTS country text;
 
+-- Migration: device_type column (Phase 2.3)
+-- Run in Supabase SQL Editor
+ALTER TABLE analytics_events
+  ADD COLUMN IF NOT EXISTS device_type text
+  CHECK (device_type IN ('mobile', 'desktop', 'tablet'));
+
+-- ─────────────────────────────────────────────
+-- RPC: increment view_count atomically
+-- Run once in Supabase SQL Editor
+-- ─────────────────────────────────────────────
+
+CREATE OR REPLACE FUNCTION increment_view_count(portfolio_id uuid)
+RETURNS void AS $$
+  UPDATE portfolios SET view_count = view_count + 1 WHERE id = portfolio_id;
+$$ LANGUAGE sql SECURITY DEFINER;
+
 -- ─────────────────────────────────────────────
 -- Migration: affiliate tracking
 -- Run in Supabase SQL Editor BEFORE deploying

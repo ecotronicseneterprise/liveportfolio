@@ -8,6 +8,7 @@ import type { PortfolioContent } from '@/components/templates/Minimal'
 import Logo from '@/components/Logo'
 import UpgradeModal from '@/components/UpgradeModal'
 import ImageCropper from '@/components/ImageCropper'
+import LiveToast, { pushLiveToast } from '@/components/LiveToast'
 
 interface UserProfile {
   id: string
@@ -291,6 +292,8 @@ interface ActivityEvent {
   event_type: string
   label: string | null
   country: string | null
+  referrer_source?: string | null
+  device_type?: string | null
   time: string
 }
 
@@ -446,13 +449,15 @@ function AnalyticsSection({
               {(() => {
                 const a = activity[0]
                 const displayTime = typeof a.time === 'string' && a.time.includes('ago') ? a.time : timeAgo(a.time)
-                const label = a.event_type === 'portfolio_view'
+                const baseLabel = a.event_type === 'portfolio_view'
                   ? (a.country ? `Portfolio visit · ${a.country}` : 'Portfolio visit')
                   : (a.label ?? a.event_type.replace(/_/g, ' '))
+                const via = a.referrer_source ? ` · via ${a.referrer_source}` : ''
+                const deviceLabel = a.device_type === 'mobile' ? ' 📱' : a.device_type === 'tablet' ? ' 📱' : ''
                 return (
                   <div className="mb-3 pb-3 border-b border-gray-100">
                     <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Most recent visit</p>
-                    <p className="text-sm font-semibold text-gray-800">{label}</p>
+                    <p className="text-sm font-semibold text-gray-800">{baseLabel}{via}{deviceLabel}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{displayTime}</p>
                   </div>
                 )
@@ -461,12 +466,14 @@ function AnalyticsSection({
               {/* Remaining unique visitors */}
               {activity.slice(1).map((a, i) => {
                 const displayTime = typeof a.time === 'string' && a.time.includes('ago') ? a.time : timeAgo(a.time)
-                const label = a.event_type === 'portfolio_view'
+                const baseLabel = a.event_type === 'portfolio_view'
                   ? (a.country ? `Portfolio visit · ${a.country}` : 'Portfolio visit')
                   : (a.label ?? a.event_type.replace(/_/g, ' '))
+                const via = a.referrer_source ? ` · via ${a.referrer_source}` : ''
+                const deviceLabel = a.device_type === 'mobile' ? ' 📱' : a.device_type === 'tablet' ? ' 📱' : ''
                 return (
                   <div key={i} className="flex items-center justify-between py-1.5 border-t border-gray-50">
-                    <span className="text-xs text-gray-600">· {label}</span>
+                    <span className="text-xs text-gray-600">· {baseLabel}{via}{deviceLabel}</span>
                     <span className="text-xs text-gray-300 ml-3 flex-shrink-0">{displayTime}</span>
                   </div>
                 )
@@ -594,6 +601,48 @@ export default function DashboardPage() {
     window.addEventListener('focus', handleFocus)
     return () => { window.removeEventListener('focus', handleFocus) }
   }, [loadData])
+
+  // Supabase Realtime — live toast when a new portfolio_view arrives for the Pro user
+  // NOTE: Realtime must be enabled for the analytics_events table in the Supabase dashboard
+  // (Table Editor → analytics_events → Realtime toggle ON) for this to fire.
+  useEffect(() => {
+    if (!portfolio?.id || userPlan !== 'pro') return
+
+    const channel = supabase
+      .channel(`live-views-${portfolio.id}`)
+      .on(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'postgres_changes' as any,
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'analytics_events',
+          filter: `portfolio_id=eq.${portfolio.id}`,
+        },
+        (payload: { new: Record<string, unknown> }) => {
+          const ev = payload.new
+          if (ev.event_type !== 'portfolio_view') return
+          const country = typeof ev.country === 'string' ? ev.country : null
+          const ref = typeof ev.referrer === 'string' ? ev.referrer : null
+          let via = ''
+          if (ref) {
+            if (ref.includes('linkedin')) via = ' · via LinkedIn'
+            else if (ref.includes('wa.me') || ref.includes('whatsapp')) via = ' · via WhatsApp'
+            else if (ref.includes('twitter') || ref.includes('x.com') || ref.includes('t.co')) via = ' · via Twitter/X'
+            else if (ref.includes('github')) via = ' · via GitHub'
+            else if (ref.includes('google')) via = ' · via Google'
+          }
+          const device = typeof ev.device_type === 'string' && (ev.device_type === 'mobile' || ev.device_type === 'tablet') ? ' 📱' : ''
+          const msg = country
+            ? `Someone from ${country} just viewed your portfolio${via}${device}`
+            : `Someone just viewed your portfolio${via}${device}`
+          pushLiveToast(msg)
+        }
+      )
+      .subscribe()
+
+    return () => { void supabase.removeChannel(channel) }
+  }, [portfolio?.id, userPlan]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Open cropper on file select
   const handleAvatarUpload = (file: File) => {
@@ -1031,6 +1080,8 @@ export default function DashboardPage() {
               const primaryText = isView
                 ? (latest.country ? `Someone from ${latest.country} viewed your portfolio` : 'Someone viewed your portfolio')
                 : (latest.label ? `Someone clicked ${latest.label}` : 'Someone interacted with your portfolio')
+              const viaText = latest.referrer_source ? ` · via ${latest.referrer_source}` : ''
+              const deviceText = latest.device_type === 'mobile' || latest.device_type === 'tablet' ? ' 📱' : ''
               const displayTime = typeof latest.time === 'string' && latest.time.includes('ago')
                 ? latest.time
                 : (() => {
@@ -1061,7 +1112,7 @@ export default function DashboardPage() {
                     animation: 'pulse 2s infinite',
                   }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: '#0A0A0A', margin: 0, lineHeight: 1.4 }}>{primaryText}</p>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: '#0A0A0A', margin: 0, lineHeight: 1.4 }}>{primaryText}{viaText}{deviceText}</p>
                     <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{displayTime}</p>
                   </div>
                   <span style={{
@@ -1942,6 +1993,7 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+    <LiveToast />
     </>
   )
 }

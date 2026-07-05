@@ -13,20 +13,23 @@ export const metadata: Metadata = {
     type: 'article',
     publishedTime: '2026-05-22T00:00:00Z',
     modifiedTime: '2026-07-04T00:00:00Z',
-    images: [{
-      url: 'https://liveportfolio.site/logo-1024.png',
-      width: 1024,
-      height: 1024,
-      alt: 'What Recruiters Actually Value in a Portfolio',
-    }],
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['https://liveportfolio.site/logo-1024.png'],
   },
   alternates: {
     canonical: 'https://liveportfolio.site/blog/what-recruiters-look-for-in-a-portfolio',
   },
+}
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://liveportfolio.site' },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://liveportfolio.site/blog' },
+    { '@type': 'ListItem', position: 3, name: 'What Recruiters Actually Value in a Portfolio', item: 'https://liveportfolio.site/blog/what-recruiters-look-for-in-a-portfolio' },
+  ],
 }
 
 const jsonLd = {
@@ -53,6 +56,10 @@ export default function Article() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       {/* Hero */}
@@ -125,7 +132,7 @@ export default function Article() {
           There is a phrase that applies perfectly to portfolios: "show, do not tell." Every claim you make in your portfolio should be supported by evidence somewhere on the page.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-4">
-          Saying "I am an experienced React developer" is a claim. Showing three React projects with outcomes and live links is proof. Recruiters are trained to be skeptical of unsubstantiated claims. Give them the evidence and the work speaks for itself.
+          Saying "I am an experienced React developer" is a claim. Showing three React projects with outcomes and live links is proof. Recruiters are trained to be skeptical of unsubstantiated claims. Give them the evidence and the work speaks for itself. A <a href="/cv-to-portfolio" className="text-[#0A66C2] underline underline-offset-2">CV to portfolio website</a> solves this automatically — your raw experience becomes proof the moment it is presented as projects with clear outcomes.
         </p>
 
         <Callout emoji="⚠️" title="The most common mistake" color="amber">
@@ -184,6 +191,18 @@ export default function Article() {
           headline="Build a portfolio that passes the scan"
           sub="Your projects described clearly and professionally, live in 5 minutes."
         />
+
+        <div className="mt-12 pt-8 border-t border-gray-100 flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0 overflow-hidden">
+            <img src="/clifford-avatar.jpg" alt="Clifford Nwanna" width={48} height={48} className="w-full h-full object-cover" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Clifford Nwanna</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Data Scientist and AI Engineer at Wema Bank. Builder of LivePortfolio, JARVIS, and the Gateman IoT attendance system. Electronics &amp; Computer Engineering graduate, based in Lagos, Nigeria.
+            </p>
+          </div>
+        </div>
 
         <RelatedArticles articles={[
           { title: 'How to Create a Developer Portfolio That Gets You Hired', slug: 'how-to-create-a-developer-portfolio', time: '6 min' },

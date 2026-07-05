@@ -47,12 +47,22 @@ export async function GET(req: NextRequest) {
 
     const { data: events } = await supabaseAdmin
       .from('analytics_events')
-      .select('event_type, label, referrer, company, country, ip_hash, created_at')
+      .select('event_type, label, referrer, company, country, ip_hash, created_at, device_type')
       .eq('portfolio_id', portfolioId)
       .gte('created_at', thirtyDaysAgo)
       .order('created_at', { ascending: false })
 
     const allEvents = events || []
+
+    function classifyReferrer(ref: string | null): string | null {
+      if (!ref) return null
+      if (ref.includes('linkedin')) return 'LinkedIn'
+      if (ref.includes('wa.me') || ref.includes('whatsapp')) return 'WhatsApp'
+      if (ref.includes('twitter') || ref.includes('x.com') || ref.includes('t.co')) return 'Twitter/X'
+      if (ref.includes('github')) return 'GitHub'
+      if (ref.includes('google')) return 'Google'
+      return 'Other'
+    }
 
     // Isolate portfolio_view events — used for Views, Visitors, bar chart, and top sources
     const viewEvents = allEvents.filter((e) => e.event_type === 'portfolio_view')
@@ -114,10 +124,12 @@ export async function GET(req: NextRequest) {
     type RawEvent = {
       event_type: string
       label: string | null
+      referrer: string | null
       company: string | null
       country: string | null
       ip_hash: string | null
       created_at: string
+      device_type: string | null
     }
     const seenIpHashes = new Set<string>()
     const recentActivity: {
@@ -125,6 +137,8 @@ export async function GET(req: NextRequest) {
       label: string | null
       company: string | null
       country: string | null
+      referrer_source: string | null
+      device_type: string | null
       time: string
     }[] = []
 
@@ -138,6 +152,8 @@ export async function GET(req: NextRequest) {
         label: e.label ?? null,
         company: e.company ?? null,
         country: e.country ?? null,
+        referrer_source: classifyReferrer(e.referrer ?? null),
+        device_type: (e as RawEvent).device_type ?? null,
         time: e.created_at,
       })
     }

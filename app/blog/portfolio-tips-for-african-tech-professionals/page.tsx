@@ -13,20 +13,23 @@ export const metadata: Metadata = {
     type: 'article',
     publishedTime: '2026-05-15T00:00:00Z',
     modifiedTime: '2026-07-04T00:00:00Z',
-    images: [{
-      url: 'https://liveportfolio.site/logo-1024.png',
-      width: 1024,
-      height: 1024,
-      alt: 'Portfolio Tips for African Tech Professionals',
-    }],
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['https://liveportfolio.site/logo-1024.png'],
   },
   alternates: {
     canonical: 'https://liveportfolio.site/blog/portfolio-tips-for-african-tech-professionals',
   },
+}
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://liveportfolio.site' },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://liveportfolio.site/blog' },
+    { '@type': 'ListItem', position: 3, name: 'Portfolio Tips for African Tech Professionals', item: 'https://liveportfolio.site/blog/portfolio-tips-for-african-tech-professionals' },
+  ],
 }
 
 const jsonLd = {
@@ -54,6 +57,10 @@ export default function Article() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
 
       {/* Hero */}
       <section className="bg-[#E8F0F9] px-5 py-14 sm:py-20">
@@ -78,10 +85,10 @@ export default function Article() {
       <article className="max-w-[720px] mx-auto px-5 py-12">
 
         <p className="text-base text-gray-700 leading-relaxed mb-6">
-          The gap between a great developer and a hired developer is often just communication. You can build excellent products but still lose out if your portfolio does not tell the story clearly.
+          These portfolio tips for African tech professionals come down to one thing: communication. You can build excellent products but still lose out if your portfolio does not tell the story clearly to a global recruiter.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-8">
-          These tips are for tech professionals presenting their work to global recruiters and international companies — especially those applying from outside the traditional hiring hubs.
+          These tips are for tech professionals presenting their work to global recruiters and international companies — especially those applying from outside the traditional hiring hubs. If you have a CV but no portfolio yet, a <a href="/cv-to-portfolio" className="text-[#0A66C2] underline underline-offset-2">CV to portfolio website</a> is the fastest way to start.
         </p>
 
         <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4">Frame Every Project With Numbers</h2>
@@ -174,6 +181,18 @@ export default function Article() {
           headline="Build a portfolio that travels"
           sub="Your work deserves to be seen. Create your portfolio in 5 minutes and start sending it."
         />
+
+        <div className="mt-12 pt-8 border-t border-gray-100 flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0 overflow-hidden">
+            <img src="/clifford-avatar.jpg" alt="Clifford Nwanna" width={48} height={48} className="w-full h-full object-cover" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Clifford Nwanna</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Data Scientist and AI Engineer at Wema Bank. Builder of LivePortfolio, JARVIS, and the Gateman IoT attendance system. Electronics &amp; Computer Engineering graduate, based in Lagos, Nigeria.
+            </p>
+          </div>
+        </div>
 
         <RelatedArticles articles={[
           { title: 'How to Get a Remote Tech Job From Nigeria in 2026', slug: 'how-to-get-a-remote-tech-job-from-nigeria', time: '7 min' },

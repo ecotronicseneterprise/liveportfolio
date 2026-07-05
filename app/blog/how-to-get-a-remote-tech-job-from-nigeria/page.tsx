@@ -13,20 +13,23 @@ export const metadata: Metadata = {
     type: 'article',
     publishedTime: '2026-05-08T00:00:00Z',
     modifiedTime: '2026-07-04T00:00:00Z',
-    images: [{
-      url: 'https://liveportfolio.site/logo-1024.png',
-      width: 1024,
-      height: 1024,
-      alt: 'How to Get a Remote Tech Job From Nigeria in 2026',
-    }],
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['https://liveportfolio.site/logo-1024.png'],
   },
   alternates: {
     canonical: 'https://liveportfolio.site/blog/how-to-get-a-remote-tech-job-from-nigeria',
   },
+}
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://liveportfolio.site' },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://liveportfolio.site/blog' },
+    { '@type': 'ListItem', position: 3, name: 'How to Get a Remote Tech Job From Nigeria in 2026', item: 'https://liveportfolio.site/blog/how-to-get-a-remote-tech-job-from-nigeria' },
+  ],
 }
 
 const jsonLd = {
@@ -53,6 +56,10 @@ export default function Article() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       {/* Hero */}
@@ -183,7 +190,7 @@ export default function Article() {
         <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Your First Step Starts Here</h2>
 
         <p className="text-base text-gray-700 leading-relaxed mb-4">
-          Before you send a single application, you need something to send them to. That is your portfolio.
+          Before you send a single application, you need something to send them to. That is your portfolio. Build a <a href="/free-portfolio-website" className="text-[#0A66C2] underline underline-offset-2">free portfolio website</a> and include that link in every application — it is what turns a CV into a conversation.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-8">
           A strong portfolio does not take weeks to build. It takes a focused afternoon and the right tool.
@@ -197,6 +204,18 @@ export default function Article() {
           headline="Your portfolio is step one"
           sub="Build a professional portfolio in 5 minutes. Then go apply with confidence."
         />
+
+        <div className="mt-12 pt-8 border-t border-gray-100 flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0 overflow-hidden">
+            <img src="/clifford-avatar.jpg" alt="Clifford Nwanna" width={48} height={48} className="w-full h-full object-cover" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Clifford Nwanna</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Data Scientist and AI Engineer at Wema Bank. Builder of LivePortfolio, JARVIS, and the Gateman IoT attendance system. Electronics &amp; Computer Engineering graduate, based in Lagos, Nigeria.
+            </p>
+          </div>
+        </div>
 
         <RelatedArticles articles={[
           { title: 'Portfolio Tips for African Tech Professionals', slug: 'portfolio-tips-for-african-tech-professionals', time: '5 min' },

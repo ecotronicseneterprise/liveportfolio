@@ -15,29 +15,17 @@ interface ShowcasePortfolio {
 }
 
 const PORTFOLIOS: ShowcasePortfolio[] = [
-  // dark
-  {
-    slug: 'james-chen',
-    name: 'James Chen',
-    role: 'Senior Software Engineer',
-    template: 'Developer',
-    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/james-chen.jpg',
-    accent: '#2563EB',
-    mode: 'dark',
-    skills: ['Go', 'Rust', 'TypeScript', 'Kubernetes'],
-    highlight: '$2.3B processed · 60% latency reduction',
-  },
   // light
   {
-    slug: 'sofia-martinez',
-    name: 'Sofia Martinez',
-    role: 'Senior Product Designer',
-    template: 'Designer',
-    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/sofia-martinez.jpg',
-    accent: '#6D28D9',
+    slug: 'david-mensah',
+    name: 'David Mensah',
+    role: 'Senior Product Manager',
+    template: 'Product Manager',
+    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/david_mensah.jpg',
+    accent: '#B45309',
     mode: 'light',
-    skills: ['Figma', 'Framer', 'User Research', 'Design Systems'],
-    highlight: '34% retention increase · 8M+ daily users',
+    skills: ['Product Strategy', 'SQL', 'A/B Testing', 'OKRs'],
+    highlight: '50,000 merchants onboarded · $2M ARR',
   },
   // dark
   {
@@ -51,17 +39,17 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     skills: ['Python', 'SQL', 'TensorFlow', 'dbt'],
     highlight: '₦4.2B in approved loans · 55% false rejection reduction',
   },
-  // light
+  // dark
   {
-    slug: 'david-mensah',
-    name: 'David Mensah',
-    role: 'Senior Product Manager',
-    template: 'Product Manager',
-    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/david_mensah.jpg',
-    accent: '#B45309',
-    mode: 'light',
-    skills: ['Product Strategy', 'SQL', 'A/B Testing', 'OKRs'],
-    highlight: '50,000 merchants onboarded · $2M ARR',
+    slug: 'elena-vasquez',
+    name: 'Elena Vasquez',
+    role: 'Senior Security Engineer',
+    template: 'Cybersecurity',
+    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/elena-vasquez.jpg',
+    accent: '#166534',
+    mode: 'dark',
+    skills: ['Penetration Testing', 'Python', 'AWS Security', 'OSCP'],
+    highlight: 'Zero incidents 18 months · SOC 2 Type II',
   },
   // dark
   {
@@ -89,15 +77,15 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
   },
   // dark
   {
-    slug: 'elena-vasquez',
-    name: 'Elena Vasquez',
-    role: 'Senior Security Engineer',
-    template: 'Cybersecurity',
-    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/elena-vasquez.jpg',
-    accent: '#166534',
+    slug: 'james-chen',
+    name: 'James Chen',
+    role: 'Senior Software Engineer',
+    template: 'Developer',
+    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/james-chen.jpg',
+    accent: '#2563EB',
     mode: 'dark',
-    skills: ['Penetration Testing', 'Python', 'AWS Security', 'OSCP'],
-    highlight: 'Zero incidents 18 months · SOC 2 Type II',
+    skills: ['Go', 'Rust', 'TypeScript', 'Kubernetes'],
+    highlight: '$2.3B processed · 60% latency reduction',
   },
   // light
   {
@@ -110,6 +98,18 @@ const PORTFOLIOS: ShowcasePortfolio[] = [
     mode: 'light',
     skills: ['React', 'Node.js', 'Python', 'SQL'],
     highlight: '300+ active users · First role ready',
+  },
+  // light
+  {
+    slug: 'sofia-martinez',
+    name: 'Sofia Martinez',
+    role: 'Senior Product Designer',
+    template: 'Designer',
+    avatar: 'https://fdvrwnftzszlglyscfwk.supabase.co/storage/v1/object/public/avatars/sofia-martinez.jpg',
+    accent: '#6D28D9',
+    mode: 'light',
+    skills: ['Figma', 'Framer', 'User Research', 'Design Systems'],
+    highlight: '34% retention increase · 8M+ daily users',
   },
 ]
 
@@ -128,7 +128,7 @@ const CARD_HEIGHT = 500
 // Render at 960px (tablet width) — text is naturally larger relative to layout,
 // making it more legible at the scaled-down preview sizes.
 const IFRAME_WIDTH = 960
-const ROTATE_MS = 4000
+const ROTATE_MS = 5500
 
 function Card({
   p,
@@ -252,8 +252,8 @@ export default function PortfolioShowcase() {
   const pausedRef = useRef(false)
   const [iframeScale, setIframeScale] = useState(() => {
     if (typeof window === 'undefined') return 0.33
-    const containerWidth = Math.min(window.innerWidth - 32, 380)
-    return containerWidth / IFRAME_WIDTH
+    // Initial estimate — will be corrected by useEffect once containerRef is measured
+    return Math.min(window.innerWidth - 32, 500) / IFRAME_WIDTH
   })
   const containerRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef<number | null>(null)
@@ -264,8 +264,8 @@ export default function PortfolioShowcase() {
       const containerWidth = containerRef.current?.offsetWidth ?? window.innerWidth
       // 32px total horizontal padding inside the card area
       const availableWidth = containerWidth - 32
-      // Cap card width at 400px on large screens
-      const effectiveWidth = Math.min(availableWidth, 400)
+      // Cap card width at 560px — enough to fill the right column on desktop
+      const effectiveWidth = Math.min(availableWidth, 560)
       setIframeScale(effectiveWidth / IFRAME_WIDTH)
     }
 
@@ -307,12 +307,12 @@ export default function PortfolioShowcase() {
   }
 
   return (
-    <div className="w-full border-t border-gray-100 py-10 sm:py-14">
+    <div className="w-full py-10 sm:py-14">
       {/* Stacked crossfade slideshow */}
       <div
         ref={containerRef}
-        className="px-4 sm:px-10 lg:px-16"
-        style={{ width: '100%', maxWidth: '100vw', boxSizing: 'border-box', overflow: 'hidden', willChange: 'transform' }}
+        className="px-4 sm:px-6"
+        style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden', willChange: 'transform' }}
         onMouseEnter={() => { pausedRef.current = true }}
         onMouseLeave={() => { pausedRef.current = false }}
         onTouchStart={onTouchStart}
@@ -344,7 +344,7 @@ export default function PortfolioShowcase() {
       </div>
 
       {/* Dots + arrows */}
-      <div className="mt-6 px-4 sm:px-10 lg:px-16">
+      <div className="mt-6 px-4 sm:px-6">
         <div style={{ maxWidth: cardWidth, margin: '0 auto' }}>
           <div className="flex items-center justify-center gap-3">
             <button

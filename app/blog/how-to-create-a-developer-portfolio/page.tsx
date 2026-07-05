@@ -13,20 +13,23 @@ export const metadata: Metadata = {
     type: 'article',
     publishedTime: '2026-05-01T00:00:00Z',
     modifiedTime: '2026-07-04T00:00:00Z',
-    images: [{
-      url: 'https://liveportfolio.site/logo-1024.png',
-      width: 1024,
-      height: 1024,
-      alt: 'How to Create a Developer Portfolio That Gets You Hired',
-    }],
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['https://liveportfolio.site/logo-1024.png'],
   },
   alternates: {
     canonical: 'https://liveportfolio.site/blog/how-to-create-a-developer-portfolio',
   },
+}
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://liveportfolio.site' },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://liveportfolio.site/blog' },
+    { '@type': 'ListItem', position: 3, name: 'How to Create a Developer Portfolio That Gets You Hired', item: 'https://liveportfolio.site/blog/how-to-create-a-developer-portfolio' },
+  ],
 }
 
 const jsonLd = {
@@ -54,6 +57,10 @@ export default function Article() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
 
       {/* Hero */}
       <section className="bg-[#E8F0F9] px-5 py-14 sm:py-20">
@@ -78,7 +85,7 @@ export default function Article() {
       <article className="max-w-[720px] mx-auto px-5 py-12">
 
         <p className="text-base text-gray-700 leading-relaxed mb-6">
-          A developer portfolio is the single most effective tool you have for getting hired. Not your degree. Not your CV. Your portfolio.
+          Knowing how to create a developer portfolio is the single most effective thing you can do to get hired faster. Not your degree. Not your CV. Your portfolio.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-6">
           Recruiters spend an average of 7 seconds deciding whether to keep reading. A portfolio that shows your work clearly and quickly is the difference between a callback and silence.
@@ -164,7 +171,7 @@ export default function Article() {
         </p>
 
         <Callout emoji="💡" title="The fastest way to finish" color="blue">
-          Do not aim for perfect. Aim for done. A live portfolio with two solid projects gets more callbacks than a perfect portfolio that is still in a draft folder. You can always improve it later.
+          Do not aim for perfect. Aim for done. A live portfolio with two solid projects gets more callbacks than a perfect portfolio that is still in a draft folder. Using an <a href="/portfolio-builder" className="text-[#0A66C2] underline underline-offset-2">AI portfolio builder</a> means you start from a finished draft — not an empty template. You can always improve it later.
         </Callout>
 
         <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">What to Include in Each Project</h2>
@@ -196,6 +203,18 @@ export default function Article() {
           headline="Build your portfolio in 5 minutes"
           sub="Fill in your information and we will write the copy for you. No writing skills needed."
         />
+
+        <div className="mt-12 pt-8 border-t border-gray-100 flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0 overflow-hidden">
+            <img src="/clifford-avatar.jpg" alt="Clifford Nwanna" width={48} height={48} className="w-full h-full object-cover" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Clifford Nwanna</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Data Scientist and AI Engineer at Wema Bank. Builder of LivePortfolio, JARVIS, and the Gateman IoT attendance system. Electronics &amp; Computer Engineering graduate, based in Lagos, Nigeria.
+            </p>
+          </div>
+        </div>
 
         <RelatedArticles articles={[
           { title: 'What Recruiters Actually Look For in a Portfolio', slug: 'what-recruiters-look-for-in-a-portfolio', time: '5 min' },

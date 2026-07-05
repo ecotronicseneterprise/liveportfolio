@@ -18,7 +18,6 @@ import Finance from '@/components/templates/Finance'
 import Graduate from '@/components/templates/Graduate'
 import Cybersecurity from '@/components/templates/Cybersecurity'
 import type { PortfolioContent } from '@/components/templates/Minimal'
-import ClientAnalytics from './ClientAnalytics'
 import AcquisitionBar from './AcquisitionBar'
 
 const DEMO_SLUGS = new Set([
@@ -35,6 +34,13 @@ const serverViewCache = new Map<string, number>()
 const SERVER_CACHE_TTL = 60 * 60 * 1000 // 1 hour
 
 const BOT_PATTERN = /bot|crawler|spider|crawling|facebookexternalhit|Twitterbot|LinkedInBot|Googlebot|bingbot|Slurp|DuckDuckBot|YandexBot|Baiduspider|Sogou|Exabot|facebot|ia_archiver|AhrefsBot|SemrushBot|MJ12bot|DotBot|rogerbot|proximic|archiver|curl|wget|python|java|ruby|php|perl|libwww|HeadlessChrome|Playwright|PhantomJS|Puppeteer|selenium|headless|chrome-lighthouse|pagespeed/i
+
+function getDeviceType(ua: string): 'mobile' | 'desktop' | 'tablet' {
+  const u = ua.toLowerCase()
+  if (/tablet|ipad|playbook|silk|(android(?!.*mobile))/.test(u)) return 'tablet'
+  if (/mobile|iphone|ipod|phone|android|blackberry|iemobile|opera mini/.test(u)) return 'mobile'
+  return 'desktop'
+}
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -159,6 +165,7 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
             oldest.forEach(([key]) => serverViewCache.delete(key))
           }
 
+          const deviceType = getDeviceType(userAgent)
           getIpInfo(rawIp, ipHash, supabaseAdmin).then(({ company, country }) => {
             void Promise.resolve(
               supabaseAdmin.from('analytics_events').insert({
@@ -168,7 +175,11 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
                 ip_hash: ipHash,
                 company,
                 country,
+                device_type: deviceType,
               })
+            )
+            void Promise.resolve(
+              supabaseAdmin.rpc('increment_view_count', { portfolio_id: portfolio.id })
             )
           }).catch(() => {})
         }
@@ -217,7 +228,6 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
       />
       <Template content={portfolio.content} />
-      <ClientAnalytics slug={slug} />
       {(data as { plan?: string }).plan !== 'basic' && (data as { plan?: string }).plan !== 'pro' && (
         <AcquisitionBar />
       )}

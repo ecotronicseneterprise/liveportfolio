@@ -20,50 +20,82 @@ const faqJsonLd = {
   mainEntity: [
     {
       '@type': 'Question',
-      name: 'Can I preview before paying?',
+      name: 'What is LivePortfolio?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. You can build and preview your full portfolio for free before deciding to publish. No payment needed to see your results.',
+        text: 'LivePortfolio is an AI-powered portfolio builder that turns your CV into a professional portfolio website in minutes. Upload your CV, the AI writes your story, and you get a live portfolio at liveportfolio.site/yourname — no design skills or coding required.',
       },
     },
     {
       '@type': 'Question',
-      name: 'How does billing work?',
+      name: 'How long does it take to create a portfolio with LivePortfolio?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Plans are billed annually — from $10/year for Basic to $30/year for Pro (₦15,000/year and ₦45,000/year in Nigeria). 7-day refund guarantee, no questions asked. Cancel anytime.',
+        text: 'Most users go from CV upload to a finished, previewable portfolio in under 5 minutes. The AI generation takes 10–15 seconds. Publishing takes as long as choosing a plan.',
       },
     },
     {
       '@type': 'Question',
-      name: 'Can I edit my portfolio after publishing?',
+      name: 'Is LivePortfolio free?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. Log into your dashboard to edit any text, switch templates, or update your projects. Changes go live instantly — no re-generation needed.',
+        text: 'Building and previewing your portfolio is completely free — no credit card required. You only pay when you are ready to publish your portfolio live and make it shareable. Plans start from ₦15,000 per year in Nigeria.',
       },
     },
     {
       '@type': 'Question',
-      name: 'What do I get when I publish?',
+      name: 'Can I use my own domain name with LivePortfolio?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Basic gives you a live portfolio at liveportfolio.site/yourname, all three templates, and full editing from your dashboard. Pro adds an analytics dashboard (see who views you and from where), QR code sharing, weekly career score, custom domain, and an export pack.',
+        text: 'Your portfolio publishes at liveportfolio.site/yourname by default. Custom domain support is available on Pro plans — connect any domain you own to your LivePortfolio page.',
       },
     },
     {
       '@type': 'Question',
-      name: 'Who is this for?',
+      name: 'Is LivePortfolio a good alternative to Wix for professionals?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Developers, designers, data scientists, product managers, freelancers — anyone who wants a professional online presence and wants to know when someone views their profile and from where.',
+        text: 'Yes, especially if you want speed over total design control. Wix gives you a blank canvas and hours of work. LivePortfolio gives you a finished, AI-written portfolio in minutes, purpose-built for job seekers and professionals — not general websites.',
       },
     },
     {
       '@type': 'Question',
-      name: 'Do I need design or coding skills?',
+      name: 'LivePortfolio vs Canva — which is better for job seekers?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'None at all. Add your experience, pick a template, and publish. We handle the writing.',
+        text: 'Canva produces beautiful PDF documents, not real websites. A Canva portfolio cannot be linked to directly, does not appear in Google search results for your name, and gives you no data on who viewed it. LivePortfolio builds an actual website with a real URL, visitor analytics, and proper SEO — better for any situation where you need to send a portfolio link.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is LivePortfolio better than just using a LinkedIn profile?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'LinkedIn is where recruiters find you. LivePortfolio is what you show them once they do. A LinkedIn profile follows LinkedIn\'s layout and competes for attention within their platform. Your LivePortfolio is your own page, at your own URL, with your own branding — and it tells you when someone from a new country opens it, in real time.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What makes LivePortfolio different from other portfolio builders?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Three things: the AI writes your portfolio copy from your CV so you start from a finished draft, not a blank page; you can see when someone from a new country opens your portfolio in real time; and it is purpose-built for tech professionals and job seekers, not general website creation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does LivePortfolio work for Nigerian job seekers and remote workers?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes — LivePortfolio is built with African tech professionals in mind. Plans are priced in Naira (₦15,000/year for Basic), payments are accepted via Paystack, and the AI is trained to present your experience in a way that resonates with both local and international remote employers.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How does the AI career score work?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'When your portfolio is published, LivePortfolio analyses it across key dimensions — completeness, project depth, skills clarity, and professional presentation — and gives you a score out of 100. Clicking any gap in the score takes you directly to the section to improve it.',
       },
     },
   ],
@@ -83,31 +115,69 @@ const jsonLd = {
   },
 }
 
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'LivePortfolio',
+  url: 'https://liveportfolio.site',
+  logo: {
+    '@type': 'ImageObject',
+    url: 'https://liveportfolio.site/logo-1024.png',
+  },
+  sameAs: [],
+}
+
+const speakableJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  speakable: {
+    '@type': 'SpeakableSpecification',
+    cssSelector: ['h1', 'h2', '.speakable'],
+  },
+  url: 'https://liveportfolio.site',
+}
+
 
 const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
   {
-    q: 'Can I preview before paying?',
-    a: 'Yes. You can build and preview your full portfolio for free before deciding to publish. No payment needed to see your results.',
+    q: 'What is LivePortfolio?',
+    a: 'LivePortfolio is an AI-powered portfolio builder that turns your CV into a professional portfolio website in minutes. Upload your CV, the AI writes your story, and you get a live portfolio at liveportfolio.site/yourname — no design skills or coding required.',
   },
   {
-    q: 'How does billing work?',
-    a: <>Plans are billed annually — <LocalisedPrice ngn="₦15,000/year for Basic, ₦45,000/year for Pro" usd="$10/year for Basic, $30/year for Pro" /> . 7-day refund guarantee, no questions asked. Cancel anytime.</>,
+    q: 'How long does it take to create a portfolio with LivePortfolio?',
+    a: 'Most users go from CV upload to a finished, previewable portfolio in under 5 minutes. The AI generation takes 10–15 seconds. Publishing takes as long as choosing a plan.',
   },
   {
-    q: 'Can I edit my portfolio after publishing?',
-    a: 'Yes. Log into your dashboard to edit any text, switch templates, or update your projects. Changes go live instantly — no re-generation needed.',
+    q: 'Is LivePortfolio free?',
+    a: <>Building and previewing your portfolio is completely free — no credit card required. You only pay when you are ready to publish. Plans start from <LocalisedPrice ngn="₦15,000/year" usd="$10/year" />.</>,
   },
   {
-    q: 'What do I get when I publish?',
-    a: 'Basic gives you a live portfolio at liveportfolio.site/yourname, all three templates, and full editing from your dashboard. Pro adds an analytics dashboard (see who views you and from where), QR code sharing, weekly career score, custom domain, and an export pack (PDF, LinkedIn summary, cover letter).',
+    q: 'Can I use my own domain name with LivePortfolio?',
+    a: 'Your portfolio publishes at liveportfolio.site/yourname by default. Custom domain support is available on Pro plans — connect any domain you own to your LivePortfolio page.',
   },
   {
-    q: 'Who is this for?',
-    a: 'Developers, designers, data scientists, product managers, freelancers — anyone who wants a professional online presence and wants to know when someone views their profile and from where.',
+    q: 'Is LivePortfolio a good alternative to Wix for professionals?',
+    a: 'Yes, especially if you want speed over total design control. Wix gives you a blank canvas and hours of work. LivePortfolio gives you a finished, AI-written portfolio in minutes, purpose-built for job seekers and professionals — not general websites.',
   },
   {
-    q: 'Do I need design or coding skills?',
-    a: 'None at all. Add your experience, pick a template, and publish. We handle the writing.',
+    q: 'LivePortfolio vs Canva — which is better for job seekers?',
+    a: 'Canva produces beautiful PDF documents, not real websites. A Canva portfolio cannot be linked to directly, does not appear in Google search results for your name, and gives you no data on who viewed it. LivePortfolio builds an actual website with a real URL, visitor analytics, and proper SEO.',
+  },
+  {
+    q: 'Is LivePortfolio better than just using a LinkedIn profile?',
+    a: 'LinkedIn is where recruiters find you. LivePortfolio is what you show them once they do. Your LivePortfolio is your own page, at your own URL — and it tells you when someone from a new country opens it, in real time.',
+  },
+  {
+    q: 'What makes LivePortfolio different from other portfolio builders?',
+    a: 'Three things: the AI writes your portfolio copy from your CV so you start from a finished draft, not a blank page; you can see when someone from a new country opens your portfolio in real time; and it is purpose-built for tech professionals and job seekers, not general website creation.',
+  },
+  {
+    q: 'Does LivePortfolio work for Nigerian job seekers and remote workers?',
+    a: <>Yes — LivePortfolio is built with African tech professionals in mind. Plans are priced in Naira (<LocalisedPrice ngn="₦15,000/year for Basic" usd="$10/year for Basic" />), payments are accepted via Paystack, and the AI presents your experience in a way that resonates with both local and international remote employers.</>,
+  },
+  {
+    q: 'How does the AI career score work?',
+    a: 'When your portfolio is published, LivePortfolio analyses it across key dimensions — completeness, project depth, skills clarity, and professional presentation — and gives you a score out of 100. Clicking any gap takes you directly to the section to improve it.',
   },
 ]
 
@@ -122,33 +192,36 @@ export default function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(speakableJsonLd) }}
+      />
 
       {/* ── Nav ── */}
       <LandingNav />
 
       {/* ── Hero ── */}
       <section className="w-full border-b border-gray-100">
+        <div className="w-full px-6 sm:px-10 lg:px-16 pt-14 sm:pt-20 pb-0 lg:pb-0 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
 
-        {/* Headline + CTA — full width, large padding */}
-        <div className="w-full px-6 sm:px-10 lg:px-16 pt-14 sm:pt-20 pb-12 sm:pb-16 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-end">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-full text-xs text-[#0A66C2] font-medium mb-7">
+          {/* Left: headline + CTA */}
+          <div className="flex flex-col gap-6 pb-10 lg:pb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-full text-xs text-[#0A66C2] font-medium w-fit">
               <span className="w-2 h-2 bg-[#0A66C2] rounded-full animate-pulse flex-shrink-0" />
               For developers, designers, data scientists, graduates and freelancers — anywhere in the world.
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0A0A0A] leading-[1.05]">
               Turn Your CV Into a Portfolio in Minutes — No Design Skills Needed
             </h1>
-            <p className="text-lg text-gray-500 leading-relaxed mt-4">
+            <p className="speakable text-lg text-gray-500 leading-relaxed">
               LivePortfolio turns your CV into a portfolio website. We tell your story, you publish it. Free to build and preview — no credit card needed.
             </p>
-          </div>
-          <div className="flex flex-col gap-6">
-            <p className="text-lg sm:text-xl text-gray-500 leading-relaxed">
-              Not hearing back after sending out multiple job applications hurts. It makes you question everything you've built. A portfolio won't fix the silence, but it makes sure they can't ignore what you've done.
-            </p>
-            <p className="text-lg sm:text-xl text-gray-500 leading-relaxed">
-              Upload your CV and we tell your story. Get a professional portfolio website that builds your online presence — and see when someone views it, and where they're from.
+            <p className="text-lg text-gray-500 leading-relaxed">
+              Upload your CV and we tell your story. Get a professional portfolio website that builds your online presence — and see when someone views it, where they&apos;re from, and exactly when it happens — in real time.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link
@@ -159,14 +232,17 @@ export default function LandingPage() {
               </Link>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-400">Free to build and preview. No credit card needed.</span>
+              <span className="text-sm text-gray-400">Free to build and preview. No credit card needed. Cancel anytime.</span>
               <PublishedCount />
             </div>
           </div>
+
+          {/* Right: slideshow — on mobile sits below headline, on desktop side-by-side */}
+          <div className="w-full border-t lg:border-t-0 border-gray-100 lg:border-l lg:border-gray-100 -mx-6 sm:-mx-10 lg:-mx-0 lg:self-stretch">
+            <PortfolioShowcaseWrapper />
+          </div>
+
         </div>
-
-        <PortfolioShowcaseWrapper />
-
       </section>
 
       {/* ── How it works ── */}

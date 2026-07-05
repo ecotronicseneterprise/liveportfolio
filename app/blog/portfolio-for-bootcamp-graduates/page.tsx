@@ -2,37 +2,40 @@ import type { Metadata } from 'next'
 import { PullQuote, Callout, StepCard, KeyTakeaway, CTASection, RelatedArticles } from '../BlogComponents'
 
 export const metadata: Metadata = {
-  title: 'Bootcamp Graduate Portfolio Guide — LivePortfolio',
+  title: 'Portfolio for Bootcamp Graduates — How to Get Hired With Little Experience | LivePortfolio',
   description: 'You have more to show than you think. A guide for ALX, Andela, and bootcamp graduates on turning coursework into a portfolio that gets callbacks.',
   authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
   openGraph: {
-    title: 'How Bootcamp Graduates Can Build a Portfolio With Little Experience',
+    title: 'Portfolio for Bootcamp Graduates: How to Get Hired With Little Experience',
     description: 'How to turn coursework and side projects into a portfolio that gets responses, even when you are just starting out.',
     url: 'https://liveportfolio.site/blog/portfolio-for-bootcamp-graduates',
     siteName: 'liveportfolio.site',
     type: 'article',
     publishedTime: '2026-05-29T00:00:00Z',
     modifiedTime: '2026-07-04T00:00:00Z',
-    images: [{
-      url: 'https://liveportfolio.site/logo-1024.png',
-      width: 1024,
-      height: 1024,
-      alt: 'How Bootcamp Graduates Can Build a Portfolio With Little Experience',
-    }],
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['https://liveportfolio.site/logo-1024.png'],
   },
   alternates: {
     canonical: 'https://liveportfolio.site/blog/portfolio-for-bootcamp-graduates',
   },
 }
 
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://liveportfolio.site' },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://liveportfolio.site/blog' },
+    { '@type': 'ListItem', position: 3, name: 'Portfolio for Bootcamp Graduates', item: 'https://liveportfolio.site/blog/portfolio-for-bootcamp-graduates' },
+  ],
+}
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
-  headline: 'How Bootcamp Graduates Can Build a Portfolio With Little Experience',
+  headline: 'Portfolio for Bootcamp Graduates: How to Get Hired With Little Experience',
   description: 'Turning coursework into a portfolio that gets responses, even when you are just starting out.',
   author: {
     '@type': 'Person',
@@ -54,6 +57,10 @@ export default function Article() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
 
       {/* Hero */}
       <section className="bg-[#E8F0F9] px-5 py-14 sm:py-20">
@@ -65,7 +72,7 @@ export default function Article() {
             For beginners
           </span>
           <h1 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-4 leading-tight">
-            How Bootcamp Graduates Can Build a Portfolio With Little Experience
+            Portfolio for Bootcamp Graduates: How to Get Hired With Little Experience
           </h1>
           <p className="text-gray-600 text-lg mb-4">
             The hardest part of a first portfolio is believing you have something worth showing. You do. Here is how to find it and present it well.
@@ -78,7 +85,7 @@ export default function Article() {
       <article className="max-w-[720px] mx-auto px-5 py-12">
 
         <p className="text-base text-gray-700 leading-relaxed mb-6">
-          You just finished your bootcamp. You have been coding for months. You know React, or Python, or SQL. But when you sit down to build a portfolio, you freeze.
+          Building a portfolio for bootcamp graduates is different from building one with years of experience — and that is actually an advantage. You just finished your bootcamp. You have been coding for months. You know React, or Python, or SQL. But when you sit down to build one, you freeze.
         </p>
         <p className="text-base text-gray-700 leading-relaxed mb-6">
           "I do not have enough experience." "All my projects are just tutorials." "Nobody will take me seriously."
@@ -119,7 +126,7 @@ export default function Article() {
         </StepCard>
 
         <StepCard number={3} title="Deploy it">
-          A deployed project is three times more credible than one that only exists on your laptop. Free deployments on Vercel, Netlify, or Railway take about ten minutes. If your project is live and clickable, a recruiter can verify it. If it only exists as a GitHub repo, many of them will not bother cloning it to check.
+          A deployed project is three times more credible than one that only exists on your laptop. Free deployments on Vercel, Netlify, or Railway take about ten minutes. Once it is live, put it inside a <a href="/free-portfolio-website" className="text-[#0A66C2] underline underline-offset-2">free portfolio website</a> so recruiters see all your work in one professional place — not scattered across separate links.
         </StepCard>
 
         <StepCard number={4} title="Put it on GitHub with a good README">
@@ -194,6 +201,18 @@ export default function Article() {
           headline="Turn your bootcamp projects into a professional portfolio"
           sub="Fill in your projects, and we will write clear, professional descriptions for you."
         />
+
+        <div className="mt-12 pt-8 border-t border-gray-100 flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0 overflow-hidden">
+            <img src="/clifford-avatar.jpg" alt="Clifford Nwanna" width={48} height={48} className="w-full h-full object-cover" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Clifford Nwanna</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Data Scientist and AI Engineer at Wema Bank. Builder of LivePortfolio, JARVIS, and the Gateman IoT attendance system. Electronics &amp; Computer Engineering graduate, based in Lagos, Nigeria.
+            </p>
+          </div>
+        </div>
 
         <RelatedArticles articles={[
           { title: 'How to Create a Developer Portfolio That Gets You Hired', slug: 'how-to-create-a-developer-portfolio', time: '6 min' },

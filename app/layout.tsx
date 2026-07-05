@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'LivePortfolio — Build a Portfolio That Gets You Hired',
-    description: 'Upload your CV and we tell your story. Build your online presence and see who views your profile — by name, company, and country.',
+    description: 'Upload your CV and we tell your story. Build your online presence and see when someone from a new country opens your portfolio — in real time.',
     images: ['https://liveportfolio.site/logo-1024.png'],
   },
 }
