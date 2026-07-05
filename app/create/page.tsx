@@ -289,6 +289,41 @@ export default function CreatePage() {
         }))
         if (free) setIsInvitedFree(true)
       }
+
+      // Capture ?bootcamp= code — first-touch attribution, 90-day expiry
+      const bootcamp = params.get('bootcamp')
+      const nameParam = params.get('name')
+      if (bootcamp && bootcamp.trim() !== '') {
+        const existing = localStorage.getItem('lp_bootcamp')
+        let shouldStore = true
+        if (existing) {
+          try {
+            const parsed = JSON.parse(existing)
+            if (parsed.expires > Date.now()) shouldStore = false
+          } catch { /* expired or corrupt — overwrite */ }
+        }
+        if (shouldStore) {
+          localStorage.setItem('lp_bootcamp', JSON.stringify({
+            code: bootcamp.trim().toLowerCase(),
+            name: nameParam ? decodeURIComponent(nameParam) : bootcamp,
+            expires: Date.now() + 90 * 24 * 60 * 60 * 1000,
+          }))
+        }
+        setBootcampCode(bootcamp.trim().toLowerCase())
+        setBootcampName(nameParam ? decodeURIComponent(nameParam) : bootcamp)
+      } else {
+        // Check if there's a stored bootcamp code still valid
+        const stored = localStorage.getItem('lp_bootcamp')
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored)
+            if (parsed.expires > Date.now()) {
+              setBootcampCode(parsed.code)
+              setBootcampName(parsed.name)
+            }
+          } catch {}
+        }
+      }
     } catch {}
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -306,6 +341,8 @@ export default function CreatePage() {
 
   const [entryChoice, setEntryChoice] = useState<EntryChoice>('none')
   const [isInvitedFree, setIsInvitedFree] = useState(false)
+  const [bootcampCode, setBootcampCode] = useState<string | null>(null)
+  const [bootcampName, setBootcampName] = useState<string | null>(null)
   const [step, setStep] = useState(1)
   const [generating, setGenerating] = useState(false)
   const [generationStep, setGenerationStep] = useState(0)
@@ -621,6 +658,25 @@ export default function CreatePage() {
         }
       } catch {}
 
+      // Redeem bootcamp code if present
+      try {
+        const bootcampData = localStorage.getItem('lp_bootcamp')
+        if (bootcampData) {
+          const { code, expires } = JSON.parse(bootcampData)
+          if (Date.now() < expires) {
+            await fetch('/api/bootcamp/redeem', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${authData.session!.access_token}`,
+              },
+              body: JSON.stringify({ code }),
+            })
+            localStorage.removeItem('lp_bootcamp')
+          }
+        }
+      } catch {}
+
       // Upload project images
       setGenerationStep(0) // "Uploading your images…"
       const imageFailures: string[] = []
@@ -780,6 +836,16 @@ export default function CreatePage() {
               fontWeight: 600,
             }}>
               🎁 You&apos;ve been invited — your Pro account is free
+            </div>
+          )}
+
+          {bootcampCode && !isInvitedFree && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700 flex items-center gap-3">
+              <span>🎓</span>
+              <span>
+                <strong>{bootcampName}</strong> students get 6 months of LivePortfolio free —{' '}
+                no credit card required. Your free access activates automatically when you sign up.
+              </span>
             </div>
           )}
 

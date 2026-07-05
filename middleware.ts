@@ -39,6 +39,7 @@ export function middleware(req: NextRequest) {
         'cv-to-portfolio',
         'dashboard',
         'free-portfolio-website',
+        'bootcamp',
         'invite',
         'login',
         'portfolio',
