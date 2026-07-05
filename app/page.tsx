@@ -215,13 +215,13 @@ export default function LandingPage() {
               For developers, designers, data scientists, graduates and freelancers — anywhere in the world.
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0A0A0A] leading-[1.05]">
-              Turn Your CV Into a Portfolio in Minutes — No Design Skills Needed
+              Turn Your CV Into a Portfolio in Minutes. No Design Skills Needed
             </h1>
             <p className="speakable text-lg text-gray-500 leading-relaxed">
-              LivePortfolio turns your CV into a portfolio website. We tell your story, you publish it. Free to build and preview — no credit card needed.
+              LivePortfolio helps professionals turn their work into opportunities.
             </p>
             <p className="text-lg text-gray-500 leading-relaxed">
-              Upload your CV and we tell your story. Get a professional portfolio website that builds your online presence — and see when someone views it, where they&apos;re from, and exactly when it happens — in real time.
+              Upload your CV or tell us your story, and we'll turn it into a professional portfolio website in minutes. Showcase your projects, skills, and achievements with beautiful templates, real-time visitor analytics, and SEO built in. Free to build and preview. No credit card required.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link
@@ -232,7 +232,7 @@ export default function LandingPage() {
               </Link>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-400">Free to build and preview. No credit card needed. Cancel anytime.</span>
+              <span className="text-sm text-gray-400">Free to build and preview. No credit card required. Publish only when you're ready.</span>
               <PublishedCount />
             </div>
           </div>
@@ -259,12 +259,12 @@ export default function LandingPage() {
               {
                 step: '02',
                 title: 'We tell your story',
-                desc: 'We rewrite your experience into professional portfolio. This is the part most people spend weeks on. You skip it entirely.',
+                desc: 'We transform your experience into a professional portfolio. This is the part most people spend weeks on. You skip it entirely.',
               },
               {
                 step: '03',
                 title: 'Publish and share',
-                desc: 'Your portfolio goes live !!! A real link you can add to your CV, LinkedIn, and job applications today. Switch templates anytime, changes go live instantly.',
+                desc: 'Get a live portfolio you can add to your CV, LinkedIn, job applications, and email signature. Update it anytime, and your changes go live instantly.',
               },
             ].map((item, i) => (
               <div
@@ -337,7 +337,7 @@ export default function LandingPage() {
               </div>
               <div className="px-6 py-5">
                 <p className="font-semibold text-gray-900">Bold</p>
-                <p className="text-sm text-gray-400 mt-0.5">Dark, developer-style. Built for engineers.</p>
+                <p className="text-sm text-gray-400 mt-0.5">Designed for developers and technical professionals who want a modern, code-inspired look.</p>
               </div>
             </div>
 
@@ -371,7 +371,7 @@ export default function LandingPage() {
               </div>
               <div className="px-6 py-5">
                 <p className="font-semibold text-gray-900">Creative</p>
-                <p className="text-sm text-gray-400 mt-0.5">Warm editorial grid. For builders and makers.</p>
+                <p className="text-sm text-gray-400 mt-0.5">Warm editorial grid. For designers, founders, and creators. </p>
               </div>
             </div>
 
@@ -410,7 +410,7 @@ export default function LandingPage() {
             Your work is already valuable.<br />It just needs to be seen.
           </h2>
           <p className="text-lg sm:text-xl font-medium text-gray-600 mb-8">
-            Build your portfolio in the next 3 minutes.
+            Build your professional portfolio today and give recruiters, clients, and collaborators a reason to remember you.
           </p>
           <Link
             href="/create"
@@ -429,11 +429,11 @@ export default function LandingPage() {
         <div className="w-full px-6 sm:px-10 lg:px-16 py-12 lg:text-center lg:flex lg:flex-col lg:items-center">
           <h2 className="text-sm font-semibold text-gray-400 mb-4">The fastest way to look hireable online</h2>
           <p className="text-sm text-gray-400 leading-relaxed max-w-3xl">
-            LivePortfolio helps anyone build a professional portfolio website — no design or coding skills needed.
-            Upload your CV or answer a few questions, and we tell your story — turning your raw experience into polished, professional copy.
+            LivePortfolio helps anyone build a professional portfolio website. No design or coding skills needed.
+            Upload your CV or answer a few questions, and we tell your story. Transforming your raw experience into polished, professional copy.
             Share your portfolio link on LinkedIn, via WhatsApp, in job applications, or anywhere you want to be found.
             See when someone views your profile, what country they're from, and what brought them there.
-            Whether you&apos;re a developer, designer, data scientist, product manager, or career switcher, your online presence starts here.
+            Whether you are a developer, designer, engineer, product manager, or career switcher, your online presence starts here.
             Free to preview. No credit card needed.
           </p>
         </div>
