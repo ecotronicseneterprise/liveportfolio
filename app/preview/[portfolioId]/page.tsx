@@ -342,7 +342,12 @@ export default function PreviewPage() {
         }
 
         // Check plan via server-side getUserPlan (handles both subscriptions + legacy)
-        const planRes = await fetch(`/api/user-plan?userId=${portfolio.user_id}`)
+        const { data: { session: planSession } } = await supabase.auth.getSession()
+        const planRes = await fetch(`/api/user-plan?userId=${portfolio.user_id}`, {
+          headers: planSession?.access_token
+            ? { Authorization: `Bearer ${planSession.access_token}` }
+            : {},
+        })
         const { plan } = await planRes.json()
         const paid = plan !== 'free'
         if (!isInvited) {

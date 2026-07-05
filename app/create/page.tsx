@@ -663,12 +663,12 @@ export default function CreatePage() {
         const bootcampData = localStorage.getItem('lp_bootcamp')
         if (bootcampData) {
           const { code, expires } = JSON.parse(bootcampData)
-          if (Date.now() < expires) {
+          if (Date.now() < expires && authData.session?.access_token) {
             await fetch('/api/bootcamp/redeem', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${authData.session!.access_token}`,
+                Authorization: `Bearer ${authData.session.access_token}`,
               },
               body: JSON.stringify({ code }),
             })
@@ -843,8 +843,8 @@ export default function CreatePage() {
             <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700 flex items-center gap-3">
               <span>🎓</span>
               <span>
-                <strong>{bootcampName}</strong> students get 6 months of LivePortfolio free —{' '}
-                no credit card required. Your free access activates automatically when you sign up.
+                <strong>{bootcampName}</strong> students get 6 months of LivePortfolio free.{' '}
+                Your free access activates automatically when you sign up.
               </span>
             </div>
           )}
