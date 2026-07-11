@@ -88,9 +88,23 @@ export async function PATCH(req: NextRequest) {
 
     const healthScore = calculateHealthScore(mergedContent)
 
+    // Regenerate SEO columns from the updated content so meta title/description
+    // stay in sync with whatever the user has set as their current role and bio.
+    const updatedName = (mergedContent.name as string) || ''
+    const updatedRole = (mergedContent.role as string) || ''
+    const updatedAbout = (mergedContent.about as string) || ''
+    const newSeoTitle = updatedRole
+      ? `${updatedName} | ${updatedRole}`
+      : `${updatedName} | Portfolio`
+    const newSeoDescription = updatedAbout
+      ? updatedAbout.slice(0, 155).replace(/\n/g, ' ').trim()
+      : `${updatedName}'s professional portfolio — built with LivePortfolio.`
+
     const updateData: Record<string, unknown> = {
       content: mergedContent,
       health_score: healthScore,
+      seo_title: newSeoTitle,
+      seo_description: newSeoDescription,
       edit_count: ((portfolio as unknown as { edit_count?: number }).edit_count || 0) + 1,
     }
 
@@ -115,7 +129,10 @@ export async function PATCH(req: NextRequest) {
       .single()
 
     if (userRow?.slug) {
+      // Bust both cache entries — middleware rewrites /${slug} → /portfolio/${slug}
+      // but Next.js ISR tracks them as separate cache keys
       revalidatePath(`/portfolio/${userRow.slug}`)
+      revalidatePath(`/${userRow.slug}`)
     }
 
     return NextResponse.json(updated)
