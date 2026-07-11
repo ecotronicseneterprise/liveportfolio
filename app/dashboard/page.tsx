@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getSupabaseClient } from '@/lib/supabase'
@@ -548,7 +548,6 @@ export default function DashboardPage() {
   const [projectImagePreviews, setProjectImagePreviews] = useState<Record<number, string>>({})
   const [loadError, setLoadError] = useState(false)
   const [saveError, setSaveError] = useState('')
-  const isEditingRef = useRef(false)
 
   useEffect(() => {
     loadData()
@@ -599,12 +598,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const handleFocus = () => {
-      if (isEditingRef.current) return
+      if (activeTab === 'edit') return
       loadData()
     }
     window.addEventListener('focus', handleFocus)
     return () => { window.removeEventListener('focus', handleFocus) }
-  }, [loadData])
+  }, [loadData, activeTab])
 
   // Supabase Realtime — live toast when a new portfolio_view arrives for the Pro user
   // NOTE: Realtime must be enabled for the analytics_events table in the Supabase dashboard
@@ -1397,11 +1396,7 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'edit' && userPlan !== 'free' && (
-          <div
-            className="bg-white border border-gray-100 rounded-2xl p-6 space-y-6"
-            onFocus={() => { isEditingRef.current = true }}
-            onBlur={() => { isEditingRef.current = false }}
-          >
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Edit your portfolio</h2>
               <div className="flex flex-col items-end gap-1">
