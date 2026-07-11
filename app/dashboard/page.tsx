@@ -1692,11 +1692,11 @@ export default function DashboardPage() {
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Add a skill and press Enter"
+                  placeholder="Add a skill — press Enter, comma, or space"
                   className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
                   style={{ fontSize: '16px' }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
                       e.preventDefault()
                       const val = (e.target as HTMLInputElement).value.trim()
                       if (!val) return
