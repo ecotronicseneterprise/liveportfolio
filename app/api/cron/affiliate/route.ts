@@ -225,6 +225,9 @@ export async function GET(req: NextRequest) {
 
     // ── Send partner email ───────────────────────────────────────────────────
     if (!adminOnly) {
+      if (!partner.email || partner.email.trim() === '') {
+        log.push(`partner_report SKIPPED (no email) → ${partnerKey}`)
+      } else
       try {
         await sendEmail({
           to: partner.email,

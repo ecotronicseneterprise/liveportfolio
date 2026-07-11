@@ -350,6 +350,8 @@ export default function CreatePage() {
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle')
   const [slugSuggestion, setSlugSuggestion] = useState('')
   const [uploadingCv, setUploadingCv] = useState(false)
+  const [cvParseError, setCvParseError] = useState<string | null>(null)
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [slugTimer, setSlugTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [generationMessage, setGenerationMessage] = useState('')
   const [suggestedTemplate, setSuggestedTemplate] = useState<string | null>(null)
@@ -413,7 +415,7 @@ export default function CreatePage() {
         window.gtag('event', 'cv_uploaded', { file_type: 'pdf' })
       }
     } catch {
-      // Silent fail — CV parsing is optional
+      setCvParseError("We couldn't read your CV automatically. You can still fill in your details manually below — it only takes a few minutes.")
     } finally {
       setUploadingCv(false)
     }
@@ -535,6 +537,7 @@ export default function CreatePage() {
       if (!form.slug.trim()) return 'Please choose a URL slug'
       if (slugStatus !== 'available') return 'Please choose an available slug'
       if (!form.password || form.password.length < 8) return 'Password must be at least 8 characters'
+      if (form.password !== confirmPassword) return 'Passwords do not match'
       if (!form.agreeTerms) return 'Please agree to the terms'
     }
     return ''
@@ -1004,6 +1007,12 @@ export default function CreatePage() {
               <p className="text-gray-500 text-sm">Tell us who you are. We write the rest.</p>
             </div>
 
+            {cvParseError && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
+                {cvParseError}
+              </div>
+            )}
+
             {/* Required fields */}
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
@@ -1273,7 +1282,8 @@ export default function CreatePage() {
                       </div>
                     ) : (
                       <div className="border-2 border-dashed border-gray-200 rounded-xl p-3 text-center hover:border-[#0A66C2] transition-colors">
-                        <p className="text-xs text-gray-400">Add a screenshot · JPEG/PNG/WebP · max 3MB</p>
+                        <p className="text-xs text-gray-400">Add a screenshot · 1280×720px recommended · JPEG/PNG/WebP</p>
+                        <p className="text-xs text-gray-400 mt-0.5">Image will be cropped to 16:9 to fit the portfolio card</p>
                       </div>
                     )}
                   </label>
@@ -1677,6 +1687,21 @@ export default function CreatePage() {
                   placeholder="Min 8 characters"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Confirm Password <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
+                />
+                {confirmPassword && form.password !== confirmPassword && (
+                  <p className="mt-1 text-sm text-red-500">Passwords do not match</p>
+                )}
               </div>
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
