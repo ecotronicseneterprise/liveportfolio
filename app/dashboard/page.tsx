@@ -1566,6 +1566,7 @@ export default function DashboardPage() {
                 { key: 'github_url', label: 'GitHub URL', type: 'url' },
                 { key: 'linkedin_url', label: 'LinkedIn URL', type: 'url' },
                 { key: 'headline', label: 'Headline', type: 'text' },
+                { key: 'certifications', label: 'Certifications (optional)', type: 'text' },
               ].map(({ key, label, type }) => (
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -1585,6 +1586,36 @@ export default function DashboardPage() {
                   rows={5}
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }}
                 />
+              </div>
+            </div>
+
+            {/* Profile photo */}
+            <div className="pt-2 border-t border-gray-100">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Profile photo</label>
+              <div className="flex items-center gap-4">
+                {(avatarPreview || editContent.avatar_url) && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarPreview || editContent.avatar_url || ''} alt="Profile"
+                    className="w-14 h-14 rounded-full object-cover border border-gray-200 flex-shrink-0" />
+                )}
+                <div>
+                  <label htmlFor="edit-avatar-upload" className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    {avatarUploading ? 'Uploading…' : 'Change photo'}
+                  </label>
+                  <input
+                    id="edit-avatar-upload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) { handleAvatarUpload(f); e.target.value = '' } }}
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Square image recommended · JPEG, PNG, or WebP</p>
+                  {avatarMsg && (
+                    <p className={`text-xs font-medium mt-1 ${avatarMsg.type === 'ok' ? 'text-green-600' : 'text-red-500'}`}>
+                      {avatarMsg.type === 'ok' ? '✓' : '✗'} {avatarMsg.text}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1768,6 +1799,65 @@ export default function DashboardPage() {
               >+ Add experience</button>
             </div>
 
+            {/* Education */}
+            <div className="pt-2 border-t border-gray-100">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Education</label>
+              <div className="space-y-4">
+                {(editContent.education || []).map((edu, i) => (
+                  <div key={i} className="p-4 border border-gray-100 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Education {i + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditContent(prev => ({
+                          ...prev,
+                          education: (prev.education || []).filter((_, idx) => idx !== i)
+                        }))}
+                        className="text-xs text-red-500 hover:text-red-700"
+                      >Remove</button>
+                    </div>
+                    <input type="text" placeholder="Institution (e.g. Nnamdi Azikiwe University)" value={edu.institution || ''}
+                      onChange={(e) => {
+                        const updated = [...(editContent.education || [])]
+                        updated[i] = { ...updated[i], institution: e.target.value }
+                        setEditContent(prev => ({ ...prev, education: updated }))
+                      }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    <input type="text" placeholder="Degree / Qualification (e.g. B.Eng Electronics & Computer Engineering)" value={edu.degree || ''}
+                      onChange={(e) => {
+                        const updated = [...(editContent.education || [])]
+                        updated[i] = { ...updated[i], degree: e.target.value }
+                        setEditContent(prev => ({ ...prev, education: updated }))
+                      }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    <input type="text" placeholder="Period (e.g. 2017 – 2022)" value={edu.year || ''}
+                      onChange={(e) => {
+                        const updated = [...(editContent.education || [])]
+                        updated[i] = { ...updated[i], year: e.target.value }
+                        setEditContent(prev => ({ ...prev, education: updated }))
+                      }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    <textarea placeholder="Description (optional) — e.g. 2:2. Won 2nd place at CODET National Engineering Competition." value={edu.grade || ''}
+                      onChange={(e) => {
+                        const updated = [...(editContent.education || [])]
+                        updated[i] = { ...updated[i], grade: e.target.value }
+                        setEditContent(prev => ({ ...prev, education: updated }))
+                      }}
+                      rows={2}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }} />
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditContent(prev => ({
+                  ...prev,
+                  education: [...(prev.education || []), { institution: '', degree: '', year: '', grade: '' }]
+                }))}
+                className="mt-3 text-sm font-semibold text-[#0A66C2] hover:text-[#084D9A] transition-colors"
+              >+ Add education</button>
+            </div>
+
             {/* Projects */}
             <div className="pt-2 border-t border-gray-100">
               <label className="block text-sm font-medium text-gray-700 mb-3">Projects</label>
@@ -1848,6 +1938,16 @@ export default function DashboardPage() {
                         }}
                         className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
                     </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">GitHub repo URL (optional)</label>
+                      <input type="url" placeholder="https://github.com/username/repo" value={proj.github_url || ''}
+                        onChange={(e) => {
+                          const updated = [...(editContent.projects || [])]
+                          updated[i] = { ...updated[i], github_url: e.target.value }
+                          setEditContent(prev => ({ ...prev, projects: updated }))
+                        }}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1855,7 +1955,7 @@ export default function DashboardPage() {
                 type="button"
                 onClick={() => setEditContent(prev => ({
                   ...prev,
-                  projects: [...(prev.projects || []), { title: '', problem: '', solution: '', outcome: '', stack: [], url: '' }]
+                  projects: [...(prev.projects || []), { title: '', problem: '', solution: '', outcome: '', stack: [], url: '', github_url: '' }]
                 }))}
                 className="mt-3 text-sm font-semibold text-[#0A66C2] hover:text-[#084D9A] transition-colors"
               >+ Add project</button>

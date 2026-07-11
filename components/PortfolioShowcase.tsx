@@ -182,12 +182,33 @@ function Card({
     >
       {/* Only load iframe for active + next slide — prevents 8 simultaneous page loads on mobile */}
       <div style={{ width: cardWidth, height: cardHeight, overflow: 'hidden', position: 'relative', pointerEvents: 'none', touchAction: 'none' }}>
+        {/* Fallback layer — visible when iframe is blank/throttled by browser */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          background: isDark ? darkBg(p) : '#f8f9fa',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: '50%',
+            background: p.accent, marginBottom: 14,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 22, fontWeight: 700, color: '#fff',
+          }}>
+            {p.name.charAt(0)}
+          </div>
+          <p style={{ color: isDark ? '#F8FAFC' : '#0A0A0A', fontWeight: 600, fontSize: 15, margin: 0, textAlign: 'center', padding: '0 20px' }}>{p.name}</p>
+          <p style={{ color: isDark ? '#94A3B8' : '#6B7280', fontSize: 13, margin: '4px 0 14px', textAlign: 'center', padding: '0 20px' }}>{p.role}</p>
+          <span style={{ padding: '5px 14px', borderRadius: 999, background: p.accent, color: '#fff', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            {p.template}
+          </span>
+        </div>
         {shouldLoad ? (
           <iframe
             src={url}
             title={`${p.name} portfolio`}
             scrolling="no"
             style={{
+              position: 'relative', zIndex: 1,
               width: IFRAME_WIDTH,
               height: iframeHeight,
               border: 'none',
@@ -198,9 +219,7 @@ function Card({
               display: 'block',
             }}
           />
-        ) : (
-          <div style={{ width: '100%', height: '100%', background: isDark ? darkBg(p) : '#f8f9fa' }} />
-        )}
+        ) : null}
       </div>
 
       {/* Info bar pinned to bottom */}
