@@ -801,6 +801,18 @@ export default function CreatePage() {
           template: form.template,
         })
       }
+      // Fire-and-forget welcome email — do not await, do not block navigation
+      fetch('/api/email/welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.email,
+          name: form.name,
+          portfolioId: genData.portfolio_id,
+          slug: form.slug,
+        }),
+      }).catch(() => {})
+
       if (inviteUpgraded) {
         window.location.href = `/preview/${genData.portfolio_id}?invited=true`
       } else {
