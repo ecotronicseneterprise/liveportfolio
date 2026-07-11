@@ -144,13 +144,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ portfolio_id: existing.id, preview_ready: true })
   }
 
-  let body: Partial<InputData>
+  let body: Partial<InputData & { avatar_url?: string }>
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
+  const avatarUrl = typeof body.avatar_url === 'string' ? body.avatar_url.slice(0, 500) : undefined
   const input = parseInput(body)
 
   if (!input.name || !input.role || !input.email) {
@@ -240,6 +241,7 @@ export async function POST(req: NextRequest) {
     location: input.location,
     github_url: input.github_url || null,
     linkedin_url: input.linkedin_url || null,
+    avatar_url: avatarUrl || (portfolioContent.avatar_url as string | undefined) || null,
     projects: mergedProjects,
     // Education/certifications: prefer AI output, fall back to user-provided data
     education: (portfolioContent.education as unknown[] | undefined)?.length
