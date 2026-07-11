@@ -1785,35 +1785,69 @@ export default function DashboardPage() {
                         className="text-xs text-red-500 hover:text-red-700"
                       >Remove</button>
                     </div>
-                    <input type="text" placeholder="Project title" value={proj.title || ''}
-                      onChange={(e) => {
-                        const updated = [...(editContent.projects || [])]
-                        updated[i] = { ...updated[i], title: e.target.value }
-                        setEditContent(prev => ({ ...prev, projects: updated }))
-                      }}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
-                    <textarea placeholder="What did you build and why?" value={proj.solution || ''}
-                      onChange={(e) => {
-                        const updated = [...(editContent.projects || [])]
-                        updated[i] = { ...updated[i], solution: e.target.value }
-                        setEditContent(prev => ({ ...prev, projects: updated }))
-                      }}
-                      rows={3}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }} />
-                    <input type="text" placeholder="Tech stack (React, Node.js, PostgreSQL)" value={(proj.stack || []).join(', ')}
-                      onChange={(e) => {
-                        const updated = [...(editContent.projects || [])]
-                        updated[i] = { ...updated[i], stack: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }
-                        setEditContent(prev => ({ ...prev, projects: updated }))
-                      }}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
-                    <input type="url" placeholder="Live URL (optional)" value={proj.url || ''}
-                      onChange={(e) => {
-                        const updated = [...(editContent.projects || [])]
-                        updated[i] = { ...updated[i], url: e.target.value }
-                        setEditContent(prev => ({ ...prev, projects: updated }))
-                      }}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Project title</label>
+                      <input type="text" placeholder="e.g. Payment Gateway Integration" value={proj.title || ''}
+                        onChange={(e) => {
+                          const updated = [...(editContent.projects || [])]
+                          updated[i] = { ...updated[i], title: e.target.value }
+                          setEditContent(prev => ({ ...prev, projects: updated }))
+                        }}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Problem it solved</label>
+                      <textarea placeholder="What problem were you solving?" value={proj.problem || ''}
+                        onChange={(e) => {
+                          const updated = [...(editContent.projects || [])]
+                          updated[i] = { ...updated[i], problem: e.target.value }
+                          setEditContent(prev => ({ ...prev, projects: updated }))
+                        }}
+                        rows={2}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">What you built</label>
+                      <textarea placeholder="What did you build and how?" value={proj.solution || ''}
+                        onChange={(e) => {
+                          const updated = [...(editContent.projects || [])]
+                          updated[i] = { ...updated[i], solution: e.target.value }
+                          setEditContent(prev => ({ ...prev, projects: updated }))
+                        }}
+                        rows={2}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Outcome / impact</label>
+                      <textarea placeholder="e.g. Reduced churn by 20%, 5,000 active users" value={proj.outcome || ''}
+                        onChange={(e) => {
+                          const updated = [...(editContent.projects || [])]
+                          updated[i] = { ...updated[i], outcome: e.target.value }
+                          setEditContent(prev => ({ ...prev, projects: updated }))
+                        }}
+                        rows={2}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Tech stack (comma-separated)</label>
+                      <input type="text" placeholder="React, Node.js, PostgreSQL" value={(proj.stack || []).join(', ')}
+                        onChange={(e) => {
+                          const updated = [...(editContent.projects || [])]
+                          updated[i] = { ...updated[i], stack: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }
+                          setEditContent(prev => ({ ...prev, projects: updated }))
+                        }}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Live URL (optional)</label>
+                      <input type="url" placeholder="https://..." value={proj.url || ''}
+                        onChange={(e) => {
+                          const updated = [...(editContent.projects || [])]
+                          updated[i] = { ...updated[i], url: e.target.value }
+                          setEditContent(prev => ({ ...prev, projects: updated }))
+                        }}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    </div>
                   </div>
                 ))}
               </div>
