@@ -75,6 +75,11 @@ ${text}`,
     if (!content) return NextResponse.json({})
 
     const raw = JSON.parse(content)
+
+    function stripBulletMarker(s: string): string {
+      return s.replace(/^[\s▸•→\-\*▶‣◦]+/, '').trim()
+    }
+
     // FIX 11: Return only known fields — never pass raw AI output directly
     const extracted = {
       name: raw.name ?? null,
@@ -86,7 +91,14 @@ ${text}`,
       linkedin_url: raw.linkedin_url ?? null,
       skills: Array.isArray(raw.skills) ? raw.skills : [],
       projects: Array.isArray(raw.projects) ? raw.projects : [],
-      experience: Array.isArray(raw.experience) ? raw.experience : [],
+      experience: Array.isArray(raw.experience)
+        ? raw.experience.map((e: { company?: string; role?: string; period?: string; bullets?: unknown[] }) => ({
+            ...e,
+            bullets: Array.isArray(e.bullets)
+              ? e.bullets.map((b) => stripBulletMarker(String(b)))
+              : [],
+          }))
+        : [],
     }
     return NextResponse.json(extracted)
   } catch {

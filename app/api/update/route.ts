@@ -3,6 +3,10 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
+function stripBulletMarker(s: string): string {
+  return s.replace(/^[\s▸•→\-\*▶‣◦]+/, '').trim()
+}
+
 function calculateHealthScore(content: Record<string, unknown>): number {
   let score = 0
   if (content.avatar_url) score += 10
@@ -76,11 +80,24 @@ export async function PATCH(req: NextRequest) {
       'skills', 'skills_grouped', 'skills_narrative',
       'projects', 'experience', 'education', 'certifications',
     ])
-    const sanitizedUpdate = contentUpdate
+    const rawUpdate = contentUpdate
       ? Object.fromEntries(
           Object.entries(contentUpdate as Record<string, unknown>).filter(([k]) => ALLOWED_CONTENT_KEYS.has(k))
         )
       : null
+
+    // Strip leading bullet marker characters from experience bullets so templates
+    // don't double-render them (e.g. "▸ Built X" → template adds its own ▸ → "▸ ▸ Built X")
+    if (rawUpdate?.experience && Array.isArray(rawUpdate.experience)) {
+      rawUpdate.experience = (rawUpdate.experience as Array<{ bullets?: unknown[] }>).map((e) => ({
+        ...e,
+        bullets: Array.isArray(e.bullets)
+          ? e.bullets.map((b) => stripBulletMarker(String(b)))
+          : e.bullets,
+      }))
+    }
+
+    const sanitizedUpdate = rawUpdate
 
     const mergedContent = sanitizedUpdate
       ? { ...(portfolio.content as Record<string, unknown>), ...sanitizedUpdate }

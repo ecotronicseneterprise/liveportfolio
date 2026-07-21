@@ -23,6 +23,10 @@ function stripHtml(text: string): string {
   return text.replace(/<[^>]*>/g, '').trim()
 }
 
+function stripBulletMarker(s: string): string {
+  return s.replace(/^[\s▸•→\-\*▶‣◦]+/, '').trim()
+}
+
 function fallbackContent(input: ReturnType<typeof parseInput>) {
   return {
     name: input.name,
@@ -90,7 +94,7 @@ function parseInput(body: Partial<InputData>) {
       company: stripHtml(e.company || '').slice(0, 80),
       role: stripHtml(e.role || '').slice(0, 80),
       period: stripHtml(e.period || '').slice(0, 40),
-      bullets: (e.bullets || []).slice(0, 4).map((b) => stripHtml(b).slice(0, 200)),
+      bullets: (e.bullets || []).slice(0, 4).map((b) => stripBulletMarker(stripHtml(b)).slice(0, 200)),
     })),
     education: (body.education || []).slice(0, 3).map((e) => ({
       degree: stripHtml(e.degree || '').slice(0, 100),
