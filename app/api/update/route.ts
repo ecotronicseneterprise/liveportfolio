@@ -92,7 +92,9 @@ export async function PATCH(req: NextRequest) {
       rawUpdate.experience = (rawUpdate.experience as Array<{ bullets?: unknown[] }>).map((e) => ({
         ...e,
         bullets: Array.isArray(e.bullets)
-          ? e.bullets.map((b) => stripBulletMarker(String(b)))
+          ? e.bullets
+              .map((b) => stripBulletMarker(String(b)))
+              .filter((b) => b.length > 0)
           : e.bullets,
       }))
     }
