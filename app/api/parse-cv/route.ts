@@ -95,7 +95,7 @@ ${text}`,
         ? raw.experience.map((e: { company?: string; role?: string; period?: string; bullets?: unknown[] }) => ({
             ...e,
             bullets: Array.isArray(e.bullets)
-              ? e.bullets.map((b) => stripBulletMarker(String(b))).filter((b) => b.length > 0)
+              ? e.bullets.map((b) => stripBulletMarker(String(b))).filter((b) => b.length > 0 && !b.endsWith(':'))
               : [],
           }))
         : [],

@@ -94,7 +94,7 @@ function parseInput(body: Partial<InputData>) {
       company: stripHtml(e.company || '').slice(0, 80),
       role: stripHtml(e.role || '').slice(0, 80),
       period: stripHtml(e.period || '').slice(0, 40),
-      bullets: (e.bullets || []).slice(0, 4).map((b) => stripBulletMarker(stripHtml(b)).slice(0, 200)).filter((b) => b.length > 0),
+      bullets: (e.bullets || []).slice(0, 4).map((b) => stripBulletMarker(stripHtml(b)).slice(0, 200)).filter((b) => b.length > 0 && !b.endsWith(':')),
     })),
     education: (body.education || []).slice(0, 3).map((e) => ({
       degree: stripHtml(e.degree || '').slice(0, 100),

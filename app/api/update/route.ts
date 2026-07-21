@@ -94,7 +94,7 @@ export async function PATCH(req: NextRequest) {
         bullets: Array.isArray(e.bullets)
           ? e.bullets
               .map((b) => stripBulletMarker(String(b)))
-              .filter((b) => b.length > 0)
+              .filter((b) => b.length > 0 && !b.endsWith(':'))
           : e.bullets,
       }))
     }
