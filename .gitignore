@@ -10,3 +10,9 @@ node_modules
 .claude/skills/
 affiliate-commands.sh
 .vercel
+
+# CV fixtures may contain personal data
+/fixtures/cvs/*
+!/fixtures/cvs/.gitkeep
+/fixtures/baseline/*
+!/fixtures/baseline/.gitkeep

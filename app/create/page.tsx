@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
 import Logo from '@/components/Logo'
 import ImageCropper from '@/components/ImageCropper'
+import { applyDraftToForm } from '@/lib/connectors/to-form'
+import type { ImportDraft } from '@/lib/connectors/types'
 
 interface Project {
   title: string
@@ -52,6 +54,12 @@ interface FormData {
 
 // ── Entry choice screen ──────────────────────────────────────────────────────
 type EntryChoice = 'none' | 'cv' | 'manual'
+
+// The local FormData interface below shadows the DOM one, so name the DOM type explicitly.
+type WebFormData = InstanceType<typeof globalThis.FormData>
+
+// Baked in at build time. The API route is separately gated by IMPORT_ENABLED on the server.
+const IMPORT_ENABLED_UI = process.env.NEXT_PUBLIC_IMPORT_ENABLED === 'true'
 
 const STEPS = ['Your Basics', 'Projects & Experience', 'Template', 'Claim Your URL']
 
@@ -351,6 +359,8 @@ export default function CreatePage() {
   const [slugSuggestion, setSlugSuggestion] = useState('')
   const [uploadingCv, setUploadingCv] = useState(false)
   const [cvParseError, setCvParseError] = useState<string | null>(null)
+  const [importPanel, setImportPanel] = useState<null | 'github' | 'text'>(null)
+  const [importValue, setImportValue] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [slugTimer, setSlugTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [generationMessage, setGenerationMessage] = useState('')
@@ -377,48 +387,53 @@ export default function CreatePage() {
     setError('')
   }
 
-  // CV Upload
-  const handleCvUpload = async (file: File) => {
+  // Shared by CV upload, GitHub and pasted text. Maps API errors to a message the user can act on.
+  const importFrom = async (url: string, fd: WebFormData, kind: string): Promise<boolean> => {
     setUploadingCv(true)
+    setCvParseError(null)
     try {
-      const fd = new FormData()
-      fd.append('file', file)
-      const res = await fetch('/api/parse-cv', { method: 'POST', body: fd })
-      const data = await res.json()
+      const res = await fetch(url, { method: 'POST', body: fd })
+      const data = await res.json().catch(() => ({}))
 
-      if (data.name) update('name', data.name)
-      if (data.role) update('role', data.role)
-      if (data.email) update('email', data.email)
-      if (data.location) update('location', data.location)
-      if (data.bio) update('bio', data.bio.slice(0, 500))
-      if (data.github_url) update('github_url', data.github_url.slice(0, 200))
-      if (data.linkedin_url) update('linkedin_url', data.linkedin_url.slice(0, 200))
-      if (data.projects?.length) {
-        update('projects', data.projects.slice(0, 4).map((p: { title?: string; description?: string; stack?: string[] }) => ({
-          title: p.title || '',
-          description: p.description || '',
-          stack: (p.stack || []).join(', '),
-          url: '',
-          imageFile: null,
-          image_preview: '',
-        })))
+      if (!res.ok) {
+        setCvParseError(
+          res.status === 429
+            ? "You've reached the import limit for now. You can still fill in your details manually below."
+            : (data.message as string) ||
+              "We couldn't read that automatically. You can still fill in your details manually below — it only takes a few minutes."
+        )
+        return false
       }
-      if (data.experience?.length) {
-        update('experience', data.experience.map((e: { company?: string; role?: string; period?: string; bullets?: string[] }) => ({
-          company: e.company || '',
-          role: e.role || '',
-          period: e.period || '',
-          bullets: (e.bullets || []).join('\n'),
-        })))
-      }
+
+      // /api/import wraps the result in { draft }; /api/parse-cv returns the draft itself.
+      const draft = (data.draft ?? data) as Partial<ImportDraft>
+      setForm((prev) => applyDraftToForm(prev, draft))
+      setError('')
       if (typeof window.gtag !== 'undefined') {
-        window.gtag('event', 'cv_uploaded', { file_type: 'pdf' })
+        window.gtag('event', 'cv_uploaded', { file_type: kind })
       }
+      return true
     } catch {
-      setCvParseError("We couldn't read your CV automatically. You can still fill in your details manually below — it only takes a few minutes.")
+      setCvParseError("We couldn't read that automatically. You can still fill in your details manually below — it only takes a few minutes.")
+      return false
     } finally {
       setUploadingCv(false)
     }
+  }
+
+  // CV Upload (PDF or DOCX)
+  const handleCvUpload = async (file: File) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    await importFrom('/api/parse-cv', fd, file.name.toLowerCase().endsWith('.docx') ? 'docx' : 'pdf')
+  }
+
+  // GitHub username / pasted text (feature-flagged, see IMPORT_ENABLED_UI)
+  const handleSourceImport = async (field: 'github' | 'text', value: string) => {
+    setEntryChoice('cv')
+    const fd = new FormData()
+    fd.append(field, value)
+    await importFrom('/api/import', fd, field)
   }
 
   // Avatar Upload — opens cropper
@@ -887,7 +902,7 @@ export default function CreatePage() {
             <label className="cursor-pointer block h-full">
               <input
                 type="file"
-                accept="application/pdf"
+                accept="application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 className="hidden"
                 onChange={async (e) => {
                   const file = e.target.files?.[0]
@@ -921,6 +936,60 @@ export default function CreatePage() {
 
           </div>
 
+          {/* More sources (feature-flagged) */}
+          {IMPORT_ENABLED_UI && (
+            <div className="mt-4">
+              <p className="text-xs text-gray-400 text-center mb-2">Or start from</p>
+              <div className="flex gap-2 justify-center">
+                {([['github', 'GitHub username'], ['text', 'Paste text']] as const).map(([k, label]) => (
+                  <button
+                    key={k}
+                    onClick={() => { setImportPanel(importPanel === k ? null : k); setImportValue('') }}
+                    className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
+                      importPanel === k ? 'border-[#0A66C2] text-[#0A66C2] bg-blue-50' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {importPanel && (
+                <div className="mt-3 space-y-2">
+                  {importPanel === 'github' ? (
+                    <input
+                      type="text"
+                      value={importValue}
+                      onChange={(e) => setImportValue(e.target.value.slice(0, 100))}
+                      placeholder="octocat or github.com/octocat"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm"
+                    />
+                  ) : (
+                    <textarea
+                      value={importValue}
+                      onChange={(e) => setImportValue(e.target.value.slice(0, 12000))}
+                      rows={6}
+                      placeholder="Paste your CV, LinkedIn sections or a short bio"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm"
+                    />
+                  )}
+                  <button
+                    disabled={!importValue.trim()}
+                    onClick={() => handleSourceImport(importPanel, importValue)}
+                    className="w-full py-2.5 bg-[#0A66C2] text-white text-sm font-bold rounded-xl disabled:opacity-40"
+                  >
+                    Import
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Consent */}
+          <p className="text-xs text-gray-400 text-center mt-6">
+            Your CV or pasted text is processed by OpenAI to fill in this form
+            {IMPORT_ENABLED_UI ? '; GitHub imports read only your public profile' : ''}. We don&apos;t keep the file.
+          </p>
+
           {/* Account note */}
           <p className="text-xs text-gray-400 text-center mt-6">
             No account needed to start — you create one at the end to save your work.
@@ -936,7 +1005,7 @@ export default function CreatePage() {
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-[#0A66C2] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-gray-500">Reading your CV…</p>
+          <p className="text-sm text-gray-500">Reading your details…</p>
         </div>
       </div>
     )
