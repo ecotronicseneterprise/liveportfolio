@@ -8,7 +8,7 @@ export async function getUserPlan(userId: string): Promise<'free' | 'basic' | 'p
     .from('subscriptions')
     .select('plan')
     .eq('user_id', userId)
-    .eq('status', 'active')
+    .in('status', ['active', 'cancelled']) // cancelled keeps access until expires_at
     .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
     .limit(1)

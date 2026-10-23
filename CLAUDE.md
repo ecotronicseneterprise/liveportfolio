@@ -852,7 +852,7 @@ with free Pro on signup. Each token is single-use, expires in 7 days, and is sto
 **Generate an invite link — run on VPS:**
 ```bash
 curl -s -X POST \
-  -H 'x-cron-secret: '"643a3fc36a90600238f9ccd59f7fece4bdacd72acaea9aae8ac84851151d87d8"'' \
+  -H 'x-cron-secret: '"YOUR_LITERAL_SECRET"'' \
   -H "Content-Type: application/json" \
   -d '{
     "partner_key": "esther",
