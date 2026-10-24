@@ -13,6 +13,7 @@ import UpgradeModal from '@/components/UpgradeModal'
 import ImageCropper from '@/components/ImageCropper'
 import LiveToast, { pushLiveToast } from '@/components/LiveToast'
 import Turnstile from '@/components/onboarding/Turnstile'
+import HistoryPanel from '@/components/dashboard/HistoryPanel'
 import { captchaOptions } from '@/lib/onboarding/captcha'
 import { DRAFT_KEY } from '@/lib/onboarding/draft'
 
@@ -557,6 +558,7 @@ export default function DashboardPage() {
   const [projectImagePreviews, setProjectImagePreviews] = useState<Record<number, string>>({})
   const [loadError, setLoadError] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [historyTick, setHistoryTick] = useState(0)
 
   useEffect(() => {
     loadData()
@@ -777,9 +779,12 @@ export default function DashboardPage() {
       })
       if (res.ok) {
         const updated = await res.json()
-        setPortfolio((prev) => prev ? { ...prev, health_score: updated.health_score } : prev)
+        setPortfolio((prev) => prev ? { ...prev, health_score: updated.health_score ?? prev.health_score } : prev)
+        setHistoryTick((n) => n + 1)
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
+      } else if (res.status === 409) {
+        setSaveError('This portfolio changed somewhere else. Reload the page, then make your edit again.')
       } else {
         setSaveError('Failed to save. Please try again.')
       }
@@ -1968,6 +1973,17 @@ export default function DashboardPage() {
                 <p style={{ color: '#EF4444', fontSize: 13, marginTop: 8 }}>{saveError}</p>
               )}
             </div>
+
+            <HistoryPanel
+              token={accessToken}
+              refreshKey={historyTick}
+              onRestored={(r) => {
+                setEditContent(r.content as Partial<PortfolioContent>)
+                setTemplate(r.template)
+                setPreviewTemplate(r.template)
+                setPortfolio((prev) => prev ? { ...prev, content: r.content as unknown as PortfolioContent, template: r.template, health_score: r.health_score ?? prev.health_score } : prev)
+              }}
+            />
           </div>
         )}
 
