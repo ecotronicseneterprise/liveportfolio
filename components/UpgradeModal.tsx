@@ -93,10 +93,12 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
     const payCurrency = isIntl ? 'USD' : 'NGN'
 
     // The webhook matches the payer to an account by this id (falling back to the e-mail if it is missing).
+    // getSession() reads local state (no network call), so the Pay click stays instant; the id is only a hint and the
+    // webhook never trusts it over the payer's e-mail for an account that already has a paid plan.
     let userId: string | undefined
     try {
-      const { data } = await getSupabaseClient().auth.getUser()
-      userId = data.user?.id
+      const { data } = await getSupabaseClient().auth.getSession()
+      userId = data.session?.user?.id
     } catch {}
 
     const handler = PaystackPop.setup({

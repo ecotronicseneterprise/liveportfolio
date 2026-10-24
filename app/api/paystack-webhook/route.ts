@@ -242,7 +242,8 @@ async function claimPayment(
 
 async function releasePayment(supabaseAdmin: Admin, reference: string) {
   const { error } = await supabaseAdmin.from('payments').delete().eq('ls_order_id', reference)
-  if (error) console.error('[webhook] could not release payment claim:', error.message)
+  // If this fails the retry will see a "duplicate" and skip a payment that was never applied: reconcile it by hand.
+  if (error) console.error('[webhook] RECONCILE BY HAND: could not release payment claim after a failed grant. reference', reference, 'error', error.message)
 }
 
 async function notifyLive(user: { email: string; slug: string }) {

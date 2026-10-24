@@ -343,6 +343,14 @@ describe('database errors make Paystack retry', () => {
     expect(h.db.payments).toHaveLength(1)
   })
 
+  it('if releasing the claim ALSO fails, it is logged at error level with the reference so it can be reconciled by hand', async () => {
+    h.failures.push({ table: 'subscriptions', op: 'insert' })
+    h.failures.push({ table: 'payments', op: 'delete' })
+    expect((await send(charge({ reference: 'ref-stuck' }))).status).toBe(500)
+    const logged = (console.error as unknown as { mock: { calls: unknown[][] } }).mock.calls.map((c) => c.join(' '))
+    expect(logged.some((l) => l.includes('RECONCILE BY HAND') && l.includes('ref-stuck'))).toBe(true)
+  })
+
   it('a failure to record the payment claim: 500 and nothing granted', async () => {
     h.failures.push({ table: 'payments', op: 'insert' })
     expect((await send(charge())).status).toBe(500)
