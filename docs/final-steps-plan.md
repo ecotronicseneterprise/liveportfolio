@@ -7,7 +7,7 @@ Written 2026-10-24 against `main` = `dev` = `e0dbcc9`. No code, env var, SQL or 
 | Phase | Status |
 |---|---|
 | P4 consent and policy | done on dev (a27d825); Meta Pixel removed, GA4 only after consent; waiting for your checks and legal review |
-| P2a openai 7 | done locally (not pushed, waiting for your P4-merge confirmation); P2b zod 4 next, with the ops.ts patch-schema fix |
+| P2a openai 7, P2b zod 4 | both done locally (cb0b598 + next commit), NOT pushed: waiting for your confirmation that the P4 merge to main is done |
 | P5, P6 | after P2 / in parallel |
 | P1 | your manual test |
 | P3, P7, P8 | waiting (bench key / your "next") |
