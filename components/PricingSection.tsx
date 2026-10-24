@@ -105,7 +105,7 @@ export default function PricingSection() {
             <ul className="space-y-2 text-sm text-gray-700 mb-6 flex-1">
               {[
                 'Everything in Basic',
-                '11 professional templates including 8 role-specific',
+                '7 more premium, role-specific templates (10 in total)',
                 'See who views your portfolio — location, source, and timing',
                 'Unique visitor count',
                 'QR code for your portfolio',

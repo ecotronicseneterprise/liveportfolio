@@ -47,7 +47,7 @@ const faqJsonLd = {
       name: 'Can I use my own domain name with LivePortfolio?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Your portfolio publishes at liveportfolio.site/yourname by default. Custom domain support is available on Pro plans — connect any domain you own to your LivePortfolio page.',
+        text: 'Your portfolio publishes at liveportfolio.site/yourname by default. Custom domains are not available yet.',
       },
     },
     {
@@ -87,7 +87,7 @@ const faqJsonLd = {
       name: 'Does LivePortfolio work for Nigerian job seekers and remote workers?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes — LivePortfolio is built with African tech professionals in mind. Plans are priced in Naira (₦15,000/year for Basic), payments are accepted via Paystack, and the AI is trained to present your experience in a way that resonates with both local and international remote employers.',
+        text: 'Yes — LivePortfolio is built with African tech professionals in mind. Basic is ₦15,000/year in Nigeria and $10/year internationally, payments are accepted via Paystack, and the AI is trained to present your experience in a way that resonates with both local and international remote employers.',
       },
     },
     {
@@ -153,7 +153,7 @@ const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'Can I use my own domain name with LivePortfolio?',
-    a: 'Your portfolio publishes at liveportfolio.site/yourname by default. Custom domain support is available on Pro plans — connect any domain you own to your LivePortfolio page.',
+    a: 'Your portfolio publishes at liveportfolio.site/yourname by default. Custom domains are not available yet.',
   },
   {
     q: 'Is LivePortfolio a good alternative to Wix for professionals?',

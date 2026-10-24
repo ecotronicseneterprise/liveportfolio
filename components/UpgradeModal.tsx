@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRegion } from '@/hooks/useRegion'
 import { useUsdRate } from '@/hooks/useUsdRate'
+import { getSupabaseClient } from '@/lib/supabase'
 
 const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ''
 const BASIC_PLAN_CODE = process.env.NEXT_PUBLIC_PAYSTACK_BASIC_PLAN_CODE || ''
@@ -71,7 +72,7 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
 
   const isTestMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('test') === '1'
 
-  const handlePay = (planCode: string, tier: 'basic' | 'pro') => {
+  const handlePay = async (planCode: string, tier: 'basic' | 'pro') => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const PaystackPop = (window as any).PaystackPop
     if (!PaystackPop) {
@@ -91,11 +92,19 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
       : (tier === 'pro' ? 45000 : 15000)
     const payCurrency = isIntl ? 'USD' : 'NGN'
 
+    // The webhook matches the payer to an account by this id (falling back to the e-mail if it is missing).
+    let userId: string | undefined
+    try {
+      const { data } = await getSupabaseClient().auth.getUser()
+      userId = data.user?.id
+    } catch {}
+
     const handler = PaystackPop.setup({
       key: PAYSTACK_PUBLIC_KEY,
       email: userEmail,
       plan: planCode,
       ref: `lp-${portfolioId}-${tier}-${Date.now()}`,
+      metadata: userId ? { user_id: userId } : undefined,
       callback: () => {
         if (typeof window.gtag !== 'undefined') {
           window.gtag('event', 'publish_success', {
