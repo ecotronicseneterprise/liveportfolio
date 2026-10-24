@@ -89,5 +89,11 @@
     "network": "Connection problem. Check your network and try again.",
     "unknown": "Something went wrong. Please try again.",
     "unauthorized": "Please sign in again."
+  },
+  "social": {
+    "sendCode": "Send me a code",
+    "useAnother": "Use a different address",
+    "finishing": "Signing you in…",
+    "failed": "We couldn’t finish signing you in. Please try again."
   }
 }

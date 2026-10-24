@@ -18,7 +18,7 @@ function walk(dir: string, out: string[] = []): string[] {
 const files = walk(ROOT).map((f) => ({ rel: path.relative(ROOT, f).split(path.sep).join('/'), src: fs.readFileSync(f, 'utf8') }))
 
 // Every call that Supabase's CAPTCHA protection applies to, as made through an auth client (`auth.signUp(`, `supabase.auth.signUp(` …).
-const CALLS = /\bauth\s*\.\s*(signInWithPassword|signUp|resend|resetPasswordForEmail)\(/g
+const CALLS = /\bauth\s*\.\s*(signInWithPassword|signUp|resend|resetPasswordForEmail|signInWithOtp)\(/g
 // The OLD wizard's signUp has no widget and is deliberately not touched. Enforce CAPTCHA in Supabase only after it is retired.
 const NOT_WIRED: Record<string, string[]> = { 'app/create/page.tsx': ['signUp'] }
 

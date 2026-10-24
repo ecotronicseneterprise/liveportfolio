@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { draftFromImport, sanitizeDraft } from '@/lib/onboarding/draft'
 import { useFlow } from '@/lib/onboarding/use-flow'
@@ -17,9 +17,18 @@ export default function ImportStep() {
   const [mode, setMode] = useState<Mode>('file')
   const [file, setFile] = useState<File | null>(null)
   const [github, setGithub] = useState('')
+  const [prefilled, setPrefilled] = useState(false)
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  // GitHub sign-in: suggest the username (already validated against GitHub's login rules); the person can change it
+  useEffect(() => {
+    if (prefilled || flow.loading || !flow.provider.githubLogin || !GITHUB_ENABLED) return
+    setPrefilled(true)
+    setGithub(flow.provider.githubLogin)
+    setMode('github')
+  }, [prefilled, flow.loading, flow.provider.githubLogin])
 
   const run = async () => {
     setError(''); setBusy(true)

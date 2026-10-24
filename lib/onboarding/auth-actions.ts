@@ -27,6 +27,8 @@ export interface AuthLike {
     a: { email: string; token: string; type: 'email' | 'signup' } | { token_hash: string; type: OtpType },
   ): Promise<{ data: { session: Session }; error: AuthErr }>
   resetPasswordForEmail(email: string, o?: { redirectTo?: string; captchaToken?: string }): Promise<{ error: AuthErr }>
+  signInWithOtp(a: { email: string; options?: { shouldCreateUser?: boolean; captchaToken?: string; emailRedirectTo?: string } }): Promise<{ error: AuthErr }>
+  signInWithOAuth(a: { provider: 'google' | 'github' | 'linkedin_oidc'; options?: { redirectTo?: string } }): Promise<{ error: AuthErr }>
 }
 export type OtpType = 'signup' | 'email' | 'recovery' | 'email_change' | 'invite' | 'magiclink'
 

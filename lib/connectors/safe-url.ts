@@ -38,6 +38,11 @@ export function isLinkedinProfileUrl(v: unknown): v is string {
   return (h === 'linkedin.com' || h.endsWith('.linkedin.com')) && /^\/in\/[^/]+/i.test(u.pathname)
 }
 
+// GitHub logins: 1-39 letters/digits/single hyphens, no leading or trailing hyphen. The ONE definition: the connector, the
+// import form and the social sign-in prefill all use it.
+export const GITHUB_LOGIN_RE = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/
+export const isGithubLogin = (v: unknown): v is string => typeof v === 'string' && GITHUB_LOGIN_RE.test(v)
+
 // GitHub repo names: letters, digits, '.', '_', '-' (max 100). An entry may be "owner/name".
 const REPO_PART = /^[A-Za-z0-9._-]{1,100}$/
 export function isRepoRef(s: string): boolean {

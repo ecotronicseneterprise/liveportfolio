@@ -24,7 +24,8 @@ function check(error: PgError, what: string): void {
 
 // ─── Expected prices ──────────────────────────────────────────────────────────────────────────────────────
 // Amounts are in the currency's SMALLEST unit (kobo / cents), exactly as Paystack sends them. A charge whose
-// currency+amount is not listed for the resolved plan is rejected and logged: it grants nothing.
+// currency+amount is not listed for the resolved plan is LOGGED, and rejected (grants nothing) only when
+// PAYSTACK_PRICE_CHECK=enforce; see priceCheckEnforced() below.
 // Defaults are the NGN prices shown in components/UpgradeModal.tsx (Basic ₦15,000, Pro ₦45,000) and the ₦500 test plan.
 // Override with PAYSTACK_EXPECTED_PRICES='{"basic":[{"currency":"NGN","amount":1500000},{"currency":"USD","amount":1000}],...}'
 // (confirm these against the plans in the Paystack dashboard before relying on them).

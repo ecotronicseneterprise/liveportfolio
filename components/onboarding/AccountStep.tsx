@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Turnstile from './Turnstile'
+import SocialSignIn from './SocialSignIn'
 import { createAccount, sendReset, signIn } from '@/lib/onboarding/auth-actions'
 import { signOutAndClear } from '@/lib/onboarding/draft'
 import { getAuth, useFlow } from '@/lib/onboarding/use-flow'
@@ -108,6 +109,7 @@ export default function AccountStep() {
         {mode === 'signin' && <button type="button" onClick={reset} disabled={busy} className="block mt-3 underline min-h-11">{t('account.forgot')}</button>}
         <p className="text-sm mt-4">{t('account.terms')}</p>
       </form>
+      <SocialSignIn next="/create/account" onSignedIn={() => flow.goNext()} />
     </main>
   )
 }

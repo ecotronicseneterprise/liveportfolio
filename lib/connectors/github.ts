@@ -4,7 +4,7 @@ import { isGrounded } from './grounding'
 import { RANK, RepoFacts, isProfileOrSiteRepo, rankRepos, scoreRepo } from './github-rank'
 import { aggregateSkills, projectStack } from './github-skills'
 import { cleanUrl, normalizeProfile, truncateWords } from './normalize'
-import { isGithubAvatarUrl, isLinkedinProfileUrl } from './safe-url'
+import { GITHUB_LOGIN_RE, isGithubAvatarUrl, isLinkedinProfileUrl } from './safe-url'
 import { ConnectorResult, ImportError, ImportProject, LIMITS, ProjectCandidate, Provenance } from './types'
 
 // GitHub connector — public data only. GITHUB_TOKEN (optional, SERVER-SIDE ONLY, never sent to the client or
@@ -17,7 +17,7 @@ import { ConnectorResult, ImportError, ImportProject, LIMITS, ProjectCandidate, 
 //   → scored ranking (github-rank.ts) → ~10 candidates, best 4 pre-selected (the form and /api/generate take at most 4) (the review form lets the user change it).
 
 const API = 'https://api.github.com'
-const USERNAME_RE = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/
+const USERNAME_RE = GITHUB_LOGIN_RE
 const SEARCH_RESULT_CAP = 1000
 const MAX_PAGES = 10
 

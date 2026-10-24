@@ -16,7 +16,12 @@ export default function ReviewStep() {
   const [d, setD] = useState<Draft | null>(null)
   const [error, setError] = useState('')
 
-  useEffect(() => { if (!flow.loading) setD(flow.draft ?? sanitizeDraft({ status: 'imported' })) }, [flow.loading, flow.draft])
+  useEffect(() => {
+    if (flow.loading) return
+    const base = flow.draft ?? sanitizeDraft({ status: 'imported' })!
+    // social sign-in: suggest the provider name when the draft has none yet
+    setD(base.name || !flow.provider.name ? base : { ...base, name: flow.provider.name })
+  }, [flow.loading, flow.draft, flow.provider.name])
   if (flow.loading || !d) return <p className="p-6">…</p>
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD({ ...d, [k]: v })

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
 import Turnstile from '@/components/onboarding/Turnstile'
+import SocialSignIn from '@/components/onboarding/SocialSignIn'
 import { captchaOptions } from '@/lib/onboarding/captcha'
 
 export default function LoginPage() {
@@ -200,6 +201,8 @@ export default function LoginPage() {
             </button>
           </form>
         )}
+
+        {!resetMode && <SocialSignIn next="/dashboard" onSignedIn={() => router.push('/dashboard')} />}
 
         <p className="mt-6 text-center text-sm text-gray-400">
           Don&apos;t have a portfolio yet?{' '}

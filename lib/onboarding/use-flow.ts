@@ -6,6 +6,7 @@ import { getSupabaseClient } from '@/lib/supabase'
 import { browserStorage, createDraftStore, draftStatusOf, type Draft } from './draft'
 import { resolveState, routeFor, STEP_ALLOWS, STEP_PATHS, type AccountState, type ServerState } from './state'
 import type { AuthLike } from './auth-actions'
+import { providerProfile } from './social'
 
 type Step = keyof typeof STEP_PATHS
 
@@ -25,6 +26,8 @@ export function useFlow(step: Step | null) {
   const [server, setServer] = useState<ServerState | null>(null)
   const [email, setEmail] = useState<string | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
+  // from the provider (social sign-in only): validated, prefill-only, see lib/onboarding/social.ts
+  const [provider, setProvider] = useState({ social: false, name: '', githubLogin: '' })
   const alive = useRef(true)
 
   const getToken = useCallback(async (): Promise<string | null> => {
@@ -59,10 +62,12 @@ export function useFlow(step: Step | null) {
     if (!alive.current) return null
     setServer(srv)
     setEmail(session?.user?.email ?? null)
+    const prov = providerProfile(session?.user as never)
+    setProvider(prov)
     setDraft(d)
     setState(next)
     setLoading(false)
-    return { next, srv, d }
+    return { next, srv, d, social: prov.social }
   }, [store])
 
   useEffect(() => {
@@ -73,7 +78,7 @@ export function useFlow(step: Step | null) {
     })
     void load().then((r) => {
       if (!r || !step) return
-      if (!STEP_ALLOWS[step].includes(r.next)) router.replace(routeFor(r.next, draftStatusOf(r.d), r.srv))
+      if (!STEP_ALLOWS[step].includes(r.next)) router.replace(routeFor(r.next, draftStatusOf(r.d), r.srv, { social: r.social }))
     })
     return () => {
       alive.current = false
@@ -84,10 +89,10 @@ export function useFlow(step: Step | null) {
   /** Recompute and go to the right place (after sign-in, verification, import, review, address…). */
   const goNext = useCallback(async () => {
     const r = await load()
-    if (r) router.replace(routeFor(r.next, draftStatusOf(r.d), r.srv))
+    if (r) router.replace(routeFor(r.next, draftStatusOf(r.d), r.srv, { social: r.social }))
   }, [load, router])
 
   const saveDraft = useCallback((d: Draft) => { store.save(d); setDraft(d) }, [store])
 
-  return { loading, state, server, email, draft, store, getToken, goNext, saveDraft, refresh: load }
+  return { loading, state, server, email, draft, provider, store, getToken, goNext, saveDraft, refresh: load }
 }

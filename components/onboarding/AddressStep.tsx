@@ -24,8 +24,9 @@ export default function AddressStep() {
 
   useEffect(() => {
     if (flow.loading || slug) return
-    setSlug(flow.server?.slug || slugFromName(flow.draft?.name || ''))
-  }, [flow.loading, flow.server, flow.draft, slug])
+    // provider name (social sign-in) is only a suggestion; slugFromName always returns a valid slug
+    setSlug(flow.server?.slug || slugFromName(flow.draft?.name || flow.provider.name || ''))
+  }, [flow.loading, flow.server, flow.draft, flow.provider.name, slug])
 
   useEffect(() => {
     if (!slug) return setStatus('idle')

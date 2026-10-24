@@ -26,6 +26,10 @@ export default function VerifyStep() {
     try { setEmail(sessionStorage.getItem(VERIFY_EMAIL_KEY) || '') } catch {}
   }, [])
   useEffect(() => { if (!email && flow.email) setEmail(flow.email) }, [email, flow.email])
+  // Nothing to verify (no remembered address, no session): back to the start rather than an empty form.
+  useEffect(() => {
+    if (!flow.loading && !email && !flow.email) { try { if (!sessionStorage.getItem(VERIFY_EMAIL_KEY)) location.replace('/create/account') } catch {} }
+  }, [flow.loading, email, flow.email])
   useEffect(() => {
     if (left <= 0) return
     const id = setTimeout(() => setLeft((n) => n - 1), 1000)

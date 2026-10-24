@@ -33,14 +33,16 @@ export const STEP_PATHS = {
 } as const
 
 /** The one correct route for this person right now. */
-export function routeFor(state: AccountState, draft: DraftStatus, server?: ServerState | null): string {
+export function routeFor(state: AccountState, draft: DraftStatus, server?: ServerState | null, opts: { social?: boolean } = {}): string {
   switch (state) {
     case 'no_session':
       return STEP_PATHS.account
     case 'unverified':
       return STEP_PATHS.verify
     case 'no_profile':
-      // no users row yet: collect and review the content, then choose the address
+      // no users row yet: collect and review the content, then choose the address.
+      // A social sign-in has no content to collect yet but does have a name, so it starts at the address step.
+      if (draft === 'none' && opts.social) return STEP_PATHS.address
       return draft === 'none' ? STEP_PATHS.import : draft === 'imported' ? STEP_PATHS.review : STEP_PATHS.address
     case 'no_portfolio':
       // users row exists (address chosen): content, then generate
@@ -53,7 +55,7 @@ export function routeFor(state: AccountState, draft: DraftStatus, server?: Serve
 /** Which states may stay on which step (anything else is redirected to routeFor). */
 export const STEP_ALLOWS: Record<keyof typeof STEP_PATHS, AccountState[]> = {
   account: ['no_session'],
-  verify: ['unverified'],
+  verify: ['unverified', 'no_session'], // with Confirm email ON a new sign-up has NO session until the code is entered
   import: ['no_profile', 'no_portfolio'],
   review: ['no_profile', 'no_portfolio'],
   address: ['no_profile', 'no_portfolio'], // no_portfolio: the address may still be changed before publishing
