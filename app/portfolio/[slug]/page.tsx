@@ -20,6 +20,8 @@ import Graduate from '@/components/templates/Graduate'
 import Cybersecurity from '@/components/templates/Cybersecurity'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import AcquisitionBar from './AcquisitionBar'
+import { canUseTemplate } from '@/lib/plans'
+import { planFromUserColumn } from '@/lib/getUserPlan'
 
 const DEMO_SLUGS = new Set([
   'james-chen', 'sofia-martinez', 'fatima-hassan',
@@ -200,11 +202,9 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
     graduate: Graduate,
     cybersecurity: Cybersecurity,
   }
-  const PRO_TEMPLATES = new Set(['developer', 'designer', 'data-scientist', 'product-manager', 'finance', 'graduate', 'cybersecurity'])
-  // Gate Pro templates: only render if user has pro plan. Basic/free fall back to Minimal.
+  // Gate Pro templates: only render if the plan includes them (lib/plans.ts). Basic falls back to Minimal.
   // The stored template value is preserved — upgrading to Pro activates it automatically.
-  const isPro = (data as { plan?: string }).plan === 'pro'
-  const effectiveTemplate = (PRO_TEMPLATES.has(portfolio.template) && !isPro) ? 'minimal' : portfolio.template
+  const effectiveTemplate = canUseTemplate(planFromUserColumn((data as { plan?: string }).plan), portfolio.template) ? portfolio.template : 'minimal'
   const Template = TEMPLATE_MAP[effectiveTemplate] ?? Minimal
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
   const c = portfolio.content

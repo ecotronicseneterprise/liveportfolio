@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getUserPlan } from '@/lib/getUserPlan'
+import { entitlementsFor } from '@/lib/plans'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,5 +22,5 @@ export async function GET(req: NextRequest) {
   }
 
   const plan = await getUserPlan(user.id)
-  return NextResponse.json({ plan })
+  return NextResponse.json({ plan, entitlements: entitlementsFor(plan) })
 }

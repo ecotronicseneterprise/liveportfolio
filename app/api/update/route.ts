@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { entitlements } from '@/lib/entitlements'
+import { canUseTemplate, isTemplateId } from '@/lib/plans'
 
 function stripBulletMarker(s: string): string {
   return s.replace(/^[\s▸•→\-\*▶‣◦]+/, '').trim()
@@ -49,28 +51,31 @@ export async function PATCH(req: NextRequest) {
 
     const { content: contentUpdate, template } = await req.json()
 
-    // Content editing requires a paid plan (Basic or Pro); template switching is open to all authenticated users
-    if (contentUpdate) {
-      const { data: userRecord } = await supabaseAdmin
-        .from('users')
-        .select('plan')
-        .eq('id', user.id)
-        .single()
-
-      if (!userRecord || (userRecord.plan !== 'basic' && userRecord.plan !== 'pro')) {
-        return NextResponse.json({ error: 'Editing requires a paid plan' }, { status: 403 })
-      }
+    // Plans (lib/plans.ts): every signed-in user may edit content privately; nothing here publishes (publishing is driven
+    // by payment through the webhook only). The template is validated against the plan on the server.
+    const ent = await entitlements(user.id)
+    if (!ent.canEdit) {
+      return NextResponse.json({ error: 'Editing is not available on your plan' }, { status: 403 })
+    }
+    if (template !== undefined && template !== null && !isTemplateId(template)) {
+      return NextResponse.json({ error: 'invalid_template' }, { status: 400 })
     }
 
     // Get current portfolio
     const { data: portfolio } = await supabaseAdmin
       .from('portfolios')
-      .select('id, content')
+      .select('id, content, template')
       .eq('user_id', user.id)
       .single()
 
     if (!portfolio) {
       return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
+    }
+
+    // A Pro template can only be SELECTED on Pro. Re-sending the template already stored is fine (a lapsed Pro user
+    // saving other edits must not be rejected for a template they already had).
+    if (template && template !== (portfolio as unknown as { template?: string }).template && !canUseTemplate(ent.plan, template)) {
+      return NextResponse.json({ error: 'template_locked', message: 'That template is included with Pro.' }, { status: 403 })
     }
 
     // FIX 6: Allowlist permitted content fields — drop any unknown keys silently

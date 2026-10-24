@@ -1,5 +1,5 @@
 // Minimal in-memory stand-in for the parts of the Supabase query builder the routes use.
-// Supports: select (with {count:'exact', head:true}), insert, update, delete, eq, is, in, gte, lt, order, limit, maybeSingle,
+// Supports: select (with {count:'exact', head:true}), insert, update, delete, eq, is, in, gt, gte, lt, order, limit, maybeSingle,
 // update(...).select() returning rows, unique violations on listed columns, and one-shot failure injection.
 type Row = Record<string, any>
 
@@ -72,6 +72,7 @@ export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 
       eq: (c: string, v: unknown) => { filters.push((r) => r[c] === v); return q },
       is: (c: string, v: unknown) => { filters.push((r) => (v === null ? r[c] == null : r[c] === v)); return q },
       in: (c: string, vs: unknown[]) => { filters.push((r) => vs.includes(r[c])); return q },
+      gt: (c: string, v: string) => { filters.push((r) => String(r[c]) > v); return q },
       gte: (c: string, v: string) => { filters.push((r) => String(r[c]) >= v); return q },
       lt: (c: string, v: string) => { filters.push((r) => String(r[c]) < v); return q },
       order: (c: string) => { orderCol = c; return q },

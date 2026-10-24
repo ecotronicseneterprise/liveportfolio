@@ -3,6 +3,10 @@
 import Link from 'next/link'
 import { useRegion } from '@/hooks/useRegion'
 import { useUsdRate } from '@/hooks/useUsdRate'
+import { comingSoon, includedFeatures, newFeatures, FEATURES } from '@/lib/plans'
+
+// Every feature line below comes from lib/plans.ts (the single source of truth); nothing is typed here.
+const notInFree = ['publish', 'pro_templates', 'analytics'].map((id) => FEATURES.find((f) => f.id === id)!.label)
 
 const PriceSkeleton = () => (
   <span style={{ display: 'inline-block', width: 80, height: 20, background: '#e5e7eb', borderRadius: 4, verticalAlign: 'middle' }} />
@@ -31,14 +35,14 @@ export default function PricingSection() {
             <p className="text-3xl font-bold text-gray-900 mb-1">{isIntl ? '$0' : '₦0'}</p>
             <p className="text-sm text-gray-400 mb-5">Always free</p>
             <ul className="space-y-2 text-sm text-gray-500 mb-6 flex-1">
-              {['Generate your portfolio', 'Preview all 10 templates', 'Saved to your account'].map((f) => (
+              {includedFeatures('free').map((x) => x.label).map((f) => (
                 <li key={f} className="flex items-center gap-2">
                   <span className="text-gray-300 flex-shrink-0">✓</span>{f}
                 </li>
               ))}
-              {['Publishing', 'Editing', 'Analytics'].map((f) => (
+              {notInFree.map((f) => (
                 <li key={f} className="flex items-center gap-2 opacity-40">
-                  <span className="flex-shrink-0">—</span>{f} not included
+                  <span className="flex-shrink-0">—</span>{f}
                 </li>
               ))}
             </ul>
@@ -68,13 +72,7 @@ export default function PricingSection() {
             </p>
             <p className="text-sm text-gray-400 mb-0.5">For job seekers</p>
             <ul className="space-y-2 text-sm text-gray-700 mb-6 flex-1">
-              {[
-                'Publish your portfolio',
-                'Edit anytime from your dashboard',
-                'Your own shareable link (liveportfolio.site/yourname)',
-                'Choose from 3 templates',
-                'Switch templates anytime — goes live instantly',
-              ].map((f) => (
+              {['Everything in Free', ...newFeatures('basic').map((x) => x.label)].map((f) => (
                 <li key={f} className="flex items-center gap-2">
                   <span className="text-[#0A66C2] font-bold flex-shrink-0">✓</span>{f}
                 </li>
@@ -103,14 +101,7 @@ export default function PricingSection() {
             </p>
             <p className="text-sm text-gray-400 mb-0.5">For serious applicants</p>
             <ul className="space-y-2 text-sm text-gray-700 mb-6 flex-1">
-              {[
-                'Everything in Basic',
-                '7 more premium, role-specific templates (10 in total)',
-                'See who views your portfolio — location, source, and timing',
-                'Unique visitor count',
-                'QR code for your portfolio',
-                'Weekly AI career score',
-              ].map((f) => (
+              {['Everything in Basic', ...newFeatures('pro').map((x) => x.label)].map((f) => (
                 <li key={f} className="flex items-center gap-2">
                   <span className="text-[#0A66C2] font-bold flex-shrink-0">✓</span>{f}
                 </li>
@@ -125,6 +116,11 @@ export default function PricingSection() {
           </div>
 
         </div>
+        {comingSoon().length > 0 && (
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Coming soon, not included yet: {comingSoon().map((x) => x.label).join(', ')}.
+          </p>
+        )}
         <p className="text-center text-sm text-gray-600 mt-6">Annual billing · Refunds reviewed within 7 days of purchase · Cancel anytime</p>
       </div>
     </section>

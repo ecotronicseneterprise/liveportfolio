@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { entitlements } from '@/lib/entitlements'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +40,11 @@ export async function GET(req: NextRequest) {
 
     if (!ownership) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    // Visitor analytics is a Pro feature: enforced here, not only in the UI.
+    if (!(await entitlements(userId)).analytics) {
+      return NextResponse.json({ error: 'upgrade_required', feature: 'analytics' }, { status: 403 })
     }
 
     // Single source of truth: analytics_events for all metrics.

@@ -3,8 +3,7 @@
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
-
-const creativeFonts = `@import 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300;1,9..144,600&family=JetBrains+Mono:wght@400;500&display=swap';`
+import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
 const css = `
   .nt-root {
@@ -413,7 +412,7 @@ export default function Creative({ content }: { content: PortfolioContent }) {
 
   return (
     <div className="nt-root" ref={rootRef}>
-      <style>{creativeFonts}{css}</style>
+      <style>{css}</style>
 
       {/* Header */}
       <header className="nt-header">

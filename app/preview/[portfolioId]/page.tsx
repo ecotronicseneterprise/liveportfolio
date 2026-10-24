@@ -3,10 +3,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
-import Minimal from '@/components/templates/Minimal'
-import Bold from '@/components/templates/Bold'
-import Creative from '@/components/templates/Creative'
 import type { PortfolioContent } from '@/components/templates/Minimal'
+import { TEMPLATES } from '@/components/templates/dynamic'
+import { isTemplateId, type TemplateId } from '@/lib/plans'
 import Logo from '@/components/Logo'
 import UpgradeModal from '@/components/UpgradeModal'
 
@@ -273,7 +272,7 @@ export default function PreviewPage() {
   }
 
   const [content, setContent] = useState<PortfolioContent | null>(null)
-  const [template, setTemplate] = useState<'minimal' | 'bold' | 'creative'>('minimal')
+  const [template, setTemplate] = useState<TemplateId>('minimal')
   const [portfolioUserId, setPortfolioUserId] = useState<string>('')
   const [userEmail, setUserEmail] = useState<string>('')
   const [loading, setLoading] = useState(true)
@@ -321,7 +320,7 @@ export default function PreviewPage() {
       }
 
       setContent(portfolio.content as PortfolioContent)
-      setTemplate((portfolio.template as 'minimal' | 'bold' | 'creative') || 'minimal')
+      setTemplate(isTemplateId(portfolio.template) ? portfolio.template : 'minimal')
       setPortfolioUserId(portfolio.user_id)
 
       // Check if paid + get email for Paystack
@@ -518,7 +517,7 @@ export default function PreviewPage() {
 
   const { score, items } = calculateHealth(content)
   const missing = items.filter((i) => !i.earned)
-  const Template = template === 'bold' ? Bold : template === 'creative' ? Creative : Minimal
+  const Template = TEMPLATES[template]
 
   return (
     <div className="relative">
@@ -536,6 +535,7 @@ export default function PreviewPage() {
         onClose={() => setShowUpgradeModal(false)}
         userEmail={userEmail}
         portfolioId={portfolioId}
+        template={template}
         onPaymentStarted={() => { setShowUpgradeModal(false); setPaying(true) }}
       />
 

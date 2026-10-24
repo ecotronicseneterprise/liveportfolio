@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { callLLM, LlmError } from '@/lib/llm'
+import { entitlements } from '@/lib/entitlements'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,6 +43,12 @@ export async function GET(req: NextRequest) {
 
     if (!portfolio) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    // Weekly AI career score is a Pro feature: enforced here, not only in the UI. This route can call the LLM, and
+    // free/Basic accounts must never be able to trigger that.
+    if (!(await entitlements(userId)).weeklyScore) {
+      return NextResponse.json({ error: 'upgrade_required', feature: 'weekly_score' }, { status: 403 })
     }
 
     // Return cached score if scored within last 7 days

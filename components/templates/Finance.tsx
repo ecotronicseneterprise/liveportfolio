@@ -3,10 +3,9 @@
 import Image from 'next/image'
 import { useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
+import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
 const css = `
-  @import 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap';
-  @import 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap';
   .fin-root {
     --bg: #0F172A;
     --surface: #1E293B;

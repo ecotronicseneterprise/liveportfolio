@@ -1,5 +1,12 @@
 import { getSupabaseAdmin } from '@/lib/supabase'
 
+/** users.plan → plan. 'unpublished'/empty = free, 'basic' = basic, 'pro' and legacy paid values = pro. */
+export function planFromUserColumn(v: unknown): 'free' | 'basic' | 'pro' {
+  if (typeof v !== 'string' || !v || v === 'unpublished') return 'free'
+  if (v === 'basic') return 'basic'
+  return 'pro'
+}
+
 export async function getUserPlan(userId: string): Promise<'free' | 'basic' | 'pro'> {
   const supabaseAdmin = getSupabaseAdmin()
 
@@ -18,16 +25,14 @@ export async function getUserPlan(userId: string): Promise<'free' | 'basic' | 'p
     return sub.plan
   }
 
-  // 2. Legacy one-time paid users (users.plan set before subscriptions table existed)
+  // 2. users.plan: the cache the webhook keeps in sync, and the only source for legacy one-time payers, invites and
+  //    bootcamp grants. It is mapped by NAME: a lapsed Basic subscriber (users.plan still "basic" until the expiry cron
+  //    runs, up to the 3-day grace) is Basic, never Pro. Any other non-empty legacy value keeps its old meaning (Pro).
   const { data: user } = await supabaseAdmin
     .from('users')
     .select('plan')
     .eq('id', userId)
     .single()
 
-  if (user?.plan && user.plan !== 'unpublished') {
-    return 'pro'
-  }
-
-  return 'free'
+  return planFromUserColumn(user?.plan)
 }

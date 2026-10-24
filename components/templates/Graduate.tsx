@@ -3,9 +3,9 @@
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
+import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
 const css = `
-  @import 'https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap';
   .gr-root {
     --bg: #EEF2FF;
     --surface: #FFFFFF;

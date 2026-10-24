@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRegion } from '@/hooks/useRegion'
 import { useUsdRate } from '@/hooks/useUsdRate'
 import { getSupabaseClient } from '@/lib/supabase'
+import { isProTemplate, newFeatures } from '@/lib/plans'
 
 const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ''
 const BASIC_PLAN_CODE = process.env.NEXT_PUBLIC_PAYSTACK_BASIC_PLAN_CODE || ''
@@ -15,6 +16,8 @@ interface UpgradeModalProps {
   onClose: () => void
   userEmail: string
   portfolioId: string
+  /** The template the portfolio currently uses; a Pro template gets an explanatory note at checkout. */
+  template?: string
   onPaymentStarted?: () => void
 }
 
@@ -31,7 +34,7 @@ const PriceSkeleton = () => (
   <span style={{ display: 'inline-block', width: 80, height: 20, background: '#e5e7eb', borderRadius: 4, verticalAlign: 'middle' }} />
 )
 
-export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, onPaymentStarted }: UpgradeModalProps) {
+export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, template, onPaymentStarted }: UpgradeModalProps) {
   const { basicUsd, proUsd, rateLoading } = useUsdRate()
   const { region } = useRegion()
   const isIntl = region === 'INTL'
@@ -147,6 +150,11 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
           <p className="text-sm text-gray-500 mt-1">
             Your portfolio is ready. Choose a plan to go live.
           </p>
+          {template && isProTemplate(template) && (
+            <p className="text-sm text-gray-700 mt-2" role="note">
+              Your portfolio uses a Pro template. Basic publishes it with Minimal; Pro publishes it as you see it now.
+            </p>
+          )}
         </div>
 
         {/* Plan cards */}
@@ -174,10 +182,8 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
             </div>
 
             <ul className="space-y-1.5 flex-1">
-              <PlanFeature text="Publish your portfolio" />
-              <PlanFeature text="Edit anytime from your dashboard" />
-              <PlanFeature text="Your own shareable link (liveportfolio.site/yourname)" />
-              <PlanFeature text="Choose from 3 templates" />
+              <PlanFeature text="Everything in Free" />
+              {newFeatures('basic').map((f) => <PlanFeature key={f.id} text={f.label} />)}
             </ul>
 
             <button
@@ -211,9 +217,7 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
 
             <ul className="space-y-1.5 flex-1">
               <PlanFeature text="Everything in Basic" />
-              <PlanFeature text="7 additional premium templates" />
-              <PlanFeature text="Analytics (views, country, referrer)" />
-              <PlanFeature text="QR code + weekly career score" />
+              {newFeatures('pro').map((f) => <PlanFeature key={f.id} text={f.label} />)}
             </ul>
 
             <button
