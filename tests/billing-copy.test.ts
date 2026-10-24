@@ -113,7 +113,9 @@ describe('the old over-promising lines are gone', () => {
 describe('one support address', () => {
   // The only public contact address is SUPPORT_EMAIL. Allowed besides it: the verified SENDING address, and obvious placeholders.
   const allowed = new Set([SUPPORT_EMAIL, 'noreply@liveportfolio.site', 'your@email.com', 'adaeze@gmail.com'])
-  const exempt = new Set(['lib/partners.ts']) // who receives affiliate reports: internal, not a public contact
+  // Internal recipients, not public contacts: who receives affiliate reports (lib/partners.ts) and the owner's admin alerts and reports (the two
+  // cron routes, which go to the owner's personal address on purpose).
+  const exempt = new Set(['lib/partners.ts', 'app/api/cron/affiliate/route.ts', 'app/api/cron/health/route.ts'])
   it('no other e-mail address appears in the app, components or lib (apart from placeholders and the sender)', () => {
     const found: string[] = []
     for (const f of [...walk('app'), ...walk('components'), ...walk('lib')]) {
@@ -125,6 +127,10 @@ describe('one support address', () => {
       }
     }
     expect(found).toEqual([])
+  })
+  it('admin alerts and reports go to the owner\'s personal address, not the public support address', () => {
+    expect(read('app/api/cron/health/route.ts')).toMatch(/ALERT_EMAIL = 'nwannachumaclifford@gmail\.com'/)
+    expect(read('app/api/cron/affiliate/route.ts')).toMatch(/ADMIN_EMAIL = 'nwannachumaclifford@gmail\.com'/)
   })
   it('the address is the one the owner chose', () => expect(SUPPORT_EMAIL).toBe('ecotronics.nterprise@gmail.com'))
   it('the upgrade modal, the return page, the billing panel, the Terms, the privacy policy and the contact links all show it', () => {
