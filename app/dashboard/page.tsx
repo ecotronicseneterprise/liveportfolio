@@ -2,6 +2,7 @@
 
 import { CREATE_HREF, SIGNIN_HREF } from '@/lib/onboarding/entry'
 import { features } from '@/lib/plans'
+import { initialOf, tidyName } from '@/lib/onboarding/name'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -963,14 +964,14 @@ export default function DashboardPage() {
                   className="w-16 h-16 rounded-full object-cover border border-gray-100" />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-[#E8F0F9] flex items-center justify-center border border-gray-100">
-                  <span className="text-xl font-bold text-[#0A66C2]">{user.email[0].toUpperCase()}</span>
+                  <span className="text-xl font-bold text-[#0A66C2]">{initialOf((editContent as Record<string, string>).name, user.email)}</span>
                 </div>
               )}
             </div>
             {/* Name + role — left on desktop, centered on mobile */}
             <div className="flex-1 text-center sm:text-left">
               <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-                {(editContent as Record<string, string>).name || user.email.split('@')[0]}
+                {tidyName((editContent as Record<string, string>).name) || user.email.split('@')[0]}
               </h1>
               <p className="text-[0.95rem] text-gray-500 mt-0.5">
                 {(editContent as Record<string, string>).role || ''}
@@ -986,6 +987,7 @@ export default function DashboardPage() {
               ) : (
                 <span className="text-sm text-gray-400 px-3 py-1 bg-gray-50 rounded-full">
                   liveportfolio.site/{user.slug}
+                  <span className="ml-2 text-xs text-gray-500">Reserved for you, not live yet</span>
                 </span>
               )}
               <div className="flex items-center gap-2">
@@ -995,10 +997,10 @@ export default function DashboardPage() {
                 </span>
                 <button
                   onClick={() => loadData()}
-                  title="Refresh"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 4, borderRadius: 4, fontSize: 12 }}
+                  title="Reload your dashboard data"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', padding: '4px 6px', borderRadius: 4, fontSize: 12, textDecoration: 'underline' }}
                 >
-                  ↻
+                  Refresh
                 </button>
                 {isPublished ? (
                   <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
@@ -1989,7 +1991,7 @@ export default function DashboardPage() {
                   ) : (
                     <div className="w-20 h-20 rounded-full bg-[#E8F0F9] flex items-center justify-center border border-gray-100">
                       <span className="text-2xl font-bold text-[#0A66C2]">
-                        {user.email[0].toUpperCase()}
+                        {initialOf((editContent as Record<string, string>).name, user.email)}
                       </span>
                     </div>
                   )}
