@@ -9,6 +9,9 @@ import Logo from '@/components/Logo'
 import UpgradeModal from '@/components/UpgradeModal'
 import ImageCropper from '@/components/ImageCropper'
 import LiveToast, { pushLiveToast } from '@/components/LiveToast'
+import Turnstile from '@/components/onboarding/Turnstile'
+import { captchaOptions } from '@/lib/onboarding/captcha'
+import { DRAFT_KEY } from '@/lib/onboarding/draft'
 
 interface UserProfile {
   id: string
@@ -529,6 +532,9 @@ export default function DashboardPage() {
   const [copied, setCopied] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' })
+  // Turnstile token for the re-authentication below (required once CAPTCHA protection is enforced in Supabase)
+  const [pwCaptcha, setPwCaptcha] = useState<string | null>(null)
+  const [pwCaptchaReset, setPwCaptchaReset] = useState(0)
   const [passwordMsg, setPasswordMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
@@ -791,6 +797,7 @@ export default function DashboardPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
+    try { localStorage.removeItem(DRAFT_KEY) } catch {} // the onboarding draft must not outlive the session
     router.push('/')
   }
 
@@ -807,9 +814,10 @@ export default function DashboardPage() {
     setChangingPassword(true)
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { setPasswordMsg({ type: 'err', text: 'Session expired. Please sign in again.' }); setChangingPassword(false); return }
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email: session.user.email!, password: passwordForm.current })
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: session.user.email!, password: passwordForm.current, options: captchaOptions(pwCaptcha) })
+    setPwCaptchaReset((n) => n + 1)
     if (signInError) {
-      setPasswordMsg({ type: 'err', text: 'Current password is incorrect.' })
+      setPasswordMsg({ type: 'err', text: /captcha/i.test(signInError.message) ? 'Please complete the check and try again.' : 'Current password is incorrect.' })
       setChangingPassword(false)
       return
     }
@@ -2088,6 +2096,7 @@ export default function DashboardPage() {
                   onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))}
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
                 />
+                <Turnstile onToken={setPwCaptcha} resetSignal={pwCaptchaReset} />
               </div>
               <button
                 onClick={handleChangePassword}

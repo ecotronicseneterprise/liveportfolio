@@ -5,6 +5,7 @@ import { mergeResults } from '@/lib/connectors/merge'
 import { allow, clientIp, DAY_MS, IMPORT_PER_IP_PER_DAY, withinDailyCap } from '@/lib/connectors/limits'
 import { ConnectorResult, ImportError, LIMITS } from '@/lib/connectors/types'
 import { parseExcludeList } from '@/lib/connectors/safe-url'
+import { guardLlmRoute } from '@/lib/onboarding/llm-guard'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +17,8 @@ function fail(e: ImportError) {
 }
 
 // POST /api/import — multipart/form-data with any of: file (PDF/DOCX), text, github.
-// Feature-flagged (IMPORT_ENABLED=true). Anonymous by design: users import before sign-up.
+// Feature-flagged (IMPORT_ENABLED=true). The old wizard imports anonymously (per-IP limit); the new onboarding flow
+// sends a Bearer token and is limited per user (10/day). REQUIRE_AUTH_FOR_LLM=true makes the token mandatory.
 export async function POST(req: NextRequest) {
   if (process.env.IMPORT_ENABLED !== 'true') {
     return NextResponse.json({ error: 'disabled' }, { status: 404 })
@@ -27,8 +29,11 @@ export async function POST(req: NextRequest) {
     return fail(new ImportError('file_too_large', 'That upload is too large.'))
   }
 
+  const guard = await guardLlmRoute(req, { kind: 'import', limit: 10, windowMs: DAY_MS })
+  if (!guard.ok) return guard.response
+
   // Best-effort only — see lib/connectors/limits.ts. Edge rate limiting is the real control.
-  if (!allow(`import:${clientIp(req)}`, IMPORT_PER_IP_PER_DAY, DAY_MS)) {
+  if (guard.mode === 'anonymous' && !allow(`import:${clientIp(req)}`, IMPORT_PER_IP_PER_DAY, DAY_MS)) {
     return fail(new ImportError('rate_limited', 'Too many imports today. Please try again tomorrow.'))
   }
 

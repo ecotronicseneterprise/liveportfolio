@@ -1,0 +1,93 @@
+{
+  "account": {
+    "title": "Make my portfolio",
+    "create": "Create account",
+    "signin": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least 10 characters",
+    "show": "Show",
+    "hide": "Hide",
+    "continue": "Continue",
+    "terms": "By continuing you agree to the Terms and the Privacy Policy.",
+    "forgot": "Forgot your password?",
+    "resetSent": "If that address has an account, we have sent a link to reset the password.",
+    "existing": "You may already have an account. If this address is new we have sent a code to it; otherwise sign in.",
+    "existingSignin": "You already have an account. Sign in to continue.",
+    "continueAs": "Signed in as {email}",
+    "signOut": "Use a different account"
+  },
+  "verify": {
+    "title": "Check your email",
+    "body": "We sent a 6-digit code to {email}. Enter it here.",
+    "code": "6-digit code",
+    "confirm": "Confirm",
+    "resend": "Send a new code",
+    "resendIn": "Send a new code in {seconds}s",
+    "resent": "A new code is on its way.",
+    "wrongEmail": "Wrong address? Use a different account"
+  },
+  "import": {
+    "title": "Start from what you have",
+    "file": "Upload a CV (PDF or Word)",
+    "github": "GitHub username",
+    "paste": "Paste text",
+    "blank": "Start blank",
+    "run": "Read it",
+    "reading": "Reading…",
+    "aiNotice": "To read your CV and write your portfolio text we send it to OpenAI. We replace emails, phone numbers and links with placeholders where we can, but the rest of the text is sent.",
+    "limit": "You've reached today's import limit. You can fill in your details by hand.",
+    "failed": "We couldn't read that. You can fill in your details by hand."
+  },
+  "review": {
+    "title": "Check what we read",
+    "name": "Name",
+    "role": "Professional title",
+    "location": "Location",
+    "bio": "About you",
+    "github": "GitHub URL",
+    "linkedin": "LinkedIn URL",
+    "skills": "Skills (comma separated)",
+    "projects": "Projects (up to 4)",
+    "experience": "Experience",
+    "education": "Education",
+    "template": "Template",
+    "next": "Looks right: choose my address",
+    "needTitle": "Add your name and professional title.",
+    "needProject": "Add at least one project."
+  },
+  "address": {
+    "title": "Choose your address",
+    "checking": "Checking…",
+    "available": "liveportfolio.site/{slug} is available.",
+    "taken": "That address is taken.",
+    "reserved": "That address is reserved.",
+    "invalid": "Use 3–30 letters, numbers or hyphens. No hyphen at the start or end.",
+    "try": "Try:",
+    "save": "Use this address",
+    "locked": "Your address is fixed once you have published."
+  },
+  "generate": {
+    "title": "Writing your portfolio",
+    "working": "Still working. This can take up to a minute.",
+    "retrying": "Taking longer than usual. Trying again ({attempt} of {total}).",
+    "failed": "We couldn't finish. Nothing is lost.",
+    "retry": "Try again"
+  },
+  "confirm": {
+    "title": "Confirm your email",
+    "button": "Confirm my email",
+    "failed": "That link has expired or was already used.",
+    "back": "Back to sign in"
+  },
+  "errors": {
+    "weak_password": "That password is too weak. Use at least 10 characters.",
+    "captcha": "Please complete the check and try again.",
+    "rate_limited": "Too many attempts. Wait a moment and try again.",
+    "invalid_credentials": "Wrong email or password.",
+    "code_invalid": "That code is wrong or has expired.",
+    "network": "Connection problem. Check your network and try again.",
+    "unknown": "Something went wrong. Please try again.",
+    "unauthorized": "Please sign in again."
+  }
+}

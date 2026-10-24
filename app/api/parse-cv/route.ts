@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { importDocument } from '@/lib/connectors/document'
 import { ImportError, LIMITS } from '@/lib/connectors/types'
+import { guardLlmRoute } from '@/lib/onboarding/llm-guard'
 
 // Backward-compatible alias: same endpoint, same success shape (new keys are additive:
 // education, certifications, project url). Logic lives in lib/connectors/document.ts.
@@ -27,8 +28,12 @@ function fail(e: ImportError) {
 }
 
 export async function POST(req: NextRequest) {
+  // New onboarding flow: Bearer token + per-user limit (5/day). The old wizard sends no token and keeps the IP limit below.
+  const guard = await guardLlmRoute(req, { kind: 'parse_cv', limit: 5, windowMs: 24 * 60 * 60 * 1000 })
+  if (!guard.ok) return guard.response
+
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
-  if (isRateLimited(ip)) {
+  if (guard.mode === 'anonymous' && isRateLimited(ip)) {
     return NextResponse.json({}, { status: 429 })
   }
 

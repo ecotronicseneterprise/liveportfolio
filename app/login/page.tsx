@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
+import Turnstile from '@/components/onboarding/Turnstile'
+import { captchaOptions } from '@/lib/onboarding/captcha'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -30,6 +32,9 @@ export default function LoginPage() {
   const [resetMode, setResetMode] = useState(false)
   const [resetSent, setResetSent] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
+  // Turnstile: Supabase requires the token on every password sign-in and reset once CAPTCHA protection is enforced
+  const [captcha, setCaptcha] = useState<string | null>(null)
+  const [captchaReset, setCaptchaReset] = useState(0)
 
   // If already logged in, redirect immediately
   useEffect(() => {
@@ -58,7 +63,7 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password, options: captchaOptions(captcha) })
 
     if (signInError) {
       setError(
@@ -79,7 +84,9 @@ export default function LoginPage() {
     setError('')
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
+      ...captchaOptions(captcha),
     })
+    setCaptchaReset((n) => n + 1)
     if (error) {
       setError(error.message)
     } else {
@@ -141,6 +148,7 @@ export default function LoginPage() {
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
               />
             </div>
+            <Turnstile onToken={setCaptcha} resetSignal={captchaReset} />
             <button
               type="submit"
               disabled={resetLoading}
@@ -182,6 +190,7 @@ export default function LoginPage() {
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent"
               />
             </div>
+            <Turnstile onToken={setCaptcha} resetSignal={captchaReset} />
             <button
               type="submit"
               disabled={loading}

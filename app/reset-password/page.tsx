@@ -24,6 +24,10 @@ export default function ResetPasswordPage() {
     supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setReady(true)
     })
+    // Arrived from /auth/confirm (token_hash link): the session already exists and ?recovery=1 marks it as a recovery.
+    if (new URLSearchParams(window.location.search).get('recovery') === '1') {
+      supabase.auth.getSession().then(({ data }) => { if (data.session) setReady(true) })
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (e: React.FormEvent) => {

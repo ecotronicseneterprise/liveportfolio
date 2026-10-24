@@ -44,6 +44,7 @@ describe('browser cannot write users/portfolios', () => {
   it('every server-side write to users/portfolios is in this allow-list (all use the service role)', () => {
     const ALLOWED = new Set([
       'app/api/account/profile/route.ts', // signup row (new)
+      'app/api/account/slug/route.ts', // address change while never published
       'app/api/admin/invite/consume/route.ts', // free-Pro invite
       'app/api/bootcamp/redeem/route.ts', // bootcamp code
       'app/api/cron/expire-plans/route.ts', // plan expiry
