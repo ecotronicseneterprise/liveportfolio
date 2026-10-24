@@ -7,9 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const h = vi.hoisted(() => ({ mode: 'ok' as string, calls: 0, lastInput: '' as string }))
 vi.mock('openai', () => ({
   default: class {
-    beta = {
-      chat: {
-        completions: {
+    chat = {
+      completions: {
           parse: async (args: { messages: Array<{ content: string }> }) => {
             h.calls++
             h.lastInput = args.messages.map((m) => m.content).join('\n')
@@ -18,7 +17,6 @@ vi.mock('openai', () => ({
               : h.mode === 'null' ? { summary: null } : { summary: 'Streamlit app that predicts telecom customer churn with a trained model.' }
             return { choices: [{ message: { parsed } }], usage: { prompt_tokens: 321, completion_tokens: 18 } }
           },
-        },
       },
     }
   },

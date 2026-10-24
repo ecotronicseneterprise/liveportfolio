@@ -16,8 +16,7 @@ vi.mock('openai', () => {
   }
   return {
     default: class {
-      beta = { chat: { completions: { parse: handle } } }
-      chat = { completions: { create: handle } }
+      chat = { completions: { parse: handle, create: handle } }
     },
   }
 })
