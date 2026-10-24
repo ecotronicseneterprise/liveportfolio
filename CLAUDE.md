@@ -2,15 +2,19 @@
 
 ## What This Project Is
 
-An AI-powered portfolio generation platform. Users fill a 4-step form, one GPT-4o-mini
-call generates all portfolio copy as structured JSON, a live preview renders in-browser,
-and a one-time payment publishes the portfolio permanently at slug.liveportfolio.site.
+An AI-powered portfolio platform. People sign up first (account-first flow, `/create/account` to
+`/create/generate`), import a CV or GitHub profile or type their details, one LLM call generates the
+portfolio copy as structured JSON (default model `gpt-4o-mini`, switchable with `LLM_MODEL`), a private preview
+renders in the browser, and a paid plan publishes the portfolio at slug.liveportfolio.site.
 
 **Owner:** Clifford Nwanna / Ecotronics Enterprise  
 **Domain:** liveportfolio.site (Namecheap, active until May 2027)  
-**VPS:** 89.167.93.25 — ssh deploy@89.167.93.25  
-**App port:** 3001 (UpJobs runs on 3000 — never use 3000)  
-**Stack:** Next.js 15, TypeScript, Supabase, OpenAI GPT-4o-mini, Paystack, Resend, IPinfo, PM2, Caddy
+**Hosting:** Vercel, project `liveportfolio` (team `cliffords-projects-0027534f`). Push to `main` is the production deploy; `dev` builds a preview. Preview and local both use the PRODUCTION Supabase.  
+**Local port:** 3101 (never 3000: another app uses it)  
+**Stack:** Next.js 15, TypeScript, Supabase (DB, Auth, Storage), OpenAI through `lib/llm`, Paystack, Resend, IPinfo, Vercel  
+**Plans:** Free (edit privately, 3 templates), Basic (publish), Pro (all 10 templates, analytics, QR, weekly score). Source of truth: `lib/plans.ts`.  
+**Plan docs:** `docs/final-steps-plan.md` (current order of work), `docs/mcp-and-roadmap-plan.md`, `docs/agent-spike-plan.md`, `docs/legal-review.md`.  
+**Legacy:** the VPS, Caddy, PM2 and GitHub Actions deploy sections further down are from before the move to Vercel (kept for reference, not verified).
 
 ---
 
@@ -19,11 +23,9 @@ and a one-time payment publishes the portfolio permanently at slug.liveportfolio
 ```
 Browser
   ↓
-Caddy (port 80/443, auto-SSL) on 89.167.93.25
+Vercel (edge + serverless Next.js app, middleware.ts)
   ↓
-Next.js app (port 3001)
-  ↓
-Supabase (DB + Auth + Storage) / OpenAI / Paystack / Resend / IPinfo
+Supabase (DB + Auth + Storage) / OpenAI (only via lib/llm) / Paystack / Resend / IPinfo
 ```
 
 **Subdomain routing:** middleware.ts reads the Host header on every request.
@@ -97,7 +99,7 @@ portfolios won't render. Always check middleware.ts first.
 |--------|------|-------|
 | id | uuid PK | |
 | user_id | uuid FK | → users.id cascade delete |
-| template | text | 'minimal' \| 'bold' |
+| template | text | one of the 10 ids in lib/plans.ts (3 free, 7 Pro); a Pro id needs the Pro plan |
 | content | jsonb | ALL portfolio data — see content shape below |
 | health_score | integer | 0–100, recalculated on each update |
 | seo_title | text | AI-generated |
@@ -923,6 +925,8 @@ For now, the VPS curl command is the right tool.
 ---
 
 ## Templates
+
+There are **10 templates** (ids and plan gating in `lib/plans.ts`): 3 free and 7 Pro. Only Minimal and Bold are described below; the rest are in `components/templates/*.tsx`. A redesign (new template ids behind per-user opt-in, so no live page changes) is planned in `docs/final-steps-plan.md` (P6, P7).
 
 ### Minimal.tsx
 - Aesthetic: editorial/magazine minimalism

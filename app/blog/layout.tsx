@@ -1,4 +1,5 @@
 import { CREATE_HREF } from '@/lib/onboarding/entry'
+import CookieSettingsLink from '@/components/CookieSettingsLink'
 import Link from 'next/link'
 
 export default function BlogLayout({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
             <Link href="/blog" className="hover:text-gray-600">Blog</Link>
             <Link href="/terms" className="hover:text-gray-600">Terms</Link>
             <Link href="/privacy" className="hover:text-gray-600">Privacy</Link>
+            <CookieSettingsLink className="hover:text-gray-600" />
             <Link href={CREATE_HREF} className="hover:text-gray-600">Create portfolio</Link>
           </div>
         </div>

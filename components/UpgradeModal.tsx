@@ -118,13 +118,6 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
             value: payAmount,
           })
         }
-        if (typeof window.fbq !== 'undefined') {
-          window.fbq('track', 'Purchase', {
-            value: payAmount,
-            currency: payCurrency,
-            content_name: tier,
-          })
-        }
         onClose()
         onPaymentStarted?.()
       },

@@ -1,4 +1,5 @@
 import { CREATE_HREF } from '@/lib/onboarding/entry'
+import CookieSettingsLink from '@/components/CookieSettingsLink'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
@@ -472,6 +473,7 @@ export default function LandingPage() {
             <a href="/blog" className="hover:text-gray-600 transition-colors">Blog</a>
             <a href="/terms" className="hover:text-gray-600 transition-colors">Terms</a>
             <a href="/privacy" className="hover:text-gray-600 transition-colors">Privacy</a>
+            <CookieSettingsLink />
             <a href="https://ecotronicsenterprise.com" className="hover:text-gray-600 transition-colors">Ecotronics</a>
           </div>
         </div>
