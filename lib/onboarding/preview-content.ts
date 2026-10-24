@@ -37,7 +37,7 @@ export function draftToPreviewContent(d: Draft | null, email: string): Portfolio
     skills_narrative: '',
     skills_grouped: [{ category: 'Skills', items: skills }],
     projects: projects.length
-      ? projects.map((p) => ({ title: p.title, problem: p.description, solution: '', outcome: '', stack: list(p.stack), url: p.url || undefined }))
+      ? projects.map((p) => ({ title: p.title, problem: p.description, solution: '', outcome: '', stack: list(p.stack), url: p.url || undefined, image_url: p.image_url || undefined }))
       : [{ ...PLACEHOLDER.project, stack: [...PLACEHOLDER.skills.slice(0, 2)] }],
     experience: experience.length
       ? experience.map((e) => ({

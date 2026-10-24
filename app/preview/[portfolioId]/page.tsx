@@ -1,6 +1,6 @@
 'use client'
 
-import { CREATE_HREF } from '@/lib/onboarding/entry'
+import { CREATE_HREF, SIGNIN_HREF } from '@/lib/onboarding/entry'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
@@ -316,7 +316,7 @@ export default function PreviewPage() {
         .single()
 
       if (error || !portfolio) {
-        router.push(CREATE_HREF)
+        router.push(SIGNIN_HREF)
         return
       }
 
@@ -556,6 +556,7 @@ export default function PreviewPage() {
         <div className="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <a href="/"><Logo /></a>
+            <a href="/dashboard" className="text-sm font-semibold text-[#0A66C2] hover:underline">← Dashboard</a>
             <span className="text-sm font-semibold text-gray-500">Preview</span>
             {/* Template switcher */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">

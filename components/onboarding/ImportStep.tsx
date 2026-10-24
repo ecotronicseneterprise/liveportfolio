@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { draftFromImport, sanitizeDraft } from '@/lib/onboarding/draft'
 import { useFlow } from '@/lib/onboarding/use-flow'
@@ -9,7 +9,7 @@ import { normalizeGithubInput } from '@/lib/connectors/safe-url'
 import { t } from '@/lib/onboarding/t'
 import type { ImportDraft } from '@/lib/connectors/types'
 import FlowShell, { FlowLoading } from './ui/FlowShell'
-import { AlertIcon, GithubIcon, PasteIcon, PencilIcon, UploadIcon } from './ui/icons'
+import { AlertIcon, CheckIcon, GithubIcon, PasteIcon, PencilIcon, UploadIcon } from './ui/icons'
 
 // GitHub and pasted text go through /api/import, which is switched on server-side by IMPORT_ENABLED; this flag only
 // decides whether the two cards are shown. With it off the page shows Upload CV and Fill in manually.
@@ -28,6 +28,7 @@ export default function ImportStep() {
   const flow = useFlow('import')
   const [mode, setMode] = useState<Mode>('file')
   const [file, setFile] = useState<File | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
   const [github, setGithub] = useState('')
   const [prefilled, setPrefilled] = useState(false)
   const [text, setText] = useState('')
@@ -83,7 +84,12 @@ export default function ImportStep() {
 
   if (flow.loading) return <FlowLoading step="import" />
 
-  const pick = (m: Mode) => { setMode(m); setError('') }
+  // Tapping "Upload a CV" opens the device's file picker straight away (the click must happen inside the tap handler,
+  // or phones block it). The input itself is hidden; the chosen file's name shows below the cards.
+  const pick = (m: Mode) => {
+    setMode(m); setError('')
+    if (m === 'file') fileInput.current?.click()
+  }
   const card = (m: Mode, icon: ReactNode, title: string, hint: string, badge?: string) => (
     <button type="button" aria-pressed={mode === m} onClick={() => pick(m)} className={CARD}>
       <span className="lp-card-icon">{icon}</span>
@@ -109,9 +115,8 @@ export default function ImportStep() {
       </div>
 
       <div className="lp-reveal">
-        {mode === 'file' && (
-          <input type="file" className="lp-file" aria-label={t('import.file')} accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        )}
+        <input ref={fileInput} type="file" className="lp-sr" tabIndex={-1} aria-label={t('import.file')} accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setError(''); e.target.value = '' }} />
+        {mode === 'file' && file && <p className="lp-picked-file" role="status"><CheckIcon />{file.name}</p>}
         {mode === 'github' && IMPORT_UI && (
           <label className="lp-field">
             <span className="lp-label">{t('import.github')}</span>

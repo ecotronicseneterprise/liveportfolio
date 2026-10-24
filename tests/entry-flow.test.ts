@@ -175,7 +175,7 @@ describe('attribution carried over from the old wizard', () => {
     captureAttribution('?ref=Esther&invite=' + 'a'.repeat(64) + '&free=true&bootcamp=Lagos-Bootcamp&name=Lagos%20School', s, NOW)
     expect(JSON.parse(s.data.get(KEYS.referral)!)).toEqual({ partner: 'esther', expires: NOW + 90 * 86400000 })
     expect(JSON.parse(s.data.get(KEYS.invite)!)).toEqual({ token: 'a'.repeat(64), free_pro: true, expires: NOW + 86400000 })
-    expect(JSON.parse(s.data.get(KEYS.bootcamp)!)).toEqual({ code: 'lagos-bootcamp', name: 'Lagos School', expires: NOW + 90 * 86400000 })
+    expect(JSON.parse(s.data.get(KEYS.bootcamp)!)).toEqual({ code: 'lagos-bootcamp', name: 'Lagos School', expires: NOW + 86400000 }) // one day, not 90
     const a = readAttribution(s, NOW + 1000)
     expect(a.referral).toBe('esther')
     expect(a.invite).toEqual({ token: 'a'.repeat(64), freePro: true })

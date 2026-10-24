@@ -48,11 +48,18 @@ export function captureAttribution(search: string, storage: KeyValueStore | null
 
     const code = (q.get('bootcamp') ?? '').trim().toLowerCase()
     if (CODE_RE.test(code) && !live(readJson(storage, KEYS.bootcamp), now)) {
-      storage.setItem(KEYS.bootcamp, JSON.stringify({ code, name: cleanName(q.get('name')) || code, expires: now + 90 * DAY }))
+      // ONE day, like an invite: the bootcamp perk belongs to someone who came through the bootcamp link, not to a browser that
+      // once did (it used to be remembered for 90 days and then showed up, and applied, on every later sign-up)
+      storage.setItem(KEYS.bootcamp, JSON.stringify({ code, name: cleanName(q.get('name')) || code, expires: now + DAY }))
     }
   } catch {
     // storage blocked: the flow still works, just without attribution
   }
+}
+
+/** Forget a remembered bootcamp link (a plain visit with nothing in progress must not carry one). */
+export function clearBootcamp(storage: KeyValueStore | null): void {
+  try { storage?.removeItem(KEYS.bootcamp) } catch { /* ignore */ }
 }
 
 export interface Attribution {

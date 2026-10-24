@@ -20,7 +20,7 @@ export function draftToGeneratePayload(d: Draft, email: string) {
       degree: e.degree, institution: e.institution, year: e.year, grade: e.grade || undefined,
     })),
     projects: d.projects.filter((p) => p.title.trim()).map((p) => ({
-      title: p.title, description: p.description, stack: list(p.stack), url: p.url || undefined,
+      title: p.title, description: p.description, stack: list(p.stack), url: p.url || undefined, image_url: p.image_url || undefined,
     })),
     experience: d.experience.filter((e) => e.company.trim() || e.role.trim()).map((e) => ({
       company: e.company, role: e.role, period: e.period, bullets: e.bullets.split('\n').map((b) => b.trim()).filter(Boolean),

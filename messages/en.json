@@ -74,7 +74,15 @@
     "template": "Template",
     "next": "Looks right: choose my address",
     "needTitle": "Add your name and professional title.",
-    "needProject": "Add at least one project."
+    "needProject": "Add at least one project.",
+    "projectImage": "Project image (optional)",
+    "imageAdd": "Add image",
+    "imageReplace": "Replace image",
+    "imageRemove": "Remove",
+    "imageHint": "JPG, PNG or WebP. We shrink it for you.",
+    "image_type": "Use a JPG, PNG or WebP image.",
+    "image_size": "That image is over 10 MB. Choose a smaller one.",
+    "imageFailed": "We could not upload that image. Try another, or continue without it."
   },
   "address": {
     "title": "Choose your address",
@@ -130,6 +138,7 @@
     "loading": "Loading",
     "livePreview": "Live preview",
     "preview": "Preview",
+    "previewSub": "and templates",
     "close": "Close"
   }
 }

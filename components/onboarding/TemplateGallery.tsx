@@ -52,14 +52,30 @@ export const TemplateThumb = memo(function TemplateThumb({ id, content, height =
   const Tpl = TEMPLATES[id]
   const renderWidth = vw >= 1024 ? 1280 : Math.max(vw, 320)
   const scale = width ? width / renderWidth : 0.2
+  const shown = (seen || eager) && width > 0
+  // A CSS transform does not shrink the layout box, so the scroll area would keep the template's unscaled height (a blank
+  // gap under the content) and its unscaled width (a sideways scrollbar). The outer box therefore gets the SCALED size.
+  const inner = useRef<HTMLDivElement | null>(null)
+  const [contentH, setContentH] = useState(0)
+  useEffect(() => {
+    const el = inner.current
+    if (!el) return
+    const measure = () => setContentH(el.offsetHeight)
+    measure()
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
+    ro?.observe(el)
+    return () => ro?.disconnect()
+  }, [shown, id, renderWidth])
   return (
     <div ref={ref} style={{ height, overflow: scrollable ? 'auto' : 'hidden', position: 'relative', contain: scrollable ? 'layout style' : 'layout paint style', background: '#fff' }} aria-hidden="true">
-      {(seen || eager) && width > 0 && (
-        <div
-          ref={(el) => { if (el) el.setAttribute('inert', '') }}
-          style={{ width: renderWidth, transformOrigin: 'top left', transform: `scale(${scale})`, pointerEvents: 'none' }}
-        >
-          <Tpl content={content} />
+      {shown && (
+        <div style={{ width: renderWidth * scale, height: contentH * scale, overflow: 'hidden' }}>
+          <div
+            ref={(el) => { inner.current = el; if (el) el.setAttribute('inert', '') }}
+            style={{ width: renderWidth, transformOrigin: 'top left', transform: `scale(${scale})`, pointerEvents: 'none' }}
+          >
+            <Tpl content={content} />
+          </div>
         </div>
       )}
     </div>
@@ -72,32 +88,37 @@ export interface GalleryProps {
   onSelect: (id: TemplateId) => void
   /** Whether the person's plan includes Pro templates (selection is allowed either way; the lock is informational). */
   isPro?: boolean
+  /** A tight strip of small cards (all ten visible beside the live preview) instead of the large grid. */
+  compact?: boolean
 }
 
 /** "Pick a look": every template rendered from the person's own details. Debounced, memoised, lazily mounted. */
-export default function TemplateGallery({ content, selected, onSelect, isPro = false }: GalleryProps) {
+export default function TemplateGallery({ content, selected, onSelect, isPro = false, compact = false }: GalleryProps) {
   const live = useDebounced(content, 300)
   const items = useMemo(() => ALL_TEMPLATES.map((id) => ({ id, pro: isProTemplate(id) })), [])
   return (
     <section aria-label="Pick a look">
-      <ul className="lp-tpl-grid" role="list">
+      <ul className={compact ? 'lp-tpl-mini' : 'lp-tpl-grid'} role="list">
         {items.map(({ id, pro }) => {
           const on = selected === id
           return (
-            <li key={id}>
-              <button type="button" aria-pressed={on} onClick={() => onSelect(id)} className="lp-tpl">
-                <TemplateThumb id={id} content={live} />
+            <li key={id} className="lp-tpl-item">
+              {/* The preview contains the template's own buttons, so it must not sit INSIDE a <button> (invalid, and flaky on
+                  phones). The card is plain markup; one transparent button over it carries the tap, the name and the state. */}
+              <div className="lp-tpl" data-on={on} aria-hidden="true">
+                <TemplateThumb id={id} content={live} height={compact ? 64 : 190} />
                 <span className="lp-tpl-foot">
-                  <span>{TEMPLATE_LABEL[id]}</span>
-                  {pro && !isPro && <span className="lp-pro" aria-label="Included with Pro"><LockIcon />Pro</span>}
-                  {on && <span className="lp-picked" aria-hidden="true"><CheckIcon /></span>}
+                  <span className="lp-tpl-name">{TEMPLATE_LABEL[id]}</span>
+                  {pro && !isPro && <span className="lp-pro"><LockIcon /><span className="lp-pro-text">Pro</span></span>}
+                  {on && <span className="lp-picked"><CheckIcon /></span>}
                 </span>
-              </button>
+              </div>
+              <button type="button" className="lp-tpl-hit" aria-pressed={on} aria-label={pro && !isPro ? `${TEMPLATE_LABEL[id]}, included with Pro` : TEMPLATE_LABEL[id]} onClick={() => onSelect(id)} />
             </li>
           )
         })}
       </ul>
-      <p className="lp-fine" style={{ marginTop: 'var(--lp-s3)' }}>Preview any template with your own details. Publishing with a Pro template needs the Pro plan.</p>
+      {!compact && <p className="lp-fine" style={{ marginTop: 'var(--lp-s3)' }}>Preview any template with your own details. Publishing with a Pro template needs the Pro plan.</p>}
     </section>
   )
 }

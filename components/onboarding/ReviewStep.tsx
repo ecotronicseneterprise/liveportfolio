@@ -6,8 +6,11 @@ import TemplateGallery, { TemplateThumb, TEMPLATE_LABEL, useDebounced } from './
 import { sanitizeDraft, type Draft, type DraftProject } from '@/lib/onboarding/draft'
 import { draftToPreviewContent } from '@/lib/onboarding/preview-content'
 import { useFlow } from '@/lib/onboarding/use-flow'
+import { accountUrl } from '@/lib/onboarding/state'
 import { t } from '@/lib/onboarding/t'
 import { isProTemplate, isTemplateId, type TemplateId } from '@/lib/plans'
+import { projectImageUrl } from '@/lib/connectors/safe-url'
+import { checkImageFile, toJpeg } from '@/lib/onboarding/image'
 import FlowShell, { FlowLoading } from './ui/FlowShell'
 import { AlertIcon } from './ui/icons'
 
@@ -26,6 +29,10 @@ export default function ReviewStep() {
   const [sheet, setSheet] = useState(false)
   const [isPro, setIsPro] = useState(false)
   const closeRef = useRef<HTMLButtonElement>(null)
+  // project images (hooks live up here, before the early return below)
+  const imageInputs = useRef<Record<number, HTMLInputElement | null>>({})
+  const [imgBusy, setImgBusy] = useState<number | null>(null)
+  const [imgError, setImgError] = useState<Record<number, string>>({})
 
   useEffect(() => {
     if (flow.loading) return
@@ -60,7 +67,39 @@ export default function ReviewStep() {
   if (flow.loading || !d) return <FlowLoading step="review" />
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD({ ...d, [k]: v })
-  const setProject = (i: number, p: Partial<DraftProject>) => set('projects', d.projects.map((x, j) => (j === i ? { ...x, ...p } : x)))
+  const setProject = (i: number, p: Partial<DraftProject>) =>
+    setD((cur) => {
+      if (!cur) return cur
+      const list = cur.projects.length ? cur.projects : [blankProject]
+      return { ...cur, projects: list.map((x, j) => (j === i ? { ...x, ...p } : x)) }
+    })
+
+  // Project image: tap the button, pick a photo, it is shrunk here and uploaded with the person's own token; only the URL is kept.
+  const imgMsg = (i: number, text: string) => setImgError((m) => ({ ...m, [i]: text }))
+  const uploadImage = async (i: number, file: File | undefined) => {
+    if (!file) return
+    imgMsg(i, '')
+    const check = checkImageFile(file)
+    if (check !== 'ok') return imgMsg(i, t(`review.image_${check}`))
+    setImgBusy(i)
+    try {
+      const token = await flow.getToken()
+      if (!token) return void router.replace(accountUrl('/create/review')) // signed out: same rule as every step, back to sign-in and then here
+      const blob = await toJpeg(file)
+      const fd = new FormData()
+      fd.append('file', blob, 'project.jpg')
+      fd.append('index', String(i))
+      const res = await fetch('/api/upload-project-image', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
+      const j = await res.json().catch(() => ({}))
+      const url = res.ok ? projectImageUrl(j?.url) : ''
+      if (!url) throw new Error('upload')
+      setProject(i, { image_url: `${url}?v=${Date.now()}` }) // same path on every upload: the version keeps a replaced image from showing stale
+    } catch {
+      imgMsg(i, t('review.imageFailed'))
+    } finally {
+      setImgBusy(null)
+    }
+  }
   const picked = new Set(d.projects.map((p) => p.title.toLowerCase()))
   const toggleCandidate = (id: string) => {
     const c = d.candidates.find((x) => x.id === id)
@@ -117,6 +156,19 @@ export default function ReviewStep() {
             {field('Description', p.description, (v) => setProject(i, { description: v }), true)}
             {field('Stack', p.stack, (v) => setProject(i, { stack: v }))}
             {field('URL', p.url, (v) => setProject(i, { url: v }))}
+            <div className="lp-field">
+              <span className="lp-label">{t('review.projectImage')}</span>
+              {p.image_url && <img className="lp-thumbimg" src={p.image_url} alt="" />}
+              <div className="lp-img-actions">
+                <button type="button" className="lp-btn lp-btn--ghost lp-btn--sm" disabled={imgBusy === i} aria-busy={imgBusy === i} onClick={() => imageInputs.current[i]?.click()}>
+                  {p.image_url ? t('review.imageReplace') : t('review.imageAdd')}
+                </button>
+                {p.image_url && <button type="button" className="lp-link" onClick={() => setProject(i, { image_url: '' })}>{t('review.imageRemove')}</button>}
+              </div>
+              <input ref={(el) => { imageInputs.current[i] = el }} type="file" className="lp-sr" tabIndex={-1} accept="image/jpeg,image/png,image/webp" aria-label={t('review.projectImage')} onChange={(e) => { void uploadImage(i, e.target.files?.[0]); e.target.value = '' }} />
+              {imgError[i] && <p role="alert" className="lp-msg lp-msg--error" style={{ marginTop: 'var(--lp-s2)' }}><AlertIcon />{imgError[i]}</p>}
+              <p className="lp-fine" style={{ marginTop: 'var(--lp-s1)' }}>{t('review.imageHint')}</p>
+            </div>
           </fieldset>
         ))}
         {d.projects.length < 4 && <button type="button" className="lp-link" style={{ marginTop: 'var(--lp-s3)' }} onClick={() => set('projects', [...d.projects, { ...blankProject }])}>+ project</button>}
@@ -135,19 +187,21 @@ export default function ReviewStep() {
         <button type="button" className="lp-link" style={{ marginTop: 'var(--lp-s3)' }} onClick={() => set('experience', [...d.experience, { company: '', role: '', period: '', bullets: '' }])}>+ experience</button>
       </section>
 
-      <section className="lp-section">
-        <h2 className="lp-h2" style={{ marginBottom: 'var(--lp-s3)' }}>{t('review.template')}</h2>
-        <TemplateGallery content={content} selected={template} isPro={isPro} onSelect={(id) => set('template', id)} />
-        {isProTemplate(template) && !isPro && (
-          <p role="status" className="lp-msg" style={{ marginTop: 'var(--lp-s3)' }}>{TEMPLATE_LABEL[template]} is included with Pro. You can keep previewing it; when you publish, Basic uses Minimal and Pro uses {TEMPLATE_LABEL[template]}.</p>
-        )}
-      </section>
-
       {error && <p role="alert" className="lp-msg lp-msg--error" style={{ marginTop: 'var(--lp-s5)' }}><AlertIcon />{error}</p>}
       <div className="lp-desktop-only lp-actions">
         <button type="button" className="lp-btn lp-btn--primary" onClick={next}>{t('review.next')}</button>
       </div>
     </div>
+  )
+
+  // The template picker sits on top of the live preview (laptop) and of the preview sheet (phone): switch looks while editing.
+  const picker = (
+    <>
+      <TemplateGallery compact content={content} selected={template} isPro={isPro} onSelect={(id) => set('template', id)} />
+      {isProTemplate(template) && !isPro && (
+        <p role="status" className="lp-msg">{TEMPLATE_LABEL[template]} is included with Pro. You can keep previewing it; when you publish, Basic uses Minimal and Pro uses {TEMPLATE_LABEL[template]}.</p>
+      )}
+    </>
   )
 
   return (
@@ -158,6 +212,7 @@ export default function ReviewStep() {
         <aside className="lp-preview" aria-label="Live preview">
           <div className="lp-preview-in">
             <p className="lp-preview-cap"><span>{t('ui.livePreview')}</span><b>{TEMPLATE_LABEL[template]}</b></p>
+            {picker}
             <div className="lp-frame">
               <TemplateThumb id={template} content={live} height="100%" eager scrollable />
             </div>
@@ -166,7 +221,9 @@ export default function ReviewStep() {
       </div>
       {/* phone: Preview and Continue under the thumb, and a sheet */}
       <div className="lp-mbar lp-mobile-only">
-        <button type="button" className="lp-btn lp-btn--ghost" onClick={() => setSheet(true)}>{t('ui.preview')}</button>
+        <button type="button" className="lp-btn lp-btn--ghost lp-btn--stack" onClick={() => setSheet(true)}>
+          <span>{t('ui.preview')}</span><small>{t('ui.previewSub')}</small>
+        </button>
         <button type="button" className="lp-btn lp-btn--primary" onClick={next}>{t('review.next')}</button>
       </div>
       {sheet && (
@@ -175,6 +232,7 @@ export default function ReviewStep() {
             <span>{TEMPLATE_LABEL[template]}</span>
             <button ref={closeRef} type="button" className="lp-link" onClick={() => setSheet(false)}>{t('ui.close')}</button>
           </div>
+          <div className="lp-sheet-pick">{picker}</div>
           <div style={{ flex: 1, minHeight: 0 }}>
             <TemplateThumb id={template} content={live} height="100%" eager scrollable />
           </div>
