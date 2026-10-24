@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Turnstile from './Turnstile'
 import SocialSignIn from './SocialSignIn'
 import { createAccount, sendReset, signIn } from '@/lib/onboarding/auth-actions'
-import { signOutAndClear } from '@/lib/onboarding/draft'
+import { browserStorage, signOutAndClear } from '@/lib/onboarding/draft'
+import { captureAttribution, readAttribution } from '@/lib/onboarding/attribution'
 import { getAuth, useFlow } from '@/lib/onboarding/use-flow'
 import { getSupabaseClient } from '@/lib/supabase'
 import { t } from '@/lib/onboarding/t'
@@ -26,6 +27,16 @@ export default function AccountStep() {
   const [captcha, setCaptcha] = useState<string | null>(null)
   const [captchaReset, setCaptchaReset] = useState(0)
 
+  // ?ref= / ?invite= / ?bootcamp= (kept by the /create redirect) are stored here and applied once the account row exists
+  const [perk, setPerk] = useState<{ invite: boolean; bootcamp: string | null }>({ invite: false, bootcamp: null })
+  useEffect(() => {
+    const store = browserStorage()
+    captureAttribution(window.location.search, store)
+    const a = readAttribution(store)
+    setPerk({ invite: !!a.invite?.freePro, bootcamp: a.bootcamp ? a.bootcamp.name : null })
+  }, [])
+
+  const nextParam = () => (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('next'))
   const finishCaptcha = () => setCaptchaReset((n) => n + 1)
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
 
@@ -40,7 +51,7 @@ export default function AccountStep() {
       if (mode === 'create') {
         const out = await createAccount(auth, { email: email.trim(), password, captchaToken: captcha, redirectTo: `${origin}/auth/confirm?next=/create` })
         finishCaptcha()
-        if (out.kind === 'signed_in') return void (await flow.goNext())
+        if (out.kind === 'signed_in') return void (await flow.goNext(nextParam()))
         if (out.kind === 'verify') {
           try { sessionStorage.setItem(VERIFY_EMAIL_KEY, out.email) } catch {}
           return void router.push('/create/verify')
@@ -50,7 +61,7 @@ export default function AccountStep() {
       } else {
         const out = await signIn(auth, { email: email.trim(), password, captchaToken: captcha })
         finishCaptcha()
-        if (out.kind === 'signed_in') return void (await flow.goNext())
+        if (out.kind === 'signed_in') return void (await flow.goNext(nextParam()))
         if (out.kind === 'unverified') {
           try { sessionStorage.setItem(VERIFY_EMAIL_KEY, out.email) } catch {}
           return void router.push('/create/verify')
@@ -89,6 +100,8 @@ export default function AccountStep() {
   return (
     <main className="max-w-md mx-auto p-6">
       <h1 className="text-2xl font-semibold mb-4">{t('account.title')}</h1>
+      {perk.invite && <p role="note" className="mb-3">{t('account.inviteFree')}</p>}
+      {perk.bootcamp && !perk.invite && <p role="note" className="mb-3">{t('account.bootcamp', { name: perk.bootcamp })}</p>}
       <div role="tablist" className="flex gap-2 mb-4">
         <button role="tab" aria-selected={mode === 'create'} className="min-h-11 px-3 border rounded" onClick={() => setMode('create')}>{t('account.create')}</button>
         <button role="tab" aria-selected={mode === 'signin'} className="min-h-11 px-3 border rounded" onClick={() => setMode('signin')}>{t('account.signin')}</button>
@@ -109,7 +122,7 @@ export default function AccountStep() {
         {mode === 'signin' && <button type="button" onClick={reset} disabled={busy} className="block mt-3 underline min-h-11">{t('account.forgot')}</button>}
         <p className="text-sm mt-4">{t('account.terms')}</p>
       </form>
-      <SocialSignIn next="/create/account" onSignedIn={() => flow.goNext()} />
+      <SocialSignIn next="/create/account" onSignedIn={() => flow.goNext(nextParam())} />
     </main>
   )
 }

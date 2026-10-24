@@ -1,3 +1,4 @@
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
@@ -21,7 +22,7 @@ export default function PrivacyPage() {
         <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
           <Link href="/" className="font-bold text-gray-900 tracking-tight">liveportfolio.site</Link>
           <Link
-            href="/create"
+            href={CREATE_HREF}
             className="px-4 py-2 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
           >
             Create My Portfolio

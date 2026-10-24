@@ -1,5 +1,6 @@
 'use client'
 
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import React, { useState } from 'react'
 import Minimal from '@/components/templates/Minimal'
 import Bold from '@/components/templates/Bold'
@@ -128,7 +129,7 @@ export default function DemoToggle({ content, defaultTemplate }: Props) {
             </button>
           ))}
           <div style={{ padding: '8px 12px', borderTop: '1px solid #f3f4f6', marginTop: 4 }}>
-            <a href="/create" style={{ fontSize: 12, color: '#2563EB', fontWeight: 600, textDecoration: 'none', display: 'block', textAlign: 'center' }}>
+            <a href={CREATE_HREF} style={{ fontSize: 12, color: '#2563EB', fontWeight: 600, textDecoration: 'none', display: 'block', textAlign: 'center' }}>
               Unlock Pro templates →
             </a>
           </div>

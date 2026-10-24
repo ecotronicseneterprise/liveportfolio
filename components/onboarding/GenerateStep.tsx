@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { draftToGeneratePayload, generateWithRetry } from '@/lib/onboarding/generate'
 import { useFlow } from '@/lib/onboarding/use-flow'
+import { INVITED_FLAG } from '@/lib/onboarding/attribution'
+import { accountUrl } from '@/lib/onboarding/state'
 import { t } from '@/lib/onboarding/t'
 
 /**
@@ -20,13 +22,13 @@ export default function GenerateStep() {
     if (!flow.draft || !flow.email) return void router.replace('/create/import')
     setPhase('working')
     const token = await flow.getToken()
-    if (!token) return void router.replace('/create/account')
+    if (!token) return void router.replace(accountUrl('/create/generate'))
     const body = JSON.stringify(draftToGeneratePayload(flow.draft, flow.email))
     const result = await generateWithRetry(() =>
       fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body }),
     )
     if (!result.ok) {
-      if (result.reason === 'unauthorized') return void router.replace('/create/account')
+      if (result.reason === 'unauthorized') return void router.replace(accountUrl('/create/generate'))
       return setPhase('failed')
     }
     flow.store.clear() // the content now lives in the portfolio; nothing personal stays in localStorage
@@ -36,7 +38,10 @@ export default function GenerateStep() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ portfolioId: result.portfolioId, name: flow.draft.name }),
     }).catch(() => {})
-    router.replace(`/preview/${result.portfolioId}`)
+    // an invite that upgraded the account lands on the preview's "your Pro portfolio is live" banner, as the old wizard did
+    let invited = false
+    try { invited = sessionStorage.getItem(INVITED_FLAG) === '1'; sessionStorage.removeItem(INVITED_FLAG) } catch {}
+    router.replace(`/preview/${result.portfolioId}${invited ? '?invited=true' : ''}`)
   }, [flow, router])
 
   useEffect(() => {

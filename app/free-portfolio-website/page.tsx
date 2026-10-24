@@ -1,7 +1,8 @@
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import LandingNav from '@/components/LandingNav'
-import SupportButton from '@/components/SupportButton'
+import ContactLinks from '@/components/ContactLinks'
 import LocalisedPrice from '@/components/LocalisedPrice'
 
 export const metadata: Metadata = {
@@ -51,7 +52,7 @@ export default function FreePortfolioWebsitePage() {
           </p>
           <div className="flex flex-col gap-3">
             <Link
-              href="/create"
+              href={CREATE_HREF}
               className="inline-flex items-center gap-2 px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20 self-start"
             >
               Build My Portfolio, Free →
@@ -122,7 +123,7 @@ export default function FreePortfolioWebsitePage() {
             Build yours free. Publish when you're ready.
           </p>
           <Link
-            href="/create"
+            href={CREATE_HREF}
             className="inline-flex items-center gap-2 px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors"
           >
             Build My Portfolio, Free →
@@ -131,7 +132,7 @@ export default function FreePortfolioWebsitePage() {
         </div>
       </section>
 
-      <SupportButton />
+      <div className="flex justify-center py-6 text-xs text-gray-400"><ContactLinks /></div>
 
       {/* ── Footer ── */}
       <footer className="w-full border-t border-gray-100 bg-white">

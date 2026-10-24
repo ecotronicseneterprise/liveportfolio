@@ -1,3 +1,4 @@
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase'
@@ -44,7 +45,7 @@ export default async function BootcampLandingPage({ params }: Props) {
           <h1 className="text-xl font-bold text-gray-900 mb-3">This link is no longer active</h1>
           <p className="text-gray-500 text-sm">
             Please contact your bootcamp for an updated link, or{' '}
-            <a href="/create" className="text-[#0A66C2] hover:underline">start for free</a> directly.
+            <a href={CREATE_HREF} className="text-[#0A66C2] hover:underline">start for free</a> directly.
           </p>
         </div>
       </div>
@@ -52,5 +53,5 @@ export default async function BootcampLandingPage({ params }: Props) {
   }
 
   // Redirect immediately — server-side is cleaner than a JS countdown
-  redirect(`/create?bootcamp=${bootcamp.code}&name=${encodeURIComponent(bootcamp.name)}`)
+  redirect(`${CREATE_HREF}?bootcamp=${bootcamp.code}&name=${encodeURIComponent(bootcamp.name)}`)
 }

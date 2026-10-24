@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { checkSlugShape, normalizeSlug } from '@/lib/slug'
 import { slugFromName } from '@/lib/onboarding/slugify'
+import { accountUrl } from '@/lib/onboarding/state'
+import { applyAfterProfile, readAttribution } from '@/lib/onboarding/attribution'
+import { browserStorage } from '@/lib/onboarding/draft'
 import { useFlow } from '@/lib/onboarding/use-flow'
 import { t } from '@/lib/onboarding/t'
 
@@ -52,12 +55,20 @@ export default function AddressStep() {
     setError(''); setBusy(true)
     try {
       const token = await flow.getToken()
-      if (!token) { location.href = '/create/account'; return }
+      if (!token) { location.href = accountUrl('/create/address'); return }
       const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
       const hasProfile = !!flow.server?.profile
-      const res = await fetch(hasProfile ? '/api/account/slug' : '/api/account/profile', { method: 'POST', headers, body: JSON.stringify({ slug }) })
+      const store = browserStorage()
+      const referral = hasProfile ? null : readAttribution(store).referral
+      const res = await fetch(hasProfile ? '/api/account/slug' : '/api/account/profile', {
+        method: 'POST', headers, body: JSON.stringify({ slug, ...(referral ? { referral_code: referral } : {}) }),
+      })
       const j = await res.json().catch(() => ({}))
-      if (res.ok) return void (await flow.goNext())
+      if (res.ok) {
+        // first time only: the users row now exists, so apply the invite / bootcamp link and drop the stored referral
+        if (!hasProfile) await applyAfterProfile(fetch, token, flow.userId, store, typeof sessionStorage !== 'undefined' ? sessionStorage : null)
+        return void (await flow.goNext())
+      }
       if (res.status === 409 && j.error === 'slug_taken') { setStatus('taken'); setSuggestions(Array.isArray(j.suggestions) ? j.suggestions : []); return }
       if (res.status === 403 && j.error === 'slug_locked') { setStatus('locked'); return }
       if (res.status === 409 && j.error === 'profile_required') { await flow.refresh(); return }

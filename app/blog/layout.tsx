@@ -1,3 +1,4 @@
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import Link from 'next/link'
 
 export default function BlogLayout({ children }: { children: React.ReactNode }) {
@@ -13,7 +14,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
               Blog
             </Link>
             <Link
-              href="/create"
+              href={CREATE_HREF}
               className="px-4 py-2 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
             >
               Create My Portfolio
@@ -31,7 +32,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
             <Link href="/blog" className="hover:text-gray-600">Blog</Link>
             <Link href="/terms" className="hover:text-gray-600">Terms</Link>
             <Link href="/privacy" className="hover:text-gray-600">Privacy</Link>
-            <Link href="/create" className="hover:text-gray-600">Create portfolio</Link>
+            <Link href={CREATE_HREF} className="hover:text-gray-600">Create portfolio</Link>
           </div>
         </div>
       </footer>
