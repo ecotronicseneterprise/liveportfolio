@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { callLLM, LlmError } from '@/lib/llm'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,9 +63,8 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    // Generate new score via GPT-4o-mini
-    const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey) {
+    // Generate new score via the LLM gateway (PII redacted before the call, restored after)
+    if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json({ error: 'OpenAI not configured' }, { status: 500 })
     }
 
@@ -101,35 +101,24 @@ Return JSON with this exact shape:
 
 Be honest and calibrated. A score of 72 is good. 90+ requires standout outcomes with real numbers.`
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        response_format: { type: 'json_object' },
-        max_tokens: 300,
+    let parsed: { score?: number; breakdown?: { presence: number; projects: number; experience: number; skills: number }; summary?: string }
+    try {
+      const result = await callLLM<typeof parsed>({
+        purpose: 'score.portfolio',
+        pii: 'redact',
+        system: 'You are a career advisor scoring professional portfolios. Return only valid JSON.',
+        input: prompt,
+        names: c.name ? [c.name] : undefined,
+        maxTokens: 300,
         temperature: 0.3,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a career advisor scoring professional portfolios. Return only valid JSON.',
-          },
-          { role: 'user', content: prompt },
-        ],
-      }),
-    })
-
-    if (!response.ok) {
-      return NextResponse.json({ error: 'AI service unavailable' }, { status: 200 })
+      })
+      parsed = result.data
+    } catch (err) {
+      if (err instanceof LlmError) {
+        return NextResponse.json({ error: 'AI service unavailable' }, { status: 200 })
+      }
+      throw err
     }
-
-    const aiResult = await response.json()
-    const rawContent = aiResult.choices?.[0]?.message?.content
-    if (!rawContent) throw new Error('OpenAI returned empty response')
-    const parsed = JSON.parse(rawContent)
 
     const score = Math.min(100, Math.max(0, Math.round(parsed.score || 50)))
     const breakdown = parsed.breakdown || { presence: 0, projects: 0, experience: 0, skills: 0 }

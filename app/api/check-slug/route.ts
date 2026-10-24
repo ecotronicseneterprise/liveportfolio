@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
-
-const RESERVED = new Set([
-  'api', 'www', 'app', 'admin', 'blog', 'help', 'dashboard', 'status',
-  'support', 'login', 'signup', 'register', 'pricing', 'about', 'contact',
-  'terms', 'privacy', 'docs', 'faq', 'team', 'careers', 'demo', 'test',
-  'null', 'undefined', 'liveportfolio', 'invite', 'bootcamp', 'what-is-a-portfolio',
-  'cv-to-portfolio', 'portfolio-builder', 'free-portfolio-website',
-])
-
-const SLUG_RE = /^[a-z0-9-]{3,30}$/
+import { checkSlugShape, normalizeSlug } from '@/lib/slug'
 
 // In-memory rate limiting: 10 per IP per minute
 const ipCounts = new Map<string, { count: number; resetAt: number }>()
@@ -34,24 +25,19 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url)
-  const slug = searchParams.get('slug')?.toLowerCase().trim()
+  const slug = normalizeSlug(searchParams.get('slug'))
 
   if (!slug) {
     return NextResponse.json({ available: false, error: 'Slug required' })
   }
 
-  if (!SLUG_RE.test(slug)) {
-    return NextResponse.json({
-      available: false,
-      error: 'Slug must be 3-30 characters, lowercase letters, numbers, and hyphens only',
-    })
-  }
-
-  if (RESERVED.has(slug)) {
-    return NextResponse.json({
-      available: false,
-      suggestion: `${slug}-dev`,
-    })
+  const shape = checkSlugShape(slug)
+  if (!shape.ok) {
+    return NextResponse.json(
+      shape.error === 'reserved_slug'
+        ? { available: false, suggestion: `${slug}-dev` }
+        : { available: false, error: shape.message }
+    )
   }
 
   const { data } = await supabaseAdmin

@@ -74,16 +74,21 @@ function deterministic(text: string) {
   }
 }
 
-async function run(text: string, source: SourceName): Promise<ConnectorResult> {
-  const det = deterministic(text)
-  const ai = await structure(text)
+export interface ImportOptions {
+  /** Names already known (e.g. typed into the form) — exact-match redacted before the AI call. */
+  names?: string[]
+}
 
-  // Regex hits fill gaps the model left; the model's value wins where both exist.
+async function run(text: string, source: SourceName, opts: ImportOptions): Promise<ConnectorResult> {
+  const det = deterministic(text)
+  const { profile: ai, warnings } = await structure(text, { names: opts.names })
+
+  // Contact fields come from local detection ONLY — never from model output.
   const profile = {
     ...ai,
-    email: ai.email ?? det.email ?? undefined,
-    github_url: ai.github_url ?? det.github_url ?? undefined,
-    linkedin_url: ai.linkedin_url ?? det.linkedin_url ?? undefined,
+    email: det.email ?? undefined,
+    github_url: det.github_url ?? undefined,
+    linkedin_url: det.linkedin_url ?? undefined,
   }
 
   const provenance: Provenance[] = (Object.keys(profile) as Array<keyof typeof profile>)
@@ -93,11 +98,11 @@ async function run(text: string, source: SourceName): Promise<ConnectorResult> {
     })
     .map((field) => ({ field, source }))
 
-  return { source, profile, provenance, warnings: [] }
+  return { source, profile, provenance, warnings }
 }
 
 /** CV file (PDF/DOCX) → ConnectorResult. Throws ImportError with a user-safe message. */
-export async function importDocument(file: { buffer: Buffer }): Promise<ConnectorResult> {
+export async function importDocument(file: { buffer: Buffer }, opts: ImportOptions = {}): Promise<ConnectorResult> {
   if (file.buffer.length > LIMITS.maxFileBytes) {
     throw new ImportError('file_too_large', 'That file is larger than 5MB.')
   }
@@ -113,10 +118,10 @@ export async function importDocument(file: { buffer: Buffer }): Promise<Connecto
     if (err instanceof ImportError) throw err
     throw new ImportError('parse_failed', "We couldn't open that file. It may be corrupted or password-protected.")
   }
-  return run(checkText(text, true), 'document')
+  return run(checkText(text, true), 'document', opts)
 }
 
 /** Pasted text (bio, LinkedIn sections, old CV) → ConnectorResult. */
-export async function importText(raw: string): Promise<ConnectorResult> {
-  return run(checkText(cleanText(raw), false), 'text')
+export async function importText(raw: string, opts: ImportOptions = {}): Promise<ConnectorResult> {
+  return run(checkText(cleanText(raw), false), 'text', opts)
 }

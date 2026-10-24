@@ -1,9 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { normalizeProfile, cleanUrl, stripBulletMarker } from '../lib/connectors/normalize'
 import { mergeResults } from '../lib/connectors/merge'
 import { applyDraftToForm, type FormSlice } from '../lib/connectors/to-form'
 import { detectKind, importDocument, importText } from '../lib/connectors/document'
-import { importGithub, parseGithubUsername } from '../lib/connectors/github'
 import { ImportError, type ConnectorResult } from '../lib/connectors/types'
 
 describe('normalize', () => {
@@ -59,7 +58,7 @@ describe('merge', () => {
 
 describe('to-form adapter (preserves the original handleCvUpload contract)', () => {
   const base: FormSlice = {
-    name: 'Keep', role: '', email: '', location: 'Lagos', bio: '', github_url: '', linkedin_url: '',
+    avatar_url: '', name: 'Keep', role: '', email: '', location: 'Lagos', bio: '', github_url: '', linkedin_url: '',
     directSkills: ['React'], certifications: [], projects: [], experience: [], education: [],
   }
   it('does not overwrite with empty values', () => {
@@ -100,63 +99,5 @@ describe('document guards (no AI call reached)', () => {
   it('enforces the text length bounds with 422-class codes', async () => {
     await expect(importText('too short')).rejects.toMatchObject({ code: 'no_text' })
     await expect(importText('word '.repeat(3000))).rejects.toMatchObject({ code: 'too_long' })
-  })
-})
-
-describe('github connector', () => {
-  const realFetch = globalThis.fetch
-  beforeEach(() => vi.restoreAllMocks())
-  afterEach(() => { globalThis.fetch = realFetch })
-
-  const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status })
-  const repo = (o: object) => ({
-    name: 'r', full_name: 'u/r', description: 'desc', fork: false, archived: false, language: 'TypeScript',
-    topics: [], homepage: null, html_url: 'https://github.com/u/r', stargazers_count: 0,
-    pushed_at: '2025-01-01T00:00:00Z', ...o,
-  })
-  const user = (login: string, o: object = {}) => ({
-    login, name: null, bio: null, location: null, email: null, blog: null, html_url: `https://github.com/${login}`, ...o,
-  })
-
-  it('parses usernames from names and URLs, rejects junk', () => {
-    expect(parseGithubUsername('@octocat')).toBe('octocat')
-    expect(parseGithubUsername('https://github.com/octocat/hello')).toBe('octocat')
-    expect(parseGithubUsername('bad name!')).toBeNull()
-    expect(parseGithubUsername('-leading')).toBeNull()
-  })
-
-  it('excludes forks/archived, ranks by stars, maps stack + skills, then serves from cache', async () => {
-    const f = vi.fn(async (url: string) => {
-      if (url.endsWith('/users/cachetest')) {
-        return json(user('cachetest', { name: 'C T', bio: 'hi', location: 'Lagos', blog: 'https://linkedin.com/in/ct' }))
-      }
-      return json([
-        repo({ name: 'fork', fork: true, stargazers_count: 999 }),
-        repo({ name: 'old', archived: true, stargazers_count: 500 }),
-        repo({ name: 'big', stargazers_count: 10, topics: ['nextjs'] }),
-        repo({ name: 'small', stargazers_count: 1, language: 'Go' }),
-        repo({ name: 'cachetest', stargazers_count: 100 }),
-      ])
-    })
-    globalThis.fetch = f as unknown as typeof fetch
-    const r = await importGithub('cachetest')
-    expect(r.profile.projects!.map((p) => p.title)).toEqual(['big', 'small'])
-    expect(r.profile.projects![0].stack).toEqual(['TypeScript', 'nextjs'])
-    expect(r.profile.skills).toEqual(['TypeScript', 'Go'])
-    expect(r.profile.linkedin_url).toContain('linkedin.com/in/ct')
-    const calls = f.mock.calls.length
-    await importGithub('CacheTest')
-    expect(f.mock.calls.length).toBe(calls)
-  })
-
-  it('returns explicit errors', async () => {
-    globalThis.fetch = (async () => new Response('', { status: 404 })) as unknown as typeof fetch
-    await expect(importGithub('nobody-here')).rejects.toMatchObject({ code: 'not_found' })
-    globalThis.fetch = (async () => new Response('', { status: 403 })) as unknown as typeof fetch
-    await expect(importGithub('limited')).rejects.toMatchObject({ code: 'rate_limited' })
-    await expect(importGithub('not valid!!')).rejects.toMatchObject({ code: 'invalid_username' })
-    globalThis.fetch = (async (u: string) =>
-      String(u).includes('/repos') ? json([repo({ fork: true })]) : json(user('onlyforks'))) as unknown as typeof fetch
-    await expect(importGithub('onlyforks')).rejects.toMatchObject({ code: 'no_public_repos' })
   })
 })

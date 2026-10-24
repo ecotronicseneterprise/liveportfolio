@@ -16,3 +16,12 @@ affiliate-commands.sh
 !/fixtures/cvs/.gitkeep
 /fixtures/baseline/*
 !/fixtures/baseline/.gitkeep
+
+.bench-out.txt
+
+/bench/synthetic/out/
+/bench/results/
+.pf-install.log
+/bench/.promptfoo/
+/bench/node_modules/
+/bench/.env.local

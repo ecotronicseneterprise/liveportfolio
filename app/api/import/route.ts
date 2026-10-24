@@ -4,6 +4,7 @@ import { importGithub } from '@/lib/connectors/github'
 import { mergeResults } from '@/lib/connectors/merge'
 import { allow, clientIp, DAY_MS, IMPORT_PER_IP_PER_DAY, withinDailyCap } from '@/lib/connectors/limits'
 import { ConnectorResult, ImportError, LIMITS } from '@/lib/connectors/types'
+import { parseExcludeList } from '@/lib/connectors/safe-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +42,8 @@ export async function POST(req: NextRequest) {
   const file = form.get('file')
   const text = form.get('text')
   const github = form.get('github')
+  const nameField = form.get('name')
+  const names = typeof nameField === 'string' && nameField.trim() ? [nameField.trim().slice(0, 80)] : undefined
 
   const jobs: Array<Promise<ConnectorResult>> = []
   const usesAi = (file instanceof File && file.size > 0) || (typeof text === 'string' && text.trim())
@@ -53,16 +56,19 @@ export async function POST(req: NextRequest) {
     if (file.size > LIMITS.maxFileBytes) {
       return fail(new ImportError('file_too_large', 'That file is larger than 5MB.'))
     }
-    jobs.push(file.arrayBuffer().then((ab) => importDocument({ buffer: Buffer.from(ab) })))
+    jobs.push(file.arrayBuffer().then((ab) => importDocument({ buffer: Buffer.from(ab) }, { names })))
   }
   if (typeof text === 'string' && text.trim()) {
     if (text.length > MAX_RAW_TEXT) {
       return fail(new ImportError('too_long', 'That text is too long.'))
     }
-    jobs.push(importText(text))
+    jobs.push(importText(text, { names }))
   }
   if (typeof github === 'string' && github.trim()) {
-    jobs.push(importGithub(github))
+    // repos the user already unticked/ruled out: comma- or newline-separated repo names (validated, max 50)
+    const excludeRaw = form.get('github_exclude')
+    const exclude = parseExcludeList(excludeRaw) // valid repo names only, ≤ 50, ≤ 8 KB raw
+    jobs.push(importGithub(github, { exclude }))
   }
 
   if (jobs.length === 0) {

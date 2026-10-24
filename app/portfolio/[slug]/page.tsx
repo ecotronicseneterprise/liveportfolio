@@ -1,4 +1,5 @@
 import React from 'react'
+import { safeJsonLd } from '@/lib/json-ld'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
 
@@ -225,7 +226,7 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(personSchema) }}
       />
       <Template content={portfolio.content} />
       {(data as { plan?: string }).plan !== 'basic' && (data as { plan?: string }).plan !== 'pro' && (

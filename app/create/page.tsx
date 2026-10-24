@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
 import Logo from '@/components/Logo'
 import ImageCropper from '@/components/ImageCropper'
-import { applyDraftToForm } from '@/lib/connectors/to-form'
-import type { ImportDraft } from '@/lib/connectors/types'
+import { applyDraftToForm, MAX_FORM_PROJECTS, reconcileProjects } from '@/lib/connectors/to-form'
+import type { ImportDraft, ProjectCandidate } from '@/lib/connectors/types'
+import { isGithubAvatarUrl } from '@/lib/connectors/safe-url'
 
 interface Project {
   title: string
@@ -359,6 +360,12 @@ export default function CreatePage() {
   const [slugSuggestion, setSlugSuggestion] = useState('')
   const [uploadingCv, setUploadingCv] = useState(false)
   const [cvParseError, setCvParseError] = useState<string | null>(null)
+  // GitHub project picker: ranked candidates from the import, which ones are ticked, which the user ruled out
+  const [candidates, setCandidates] = useState<ProjectCandidate[]>([])
+  const [pickedIds, setPickedIds] = useState<string[]>([])
+  const [excludedRepos, setExcludedRepos] = useState<string[]>([])
+  // required-by-generate fields an import could not fill (role, email)
+  const [importMissing, setImportMissing] = useState<string[]>([])
   const [importPanel, setImportPanel] = useState<null | 'github' | 'text'>(null)
   const [importValue, setImportValue] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -407,7 +414,14 @@ export default function CreatePage() {
 
       // /api/import wraps the result in { draft }; /api/parse-cv returns the draft itself.
       const draft = (data.draft ?? data) as Partial<ImportDraft>
-      setForm((prev) => applyDraftToForm(prev, draft))
+      const next = applyDraftToForm(form, draft)
+      setForm(next)
+      // /api/generate requires name, role and email; tell the user what the import could not find
+      setImportMissing([...(next.role.trim() ? [] : ['professional title']), ...(next.email.trim() ? [] : ['email address'])])
+      if (draft.project_candidates?.length) {
+        setCandidates(draft.project_candidates)
+        setPickedIds(draft.project_candidates.filter((c) => c.selected).slice(0, MAX_FORM_PROJECTS).map((c) => c.id))
+      }
       setError('')
       if (typeof window.gtag !== 'undefined') {
         window.gtag('event', 'cv_uploaded', { file_type: kind })
@@ -425,6 +439,7 @@ export default function CreatePage() {
   const handleCvUpload = async (file: File) => {
     const fd = new FormData()
     fd.append('file', file)
+    if (form.name.trim()) fd.append('name', form.name.trim())
     await importFrom('/api/parse-cv', fd, file.name.toLowerCase().endsWith('.docx') ? 'docx' : 'pdf')
   }
 
@@ -433,7 +448,25 @@ export default function CreatePage() {
     setEntryChoice('cv')
     const fd = new FormData()
     fd.append(field, value)
+    if (field === 'github' && excludedRepos.length) fd.append('github_exclude', excludedRepos.join(','))
+    if (form.name.trim()) fd.append('name', form.name.trim())
     await importFrom('/api/import', fd, field)
+  }
+
+  const togglePick = (id: string) => {
+    const next = pickedIds.includes(id)
+      ? pickedIds.filter((x) => x !== id)
+      : pickedIds.length < MAX_FORM_PROJECTS ? [...pickedIds, id] : pickedIds
+    setPickedIds(next)
+    setForm((prev) => reconcileProjects(prev, candidates, next))
+  }
+  const hideCandidate = (id: string) => {
+    const rest = candidates.filter((c) => c.id !== id)
+    const next = pickedIds.filter((x) => x !== id)
+    setCandidates(rest)
+    setPickedIds(next)
+    setExcludedRepos((e) => [...e, id.split('/').pop() || id])
+    setForm((prev) => reconcileProjects(prev, rest, next))
   }
 
   // Avatar Upload — opens cropper
@@ -614,30 +647,27 @@ export default function CreatePage() {
         }
       } catch {}
 
+      // The browser may no longer write the `users` table (RLS closed): the server creates the row from the verified
+      // token. We send only the slug and the referral code; plan and e-mail are decided server-side.
+      const profileRes = await fetch('/api/account/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authData.session.access_token}`,
+        },
+        body: JSON.stringify({ slug: form.slug, ...(referralPartner ? { referral_code: referralPartner } : {}) }),
+      })
+      if (!profileRes.ok) {
+        const profileErr = await profileRes.json().catch(() => ({}))
+        if (profileRes.status === 409 && profileErr.error === 'slug_taken') {
+          throw new Error('That username is already taken. Please choose another one.')
+        }
+        if (profileRes.status === 400 && profileErr.message) throw new Error(profileErr.message)
+        throw new Error('Failed to save user profile')
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sb = supabase as any
-      const { error: userError } = await sb
-        .from('users')
-        .insert({
-          id: authData.user!.id,
-          email: form.email,
-          slug: form.slug,
-          ...(referralPartner ? { referral_partner: referralPartner } : {}),
-        })
-
-      if (userError) {
-        const { data: existingUser } = await sb
-          .from('users')
-          .select('id, slug')
-          .eq('id', authData.user!.id)
-          .single()
-        if (!existingUser) {
-          const message = (userError.message || '').toLowerCase()
-          const isDuplicate = message.includes('duplicate') || message.includes('unique')
-          if (isDuplicate) throw new Error('That username is already taken. Please choose another one.')
-          throw new Error('Failed to save user profile')
-        }
-      }
 
       // Clear referral after successful user creation — attribution is now stored in DB
       try { localStorage.removeItem('lp_referral') } catch {}
@@ -773,7 +803,8 @@ export default function CreatePage() {
         email: form.email,
         github_url: buildFullUrl(form.github_url, 'https://github.com/'),
         linkedin_url: buildFullUrl(form.linkedin_url, 'https://linkedin.com/in/'),
-        avatar_url: avatarUrl,
+        // an imported GitHub avatar is used only when no photo was uploaded
+        avatar_url: avatarUrl ?? (isGithubAvatarUrl(form.avatar_url) ? form.avatar_url : undefined),
         skills: allSkills,
         certifications: form.certifications.length > 0 ? form.certifications : undefined,
         education: form.education.filter(e => e.degree.trim()).map(e => ({
@@ -986,8 +1017,8 @@ export default function CreatePage() {
 
           {/* Consent */}
           <p className="text-xs text-gray-400 text-center mt-6">
-            Your CV or pasted text is processed by OpenAI to fill in this form
-            {IMPORT_ENABLED_UI ? '; GitHub imports read only your public profile' : ''}. We don&apos;t keep the file.
+            Direct contact details (email, phone, links) are replaced with placeholders before your CV text is processed by OpenAI to fill in this form; the rest of the text is sent as written
+            {IMPORT_ENABLED_UI ? '. GitHub imports read only your public profile' : ''}. We don&apos;t keep the file.
           </p>
 
           {/* Account note */}
@@ -1079,6 +1110,12 @@ export default function CreatePage() {
             {cvParseError && (
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
                 {cvParseError}
+              </div>
+            )}
+
+            {importMissing.length > 0 && (
+              <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-800">
+                We imported what we could. Please add your {importMissing.join(' and ')} below — we need {importMissing.length > 1 ? 'them' : 'it'} to build your portfolio.
               </div>
             )}
 
@@ -1268,6 +1305,57 @@ export default function CreatePage() {
                 </p>
               )}
             </div>
+
+            {/* GitHub project picker (only after a GitHub import) */}
+            {candidates.length > 0 && (
+              <div className="border border-blue-100 bg-blue-50/40 rounded-xl p-4 space-y-3">
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">Your best GitHub projects</p>
+                  <p className="text-xs text-gray-500">
+                    Tick up to {MAX_FORM_PROJECTS} to feature ({pickedIds.length} selected). Not a project you want to show? Hide it.
+                  </p>
+                </div>
+                <ul className="space-y-2">
+                  {candidates.map((c) => {
+                    const checked = pickedIds.includes(c.id)
+                    const full = !checked && pickedIds.length >= MAX_FORM_PROJECTS
+                    return (
+                      <li key={c.id} className={`flex gap-3 items-start rounded-lg bg-white border p-3 ${checked ? 'border-[#0A66C2]' : 'border-gray-100'}`}>
+                        <input
+                          type="checkbox"
+                          className="mt-1"
+                          checked={checked}
+                          disabled={full}
+                          onChange={() => togglePick(c.id)}
+                          aria-label={`Feature ${c.title}`}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-baseline gap-2 flex-wrap">
+                            <span className="text-sm font-medium text-gray-900">{c.title}</span>
+                            {c.stars > 0 && <span className="text-xs text-gray-400">★ {c.stars}</span>}
+                            {c.pushed_at && <span className="text-xs text-gray-400">updated {c.pushed_at.slice(0, 7)}</span>}
+                          </div>
+                          {c.description ? (
+                            <p className="text-xs text-gray-600 mt-0.5">
+                              {c.description}
+                              {c.ai_description && <span className="ml-1 text-[10px] text-amber-600">(AI-suggested from README — please check)</span>}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-amber-600 mt-0.5">No description on GitHub — add one after selecting.</p>
+                          )}
+                          {c.stack.length > 0 && <p className="text-[11px] text-gray-400 mt-0.5">{c.stack.join(' · ')}</p>}
+                          <p className="text-[11px] mt-0.5 space-x-2">
+                            <a href={c.repo_url} target="_blank" rel="noopener noreferrer" className="text-[#0A66C2] hover:underline">Repository</a>
+                            {c.live_url && <a href={c.live_url} target="_blank" rel="noopener noreferrer" className="text-[#0A66C2] hover:underline">Live link</a>}
+                          </p>
+                        </div>
+                        <button type="button" onClick={() => hideCandidate(c.id)} className="text-xs text-gray-400 hover:text-red-400">Hide</button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
 
             {/* Projects */}
             {form.projects.map((project, i) => (

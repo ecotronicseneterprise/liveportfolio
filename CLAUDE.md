@@ -300,6 +300,28 @@ Return valid JSON only. No preamble, no markdown, no commentary.
 
 ---
 
+## PII & LLM Gateway
+
+Every LLM call goes through `lib/llm` → `callLLM()`. **`openai` (and `api.openai.com`) must never
+be imported or called anywhere else.** `npm run check:llm` enforces this (also covered by a vitest
+test). Only `app/api/generate/route.ts` is allowlisted, with the comment "pending approval" —
+do not add to the allowlist without sign-off.
+
+- `callLLM({ purpose, system, input, schema?, pii: 'redact' | 'block' | 'off', reason?, names? })`
+- `redact`: direct contact identifiers (email, phone, URLs/handles, ID numbers near NIN/BVN-style
+  context words, Luhn-valid card numbers) and caller-supplied names (exact match) are replaced with
+  `[EMAIL_1]`-style placeholders, the model is told to copy them verbatim, and they are restored
+  locally in the response. Unknown/mangled placeholders are stripped with a warning.
+- Not redacted on purpose: employers, locations, dates, skills — they are the content.
+- This is pseudonymisation, **not anonymisation**. Detection is best-effort; never describe the
+  output as "anonymous". The rest of the CV text is still sent to OpenAI.
+- Engine: `PII_ENGINE=regex` (only engine shipped; Presidio failed the latency gate). If the
+  engine fails, `PII_ON_ENGINE_FAILURE=block` (default) returns 503 and sends nothing.
+- Never log input, output, tokens or the token map.
+- Import path: contact fields in `ImportDraft` come from local detection only, never model output.
+
+Details: `docs/pii-gateway.md`.
+
 ## Health Score (client-side, no AI, deterministic)
 
 Calculated in the preview page from `content` JSON:
@@ -852,7 +874,7 @@ with free Pro on signup. Each token is single-use, expires in 7 days, and is sto
 **Generate an invite link — run on VPS:**
 ```bash
 curl -s -X POST \
-  -H 'x-cron-secret: '"643a3fc36a90600238f9ccd59f7fece4bdacd72acaea9aae8ac84851151d87d8"'' \
+  -H 'x-cron-secret: '"YOUR_LITERAL_SECRET"'' \
   -H "Content-Type: application/json" \
   -d '{
     "partner_key": "esther",

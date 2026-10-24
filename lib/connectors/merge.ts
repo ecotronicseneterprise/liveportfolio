@@ -8,7 +8,7 @@ import { dedupeStrings, emptyDraft, normalizeProfile } from './normalize'
 //    GitHub fills whatever is left up to the cap.
 const PRECEDENCE: Record<SourceName, number> = { document: 0, text: 1, github: 2 }
 
-const SCALARS = ['name', 'role', 'email', 'location', 'bio', 'github_url', 'linkedin_url'] as const
+const SCALARS = ['name', 'role', 'email', 'location', 'bio', 'github_url', 'linkedin_url', 'avatar_url'] as const
 
 export function mergeResults(results: ConnectorResult[]): {
   draft: ImportDraft
@@ -84,6 +84,13 @@ export function mergeResults(results: ConnectorResult[]): {
     if (used) provenance.push({ field: 'projects', source })
   }
   draft.projects = projects
+
+  // GitHub's ranked candidates (for the picker) pass through untouched; only that connector produces them
+  const withCandidates = norm.find((n) => n.profile.project_candidates?.length)
+  if (withCandidates) {
+    draft.project_candidates = withCandidates.profile.project_candidates!
+    provenance.push({ field: 'project_candidates', source: withCandidates.source })
+  }
 
   return { draft, provenance, warnings }
 }

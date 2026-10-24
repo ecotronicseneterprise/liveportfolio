@@ -23,6 +23,23 @@ export interface ImportEducation {
   grade?: string
 }
 
+/**
+ * A repo offered to the user by the GitHub connector. `selected` marks the best few; the review form lets
+ * the user tick/untick. Only fields that the review UI displays are kept.
+ */
+export interface ProjectCandidate {
+  id: string // owner/name — stable key and the value used by exclude lists
+  title: string
+  description: string
+  ai_description?: true // description was written from the README by the optional summariser
+  stack: string[]
+  repo_url: string
+  live_url?: string
+  stars: number
+  pushed_at: string // ISO date, shown as "updated …"
+  selected: boolean
+}
+
 export interface ImportDraft {
   name: string | null
   role: string | null
@@ -36,6 +53,10 @@ export interface ImportDraft {
   projects: ImportProject[]
   experience: ImportExperience[]
   education: ImportEducation[]
+  /** Imported profile photo URL (GitHub avatar). Displayed in the form preview and on the portfolio. */
+  avatar_url: string | null
+  /** GitHub only: ranked repos for the picker (≤ 10, best few flagged `selected`). */
+  project_candidates: ProjectCandidate[]
 }
 
 export type SourceName = 'document' | 'text' | 'github'
@@ -65,6 +86,7 @@ export type ImportErrorCode =
   | 'rate_limited'
   | 'no_public_repos'
   | 'upstream_unavailable'
+  | 'pii_unavailable'
   | 'disabled'
 
 export class ImportError extends Error {
@@ -80,6 +102,7 @@ export class ImportError extends Error {
       case 'not_found': return 404
       case 'rate_limited': return 429
       case 'upstream_unavailable': return 502
+      case 'pii_unavailable': return 503
       case 'disabled': return 404
       default: return 422
     }
@@ -98,6 +121,6 @@ export const LIMITS = {
   bulletsPerRole: 4,
   bullet: 200,
   experience: 10,
-  education: 6,
+  education: 3, // = /api/generate's cap (tests/import-limits.test.ts keeps them in sync)
   certifications: 20,
 } as const

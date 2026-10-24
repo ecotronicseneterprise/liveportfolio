@@ -8,7 +8,8 @@
 // Additions (previously dropped): skills → directSkills (merged, deduped, ≤ 15),
 // certifications, education, project url.
 
-import type { ImportDraft } from './types'
+import { isGithubAvatarUrl } from './safe-url'
+import type { ImportDraft, ProjectCandidate } from './types'
 
 export interface FormProject {
   title: string
@@ -22,6 +23,7 @@ export interface FormExperience { company: string; role: string; period: string;
 export interface FormEducation { degree: string; institution: string; year: string; grade: string }
 
 export interface FormSlice {
+  avatar_url: string
   name: string
   role: string
   email: string
@@ -60,6 +62,9 @@ export function applyDraftToForm<T extends FormSlice>(prev: T, d: Partial<Import
   if (d.github_url) next.github_url = d.github_url.slice(0, 200)
   if (d.linkedin_url) next.linkedin_url = d.linkedin_url.slice(0, 200)
 
+  // remote avatars are only taken from GitHub's CDN and never replace a photo the user already chose
+  if (d.avatar_url && !prev.avatar_url && isGithubAvatarUrl(d.avatar_url)) next.avatar_url = d.avatar_url
+
   if (d.skills?.length) next.directSkills = mergeUnique(prev.directSkills, d.skills, 15)
   if (d.certifications?.length) next.certifications = mergeUnique(prev.certifications, d.certifications, 20)
 
@@ -90,4 +95,33 @@ export function applyDraftToForm<T extends FormSlice>(prev: T, d: Partial<Import
     }))
   }
   return next
+}
+
+/** Project candidates → form project rows (the form and /api/generate hold at most MAX_FORM_PROJECTS). */
+export const MAX_FORM_PROJECTS = 4
+
+export function candidateToFormProject(c: ProjectCandidate): FormProject {
+  return {
+    title: c.title,
+    description: c.description,
+    stack: c.stack.join(', '),
+    url: c.live_url ?? c.repo_url,
+    imageFile: null,
+    image_preview: '',
+  }
+}
+
+/**
+ * Picker → form rows. Ticked candidates become rows (an existing row with the same title is kept as-is so the
+ * user's edits and images survive re-ticking); manual rows that match no candidate are preserved after them.
+ * At most MAX_FORM_PROJECTS rows; never returns an empty list (the form needs one blank row).
+ */
+export function reconcileProjects<T extends FormSlice>(prev: T, candidates: ProjectCandidate[], pickedIds: string[]): T {
+  const picked = new Set(pickedIds)
+  const known = new Set(candidates.map((c) => c.title.trim().toLowerCase()))
+  const existing = (title: string) => prev.projects.find((p) => p.title.trim().toLowerCase() === title.trim().toLowerCase())
+  const fromCandidates = candidates.filter((c) => picked.has(c.id)).map((c) => existing(c.title) ?? candidateToFormProject(c))
+  const manual = prev.projects.filter((p) => p.title.trim() && !known.has(p.title.trim().toLowerCase()))
+  const rows = [...fromCandidates, ...manual].slice(0, MAX_FORM_PROJECTS)
+  return { ...prev, projects: rows.length ? rows : [{ title: '', description: '', stack: '', url: '', imageFile: null, image_preview: '' }] }
 }

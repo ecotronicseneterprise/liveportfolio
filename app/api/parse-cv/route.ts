@@ -46,7 +46,9 @@ export async function POST(req: NextRequest) {
       return fail(new ImportError('file_too_large', 'That file is larger than 5MB.'))
     }
 
-    const { profile } = await importDocument({ buffer: Buffer.from(await file.arrayBuffer()) })
+    const nameField = formData.get('name')
+    const names = typeof nameField === 'string' && nameField.trim() ? [nameField.trim().slice(0, 80)] : undefined
+    const { profile } = await importDocument({ buffer: Buffer.from(await file.arrayBuffer()) }, { names })
 
     return NextResponse.json({
       name: profile.name ?? null,
