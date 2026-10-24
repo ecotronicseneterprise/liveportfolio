@@ -1,4 +1,5 @@
 import { CREATE_HREF } from '@/lib/onboarding/entry'
+import CookieSettingsLink from '@/components/CookieSettingsLink'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import LandingNav from '@/components/LandingNav'
@@ -193,6 +194,7 @@ export default function CvToPortfolioPage() {
             <a href="/blog" className="hover:text-gray-600 transition-colors">Blog</a>
             <a href="/terms" className="hover:text-gray-600 transition-colors">Terms</a>
             <a href="/privacy" className="hover:text-gray-600 transition-colors">Privacy</a>
+            <CookieSettingsLink />
           </div>
         </div>
       </footer>

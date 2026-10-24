@@ -460,12 +460,6 @@ export default function PreviewPage() {
     })
     setSavingEmail(false)
     setEmailSaved(true)
-    if (typeof window.fbq !== 'undefined') {
-      window.fbq('track', 'Lead', {
-        content_name: 'portfolio_preview',
-        content_category: 'job_seeker',
-      })
-    }
   }
 
   if (loading) {

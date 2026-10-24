@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import TrackingScripts from '@/components/TrackingScripts'
+import ConsentBanner from '@/components/ConsentBanner'
 
 export const metadata: Metadata = {
   title: 'LivePortfolio — Build a professional portfolio in minutes',
@@ -55,6 +56,7 @@ export default function RootLayout({
       <body>
         <TrackingScripts />
         <main>{children}</main>
+        <ConsentBanner />
       </body>
     </html>
   )

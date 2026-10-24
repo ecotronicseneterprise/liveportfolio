@@ -1,4 +1,5 @@
 import { CREATE_HREF } from '@/lib/onboarding/entry'
+import CookieSettingsLink from '@/components/CookieSettingsLink'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
@@ -193,6 +194,7 @@ export default function TermsPage() {
             <a href="https://ecotronicsenterprise.com" className="hover:text-gray-600">Ecotronics</a>
             <Link href="/terms" className="hover:text-gray-600">Terms</Link>
             <Link href="/privacy" className="hover:text-gray-600">Privacy</Link>
+            <CookieSettingsLink className="hover:text-gray-600" />
           </div>
         </div>
       </footer>
