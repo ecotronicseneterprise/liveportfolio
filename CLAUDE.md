@@ -264,6 +264,7 @@ Never use Inter, Arial, or Roboto in templates.
 ## AI Generation — The Master Prompt
 
 **Model:** GPT-4o-mini (NOT GPT-4o — 20x cheaper, equivalent quality for this task)  
+**Switching the model:** set `LLM_MODEL` (read by `lib/llm/model.ts`, used by the import gateway and `/api/generate`); unset means `gpt-4o-mini`. `gpt-4o-mini-2024-07-18` shuts down 2027-01-14; the planned replacement is `gpt-6-luna` (GPT-6 models take `max_completion_tokens` and `reasoning_effort`, not `max_tokens`; the helper handles it). The e-mail address is never put in the generation prompt.  
 **Response format:** `response_format: { type: 'json_object' }` — enforces valid JSON always  
 **Max tokens:** 1,200  
 **Temperature:** 0.7

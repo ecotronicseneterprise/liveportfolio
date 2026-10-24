@@ -14,7 +14,8 @@ export const buildGenerationPrompt = (input: {
   role: string
   bio: string
   location: string
-  email: string
+  /** Accepted so callers need no change, but NEVER put in the prompt: the route sets the portfolio's e-mail itself. */
+  email?: string
   github_url?: string
   linkedin_url?: string
   skills: string[]
@@ -43,7 +44,6 @@ export const buildGenerationPrompt = (input: {
 NAME: ${input.name}
 ROLE: ${input.role}
 LOCATION: ${input.location}
-EMAIL: ${input.email}
 ${input.github_url ? `GITHUB: ${input.github_url}` : ''}
 ${input.linkedin_url ? `LINKEDIN: ${input.linkedin_url}` : ''}
 
@@ -72,7 +72,6 @@ Return a JSON object with EXACTLY this structure:
   "headline": "string — one compelling sentence, max 120 chars, no buzzwords",
   "about": "string — 2 confident paragraphs, first-person, specific, human. No adjective soup.",
   "location": "string — use as provided",
-  "email": "string — use as provided",
   "github_url": "string or null",
   "linkedin_url": "string or null",
   "skills": ["array of skill strings — use provided list"],

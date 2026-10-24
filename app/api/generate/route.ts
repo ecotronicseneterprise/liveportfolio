@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 import { SYSTEM_PROMPT, buildGenerationPrompt } from '@/lib/prompts'
+import { resolveModel, paramsFor } from '@/lib/llm/model'
 
 // In-memory IP rate limit: 5 per day
 const ipCounts = new Map<string, { count: number; resetAt: number }>()
@@ -177,10 +178,10 @@ export async function POST(req: NextRequest) {
   let maxTokens = 1200
 
   try {
+    const model = resolveModel()
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      temperature: 0.7,
-      max_tokens: maxTokens,
+      model,
+      ...paramsFor(model, { temperature: 0.7, maxTokens }),
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
@@ -207,10 +208,10 @@ export async function POST(req: NextRequest) {
     } else {
       // Retry once
       try {
+        const model = resolveModel()
         const retry = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
-          temperature: 0.7,
-          max_tokens: 1000,
+          model,
+          ...paramsFor(model, { temperature: 0.7, maxTokens: 1000 }),
           response_format: { type: 'json_object' },
           messages: [
             { role: 'system', content: SYSTEM_PROMPT },

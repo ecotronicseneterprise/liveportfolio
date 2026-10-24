@@ -36,7 +36,7 @@ the account, the account e-mail and password.
 | Claude supports OAuth with Dynamic Client Registration, or no auth. Hosted callbacks are `https://claude.ai/api/mcp/auth_callback` and `https://claude.com/api/mcp/auth_callback`. Claude Code uses loopback redirects on ephemeral ports. | vendor guides and a blog **(secondary)** | Allow-list those; confirm in Anthropic's docs before go-live. |
 | **Supabase Auth can be the OAuth 2.1 authorization server** for a self-built MCP server: authorization-code + PKCE, optional dynamic client registration, discovery under `.../.well-known/oauth-authorization-server/auth/v1`, **we build the consent screen**, redirect URIs must match exactly, tokens carry the user's identity. It was **public beta** on 2025-11-26; current GA status **(unverified)**. Agent sign-ins count toward MAU. | Supabase docs and changelog **(verified for the feature, unverified for GA)** | Real option, less code than writing our own OAuth server. Needs a one-day spike before we commit (section 4, phase C). |
 | Streamable HTTP MCP runs on Vercel in a Next.js route via `mcp-handler`, with `@modelcontextprotocol/sdk` **1.26.0 or newer** (older versions have a vulnerability). | package README via a listing **(secondary)** | Pin the SDK at or above 1.26.0; confirm the package is current on npm; check it coexists with our `zod` 3.25. |
-| **`gpt-4o-mini-2024-07-18` shuts down 2027-01-14**; OpenAI names `gpt-6-luna` as the replacement. The plain alias `gpt-4o-mini` has no announced date of its own, but it points at that snapshot. | OpenAI deprecations page **(verified)** | The reviewer's deadline is real. We call `gpt-4o-mini` in `app/api/generate/route.ts` and `lib/llm/call.ts`. Your standing rule "production stays gpt-4o-mini" needs a decision (section 6). |
+| **`gpt-4o-mini-2024-07-18` shuts down 2027-01-14**; OpenAI names `gpt-6-luna` as the replacement. The plain alias `gpt-4o-mini` has no announced date of its own, but it points at that snapshot. | OpenAI deprecations page **(verified)** | The reviewer's deadline is real. We call `gpt-4o-mini` in `app/api/generate/route.ts` and `lib/llm/call.ts`. Your standing rule "production stays gpt-4o-mini" needs a decision (section 8). |
 
 ## 2. Architecture
 
@@ -150,7 +150,7 @@ Realistic total after phase A: **about 3 to 4 weeks of focused work.** The auth 
 5. Fix the avatar bug (initial taken from the e-mail).
 
 **2. Deadlines and compliance**
-6. **Model replacement before 2027-01-14.** Decide the replacement, A/B it on the fixtures, then switch `app/api/generate/route.ts` and `lib/llm/call.ts` (and the PII gateway defaults).
+6. **Model replacement before 2027-01-14: `gpt-6-luna` chosen, staged.** Done on `dev` (see section 7): one shared helper (`lib/llm/model.ts`), `/api/generate` and the import gateway both switchable with `LLM_MODEL`, the e-mail no longer sent to OpenAI, `LLM_MODEL=gpt-6-luna` set on Preview only. Still to do: the full benchmark (needs a dedicated bench key from you), then the Production switch (one environment variable plus a redeploy; rollback is removing it).
 7. Consent banner and privacy policy: GA4 and the Meta Pixel load on every page, including users' portfolio pages.
 
 **3. Hardening (after 24 clean hours)**
@@ -164,7 +164,76 @@ Realistic total after phase A: **about 3 to 4 weeks of focused work.** The auth 
 
 **5. The MCP programme**: phases B to F above, after A.
 
-## 6. Decisions I need from you
+**6. Developer and agent documentation**: section 6, built alongside phases B, D/E and F (it documents what exists, never what is planned).
+
+## 6. Documentation for developers and agents (modelled on Reactive Resume)
+
+**What Reactive Resume does** (read from its repository, `docs/` and `plugins/`):
+a Mintlify docs site (MDX, `mint` theme) with three tabs, **Documentation**, **Changelog** and **API Reference**; the
+reference is generated from an OpenAPI file (`docs/spec.json`) whose description warns clients not to blindly retry
+mutations; around 60 task-based guides, including *AI agent tools*, *Managing applications with MCP*, *JSON Resume schema*,
+*Using the patch API* and *Undoing changes and version history*; a `/llms.txt` route served by the app; skills served
+statically; and an **installable agent plugin** (`plugins/reactive-resume/` with `plugin.json`, `mcp.json` and eight skills)
+that connects to `/mcp` by signing in, with no API key stored in the plugin.
+
+**What we build, in the same shape.** Everything below is derived from code or tested against it, so the docs cannot promise
+a feature that does not exist. Every page about a feature carries a status badge (Available / Pro / Coming soon) read from
+`lib/plans.ts`, the same source the pricing page uses.
+
+| Piece | For | Content |
+|---|---|---|
+| **Getting started and user guides** | people | What LivePortfolio is; create a portfolio; import from a CV or GitHub; choose a template; edit; add images; your address; publish; history and undo; what is sent to AI and what is not. Plans table generated from `lib/plans.ts`. |
+| **Portfolio content schema** | developers and agents | Field reference with limits, plus a published **JSON Schema** (`/schema/portfolio.v1.json`) generated from the same zod write-schema the API validates with. Mapping to JSON Resume (we already have `docs/json-resume-proposal.md`). |
+| **Operations reference** | developers and agents | Every typed operation with examples, error codes, dry-run, revisions and undo, and the concurrency rule (a `revision` number, `409` on conflict). |
+| **MCP guide** | developers and agents | Connect from Claude (web, desktop, phone), ChatGPT (developer mode), Claude Code and Cursor; the tools reference; scopes and the consent screen; revoking access; rate limits; troubleshooting; the list of things the assistant can never do. |
+| **Authentication for client builders** | developers | The OAuth 2.1 details: metadata URLs, dynamic client registration, allowed redirect URIs, scopes, token audience. |
+| **API reference** | developers | Generated from an OpenAPI file (`/openapi.json`) for the routes we choose to make public. A public read endpoint for **published** portfolios (JSON) is optional, decision 9 in section 8. |
+| **Changelog** | everyone | User-visible changes per release. |
+| **Agent entry points** | agents | `/llms.txt` (every page, one line each, linking its raw Markdown) and `/llms-full.txt`; every docs page also served as `<page>.md`; `/.well-known/mcp/server-card.json`; **skills** (`portfolio-editor`: tighten copy without inventing facts; `project-writer`: turn a README into a project entry; `cv-to-portfolio`: map a CV onto the schema) under `/skills/<name>/SKILL.md`; later an installable plugin (`plugin.json`, `mcp.json`, skills) for Claude Code. |
+
+**Where it lives.** Recommended: **in this repository at `liveportfolio.site/docs`**, Markdown sources in `docs/site/`, rendered
+by a small server component using the flow's design tokens. It ships in the same deploy as the code, can be tested in CI, and
+the machine-readable files are generated from the same sources. The alternative is a hosted Mintlify site like Reactive
+Resume: faster to make look polished and it has search, but it adds a vendor, a second domain and repository, and we would
+still have to build the `llms.txt`, schema, OpenAPI and server-card routes ourselves. A Markdown renderer is one new
+dependency, so it goes through the security pass first.
+
+**Tests that keep the docs honest (CI):**
+- every JSON example in the docs validates against the published JSON Schema, and the JSON Schema equals the zod schema;
+- the OpenAPI file matches the real routes (an explicit allow-list, as Reactive Resume does for its MCP parity), and every MCP tool is documented;
+- every page appears in `llms.txt`, internal links resolve, and a page about a feature that is not yet shipped must say so (a test fails on a "Coming soon" feature described as available);
+- no secrets, no real personal data in examples (invented profiles only).
+
+**Sequence.** It follows the code, because documenting a moving target wastes effort:
+1. with **phase B**: schema page and JSON Schema, operations reference, `llms.txt`, the user guides for what exists today (about 2 days);
+2. with **phases D and E**: the MCP guide with real screenshots from each client, tools reference, authentication page, server card, skills (about 2 days);
+3. with **phase F**: changelog, the polished API reference, the plugin package, directory submissions (about 1 day).
+
+That adds roughly 5 days across the programme. The MCP page must not be published before the server it describes.
+
+## 7. Model switch: what was verified and done (2026-10-24)
+
+Verified against the live API with the app's own key, on invented text only (three calls, under a cent):
+
+| Check | Result |
+|---|---|
+| `gpt-6-luna` with strict Structured Outputs (the import path) | **Works.** Correct extraction, valid JSON, **0 reasoning tokens** at effort `none`. |
+| `json_object` mode (the `/api/generate` path) | Works. |
+| `temperature` with effort `none` | **Accepted** (an earlier code comment said third parties report a 400; the API did not). |
+| `max_tokens` | **Rejected (400)**: Luna needs `max_completion_tokens`. |
+| Real `/api/generate` prompt, 3 runs each | Luna 6.4 to 6.6 s, `gpt-4o-mini` 7.1 to 8.1 s; JSON valid 3/3 on both; both kept the 2 projects; Luna used **0 banned words**, `gpt-4o-mini` used one ("robust") in 2 of 3 runs; Luna followed the "two paragraphs" instruction, `gpt-4o-mini` wrote one. |
+
+This is a **sanity check, not the benchmark**: three runs, one invented profile, no field-accuracy scoring. The multi-model
+benchmark (gpt-6-luna, gpt-5.4-nano, gpt-5.4-mini against hand-checked CV fields, grounding and cost) needs the dedicated bench
+key described in `bench/README.md`; the bench is built never to use the app's key.
+
+Done on `dev`: `lib/llm/model.ts` (one helper for model choice and parameters, shared by the gateway and `/api/generate`);
+`/api/generate` now follows `LLM_MODEL` and sends the parameters the chosen family accepts; the e-mail address is no longer put in the prompt
+(the route sets the portfolio's e-mail itself); `LLM_MODEL=gpt-6-luna` is set for **Preview only**. Production still runs `gpt-4o-mini`
+until you say otherwise. Note that `/api/generate` still sends the rest of the user's text (bio, projects, name, links) to OpenAI
+without the PII redaction the import path has; moving it behind `callLLM` is the separate item waiting on its own A/B test.
+
+## 8. Decisions I need from you
 
 | # | Decision | My recommendation |
 |---|---|---|
@@ -173,9 +242,11 @@ Realistic total after phase A: **about 3 to 4 weeks of focused work.** The auth 
 | 3 | Write tools at launch | Yes, with revisions and undo; read-only first would not meet your goal |
 | 4 | Contact details visible to the assistant | Hidden by default, opt-in per connection |
 | 5 | Revision retention | Last 50 per portfolio |
-| 6 | Model after `gpt-4o-mini` | A/B on the fixtures first; your rule "production stays gpt-4o-mini" has to change before 2027-01-14 |
+| 6 | Model after `gpt-4o-mini` | **Decided: `gpt-6-luna`.** Switched on Preview. Production switches after the benchmark (decision 10), by setting `LLM_MODEL` |
 | 7 | The `portfolio_revisions` migration | Approve in phase B; you run it, with the rollback ready |
 | 8 | Where to test connectors safely (preview URLs are behind Vercel authentication and share the production database) | Production, behind `MCP_ENABLED` and a per-user allow-list of your own accounts |
+| 9 | Documentation: in this repo at `/docs`, or hosted Mintlify; and whether to expose a public read API for published portfolios | In this repo (one deploy, tested in CI). Public read API: not at launch; add only if someone asks |
+| 10 | Benchmark key for the model comparison | Create a dedicated, low-limit OpenAI project key and put it in `bench/.env.local` (git-ignored). I then run the estimate (free), the dev stage (about $2) and the final stage; the bench never uses the app's key |
 
 ## Sources
 
