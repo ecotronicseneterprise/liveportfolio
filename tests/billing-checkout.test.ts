@@ -1,4 +1,4 @@
-// One-time checkout (CHECKOUT_V2): server-owned price, payment intents, Paystack initialize/verify, the webhook's intent branch and the
+// One-time checkout (the only way to buy a plan): server-owned price, payment intents, Paystack initialize/verify, the webhook's intent branch and the
 // return-page verify. Supabase is the in-memory stand-in; Paystack is a stubbed global fetch. Nothing here touches a real service.
 import crypto from 'node:crypto'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -27,9 +27,8 @@ import { POST as checkoutPOST } from '../app/api/checkout/route'
 import { POST as verifyPOST } from '../app/api/checkout/verify/route'
 import { POST as webhookPOST } from '../app/api/paystack-webhook/route'
 import { PRICES_KOBO, isTier, planForTier } from '../lib/billing/prices'
-import { checkoutEnabledFor, checkoutMode } from '../lib/billing/flag'
 import { initializeTransaction, verifyTransaction } from '../lib/billing/paystack'
-import { billingCopy } from '../lib/billing/copy'
+import { BILLING_COPY } from '../lib/billing/copy'
 import { PLANS } from '../lib/plans'
 
 const SECRET = 'sk_test_unit'
@@ -62,7 +61,7 @@ beforeEach(() => {
 })
 
 // ── fixtures ─────────────────────────────────────────────────────────────────────────────────────────────
-function setEnv(mode?: string) {
+function setEnv(_unused?: string) {
   process.env.PAYSTACK_SECRET_KEY = SECRET
   process.env.NEXT_PUBLIC_APP_URL = 'https://liveportfolio.site'
   process.env.PAYSTACK_TEST_EMAIL = 'owner@example.com'
@@ -71,8 +70,6 @@ function setEnv(mode?: string) {
   process.env.PAYSTACK_TEST_PLAN_CODE = 'PLN_test'
   process.env.PAYSTACK_PRICE_CHECK = 'enforce'
   process.env.RESEND_API_KEY = 'x'
-  if (mode === undefined) delete process.env.CHECKOUT_V2
-  else process.env.CHECKOUT_V2 = mode
 }
 const user = (id = U1, email = 'ada@example.com', extra: Row = {}) => ({ id, email, slug: `slug-${id.slice(0, 2)}`, plan: 'unpublished', ...extra })
 const signIn = (id = U1, email = 'ada@example.com') => { h.user = { id, email } }
@@ -108,7 +105,7 @@ beforeEach(() => {
 })
 
 // ── pure pieces ──────────────────────────────────────────────────────────────────────────────────────────
-describe('prices and the flag', () => {
+describe('prices', () => {
   it('the server price table is in kobo and agrees with lib/plans.ts', () => {
     expect(PRICES_KOBO).toEqual({ basic: 1_500_000, pro: 4_500_000, test: 50_000 })
     expect(PRICES_KOBO.basic).toBe(PLANS.basic.priceNgn! * 100)
@@ -118,18 +115,6 @@ describe('prices and the flag', () => {
     expect(['basic', 'pro', 'test'].every(isTier)).toBe(true)
     for (const bad of ['', 'free', 'PRO', 5, null, undefined, {}, ['pro']]) expect(isTier(bad), String(bad)).toBe(false)
     expect(planForTier('basic')).toBe('basic'); expect(planForTier('pro')).toBe('pro'); expect(planForTier('test')).toBe('basic')
-  })
-  it('CHECKOUT_V2: anything but "on" or "owner" is off; owner mode is the PAYSTACK_TEST_EMAIL account only', () => {
-    for (const raw of ['', 'off', 'true', '1', 'ON', 'yes']) expect(checkoutMode(raw), raw).toBe('off')
-    delete process.env.CHECKOUT_V2
-    expect(checkoutMode()).toBe('off') // not set at all: off
-    expect(checkoutMode('on')).toBe('on'); expect(checkoutMode('owner')).toBe('owner')
-    expect(checkoutEnabledFor('x@y.z', 'off', 'owner@example.com')).toBe(false)
-    expect(checkoutEnabledFor('x@y.z', 'on', 'owner@example.com')).toBe(true)
-    expect(checkoutEnabledFor('Owner@Example.com', 'owner', 'owner@example.com')).toBe(true)
-    expect(checkoutEnabledFor('x@y.z', 'owner', 'owner@example.com')).toBe(false)
-    expect(checkoutEnabledFor(null, 'owner', 'owner@example.com')).toBe(false)
-    expect(checkoutEnabledFor('x@y.z', 'owner', undefined)).toBe(false)
   })
 })
 
@@ -175,19 +160,6 @@ describe('POST /api/checkout', () => {
     h.user = null
     expect((await checkout({ tier: 'basic' })).status).toBe(401)
     expect(px.calls).toHaveLength(0)
-  })
-  it('flag off: 404 checkout_v2_disabled, nothing created, Paystack not called (the modal then uses the old flow)', async () => {
-    setEnv(undefined); signIn()
-    const res = await checkout({ tier: 'basic' })
-    expect(res.status).toBe(404); expect((await res.json()).error).toBe('checkout_v2_disabled')
-    expect(rows('payment_intents')).toHaveLength(0); expect(px.calls).toHaveLength(0)
-  })
-  it('owner mode: refused for everyone but the PAYSTACK_TEST_EMAIL account', async () => {
-    setEnv('owner'); signIn()
-    expect((await checkout({ tier: 'basic' })).status).toBe(404)
-    h.ctx!.db.users.push(user('33333333-3333-4333-8333-333333333333', 'owner@example.com'))
-    signIn('33333333-3333-4333-8333-333333333333', 'owner@example.com')
-    expect((await checkout({ tier: 'basic' })).status).toBe(200)
   })
   it('creates a pending intent with the SERVER price and returns the Paystack URL; the reference is ours and unguessable', async () => {
     const { res, intent } = await startIntent('basic')
@@ -447,13 +419,13 @@ describe('POST /api/checkout/verify', () => {
   })
 })
 
-// ── copy follows the mode ────────────────────────────────────────────────────────────────────────────────
-describe('billing copy matches the checkout that is live', () => {
-  it('one-time mode: one payment for 12 months, no "cancel anytime" and no "renews"; both modes: a 7-day refund guarantee', () => {
-    const one = billingCopy(true), sub = billingCopy(false)
-    for (const s of Object.values(one)) { expect(s).not.toMatch(/cancel anytime|renews automatically|auto-?renew/i) }
-    expect(one.modalFooter).toMatch(/12 months/i)
-    expect(sub.modalFooter).toMatch(/cancel anytime/i)
-    for (const c of [one, sub]) { expect(c.modalFooter).toMatch(/7-day refund guarantee/i); expect(c.pricingNote).toMatch(/7-day refund guarantee/i); expect(c.landingNote).toMatch(/7-day refund/i) }
+// ── copy ─────────────────────────────────────────────────────────────────────────────────────────────────
+describe('billing copy', () => {
+  it('one payment for 12 months, no automatic renewal, a 7-day refund guarantee, nothing to cancel, no promise of reminder e-mails', () => {
+    expect(BILLING_COPY.modalFooter).toMatch(/12 months/i)
+    for (const v of [BILLING_COPY.modalFooter, BILLING_COPY.pricingNote, BILLING_COPY.landingNote]) expect(v).toMatch(/7-day refund guarantee/i)
+    for (const v of Object.values(BILLING_COPY)) {
+      expect(v).not.toMatch(/cancel anytime|renews automatically|subscription|we email you before/i)
+    }
   })
 })

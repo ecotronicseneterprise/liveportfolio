@@ -1,26 +1,16 @@
-// Customer-facing billing copy, chosen by how checkout works RIGHT NOW so it never promises something the live flow does not do.
-//   one-time (CHECKOUT_V2=on): one payment for 12 months, no automatic renewal, nothing to cancel
-//   subscription (default): the original Paystack plan checkout, which renews yearly until cancelled
-// Both promise the same 7-day refund guarantee (app/terms/page.tsx section 6 says the same).
-export interface BillingCopy {
-  modalFooter: string
-  pricingNote: string
-  landingNote: string
-  faqCancel: string
-}
+// Customer-facing billing copy. There is ONE checkout (lib/billing, /api/checkout): a single payment that gives 12 months, with no
+// automatic renewal and a 7-day refund guarantee. app/terms/page.tsx says the same. Keep the three in step.
+//
+// Not promised, because it is not built: reminder e-mails before a plan ends (design in docs/payment-redesign.md 2.6). Do not add
+// such a line here or in the Terms until it ships.
+export const BILLING_COPY = {
+  modalFooter: 'One payment for 12 months · No automatic renewal · 7-day refund guarantee',
+  pricingNote: 'One payment for 12 months · No automatic renewal · 7-day refund guarantee',
+  landingNote: 'Free to build and preview. No credit card needed. Pay once for 12 months, with a 7-day refund guarantee.',
+  faqCancel: 'There is nothing to cancel. You pay once for 12 months and the plan does not renew automatically; you can renew from your dashboard. If you are not happy, ask for a refund within 7 days.',
+  period: 'for 12 months',
+  nairaNote: "You are charged in Naira and your bank converts it at its own rate.",
+} as const
 
-export function billingCopy(oneTime: boolean): BillingCopy {
-  return oneTime
-    ? {
-        modalFooter: 'One payment for 12 months · 7-day refund guarantee',
-        pricingNote: 'One payment for 12 months · 7-day refund guarantee · We email you before it ends',
-        landingNote: 'Free to build and preview. No credit card needed. Pay once for 12 months, with a 7-day refund guarantee.',
-        faqCancel: 'You pay once for 12 months. There is no automatic renewal, and we email you before your plan ends. If you are not happy, ask for a refund within 7 days.',
-      }
-    : {
-        modalFooter: 'Annual billing · 7-day refund guarantee · Cancel anytime',
-        pricingNote: 'Annual billing · 7-day refund guarantee · Cancel anytime',
-        landingNote: 'Free to build and preview. No credit card needed. 7-day refund guarantee.',
-        faqCancel: 'Yes. Plans can be cancelled at any time, and there is a 7-day refund guarantee.',
-      }
-}
+/** "₦15,000" from a number of naira. Formatted by hand so server and browser always agree. */
+export const formatNaira = (n: number): string => `₦${String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`

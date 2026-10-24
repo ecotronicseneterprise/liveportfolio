@@ -1,6 +1,6 @@
 # Payment redesign (Phase 1: investigation and design only)
 
-Written 2026-10-24 against `dev` = `d2e2de2`. **Status: parts 2.1 to 2.4 are built on `dev` behind `CHECKOUT_V2` (off); see section 5.** No code, env var, SQL or Paystack setting was changed for this document. Evidence is marked **verified** (read in this repo or on the live site today), **secondary** (a search summary of Paystack's docs or a third-party page; the Paystack docs site itself returned HTTP 403 to my fetcher, so I could not read it directly) or **unverified** (not checkable from here: needs your Paystack dashboard or a live test).
+Written 2026-10-24 against `dev` = `d2e2de2`. **Status: built on `dev`; see section 5.** No code, env var, SQL or Paystack setting was changed for this document. Evidence is marked **verified** (read in this repo or on the live site today), **secondary** (a search summary of Paystack's docs or a third-party page; the Paystack docs site itself returned HTTP 403 to my fetcher, so I could not read it directly) or **unverified** (not checkable from here: needs your Paystack dashboard or a live test).
 
 ## 0. What the facts say
 
@@ -87,7 +87,7 @@ grant select, insert, update, delete on table public.payment_intents to service_
 ### 2.5 Keep the old path, and the owner-only ₦500 test
 - The plan-code branch of the webhook stays as it is for the existing Test subscription and any renewal. The modal no longer passes a plan code when the flag is on, so no new subscription is created.
 - The ₦500 test becomes an intent with `tier: 'test'`, refused by the server unless the account e-mail equals `PAYSTACK_TEST_EMAIL`; grants Basic for 12 months; refund reverses it. The `?test=1` button stays hidden from everyone else (and is useless to them: the server refuses).
-- **Flag:** `CHECKOUT_V2` (server) and `NEXT_PUBLIC_CHECKOUT_V2` (UI), both default off. Off means today's behaviour exactly.
+- **Flag:** none. An earlier version had a three-position `CHECKOUT_V2` switch; it was removed (see section 5).
 
 ### 2.6 Refunds and expiry for one-time payments
 - `refund.processed` already works for any `payments.ls_order_id` (**verified**): a full refund revokes the subscription and plan and stamps `refunded_at`; a partial refund is logged for a human. Add: set the intent to `refunded`. No Paystack subscription exists for intent payments, so there is nothing to cancel (unlike the Test plan today).
@@ -164,7 +164,7 @@ The Terms (verified) say: refund requests within 7 days; generally approved if y
 - All of this text is for your and a lawyer's review (`docs/legal-review.md`).
 
 ## 3. Order of work, estimates, rollback
-1. Merge the logging commit (`d2e2de2`) so ignored events are visible. 2. `payment_intents` migration (you run it). 3. Extract `grantIntent` and add the webhook intent branch (tests first; legacy tests untouched). 4. `/api/checkout`, `/api/checkout/verify`, return page. 5. Modal behind `CHECKOUT_V2` (off). 6. Copy and display fixes. 7. Owner-only ₦500 live test of the new flow on the `git-dev` preview (it shares live Paystack keys), then Basic for real. 8. Reminders and abandoned follow-up.
+1. Merge the logging commit (`d2e2de2`) so ignored events are visible. 2. `payment_intents` migration (you run it). 3. Extract `grantIntent` and add the webhook intent branch (tests first; legacy tests untouched). 4. `/api/checkout`, `/api/checkout/verify`, return page. 5. Modal (no flag) (off). 6. Copy and display fixes. 7. Owner-only ₦500 live test of the new flow on the `git-dev` preview (it shares live Paystack keys), then Basic for real. 8. Reminders and abandoned follow-up.
 
 | Part | Effort | Rollback |
 |---|---|---|
@@ -183,15 +183,11 @@ The Terms (verified) say: refund requests within 7 days; generally approved if y
 3. Decide: full-price Pro for a Basic upgrade (my default) or pro-rated credit; the refund wording (honest text above, or a real guarantee with changed Terms); 12 months hard end with reminders (my default) or keep card auto-renew as an option later.
 4. Approve this design, then say "build part 2.1 to 2.4".
 
-## 5. Build status and decisions (updated after the owner's approval)
+## 5. Build status and decisions
 
-Decisions: no Basic to Pro upgrade pricing (handled by hand until a paying Basic customer exists; a Basic buyer who pays for Pro gets Pro with the time stacked, and Basic is refused while Pro is running); a real 7-day refund guarantee (Terms section 6 and every copy line now say so); a 12-month hard end with reminders at 30 and 7 days (reminders are part 2.6, not built yet); manual grants use a reference like `manual-YYYYMMDD-<initials>`, never an abandoned Paystack reference.
+Decisions (owner): no Basic to Pro upgrade pricing (a Basic buyer who pays for Pro gets Pro with the time stacked; Basic is refused while Pro is running); a real 7-day refund guarantee (Terms section 6 and every copy line say so); a 12-month hard end; **no rollout flag**: the one-time checkout is the only way to buy (the earlier `CHECKOUT_V2` switch was removed); manual grants use a reference like `manual-YYYYMMDD-<initials>`, never an abandoned Paystack reference.
 
-Built (on dev, flag `CHECKOUT_V2`, default off):
-- `CHECKOUT_V2=off` (default, or any other value): the original plan-code checkout, unchanged. `owner`: the new one-time checkout for the `PAYSTACK_TEST_EMAIL` account only. `on`: for everyone. It is read on the server per request, so changing it needs a redeploy on Vercel.
-- `payment_intents` migration: `supabase/manual/20261026110000_payment_intents.sql` with its rollback. Not run. Until it is run, `/api/checkout` answers 503, the webhook uses the plan-code path, and the flag is off anyway.
-- `POST /api/checkout`, `POST /api/checkout/verify`, `GET /api/checkout/config`, the `/checkout/return` page, the webhook's intent branch, and the shared `lib/billing/grant.ts` (extracted from the webhook unchanged; its original 58 tests pass untouched).
-- Differences from the design above: (1) an expired intent that Paystack confirms as paid is still granted; (2) the new end date is decided once and stored on the intent (`granted_expires_at`), so a retry after a partial failure cannot add a second year; (3) a Basic payment can never downgrade a running Pro plan; (4) the callback URL is plain `/checkout/return` and the page reads Paystack's `reference`/`trxref` parameter, falling back to the reference stored in the browser before the redirect.
-- Not built, still pending: 2.6 reminders (30 and 7 days) and the reminder wording. **The existing 30-day reminder e-mail says the plan "renews automatically"; that is false for one-time payments, so 2.6 must ship before the first one-time plan nears its end (earliest about 11 months after the first payment).** Also pending: 2.8 abandoned-checkout follow-up, 2.9 the USD display fix, and the optional webhook IP allow-list.
+Built on `dev` (see `docs/LIVE-STATUS.md` for what is live): `POST /api/checkout`, `POST /api/checkout/verify`, the `/checkout/return` page, the webhook's intent branch, `lib/billing/grant.ts` (extracted from the webhook unchanged, plus `grantIntent`), the dashboard Plan and billing panel (`GET /api/billing`), Naira price display with a labelled dollar estimate (2.9), and the refund-guarantee copy (2.10). Migration: `supabase/manual/20261026110000_payment_intents.sql` (required; run by hand).
+Differences from the design above: an expired intent that Paystack confirms as paid is still granted; the new end date is decided once and stored on the intent (`granted_expires_at`); a Basic payment never downgrades Pro; the callback URL is plain `/checkout/return`.
 
-Rollout the owner asked for: (1) set `CHECKOUT_V2=owner` and run the owner's real payments; (2) the owner's own real ₦15,000 Basic payment (card, and bank transfer or USSD if Paystack offers it); (3) only then `CHECKOUT_V2=on`. Turning it on also switches the public Terms, landing, pricing and FAQ wording to the one-time version at the next deployment.
+Not built: **2.6 renewal reminders (30 and 7 days)**, 2.8 the abandoned-checkout e-mail, the optional webhook IP allow-list. The existing 30-day reminder e-mail says the plan "renews automatically", which is false for one-time payments: build 2.6 before the first one-time plan nears its end (earliest about 11 months after the first payment). Until then no page promises a reminder e-mail.

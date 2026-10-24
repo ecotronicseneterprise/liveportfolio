@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { getSupabaseClient } from '@/lib/supabase'
 import { SIGNIN_HREF } from '@/lib/onboarding/entry'
+import { SUPPORT_EMAIL } from '@/lib/brand'
 
 type View =
   | { kind: 'checking' }
@@ -63,6 +64,7 @@ export default function ReturnClient() {
         if (res.status === 404) { setView({ kind: 'missing' }); return }
         if (res.ok && j.status === 'paid') {
           try { localStorage.removeItem('lp_checkout_ref') } catch { /* storage blocked */ }
+          if (typeof window.gtag !== 'undefined') window.gtag('event', 'publish_success', { plan: j.plan ?? 'unknown', currency: 'NGN' }) // only exists if analytics was accepted
           setView({ kind: 'paid', plan: j.plan ?? null, expiresAt: j.expires_at ?? null })
           return
         }
@@ -126,7 +128,7 @@ export default function ReturnClient() {
             <p className="mt-3 text-gray-700">
               If you completed the payment, your plan is activated as soon as Paystack confirms it, usually within a few minutes. You do not need to pay again.
               If nothing changes, email{' '}
-              <a href="mailto:support@liveportfolio.site" className="font-medium text-[#0A66C2] underline">support@liveportfolio.site</a> with this reference.
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-[#0A66C2] underline">{SUPPORT_EMAIL}</a> with this reference.
             </p>
             {reference && <p className="mt-3 break-all text-sm text-gray-600">Reference: {reference}</p>}
             <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -149,7 +151,7 @@ export default function ReturnClient() {
             <h1 className="text-2xl font-bold">We could not find that payment</h1>
             <p className="mt-3 text-gray-700">
               If you paid just now, open the dashboard and check your plan. If you were charged and nothing changed, email{' '}
-              <a href="mailto:support@liveportfolio.site" className="font-medium text-[#0A66C2] underline">support@liveportfolio.site</a>
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-[#0A66C2] underline">{SUPPORT_EMAIL}</a>
               {reference ? ' with the reference below.' : ' with the date and amount.'}
             </p>
             {reference && <p className="mt-3 break-all text-sm text-gray-600">Reference: {reference}</p>}

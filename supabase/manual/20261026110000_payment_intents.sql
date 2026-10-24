@@ -1,7 +1,8 @@
--- Payment intents: one row per one-time checkout we start (POST /api/checkout, behind CHECKOUT_V2). The server writes the row BEFORE
+-- Payment intents: one row per one-time checkout we start (POST /api/checkout, the only way to buy a plan). The server writes the row BEFORE
 -- calling Paystack, with the price and tier it chose; the webhook and the return page trust ONLY references found here.
 -- RUN BY HAND in the Supabase SQL editor; never applied automatically (see manual/README.md).
--- Until this exists nothing breaks: /api/checkout answers 503, the webhook falls back to the plan-code path, and CHECKOUT_V2 is off by default.
+-- REQUIRED before the checkout can work: until this table exists /api/checkout answers 503 ("Payment could not be started") and nobody can pay.
+-- The webhook still handles the old plan-code payments (the existing Test 500 subscription, renewals) without it.
 --
 -- NEW TABLE RULE (docs/deploy-runbook-rls.md): RLS is enabled and the browser roles lose every privilege in the SAME migration.
 -- No policies: only the service role (server routes) reads or writes this table.

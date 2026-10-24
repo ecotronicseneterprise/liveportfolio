@@ -265,7 +265,7 @@ export async function POST(req: NextRequest) {
         return ok()
       }
 
-      // A reference WE created (CHECKOUT_V2, one-time checkout): the stored intent decides the tier and the price, never the event's plan
+      // A reference WE created (the one-time checkout, /api/checkout): the stored intent decides the tier and the price, never the event's plan
       // details (a bank-transfer or USSD payment carries none). Not found, or the intents table not created yet: the plan-code path below.
       const looked = await findIntent(reference)
       if (looked.kind === 'found') {
@@ -284,7 +284,8 @@ export async function POST(req: NextRequest) {
           logIgnored('intent_mismatch', event.event, data)
           return ok()
         }
-        await grantIntent(supabaseAdmin, intent)
+        const granted = await grantIntent(supabaseAdmin, intent)
+        if (granted === 'duplicate') logIgnored('duplicate_reference', event.event, data)
         return ok()
       }
 

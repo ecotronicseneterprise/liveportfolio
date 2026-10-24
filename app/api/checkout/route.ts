@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/server-auth'
 import { CURRENCY, PRICES_KOBO, isTier } from '@/lib/billing/prices'
-import { checkoutEnabledFor, checkoutMode } from '@/lib/billing/flag'
 import { initializeTransaction } from '@/lib/billing/paystack'
 import { INTENT_TTL_MS, MAX_INTENTS_PER_HOUR, newReference } from '@/lib/billing/intents'
 
@@ -10,15 +9,10 @@ export const dynamic = 'force-dynamic'
 
 // POST /api/checkout { tier }: starts a one-time payment.
 // The tier is the ONLY thing taken from the browser. Price, currency, reference, payer e-mail and user all come from the server,
-// and the intent row is written before Paystack is called. Behind CHECKOUT_V2 (off by default; see lib/billing/flag.ts).
+// and the intent row is written before Paystack is called. This is the only way to buy a plan (there is no flag and no fallback).
 export async function POST(req: NextRequest) {
   const user = await getUserFromRequest(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  // Off, or not this account's turn yet: the page falls back to the original checkout.
-  if (!checkoutEnabledFor(user.email, checkoutMode())) {
-    return NextResponse.json({ error: 'checkout_v2_disabled' }, { status: 404 })
-  }
 
   let body: { tier?: unknown } = {}
   try { body = await req.json() } catch { /* handled below */ }

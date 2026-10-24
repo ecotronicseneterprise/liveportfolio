@@ -12,3 +12,6 @@ export const brand = {
     green:  '#0A66C2',
   },
 } as const
+
+/** The one support address, shown wherever a person is told to e-mail us. Confirm the mailbox exists before launch. */
+export const SUPPORT_EMAIL = 'support@ecotronicsenterprise.com'

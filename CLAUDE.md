@@ -355,18 +355,15 @@ Persist to `portfolios.health_score` on save and update.
 Payment processor: **Paystack**, LIVE mode only (there is no test mode in Production or on Preview; both use the live keys). Details and the design:
 `docs/payment-redesign.md`. Webhook: `/api/paystack-webhook`. Plans and prices: `lib/plans.ts` (display) and `lib/billing/prices.ts` (what is charged, in kobo).
 
-### Two checkouts, chosen by the server flag `CHECKOUT_V2`
+### One checkout, no flag
 
-| `CHECKOUT_V2` | What happens |
-|---|---|
-| unset or `off` (default) | The ORIGINAL checkout: the browser opens Paystack inline with a **plan code** (`NEXT_PUBLIC_PAYSTACK_BASIC_PLAN_CODE` / `..._PRO_...`). Paystack creates a yearly card subscription. The webhook decides the tier ONLY from the plan code. |
-| `owner` | The new one-time checkout for the `PAYSTACK_TEST_EMAIL` account only; everyone else gets the original. |
-| `on` | The new one-time checkout for everyone. Public Terms, landing, pricing and FAQ wording switch to "one payment for 12 months, no automatic renewal". |
+There is ONE way to buy a plan: the server-created one-time checkout below. There is no rollout flag and no fallback to the old plan-code popup (the old card-subscription flow never completed a live payment and was removed). If `/api/checkout` or Paystack initialize fails, the modal shows a message with the support address. The webhook still recognises the three plan codes (`PAYSTACK_BASIC_PLAN_CODE`, `PAYSTACK_PRO_PLAN_CODE`, `PAYSTACK_TEST_PLAN_CODE`) so the one existing Test 500 subscription and any renewals keep working; no client code uses a plan code.
 
-The flag is read on the server per request; changing it needs a new deployment. The upgrade modal tries `POST /api/checkout` first and falls back to the original flow on a 404.
+Rule: a flag is justified only for an unfinished feature or a kill switch. Settings such as `LLM_MODEL`, `GITHUB_TOKEN` and the Paystack keys are configuration, not flags.
+`docs/LIVE-STATUS.md` lists what is live and every Production env var name by class (update it at every merge); `docs/MERGE-CHECKLIST.md` is the pre-merge list.
 
 ### The new one-time checkout (`lib/billing/*`)
-1. `POST /api/checkout { tier }`: authenticated; the browser sends ONLY the tier. The server picks the price and currency, generates the reference (`lpi_...`), writes a row in `payment_intents` (migration `supabase/manual/20261026110000_payment_intents.sql`, run by hand), and calls Paystack initialize with **no plan and no channels** (so every channel enabled on the account is offered). 10 checkouts per user per hour. Basic is refused while a Pro plan is running. The `test` tier (₦500) is refused unless the account e-mail equals `PAYSTACK_TEST_EMAIL`.
+1. `POST /api/checkout { tier }`: authenticated; the browser sends ONLY the tier. The server picks the price and currency, generates the reference (`lpi_...`), writes a row in `payment_intents` (migration `supabase/manual/20261026110000_payment_intents.sql`, run by hand; **required**, without it checkout answers 503), and calls Paystack initialize with **no plan and no channels** (so every channel enabled on the account is offered). 10 checkouts per user per hour. Basic is refused while a Pro plan is running. The owner-only `test` tier (₦500) is refused unless the account e-mail equals `PAYSTACK_TEST_EMAIL`.
 2. The person pays on Paystack, which redirects to `/checkout/return`.
 3. **Two independent paths grant, through the same idempotent function `grantIntent` (`lib/billing/grant.ts`):**
    - the webhook's `charge.success` branch trusts only references found in `payment_intents`, and checks status, amount, currency and that the payer is the intent's user;
@@ -383,9 +380,10 @@ The flag is read on the server per request; changing it needs a new deployment. 
 - Never put secrets or personal data in logs. `PAYSTACK_PRICE_CHECK=enforce` makes an amount mismatch on the plan-code path reject instead of only log.
 
 ### Testing payments
-Everything in Production is live money. Rollout order for the new flow: (1) `CHECKOUT_V2=owner`, test with the owner's account; (2) the owner's own real ₦15,000 Basic payment, then refund; (3) `CHECKOUT_V2=on`. Local tests stub Paystack (`tests/billing-checkout.test.ts`); there is no way to run the live flow without a real payment. The ₦500 owner test: `?test=1` on the upgrade page shows the button, the server only allows it for `PAYSTACK_TEST_EMAIL`. After any test: refund in Paystack, and (original flow only) cancel the Paystack subscription, because a refund does not cancel it.
+Everything in Production is live money (Paystack has no test mode here; Preview shares the live keys). Local tests stub Paystack (`tests/billing-checkout.test.ts`); the live flow can only be proven with a real payment, so after any merge that touches billing run the checklist in `docs/MERGE-CHECKLIST.md`: the ₦500 owner test (`/dashboard?test=1`, account = `PAYSTACK_TEST_EMAIL`), then a real ₦15,000 Basic payment, then refund both in Paystack. Refunds are issued by hand in Paystack and reverse the plan automatically (full refunds only).
+- The dashboard has a "Plan and billing" panel (`GET /api/billing`): plan, end date, last five payments, the 7-day refund line and the support address (`SUPPORT_EMAIL` in `lib/brand.ts`; confirm the mailbox exists).
+- Prices are shown in Naira everywhere; outside Nigeria a dollar figure is only a labelled estimate (`components/PriceTag.tsx`). All customer-facing billing wording lives in `lib/billing/copy.ts` and `app/terms/page.tsx`; keep them in step. Do not promise reminder e-mails until part 2.6 of `docs/payment-redesign.md` ships.
 - Manual grant for a bank-transfer payer: dry run, grant and rollback SQL in `docs/payment-redesign.md` 2.7, with a reference like `manual-YYYYMMDD-<initials>`. Never reuse a Paystack reference (especially an abandoned one).
-- Caddy/X-Frame-Options notes under "Legacy" no longer apply: the new checkout redirects to Paystack instead of using an iframe.
 
 ## Rate Limits
 

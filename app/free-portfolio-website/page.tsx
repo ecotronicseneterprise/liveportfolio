@@ -1,7 +1,6 @@
 import { CREATE_HREF } from '@/lib/onboarding/entry'
 import CookieSettingsLink from '@/components/CookieSettingsLink'
-import { billingCopy } from '@/lib/billing/copy'
-import { checkoutMode } from '@/lib/billing/flag'
+import { BILLING_COPY } from '@/lib/billing/copy'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import LandingNav from '@/components/LandingNav'
@@ -31,7 +30,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Can I cancel after publishing?',
-    a: billingCopy(checkoutMode() === 'on').faqCancel,
+    a: BILLING_COPY.faqCancel,
   },
 ]
 
@@ -90,7 +89,7 @@ export default function FreePortfolioWebsitePage() {
         <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
           <h2 className="text-sm font-bold text-[#0A66C2] tracking-widest uppercase mb-4">When you're ready to publish</h2>
           <p className="text-base text-gray-500 leading-[1.8] max-w-2xl">
-            Plans start from <LocalisedPrice ngn="₦15,000/year" usd="$10/year" />. That gets you a live, shareable link, hosting that just works, and real-time visitor notifications — know when someone from a new country opens your portfolio. Unlike almost every other portfolio tool, your analytics are included, not an add-on.
+            Plans start from <LocalisedPrice ngn="₦15,000 for 12 months" usd="$10" />. That gets you a live, shareable link, hosting that just works, and real-time visitor notifications — know when someone from a new country opens your portfolio. Unlike almost every other portfolio tool, your analytics are included, not an add-on.
           </p>
         </div>
       </section>

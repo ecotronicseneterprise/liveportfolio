@@ -2,7 +2,7 @@ import { CREATE_HREF } from '@/lib/onboarding/entry'
 import CookieSettingsLink from '@/components/CookieSettingsLink'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { checkoutMode } from '@/lib/billing/flag'
+import { SUPPORT_EMAIL } from '@/lib/brand'
 
 export const metadata: Metadata = {
   title: 'Terms of Service — LivePortfolio',
@@ -88,13 +88,12 @@ export default function TermsPage() {
             </p>
           </section>
 
-          {checkoutMode() === 'on' ? (
-            <section>
+          <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">5. Payment Terms</h2>
             <p>
               Publishing your portfolio requires a paid plan. We offer two plans: Basic at ₦15,000 (approx. $10) and Pro at ₦45,000
-              (approx. $30). Each is a single payment that gives you 12 months of access. There is no automatic renewal: we email you
-              before your plan ends, and you can renew from your dashboard. All charges are processed in Nigerian Naira (NGN) regardless of
+              (approx. $30). Each is a single payment that gives you 12 months of access. There is no automatic renewal: you can renew from your
+              dashboard at any time, and renewing adds 12 months to the time you have left. All charges are processed in Nigerian Naira (NGN) regardless of
               your location; your bank will convert to your local currency at the prevailing exchange rate.
               Payment is processed securely by Paystack — we never handle or store your card details.
             </p>
@@ -102,28 +101,12 @@ export default function TermsPage() {
               If your plan ends and you do not renew, your portfolio is unpublished. Your content is kept, and you can renew and publish again later.
             </p>
           </section>
-          ) : (
-            <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">5. Payment Terms</h2>
-            <p>
-              Publishing your portfolio requires an annual subscription. We offer two plans: Basic at ₦15,000/year
-              (approx. $10) and Pro at ₦45,000/year (approx. $30). All charges are processed in Nigerian Naira (NGN)
-              regardless of your location; your bank will convert to your local currency at the prevailing exchange rate.
-              Subscriptions are billed annually and renew automatically unless cancelled.
-              Payment is processed securely by Paystack — we never handle or store your card details.
-            </p>
-            <p className="mt-3">
-              You may cancel your subscription at any time. Upon cancellation, your portfolio remains live
-              until the end of your current billing period, after which it will be unpublished.
-            </p>
-          </section>
-          )}
 
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">6. Refunds: 7-day guarantee</h2>
             <p>
               If you are not satisfied with your plan, email us at{' '}
-              <a href="mailto:support@liveportfolio.site" className="text-[#0A66C2] hover:underline">support@liveportfolio.site</a>{' '}
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="text-[#0A66C2] hover:underline">{SUPPORT_EMAIL}</a>{' '}
               within 7 days of your purchase, from or naming the email address of your account, and we will refund the full amount you paid,
               whether or not you have published your portfolio.
             </p>
