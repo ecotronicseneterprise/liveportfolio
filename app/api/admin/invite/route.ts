@@ -1,10 +1,11 @@
 import { randomBytes, timingSafeEqual } from 'crypto'
+import { PARTNER_KEYS } from '@/lib/partners'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
-const KNOWN_PARTNERS = ['esther', 'clifford', 'pelumi', 'temitope']
+const KNOWN_PARTNERS = PARTNER_KEYS
 
 function authOk(req: NextRequest): boolean {
   const provided = req.headers.get('x-cron-secret') || ''

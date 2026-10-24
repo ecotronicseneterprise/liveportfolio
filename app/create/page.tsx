@@ -599,30 +599,27 @@ export default function CreatePage() {
         }
       } catch {}
 
+      // The browser may no longer write the `users` table (RLS closed): the server creates the row from the verified
+      // token. We send only the slug and the referral code; plan and e-mail are decided server-side.
+      const profileRes = await fetch('/api/account/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authData.session.access_token}`,
+        },
+        body: JSON.stringify({ slug: form.slug, ...(referralPartner ? { referral_code: referralPartner } : {}) }),
+      })
+      if (!profileRes.ok) {
+        const profileErr = await profileRes.json().catch(() => ({}))
+        if (profileRes.status === 409 && profileErr.error === 'slug_taken') {
+          throw new Error('That username is already taken. Please choose another one.')
+        }
+        if (profileRes.status === 400 && profileErr.message) throw new Error(profileErr.message)
+        throw new Error('Failed to save user profile')
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sb = supabase as any
-      const { error: userError } = await sb
-        .from('users')
-        .insert({
-          id: authData.user!.id,
-          email: form.email,
-          slug: form.slug,
-          ...(referralPartner ? { referral_partner: referralPartner } : {}),
-        })
-
-      if (userError) {
-        const { data: existingUser } = await sb
-          .from('users')
-          .select('id, slug')
-          .eq('id', authData.user!.id)
-          .single()
-        if (!existingUser) {
-          const message = (userError.message || '').toLowerCase()
-          const isDuplicate = message.includes('duplicate') || message.includes('unique')
-          if (isDuplicate) throw new Error('That username is already taken. Please choose another one.')
-          throw new Error('Failed to save user profile')
-        }
-      }
 
       // Clear referral after successful user creation — attribution is now stored in DB
       try { localStorage.removeItem('lp_referral') } catch {}

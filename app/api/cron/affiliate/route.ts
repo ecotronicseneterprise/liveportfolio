@@ -2,36 +2,11 @@ import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { sendEmail } from '@/lib/email'
+import { PARTNERS } from '@/lib/partners'
 
 export const dynamic = 'force-dynamic'
 
-// ── Partner config — add new partners here only ─────────────────────────────
-const PARTNERS: Record<string, {
-  name: string
-  email: string
-  commission: number // decimal, e.g. 0.30 = 30%
-}> = {
-  'esther': {
-    name: 'Esther Anagu',
-    email: 'anaguesther2@gmail.com',
-    commission: 0.30,
-  },
-  'clifford': {
-    name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
-    commission: 0,
-  },
-  'pelumi': {
-    name: 'Pelumi',
-    email: 'adekunmipelumi@yahoo.com',
-    commission: 0.30,
-  },
-  'temitope': {
-    name: 'Temitope',
-    email: '',
-    commission: 0.30,
-  },
-}
+// Partner config lives in lib/partners.ts — add new partners there only.
 
 const ADMIN_EMAIL = 'nwannachumaclifford@gmail.com'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
