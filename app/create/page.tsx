@@ -802,15 +802,15 @@ export default function CreatePage() {
         })
       }
       // Fire-and-forget welcome email — do not await, do not block navigation
+      // The server sends to the signed-in user's verified e-mail and reads the slug from our database;
+      // only the portfolio id (and a display name) are needed.
       fetch('/api/email/welcome', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: form.email,
-          name: form.name,
-          portfolioId: genData.portfolio_id,
-          slug: form.slug,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authData.session.access_token}`,
+        },
+        body: JSON.stringify({ portfolioId: genData.portfolio_id, name: form.name }),
       }).catch(() => {})
 
       if (inviteUpgraded) {
