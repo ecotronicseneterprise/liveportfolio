@@ -2,6 +2,7 @@
 
 import { CREATE_HREF, SIGNIN_HREF } from '@/lib/onboarding/entry'
 import { features } from '@/lib/plans'
+import { initialOf, tidyName } from '@/lib/onboarding/name'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -12,6 +13,7 @@ import UpgradeModal from '@/components/UpgradeModal'
 import ImageCropper from '@/components/ImageCropper'
 import LiveToast, { pushLiveToast } from '@/components/LiveToast'
 import Turnstile from '@/components/onboarding/Turnstile'
+import HistoryPanel from '@/components/dashboard/HistoryPanel'
 import { captchaOptions } from '@/lib/onboarding/captcha'
 import { DRAFT_KEY } from '@/lib/onboarding/draft'
 
@@ -556,6 +558,7 @@ export default function DashboardPage() {
   const [projectImagePreviews, setProjectImagePreviews] = useState<Record<number, string>>({})
   const [loadError, setLoadError] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [historyTick, setHistoryTick] = useState(0)
 
   useEffect(() => {
     loadData()
@@ -776,9 +779,12 @@ export default function DashboardPage() {
       })
       if (res.ok) {
         const updated = await res.json()
-        setPortfolio((prev) => prev ? { ...prev, health_score: updated.health_score } : prev)
+        setPortfolio((prev) => prev ? { ...prev, health_score: updated.health_score ?? prev.health_score } : prev)
+        setHistoryTick((n) => n + 1)
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
+      } else if (res.status === 409) {
+        setSaveError('This portfolio changed somewhere else. Reload the page, then make your edit again.')
       } else {
         setSaveError('Failed to save. Please try again.')
       }
@@ -963,14 +969,14 @@ export default function DashboardPage() {
                   className="w-16 h-16 rounded-full object-cover border border-gray-100" />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-[#E8F0F9] flex items-center justify-center border border-gray-100">
-                  <span className="text-xl font-bold text-[#0A66C2]">{user.email[0].toUpperCase()}</span>
+                  <span className="text-xl font-bold text-[#0A66C2]">{initialOf((editContent as Record<string, string>).name, user.email)}</span>
                 </div>
               )}
             </div>
             {/* Name + role — left on desktop, centered on mobile */}
             <div className="flex-1 text-center sm:text-left">
               <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-                {(editContent as Record<string, string>).name || user.email.split('@')[0]}
+                {tidyName((editContent as Record<string, string>).name) || user.email.split('@')[0]}
               </h1>
               <p className="text-[0.95rem] text-gray-500 mt-0.5">
                 {(editContent as Record<string, string>).role || ''}
@@ -986,6 +992,7 @@ export default function DashboardPage() {
               ) : (
                 <span className="text-sm text-gray-400 px-3 py-1 bg-gray-50 rounded-full">
                   liveportfolio.site/{user.slug}
+                  <span className="ml-2 text-xs text-gray-500">Reserved for you, not live yet</span>
                 </span>
               )}
               <div className="flex items-center gap-2">
@@ -995,10 +1002,10 @@ export default function DashboardPage() {
                 </span>
                 <button
                   onClick={() => loadData()}
-                  title="Refresh"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 4, borderRadius: 4, fontSize: 12 }}
+                  title="Reload your dashboard data"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', padding: '4px 6px', borderRadius: 4, fontSize: 12, textDecoration: 'underline' }}
                 >
-                  ↻
+                  Refresh
                 </button>
                 {isPublished ? (
                   <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
@@ -1966,6 +1973,17 @@ export default function DashboardPage() {
                 <p style={{ color: '#EF4444', fontSize: 13, marginTop: 8 }}>{saveError}</p>
               )}
             </div>
+
+            <HistoryPanel
+              token={accessToken}
+              refreshKey={historyTick}
+              onRestored={(r) => {
+                setEditContent(r.content as Partial<PortfolioContent>)
+                setTemplate(r.template)
+                setPreviewTemplate(r.template)
+                setPortfolio((prev) => prev ? { ...prev, content: r.content as unknown as PortfolioContent, template: r.template, health_score: r.health_score ?? prev.health_score } : prev)
+              }}
+            />
           </div>
         )}
 
@@ -1989,7 +2007,7 @@ export default function DashboardPage() {
                   ) : (
                     <div className="w-20 h-20 rounded-full bg-[#E8F0F9] flex items-center justify-center border border-gray-100">
                       <span className="text-2xl font-bold text-[#0A66C2]">
-                        {user.email[0].toUpperCase()}
+                        {initialOf((editContent as Record<string, string>).name, user.email)}
                       </span>
                     </div>
                   )}

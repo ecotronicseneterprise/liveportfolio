@@ -85,7 +85,11 @@ export function parseExcludeList(raw: unknown): string[] {
  * the public `project-images` bucket, no credentials. Anything else (another host, a look-alike, http, data:, javascript:) is
  * rejected, so a stored draft can never make a page load an image from somewhere else. Returns the URL or ''.
  */
-export function projectImageUrl(v: unknown, supabaseUrl: string | undefined = process.env.NEXT_PUBLIC_SUPABASE_URL): string {
+export function projectImageUrl(
+  v: unknown,
+  supabaseUrl: string | undefined = process.env.NEXT_PUBLIC_SUPABASE_URL,
+  bucket: 'project-images' | 'avatars' = 'project-images',
+): string {
   if (typeof v !== 'string' || v.length > 500 || !supabaseUrl) return ''
   try {
     const u = new URL(v)
@@ -93,7 +97,7 @@ export function projectImageUrl(v: unknown, supabaseUrl: string | undefined = pr
     // same scheme as the configured Supabase URL: https in production (an http image is rejected there), http only when a
     // developer points the app at a local Supabase
     if (u.protocol !== base.protocol || (base.protocol !== 'https:' && base.protocol !== 'http:') || u.host !== base.host || u.username || u.password) return ''
-    if (!u.pathname.startsWith('/storage/v1/object/public/project-images/')) return ''
+    if (!u.pathname.startsWith(`/storage/v1/object/public/${bucket}/`)) return ''
     return u.toString()
   } catch {
     return ''

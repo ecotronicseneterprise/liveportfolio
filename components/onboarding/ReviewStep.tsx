@@ -111,7 +111,7 @@ export default function ReviewStep() {
 
   const next = () => {
     if (!d.name.trim() || !d.role.trim()) return setError(t('review.needTitle'))
-    if (!d.projects.some((p) => p.title.trim())) return setError(t('review.needProject'))
+    // projects are optional: a portfolio without any is valid (the templates simply leave the section out)
     flow.saveDraft({ ...(sanitizeDraft({ ...d, status: 'reviewed' }) as Draft) })
     router.push('/create/address')
   }

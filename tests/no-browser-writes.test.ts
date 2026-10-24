@@ -51,7 +51,7 @@ describe('browser cannot write users/portfolios', () => {
       'app/api/delete-account/route.ts',
       'app/api/generate/route.ts', // portfolios insert
       'app/api/paystack-webhook/route.ts', // plan activation
-      'app/api/update/route.ts', // portfolios update
+      'lib/portfolio/commit.ts', // portfolios update: the one write path for edits and restores (/api/update, /api/revisions)
     ])
     const writers = files
       .filter((f) => /\.from\(\s*['"](users|portfolios)['"]\s*\)/.test(f.src) && /\.(insert|update|upsert|delete)\(/.test(f.src))

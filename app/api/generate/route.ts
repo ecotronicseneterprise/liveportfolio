@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 import { SYSTEM_PROMPT, buildGenerationPrompt } from '@/lib/prompts'
+import { resolveModel, paramsFor } from '@/lib/llm/model'
 
 // In-memory IP rate limit: 5 per day
 const ipCounts = new Map<string, { count: number; resetAt: number }>()
@@ -162,10 +163,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Name, role, and email are required' }, { status: 400 })
   }
 
+  // Projects are optional. With none given, the prompt says not to invent any and whatever comes back is discarded below.
   const titledProjects = input.projects.filter((p) => p.title)
-  if (titledProjects.length === 0 && !input.github_url) {
-    return NextResponse.json({ error: 'Add at least one project or a GitHub URL' }, { status: 400 })
-  }
 
   // Reject if estimated input tokens exceed 2500
   const promptText = buildGenerationPrompt(input)
@@ -179,10 +178,10 @@ export async function POST(req: NextRequest) {
   let maxTokens = 1200
 
   try {
+    const model = resolveModel()
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      temperature: 0.7,
-      max_tokens: maxTokens,
+      model,
+      ...paramsFor(model, { temperature: 0.7, maxTokens }),
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
@@ -209,10 +208,10 @@ export async function POST(req: NextRequest) {
     } else {
       // Retry once
       try {
+        const model = resolveModel()
         const retry = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
-          temperature: 0.7,
-          max_tokens: 1000,
+          model,
+          ...paramsFor(model, { temperature: 0.7, maxTokens: 1000 }),
           response_format: { type: 'json_object' },
           messages: [
             { role: 'system', content: SYSTEM_PROMPT },
@@ -230,7 +229,7 @@ export async function POST(req: NextRequest) {
 
   // Preserve project image URLs — AI doesn't generate these
   const aiProjects = (portfolioContent.projects as Array<Record<string, unknown>>) || []
-  const mergedProjects = aiProjects.map((p, i) => ({
+  const mergedProjects = titledProjects.length === 0 ? [] : aiProjects.map((p, i) => ({
     ...p,
     image_url: input.projects[i]?.image_url || null,
   }))

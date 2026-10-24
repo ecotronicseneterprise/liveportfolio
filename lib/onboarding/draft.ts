@@ -6,6 +6,7 @@
 //   - it is cleared after generation and on sign-out (signOutAndClear / the SIGNED_OUT listener in the flow hook).
 
 import { httpUrl, projectImageUrl } from '@/lib/connectors/safe-url'
+import { tidyName } from './name'
 import type { ImportDraft, ProjectCandidate } from '@/lib/connectors/types'
 
 export const DRAFT_KEY = 'lp_draft_v1'
@@ -110,7 +111,7 @@ export function draftFromImport(imp: Partial<ImportDraft>, prev?: Draft | null):
   const merged = sanitizeDraft({
     ...base,
     status: 'imported',
-    name: imp.name || base.name,
+    name: imp.name ? tidyName(imp.name) : base.name, // a CV with the name in capitals starts in normal case; the person can still edit it
     role: imp.role || base.role,
     location: imp.location || base.location,
     bio: imp.bio || base.bio,

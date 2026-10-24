@@ -3,6 +3,7 @@ import { zodResponseFormat } from 'openai/helpers/zod'
 import type { ZodType } from 'zod'
 import { LlmError, PiiEngine, PiiEntity } from './pii/types'
 import { TOKEN_INSTRUCTION, redact, restore } from './pii/redact'
+import { resolveModel, paramsFor } from './model'
 
 // THE ONLY MODULE ALLOWED TO TALK TO OPENAI (enforced by scripts/check-llm-boundary.mjs).
 //
@@ -44,31 +45,8 @@ export interface CallLLMResult<T> {
   usage: { promptTokens: number; completionTokens: number }
 }
 
-const DEFAULT_MODEL = 'gpt-4o-mini'
-
-/** Model for every gateway call. Override with LLM_MODEL; `opts.model` wins for one-off calls. */
-export function resolveModel(explicit?: string): string {
-  return explicit || process.env.LLM_MODEL?.trim() || DEFAULT_MODEL
-}
-
-type ReasoningEffort = 'none' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
-
-/**
- * Parameter support differs by model family — do not assume gpt-4o-mini's.
- * GPT-6 family (reasoning models; checked against OpenAI's "Using GPT-6" guide + model page):
- *  - `reasoning_effort` accepted; Luna/Sol support 'none', default is 'medium'.
- *  - `temperature` / `top_p` must be removed unless effort is 'none'; Luna's behaviour even at
- *    'none' is not confirmed by OpenAI's docs (third parties report a 400) → we never send it.
- *  - Output cap is `max_completion_tokens`, not `max_tokens`.
- * Everything else (gpt-4o*, gpt-4.1*, …) keeps temperature + max_tokens.
- */
-export function paramsFor(model: string, o: { temperature?: number; maxTokens?: number }): Record<string, unknown> {
-  if (/^gpt-6/i.test(model)) {
-    const effort = (process.env.LLM_REASONING_EFFORT?.trim() || 'none') as ReasoningEffort
-    return { reasoning_effort: effort, max_completion_tokens: o.maxTokens ?? 1200 }
-  }
-  return { temperature: o.temperature ?? 0.2, max_tokens: o.maxTokens ?? 1200 }
-}
+// Model choice and per-family parameters live in ./model (shared with /api/generate); re-exported for the bench.
+export { resolveModel, paramsFor } from './model'
 
 // Benchmark hook: lets bench/ read token usage without changing any call site or logging content.
 type UsageObserver = (u: { model: string; purpose: string; promptTokens: number; completionTokens: number; ms: number }) => void

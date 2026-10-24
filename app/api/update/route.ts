@@ -1,34 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { entitlements } from '@/lib/entitlements'
 import { canUseTemplate, isTemplateId } from '@/lib/plans'
+import { OpError, applyOps, type Op } from '@/lib/portfolio/ops'
+import { commitState } from '@/lib/portfolio/commit'
 
-function stripBulletMarker(s: string): string {
-  return s.replace(/^[\s▸•→\-\*▶‣◦]+/, '').trim()
-}
-
-function calculateHealthScore(content: Record<string, unknown>): number {
-  let score = 0
-  if (content.avatar_url) score += 10
-  if (content.github_url) score += 10
-  if (content.linkedin_url) score += 10
-  const projects = content.projects as Array<{ outcome?: string }> | undefined
-  if (projects && projects.length >= 3) score += 20
-  if (projects) {
-    const withMetric = projects.filter((p) => /\d/.test(p.outcome || '')).length
-    score += Math.min(withMetric * 5, 15)
-  }
-  const about = content.about as string | undefined
-  if (about && about.split(' ').length > 100) score += 10
-  const skills = content.skills as string[] | undefined
-  if (skills && skills.length >= 5) score += 10
-  const experience = content.experience as unknown[] | undefined
-  if (experience && experience.length > 0) score += 15
-  return Math.min(score, 100)
-}
-
+// PATCH /api/update: the dashboard's save. Two body shapes, same pipeline:
+//   { ops: Op[], portfolio_id? }                       typed operations (lib/portfolio/ops.ts)
+//   { content?, template?, portfolio_id? }             the dashboard's whole-section save, turned into operations here
+// Every change is validated by applyOps, recorded as a revision (so it can be undone) and written with a compare-and-set.
+// No AI is involved. Nothing here publishes: publishing is driven by payment through the webhook only.
 export async function PATCH(req: NextRequest) {
   try {
     const supabaseAdmin = getSupabaseAdmin()
@@ -49,10 +31,10 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { content: contentUpdate, template, portfolio_id: claimedPortfolioId } = await req.json()
+    const body = await req.json()
+    const { content: contentUpdate, template, portfolio_id: claimedPortfolioId, ops: bodyOps } = body ?? {}
 
-    // Plans (lib/plans.ts): every signed-in user may edit content privately; nothing here publishes (publishing is driven
-    // by payment through the webhook only). The template is validated against the plan on the server.
+    // Plans (lib/plans.ts): every signed-in user may edit content privately; the template is validated against the plan here.
     const ent = await entitlements(user.id)
     if (!ent.canEdit) {
       return NextResponse.json({ error: 'Editing is not available on your plan' }, { status: 403 })
@@ -60,113 +42,82 @@ export async function PATCH(req: NextRequest) {
     if (template !== undefined && template !== null && !isTemplateId(template)) {
       return NextResponse.json({ error: 'invalid_template' }, { status: 400 })
     }
+    if (bodyOps !== undefined && (contentUpdate !== undefined || template !== undefined)) {
+      return NextResponse.json({ error: 'invalid_request', message: 'Send either ops or content/template, not both.' }, { status: 400 })
+    }
 
-    // Get current portfolio
+    // The portfolio is always the signed-in user's own (looked up by user_id, never by an id from the request). A request that
+    // NAMES a portfolio id is refused unless it is that same one, so a tampered request fails loudly.
     const { data: portfolio } = await supabaseAdmin
       .from('portfolios')
-      .select('id, content, template')
+      .select('id, user_id, content, template, edit_count, health_score')
       .eq('user_id', user.id)
       .single()
 
     if (!portfolio) {
       return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
     }
-
-    // The portfolio is always the signed-in user's own (looked up by user_id above, never by an id from the request). A request
-    // that NAMES a portfolio id is refused unless it is that same one, so a client bug or a tampered request fails loudly
-    // instead of silently editing the wrong thing.
     if (claimedPortfolioId !== undefined && claimedPortfolioId !== null && claimedPortfolioId !== portfolio.id) {
       return NextResponse.json({ error: 'forbidden' }, { status: 403 })
     }
 
-    // A Pro template can only be SELECTED on Pro. Re-sending the template already stored is fine (a lapsed Pro user
-    // saving other edits must not be rejected for a template they already had).
-    if (template && template !== (portfolio as unknown as { template?: string }).template && !canUseTemplate(ent.plan, template)) {
-      return NextResponse.json({ error: 'template_locked', message: 'That template is included with Pro.' }, { status: 403 })
+    // Legacy body shape -> operations
+    let ops: unknown
+    if (bodyOps !== undefined) ops = bodyOps
+    else {
+      const list: Op[] = []
+      if (contentUpdate && typeof contentUpdate === 'object') list.push({ op: 'replace_content', content: contentUpdate as Record<string, unknown> })
+      if (template) list.push({ op: 'set_template', template })
+      ops = list
+    }
+    if (Array.isArray(ops) && ops.length === 0) {
+      // nothing to do (the old route also accepted an empty body)
+      return NextResponse.json({ updated_at: null, health_score: (portfolio as { health_score?: number | null }).health_score ?? null, changes: [], revision_id: null, unchanged: true })
     }
 
-    // FIX 6: Allowlist permitted content fields — drop any unknown keys silently
-    const ALLOWED_CONTENT_KEYS = new Set([
-      'name', 'role', 'about', 'headline', 'location', 'email',
-      'github_url', 'linkedin_url', 'avatar_url',
-      'skills', 'skills_grouped', 'skills_narrative',
-      'projects', 'experience', 'education', 'certifications',
-    ])
-    const rawUpdate = contentUpdate
-      ? Object.fromEntries(
-          Object.entries(contentUpdate as Record<string, unknown>).filter(([k]) => ALLOWED_CONTENT_KEYS.has(k))
-        )
-      : null
-
-    // Strip leading bullet marker characters from experience bullets so templates
-    // don't double-render them (e.g. "▸ Built X" → template adds its own ▸ → "▸ ▸ Built X")
-    if (rawUpdate?.experience && Array.isArray(rawUpdate.experience)) {
-      rawUpdate.experience = (rawUpdate.experience as Array<{ bullets?: unknown[] }>).map((e) => ({
-        ...e,
-        bullets: Array.isArray(e.bullets)
-          ? e.bullets
-              .map((b) => stripBulletMarker(String(b)))
-              .filter((b) => b.length > 0 && !b.endsWith(':'))
-          : e.bullets,
-      }))
+    // A Pro template can only be SELECTED on Pro. Re-sending the template already stored is fine (a lapsed Pro user saving
+    // other edits must not be rejected for a template they already had).
+    const stored = portfolio as unknown as { template?: string }
+    if (Array.isArray(ops)) {
+      for (const o of ops as Array<{ op?: string; template?: unknown }>) {
+        if (o?.op !== 'set_template') continue
+        if (!isTemplateId(o.template)) return NextResponse.json({ error: 'invalid_template' }, { status: 400 })
+        if (o.template !== stored.template && !canUseTemplate(ent.plan, o.template)) {
+          return NextResponse.json({ error: 'template_locked', message: 'That template is included with Pro.' }, { status: 403 })
+        }
+      }
     }
 
-    const sanitizedUpdate = rawUpdate
-
-    const mergedContent = sanitizedUpdate
-      ? { ...(portfolio.content as Record<string, unknown>), ...sanitizedUpdate }
-      : (portfolio.content as Record<string, unknown>)
-
-    const healthScore = calculateHealthScore(mergedContent)
-
-    // Regenerate SEO columns from the updated content so meta title/description
-    // stay in sync with whatever the user has set as their current role and bio.
-    const updatedName = (mergedContent.name as string) || ''
-    const updatedRole = (mergedContent.role as string) || ''
-    const updatedAbout = (mergedContent.about as string) || ''
-    const newSeoTitle = updatedRole
-      ? `${updatedName} | ${updatedRole}`
-      : `${updatedName} | Portfolio`
-    const newSeoDescription = updatedAbout
-      ? updatedAbout.slice(0, 155).replace(/\n/g, ' ').trim()
-      : `${updatedName}'s professional portfolio — built with LivePortfolio.`
-
-    const updateData: Record<string, unknown> = {
-      content: mergedContent,
-      health_score: healthScore,
-      seo_title: newSeoTitle,
-      seo_description: newSeoDescription,
-      edit_count: ((portfolio as unknown as { edit_count?: number }).edit_count || 0) + 1,
+    let result
+    try {
+      result = applyOps({ content: (portfolio.content ?? {}) as Record<string, unknown>, template: stored.template ?? 'minimal' }, ops)
+    } catch (e) {
+      if (e instanceof OpError) return NextResponse.json({ error: e.code, message: e.message, op_index: e.index }, { status: 400 })
+      throw e
     }
 
-    if (template) updateData.template = template
+    if (result.changes.length === 0) {
+      return NextResponse.json({ updated_at: null, health_score: (portfolio as { health_score?: number | null }).health_score ?? null, changes: [], revision_id: null, unchanged: true })
+    }
 
-    const { data: updated, error } = await supabaseAdmin
-      .from('portfolios')
-      .update(updateData)
-      .eq('id', portfolio.id)
-      .select('updated_at, health_score')
-      .single()
-
-    if (error) {
+    const done = await commitState(
+      { id: portfolio.id, user_id: user.id, content: (portfolio.content ?? {}) as Record<string, unknown>, template: stored.template ?? 'minimal', edit_count: (portfolio as { edit_count?: number | null }).edit_count ?? null },
+      result.state,
+      { source: 'dashboard', summary: result.changes },
+    )
+    if (!done.ok) {
+      if (done.error === 'conflict') return NextResponse.json({ error: 'conflict', message: 'This portfolio changed somewhere else. Reload and try again.' }, { status: 409 })
       return NextResponse.json({ error: 'Update failed' }, { status: 500 })
     }
 
-    // Bust the 12-hour ISR cache so the live portfolio reflects changes immediately
-    const { data: userRow } = await supabaseAdmin
-      .from('users')
-      .select('slug')
-      .eq('id', user.id)
-      .single()
-
-    if (userRow?.slug) {
-      // Bust both cache entries — middleware rewrites /${slug} → /portfolio/${slug}
-      // but Next.js ISR tracks them as separate cache keys
-      revalidatePath(`/portfolio/${userRow.slug}`)
-      revalidatePath(`/${userRow.slug}`)
-    }
-
-    return NextResponse.json(updated)
+    return NextResponse.json({
+      updated_at: done.updated_at,
+      health_score: done.health_score,
+      edit_count: done.edit_count,
+      changes: result.changes,
+      revision_id: done.revision_id,
+      revisions: done.revisions,
+    })
   } catch (err) {
     console.error('[api/update] error:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
