@@ -7,6 +7,8 @@ import { useFlow } from '@/lib/onboarding/use-flow'
 import { INVITED_FLAG } from '@/lib/onboarding/attribution'
 import { accountUrl } from '@/lib/onboarding/state'
 import { t } from '@/lib/onboarding/t'
+import FlowShell from './ui/FlowShell'
+import { AlertIcon } from './ui/icons'
 
 /**
  * Generate step. Safe to reload or retry at any time: /api/generate returns the existing portfolio if one exists,
@@ -51,15 +53,22 @@ export default function GenerateStep() {
   }, [flow.loading, run])
 
   return (
-    <main className="max-w-md mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">{t('generate.title')}</h1>
-      {phase === 'working' && <p role="status">{t('generate.working')}</p>}
-      {phase === 'failed' && (
+    <FlowShell step="generate">
+      <h1 className="lp-title" style={{ marginBottom: 'var(--lp-s5)' }}>{t('generate.title')}</h1>
+      {phase === 'working' && (
         <>
-          <p role="alert">{t('generate.failed')}</p>
-          <button className="mt-3 min-h-12 px-4 border rounded" onClick={() => { started.current = true; void run() }}>{t('generate.retry')}</button>
+          <div className="lp-working"><span className="lp-spinner" aria-hidden="true" /><p role="status" className="lp-lede">{t('generate.working')}</p></div>
+          <div className="lp-track" aria-hidden="true"><i /></div>
         </>
       )}
-    </main>
+      {phase === 'failed' && (
+        <>
+          <p role="alert" className="lp-msg lp-msg--error"><AlertIcon />{t('generate.failed')}</p>
+          <div className="lp-actions">
+            <button className="lp-btn lp-btn--primary lp-btn--block" onClick={() => { started.current = true; void run() }}>{t('generate.retry')}</button>
+          </div>
+        </>
+      )}
+    </FlowShell>
   )
 }

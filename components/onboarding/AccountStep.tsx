@@ -10,6 +10,9 @@ import { captureAttribution, readAttribution } from '@/lib/onboarding/attributio
 import { getAuth, useFlow } from '@/lib/onboarding/use-flow'
 import { getSupabaseClient } from '@/lib/supabase'
 import { t } from '@/lib/onboarding/t'
+import { includedFeatures, newFeatures } from '@/lib/plans'
+import FlowShell, { FlowLoading } from './ui/FlowShell'
+import { AlertIcon, CheckIcon } from './ui/icons'
 
 export const VERIFY_EMAIL_KEY = 'lp_verify_email'
 const MIN_PASSWORD = 10
@@ -83,46 +86,86 @@ export default function AccountStep() {
     if (r.ok) setNotice(t('account.resetSent')); else setError(t('errors.unknown'))
   }
 
-  if (flow.loading) return <p className="p-6">…</p>
+  if (flow.loading) return <FlowLoading step="account" />
 
   // Signed in already (e.g. verified in another tab but sent here): offer to continue rather than create again.
   if (flow.email && flow.state !== 'no_session') {
     return (
-      <div className="max-w-md mx-auto p-6">
-        <p>{t('account.continueAs', { email: flow.email })}</p>
-        <button className="mt-4 underline" onClick={() => signOutAndClear(getSupabaseClient().auth, flow.store).then(() => location.reload())}>
-          {t('account.signOut')}
-        </button>
-      </div>
+      <FlowShell step="account">
+        <p className="lp-lede">{t('account.continueAs', { email: flow.email })}</p>
+        <div className="lp-actions">
+          <button className="lp-btn lp-btn--ghost lp-btn--block" onClick={() => signOutAndClear(getSupabaseClient().auth, flow.store).then(() => location.reload())}>
+            {t('account.signOut')}
+          </button>
+        </div>
+      </FlowShell>
     )
   }
 
+  const met = password.length >= MIN_PASSWORD
   return (
-    <main className="max-w-md mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">{t('account.title')}</h1>
-      {perk.invite && <p role="note" className="mb-3">{t('account.inviteFree')}</p>}
-      {perk.bootcamp && !perk.invite && <p role="note" className="mb-3">{t('account.bootcamp', { name: perk.bootcamp })}</p>}
-      <div role="tablist" className="flex gap-2 mb-4">
-        <button role="tab" aria-selected={mode === 'create'} className="min-h-11 px-3 border rounded" onClick={() => setMode('create')}>{t('account.create')}</button>
-        <button role="tab" aria-selected={mode === 'signin'} className="min-h-11 px-3 border rounded" onClick={() => setMode('signin')}>{t('account.signin')}</button>
+    <FlowShell step="account" aside={<ValuePanel />}>
+      <div className="lp-stack">
+        <h1 className="lp-title">{t('account.title')}</h1>
+        <p className="lp-lede">{t('account.lede')}</p>
+        {perk.invite && <p role="note" className="lp-msg">{t('account.inviteFree')}</p>}
+        {perk.bootcamp && !perk.invite && <p role="note" className="lp-msg">{t('account.bootcamp', { name: perk.bootcamp })}</p>}
+        <div role="tablist" className="lp-seg">
+          <button role="tab" aria-selected={mode === 'create'} onClick={() => setMode('create')}>{t('account.create')}</button>
+          <button role="tab" aria-selected={mode === 'signin'} onClick={() => setMode('signin')}>{t('account.signin')}</button>
+        </div>
       </div>
       <form onSubmit={submit} noValidate>
-        <label className="block mb-3">{t('account.email')}
-          <input className="block w-full border rounded px-3 min-h-11" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <label className="lp-field">
+          <span className="lp-label">{t('account.email')}</span>
+          <input className="lp-input" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
-        <label className="block mb-1">{t('account.password')}
-          <input className="block w-full border rounded px-3 min-h-11" type={show ? 'text' : 'password'} autoComplete={mode === 'create' ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} />
-        </label>
-        <button type="button" className="text-sm underline min-h-11" onClick={() => setShow((s) => !s)}>{show ? t('account.hide') : t('account.show')}</button>
-        {mode === 'create' && <p className="text-sm">{t('account.passwordHint')}</p>}
+        <div className="lp-field">
+          <label className="lp-label" htmlFor="lp-pw">{t('account.password')}</label>
+          <span className="lp-wrap">
+            <input id="lp-pw" className="lp-input" type={show ? 'text' : 'password'} autoComplete={mode === 'create' ? 'new-password' : 'current-password'} aria-describedby={mode === 'create' ? 'lp-pw-hint' : undefined} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <button type="button" className="lp-reveal-btn" aria-pressed={show} onClick={() => setShow((s) => !s)}>{show ? t('account.hide') : t('account.show')}</button>
+          </span>
+        </div>
+        {mode === 'create' && (
+          <p id="lp-pw-hint" className="lp-hint" data-met={met}>
+            <CheckIcon />
+            {t('account.passwordHint')}
+            <span className="lp-count" aria-hidden="true">{Math.min(password.length, MIN_PASSWORD)}/{MIN_PASSWORD}</span>
+          </p>
+        )}
         <Turnstile onToken={setCaptcha} resetSignal={captchaReset} />
-        {notice && <p role="status" className="my-2">{notice}</p>}
-        {error && <p role="alert" className="my-2 text-red-700">{error}</p>}
-        <button type="submit" disabled={busy} className="w-full min-h-12 border rounded mt-2">{t('account.continue')}</button>
-        {mode === 'signin' && <button type="button" onClick={reset} disabled={busy} className="block mt-3 underline min-h-11">{t('account.forgot')}</button>}
-        <p className="text-sm mt-4">{t('account.terms')}</p>
+        {notice && <p role="status" className="lp-msg lp-msg--ok" style={{ marginTop: 'var(--lp-s4)' }}>{notice}</p>}
+        {error && <p role="alert" className="lp-msg lp-msg--error" style={{ marginTop: 'var(--lp-s4)' }}><AlertIcon />{error}</p>}
+        <div className="lp-actions">
+          <button type="submit" disabled={busy} aria-busy={busy} className="lp-btn lp-btn--primary lp-btn--block">{t('account.continue')}</button>
+        </div>
+        {mode === 'signin' && <button type="button" onClick={reset} disabled={busy} className="lp-link" style={{ marginTop: 'var(--lp-s2)' }}>{t('account.forgot')}</button>}
+        <p className="lp-fine" style={{ marginTop: 'var(--lp-s4)' }}>{t('account.terms')}</p>
       </form>
       <SocialSignIn next="/create/account" onSignedIn={() => flow.goNext(nextParam())} />
-    </main>
+    </FlowShell>
+  )
+}
+
+/** The calm panel beside the form (laptop only): what a redraft looks like, and what is free versus what publishing adds. Lists come from lib/plans.ts. */
+function ValuePanel() {
+  return (
+    <>
+      <div className="lp-sheetdemo" aria-hidden="true">
+        <b>{t('account.sampleName')}</b>
+        <small>{t('account.sampleRole')}</small>
+        <p><del>{t('account.sampleBefore')}</del> <ins>{t('account.sampleAfter')}</ins> {t('account.sampleTail')}</p>
+        <p className="lp-demo-note lp-fine">{t('account.sampleNote')}</p>
+      </div>
+      <div>
+        <h2 className="lp-list-title">{t('account.panelFree')}</h2>
+        <ul className="lp-ticks">{includedFeatures('free').map((f) => <li key={f.id}><CheckIcon />{f.label}</li>)}</ul>
+      </div>
+      <div>
+        <h2 className="lp-list-title">{t('account.panelPublish')}</h2>
+        <ul className="lp-ticks">{newFeatures('basic').map((f) => <li key={f.id}><CheckIcon />{f.label}</li>)}</ul>
+      </div>
+    </>
   )
 }

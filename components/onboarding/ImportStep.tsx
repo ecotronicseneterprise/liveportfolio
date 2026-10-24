@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { draftFromImport, sanitizeDraft } from '@/lib/onboarding/draft'
 import { useFlow } from '@/lib/onboarding/use-flow'
@@ -8,13 +8,15 @@ import { accountUrl } from '@/lib/onboarding/state'
 import { normalizeGithubInput } from '@/lib/connectors/safe-url'
 import { t } from '@/lib/onboarding/t'
 import type { ImportDraft } from '@/lib/connectors/types'
+import FlowShell, { FlowLoading } from './ui/FlowShell'
+import { AlertIcon, GithubIcon, PasteIcon, PencilIcon, UploadIcon } from './ui/icons'
 
 // GitHub and pasted text go through /api/import, which is switched on server-side by IMPORT_ENABLED; this flag only
 // decides whether the two cards are shown. With it off the page shows Upload CV and Fill in manually.
 const IMPORT_UI = process.env.NEXT_PUBLIC_IMPORT_ENABLED === 'true'
 type Mode = 'file' | 'github' | 'paste'
 
-const CARD = 'flex flex-col items-start justify-between text-start border rounded p-3 min-h-28 w-full focus-visible:outline focus-visible:outline-2'
+const CARD = 'lp-card'
 
 /**
  * The import step: four equal blocks (2 x 2): Upload CV, GitHub username or link, Paste text, Fill in manually.
@@ -79,54 +81,53 @@ export default function ImportStep() {
     router.push('/create/review')
   }
 
-  if (flow.loading) return <p className="p-6">…</p>
+  if (flow.loading) return <FlowLoading step="import" />
 
   const pick = (m: Mode) => { setMode(m); setError('') }
-  const card = (m: Mode, title: string, hint: string, badge?: string) => (
-    <button
-      type="button"
-      aria-pressed={mode === m}
-      onClick={() => pick(m)}
-      className={CARD}
-      style={{ borderColor: mode === m ? '#111' : '#d1d5db', borderWidth: mode === m ? 2 : 1 }}
-    >
-      <span className="font-semibold">{title}</span>
-      <span className="text-sm">{hint}</span>
-      {badge && <span className="text-xs border rounded px-1.5 mt-1">{badge}</span>}
+  const card = (m: Mode, icon: ReactNode, title: string, hint: string, badge?: string) => (
+    <button type="button" aria-pressed={mode === m} onClick={() => pick(m)} className={CARD}>
+      <span className="lp-card-icon">{icon}</span>
+      <span className="lp-card-title">{title}</span>
+      <span className="lp-card-hint">{hint}</span>
+      {badge && <span className="lp-badge">{badge}</span>}
     </button>
   )
 
   return (
-    <main className="max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">{t('import.title')}</h1>
+    <FlowShell step="import" width="md">
+      <h1 className="lp-title" style={{ marginBottom: 'var(--lp-s5)' }}>{t('import.title')}</h1>
 
-      <div className="grid grid-cols-2 gap-3" role="group" aria-label={t('import.title')}>
-        {card('file', t('import.file'), t('import.fileHint'), t('import.recommended'))}
-        {IMPORT_UI && card('github', t('import.github'), t('import.githubHint'))}
-        {IMPORT_UI && card('paste', t('import.paste'), t('import.pasteHint'))}
-        <button type="button" onClick={manual} className={CARD} style={{ borderColor: '#d1d5db', borderWidth: 1 }}>
-          <span className="font-semibold">{t('import.manual')}</span>
-          <span className="text-sm">{t('import.manualHint')}</span>
+      <div className="lp-grid-2" role="group" aria-label={t('import.title')}>
+        {card('file', <UploadIcon />, t('import.file'), t('import.fileHint'), t('import.recommended'))}
+        {IMPORT_UI && card('github', <GithubIcon />, t('import.github'), t('import.githubHint'))}
+        {IMPORT_UI && card('paste', <PasteIcon />, t('import.paste'), t('import.pasteHint'))}
+        <button type="button" onClick={manual} className={CARD}>
+          <span className="lp-card-icon"><PencilIcon /></span>
+          <span className="lp-card-title">{t('import.manual')}</span>
+          <span className="lp-card-hint">{t('import.manualHint')}</span>
         </button>
       </div>
 
-      <div className="mt-4">
+      <div className="lp-reveal">
         {mode === 'file' && (
-          <input type="file" aria-label={t('import.file')} accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input type="file" className="lp-file" aria-label={t('import.file')} accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         )}
         {mode === 'github' && IMPORT_UI && (
-          <label className="block">{t('import.github')}
-            <input className="block w-full border rounded px-3 min-h-11" placeholder="octocat, github.com/octocat" autoComplete="off" autoCapitalize="none" spellCheck={false} value={github} onChange={(e) => setGithub(e.target.value)} />
+          <label className="lp-field">
+            <span className="lp-label">{t('import.github')}</span>
+            <input className="lp-input" placeholder="octocat, github.com/octocat" autoComplete="off" autoCapitalize="none" spellCheck={false} value={github} onChange={(e) => setGithub(e.target.value)} />
           </label>
         )}
         {mode === 'paste' && IMPORT_UI && (
-          <textarea aria-label={t('import.paste')} className="block w-full border rounded p-3 min-h-40" value={text} onChange={(e) => setText(e.target.value)} />
+          <textarea aria-label={t('import.paste')} className="lp-textarea" style={{ minHeight: '10rem' }} value={text} onChange={(e) => setText(e.target.value)} />
         )}
-        {error && <p role="alert" className="text-red-700 mt-3">{error}</p>}
-        <button type="button" disabled={busy} className="min-h-12 px-4 border rounded mt-3" onClick={run}>{busy ? t('import.reading') : t('import.run')}</button>
+        {error && <p role="alert" className="lp-msg lp-msg--error" style={{ marginTop: 'var(--lp-s4)' }}><AlertIcon />{error}</p>}
+        <div className="lp-actions">
+          <button type="button" disabled={busy} aria-busy={busy} className="lp-btn lp-btn--primary lp-btn--block" onClick={run}>{busy ? t('import.reading') : t('import.run')}</button>
+        </div>
       </div>
 
-      <p className="text-sm mt-6">{t('import.aiNotice')}</p>
-    </main>
+      <p className="lp-fine" style={{ marginTop: 'var(--lp-s5)' }}>{t('import.aiNotice')}</p>
+    </FlowShell>
   )
 }

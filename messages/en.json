@@ -17,7 +17,17 @@
     "continueAs": "Signed in as {email}",
     "signOut": "Use a different account",
     "inviteFree": "You've been invited: your Pro account is free.",
-    "bootcamp": "{name} students get 6 months free. It applies automatically when you finish signing up."
+    "bootcamp": "{name} students get 6 months free. It applies automatically when you finish signing up.",
+    "lede": "Free to build and preview. You pay only to publish.",
+    "or": "or",
+    "panelFree": "Free, from the first minute",
+    "panelPublish": "When you publish",
+    "sampleName": "Ada Okonkwo",
+    "sampleRole": "Backend engineer",
+    "sampleBefore": "Responsible for working on the payments system",
+    "sampleAfter": "Cut payments p95 latency by 40%",
+    "sampleTail": "at Acme.",
+    "sampleNote": "We tighten the wording. You check every line before anything goes live."
   },
   "verify": {
     "title": "Check your email",
@@ -105,5 +115,21 @@
     "useAnother": "Use a different address",
     "finishing": "Signing you in…",
     "failed": "We couldn’t finish signing you in. Please try again."
+  },
+  "ui": {
+    "home": "LivePortfolio home",
+    "progress": "Progress",
+    "stepOf": "Step {n} of {total}",
+    "steps": {
+      "account": "Account",
+      "import": "Import",
+      "review": "Review",
+      "address": "Address",
+      "generate": "Generate"
+    },
+    "loading": "Loading",
+    "livePreview": "Live preview",
+    "preview": "Preview",
+    "close": "Close"
   }
 }

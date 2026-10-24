@@ -8,6 +8,8 @@ import { applyAfterProfile, readAttribution } from '@/lib/onboarding/attribution
 import { browserStorage } from '@/lib/onboarding/draft'
 import { useFlow } from '@/lib/onboarding/use-flow'
 import { t } from '@/lib/onboarding/t'
+import FlowShell, { FlowLoading } from './ui/FlowShell'
+import { AlertIcon, CheckIcon } from './ui/icons'
 
 type Status = 'idle' | 'checking' | 'available' | 'taken' | 'reserved' | 'invalid' | 'locked'
 
@@ -78,7 +80,7 @@ export default function AddressStep() {
     }
   }
 
-  if (flow.loading) return <p className="p-6">…</p>
+  if (flow.loading) return <FlowLoading step="address" />
   const msg =
     status === 'checking' ? t('address.checking')
     : status === 'available' ? t('address.available', { slug })
@@ -87,18 +89,24 @@ export default function AddressStep() {
     : status === 'invalid' ? t('address.invalid')
     : status === 'locked' ? t('address.locked') : ''
   return (
-    <main className="max-w-md mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">{t('address.title')}</h1>
-      <div className="flex items-center border rounded">
-        <span className="px-2">liveportfolio.site/</span>
-        <input aria-label="address" className="flex-1 min-h-11 px-2" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30))} />
+    <FlowShell step="address">
+      <h1 className="lp-title" style={{ marginBottom: 'var(--lp-s5)' }}>{t('address.title')}</h1>
+      <div className="lp-wrap">
+        <span className="lp-prefix">liveportfolio.site/</span>
+        <input aria-label="address" className="lp-input" autoComplete="off" autoCapitalize="none" spellCheck={false} value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30))} />
       </div>
-      <p role="status" className="my-2">{msg}</p>
+      <p role="status" className="lp-status" data-state={status}>
+        {status === 'available' && <CheckIcon />}
+        {(status === 'taken' || status === 'reserved' || status === 'invalid' || status === 'locked') && <AlertIcon />}
+        {msg}
+      </p>
       {suggestions.length > 0 && (status === 'taken' || status === 'reserved') && (
-        <p>{t('address.try')} {suggestions.map((s) => <button key={s} className="underline mx-1 min-h-11" onClick={() => setSlug(s)}>{s}</button>)}</p>
+        <p className="lp-chips">{t('address.try')} {suggestions.map((s) => <button key={s} className="lp-chip" onClick={() => setSlug(s)}>{s}</button>)}</p>
       )}
-      {error && <p role="alert" className="text-red-700">{error}</p>}
-      <button className="w-full min-h-12 border rounded mt-3" disabled={busy || status !== 'available'} onClick={save}>{t('address.save')}</button>
-    </main>
+      {error && <p role="alert" className="lp-msg lp-msg--error" style={{ marginTop: 'var(--lp-s4)' }}><AlertIcon />{error}</p>}
+      <div className="lp-actions">
+        <button className="lp-btn lp-btn--primary lp-btn--block" disabled={busy || status !== 'available'} aria-busy={busy} onClick={save}>{t('address.save')}</button>
+      </div>
+    </FlowShell>
   )
 }

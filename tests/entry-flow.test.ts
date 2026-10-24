@@ -15,6 +15,9 @@ import type { KeyValueStore } from '../lib/onboarding/draft'
 
 const ROOT = path.resolve(__dirname, '..')
 const read = (p: string) => fs.readFileSync(path.join(ROOT, p), 'utf8')
+// every text file under components/onboarding (the ui/ folder included), as repo-relative paths
+const flowFiles = (dir = 'components/onboarding'): string[] =>
+  fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? flowFiles(`${dir}/${e.name}`) : /\.(tsx?|css)$/.test(e.name) ? [`${dir}/${e.name}`] : []))
 const memory = (): KeyValueStore & { data: Map<string, string> } => {
   const data = new Map<string, string>()
   return { data, getItem: (k) => data.get(k) ?? null, setItem: (k, v) => void data.set(k, v), removeItem: (k) => void data.delete(k) }
@@ -109,8 +112,8 @@ describe('a step without a session redirects to /create/account and remembers wh
   })
   it('the hook sends a signed-out visitor to accountUrl(current page); no component renders a "sign in first" banner', () => {
     expect(read('lib/onboarding/use-flow.ts')).toMatch(/accountUrl\(window\.location\.pathname\)/)
-    for (const f of fs.readdirSync(path.join(ROOT, 'components/onboarding'))) {
-      expect(read(`components/onboarding/${f}`), f).not.toMatch(/sign in first|errors\.unauthorized/i)
+    for (const f of flowFiles()) {
+      expect(read(f), f).not.toMatch(/sign in first|errors\.unauthorized/i)
     }
     expect(read('messages/en.json')).not.toMatch(/sign in first/i)
   })
@@ -120,7 +123,7 @@ describe('a step without a session redirects to /create/account and remembers wh
 describe('every network call in the flow that needs a login carries the Bearer token', () => {
   const PUBLIC_ENDPOINTS = ['/api/check-slug']
   it('each fetch( in components/onboarding and the attribution helper names an Authorization header (public endpoints excepted)', () => {
-    const files = [...fs.readdirSync(path.join(ROOT, 'components/onboarding')).map((f) => `components/onboarding/${f}`), 'lib/onboarding/attribution.ts']
+    const files = [...flowFiles(), 'lib/onboarding/attribution.ts']
     let seen = 0
     const missing: string[] = []
     for (const f of files) {
@@ -242,7 +245,7 @@ describe('import step: 2 x 2 blocks', () => {
   afterEach(() => { delete process.env.NEXT_PUBLIC_IMPORT_ENABLED })
   it('flag on: four buttons in a two-column grid, identical card classes, one "Recommended" label (on Upload CV)', async () => {
     const html = await renderImport('true')
-    const grid = /<div class="grid grid-cols-2 gap-3"[^>]*>([\s\S]*?)<\/div><div class="mt-4">/.exec(html)
+    const grid = /<div class="lp-grid-2"[^>]*>([\s\S]*?)<\/div><div class="lp-reveal">/.exec(html)
     expect(grid, 'grid not found').toBeTruthy()
     const buttons = [...grid![1].matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)]
     expect(buttons).toHaveLength(4)
