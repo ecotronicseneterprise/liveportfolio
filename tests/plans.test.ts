@@ -305,3 +305,62 @@ describe('a free user cannot publish or select a Pro template through any route'
     expect(page).toMatch(/\.neq\('plan', 'unpublished'\)/) // unpublished = 404 for the public
   })
 })
+
+// ── free accounts can edit from the dashboard ───────────────────────────────────────────────────────────────────
+describe('free (unpublished) accounts edit on the dashboard, through the server route only', () => {
+  it('a free user\'s edit saves, naming their own portfolio id is fine, and publishing stays untouched', async () => {
+    const { id, portfolioId } = seed('free')
+    const res = await patch({ portfolio_id: portfolioId, content: { headline: 'Mine' }, template: 'bold' })
+    expect(res.status).toBe(200)
+    const p = h.ctx!.db.portfolios.find((x) => x.id === portfolioId)!
+    expect(p.content.headline).toBe('Mine')
+    expect(p.template).toBe('bold')
+    const u = h.ctx!.db.users.find((x) => x.id === id)!
+    expect(u.plan).toBe('unpublished')
+    expect(u.published_at).toBeNull()
+  })
+
+  it('the route rejects another user\'s portfolio id (403) and writes nothing', async () => {
+    const a = seed('free')
+    const b = seed('free') // the signed-in user is now b
+    const before = JSON.stringify(h.ctx!.db.portfolios)
+    const res = await patch({ portfolio_id: a.portfolioId, content: { headline: 'hijack' } })
+    expect(res.status).toBe(403)
+    expect((await res.json()).error).toBe('forbidden')
+    expect(JSON.stringify(h.ctx!.db.portfolios)).toBe(before)
+    // and b's own id still works, touching only b
+    expect((await patch({ portfolio_id: b.portfolioId, content: { headline: 'mine' } })).status).toBe(200)
+    expect(h.ctx!.db.portfolios.find((x) => x.id === b.portfolioId)!.content.headline).toBe('mine')
+    expect(h.ctx!.db.portfolios.find((x) => x.id === a.portfolioId)!.content.headline).toBeUndefined()
+  })
+
+  it('an id-less request edits the signed-in user\'s own portfolio, never anyone else\'s', async () => {
+    const a = seed('free')
+    const b = seed('free')
+    expect((await patch({ content: { headline: 'only b' } })).status).toBe(200)
+    expect(h.ctx!.db.portfolios.find((x) => x.id === b.portfolioId)!.content.headline).toBe('only b')
+    expect(h.ctx!.db.portfolios.find((x) => x.id === a.portfolioId)!.content.headline).toBeUndefined()
+  })
+
+  it('Pro templates stay locked for a free account on the server', async () => {
+    seed('free')
+    const res = await patch({ template: PRO_TEMPLATES[0] })
+    expect(res.status).toBe(403)
+    expect((await res.json()).error).toBe('template_locked')
+  })
+
+  it('the dashboard no longer says "Publish to unlock editing", does not gate the Edit tab by plan, sends the portfolio id, and keeps Pro templates locked', () => {
+    const src = read('app/dashboard/page.tsx')
+    expect(src).not.toMatch(/Publish to unlock editing/)
+    expect(src).not.toMatch(/activeTab === 'edit' && userPlan/)
+    expect(src).toMatch(/activeTab === 'edit' && \(/)
+    expect(src).toMatch(/portfolio_id: portfolio\.id/)
+    expect(src).toMatch(/const isLocked = t\.pro && !isPro/)
+    expect(src).toMatch(/features\(\)\.find\(\(f\) => f\.id === 'build_preview'\)/)
+  })
+
+  it('the browser never writes the portfolios table from the dashboard (the route is the only writer)', () => {
+    const src = read('app/dashboard/page.tsx')
+    expect(src).not.toMatch(/\.from\('portfolios'\)\s*\.(update|insert|upsert|delete)/)
+  })
+})

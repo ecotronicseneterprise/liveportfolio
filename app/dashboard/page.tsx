@@ -1,6 +1,7 @@
 'use client'
 
 import { CREATE_HREF, SIGNIN_HREF } from '@/lib/onboarding/entry'
+import { features } from '@/lib/plans'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -771,7 +772,7 @@ export default function DashboardPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ content: editContent, template }),
+        body: JSON.stringify({ content: editContent, template, portfolio_id: portfolio.id }),
       })
       if (res.ok) {
         const updated = await res.json()
@@ -1381,30 +1382,7 @@ export default function DashboardPage() {
         )}
 
         {/* ── EDIT TAB ── */}
-        {activeTab === 'edit' && userPlan === 'free' && (
-          <div className="bg-white border border-gray-100 rounded-2xl p-10 text-center">
-            <div className="max-w-sm mx-auto">
-              <div className="w-14 h-14 bg-[#E8F0F9] rounded-full flex items-center justify-center mx-auto mb-5">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0A66C2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Publish to unlock editing</h2>
-              <p className="text-sm text-gray-500 mb-6">
-                Publish your portfolio to edit your bio, projects, and links anytime — changes go live instantly.
-              </p>
-              <button
-                onClick={() => setShowUpgradeModal(true)}
-                className="inline-block px-6 py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
-              >
-                Publish my portfolio — choose your plan →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'edit' && userPlan !== 'free' && (
+        {activeTab === 'edit' && (
           <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Edit your portfolio</h2>
@@ -1421,6 +1399,12 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
+
+            {!isPublished && (
+              <p className="text-sm text-gray-600 bg-[#E8F0F9] rounded-xl px-4 py-3">
+                {features().find((f) => f.id === 'build_preview')?.label}. Only you can see it until you publish.
+              </p>
+            )}
 
             {/* Template switcher — all 10, Pro gated */}
             <div>

@@ -49,7 +49,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { content: contentUpdate, template } = await req.json()
+    const { content: contentUpdate, template, portfolio_id: claimedPortfolioId } = await req.json()
 
     // Plans (lib/plans.ts): every signed-in user may edit content privately; nothing here publishes (publishing is driven
     // by payment through the webhook only). The template is validated against the plan on the server.
@@ -70,6 +70,13 @@ export async function PATCH(req: NextRequest) {
 
     if (!portfolio) {
       return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
+    }
+
+    // The portfolio is always the signed-in user's own (looked up by user_id above, never by an id from the request). A request
+    // that NAMES a portfolio id is refused unless it is that same one, so a client bug or a tampered request fails loudly
+    // instead of silently editing the wrong thing.
+    if (claimedPortfolioId !== undefined && claimedPortfolioId !== null && claimedPortfolioId !== portfolio.id) {
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 })
     }
 
     // A Pro template can only be SELECTED on Pro. Re-sending the template already stored is fine (a lapsed Pro user
