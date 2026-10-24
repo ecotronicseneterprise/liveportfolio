@@ -212,8 +212,23 @@
 /* ── template gallery ────────────────────────────────────────────────────────────────────────────────────────── */
 .lp-tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--lp-s3); }
 .lp-tpl { display: block; width: 100%; padding: 0; text-align: start; overflow: hidden; background: var(--lp-surface); border: 1.5px solid var(--lp-line); border-radius: var(--lp-r-md); cursor: pointer; transition: border-color var(--lp-dur) var(--lp-ease), box-shadow var(--lp-dur) var(--lp-ease); }
-.lp-tpl:hover { border-color: var(--lp-edge); }
-.lp-tpl[aria-pressed='true'] { border-color: var(--lp-brand); box-shadow: inset 0 0 0 1px var(--lp-brand); }
+.lp-tpl-item { position: relative; }
+.lp-tpl-hit { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; border-radius: var(--lp-r-md); background: transparent; cursor: pointer; }
+.lp-tpl-item:hover .lp-tpl { border-color: var(--lp-edge); }
+.lp-tpl[data-on='true'] { border-color: var(--lp-brand); box-shadow: inset 0 0 0 1px var(--lp-brand); }
+.lp-tpl-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* compact strip above the live preview: all ten cards visible on a laptop, a swipeable row on a phone */
+.lp-tpl-mini { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--lp-s2); }
+.lp-tpl-mini .lp-tpl { border-radius: var(--lp-r-sm); }
+.lp-tpl-mini .lp-tpl-foot { min-height: 2rem; padding: 2px 6px; gap: 4px; font-size: 0.75rem; }
+.lp-tpl-mini .lp-pro { padding: 0; background: none; }
+.lp-tpl-mini .lp-pro-text { display: none; } /* icon only in the strip: the lock still reads as Pro, and the name gets the room */
+.lp-tpl-mini .lp-picked svg { width: 14px; height: 14px; }
+.lp-sheet-pick { padding: var(--lp-s3) var(--lp-gutter); border-bottom: 1px solid var(--lp-line); display: grid; gap: var(--lp-s2); }
+@media (max-width: 1023px) {
+  .lp-tpl-mini { display: flex; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: var(--lp-s1); margin-inline: calc(var(--lp-gutter) * -1); padding-inline: var(--lp-gutter); }
+  .lp-tpl-mini li { flex: none; width: 7.5rem; scroll-snap-align: start; }
+}
 .lp-tpl-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--lp-s2); min-height: var(--lp-target); padding: var(--lp-s2) var(--lp-s3); border-top: 1px solid var(--lp-line); font-size: var(--lp-t-sm); font-weight: var(--lp-w-bold); }
 .lp-pro { display: inline-flex; align-items: center; gap: 4px; padding: 1px var(--lp-s2); border-radius: 999px; background: var(--lp-canvas); font-size: var(--lp-t-xs); color: var(--lp-soft); }
 .lp-pro svg { width: 12px; height: 12px; }

@@ -135,19 +135,21 @@ export default function ReviewStep() {
         <button type="button" className="lp-link" style={{ marginTop: 'var(--lp-s3)' }} onClick={() => set('experience', [...d.experience, { company: '', role: '', period: '', bullets: '' }])}>+ experience</button>
       </section>
 
-      <section className="lp-section">
-        <h2 className="lp-h2" style={{ marginBottom: 'var(--lp-s3)' }}>{t('review.template')}</h2>
-        <TemplateGallery content={content} selected={template} isPro={isPro} onSelect={(id) => set('template', id)} />
-        {isProTemplate(template) && !isPro && (
-          <p role="status" className="lp-msg" style={{ marginTop: 'var(--lp-s3)' }}>{TEMPLATE_LABEL[template]} is included with Pro. You can keep previewing it; when you publish, Basic uses Minimal and Pro uses {TEMPLATE_LABEL[template]}.</p>
-        )}
-      </section>
-
       {error && <p role="alert" className="lp-msg lp-msg--error" style={{ marginTop: 'var(--lp-s5)' }}><AlertIcon />{error}</p>}
       <div className="lp-desktop-only lp-actions">
         <button type="button" className="lp-btn lp-btn--primary" onClick={next}>{t('review.next')}</button>
       </div>
     </div>
+  )
+
+  // The template picker sits on top of the live preview (laptop) and of the preview sheet (phone): switch looks while editing.
+  const picker = (
+    <>
+      <TemplateGallery compact content={content} selected={template} isPro={isPro} onSelect={(id) => set('template', id)} />
+      {isProTemplate(template) && !isPro && (
+        <p role="status" className="lp-msg">{TEMPLATE_LABEL[template]} is included with Pro. You can keep previewing it; when you publish, Basic uses Minimal and Pro uses {TEMPLATE_LABEL[template]}.</p>
+      )}
+    </>
   )
 
   return (
@@ -158,6 +160,7 @@ export default function ReviewStep() {
         <aside className="lp-preview" aria-label="Live preview">
           <div className="lp-preview-in">
             <p className="lp-preview-cap"><span>{t('ui.livePreview')}</span><b>{TEMPLATE_LABEL[template]}</b></p>
+            {picker}
             <div className="lp-frame">
               <TemplateThumb id={template} content={live} height="100%" eager scrollable />
             </div>
@@ -175,6 +178,7 @@ export default function ReviewStep() {
             <span>{TEMPLATE_LABEL[template]}</span>
             <button ref={closeRef} type="button" className="lp-link" onClick={() => setSheet(false)}>{t('ui.close')}</button>
           </div>
+          <div className="lp-sheet-pick">{picker}</div>
           <div style={{ flex: 1, minHeight: 0 }}>
             <TemplateThumb id={template} content={live} height="100%" eager scrollable />
           </div>
