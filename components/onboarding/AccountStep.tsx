@@ -6,7 +6,7 @@ import Turnstile from './Turnstile'
 import SocialSignIn from './SocialSignIn'
 import { createAccount, sendReset, signIn } from '@/lib/onboarding/auth-actions'
 import { browserStorage, signOutAndClear } from '@/lib/onboarding/draft'
-import { captureAttribution, readAttribution } from '@/lib/onboarding/attribution'
+import { captureAttribution, clearBootcamp, readAttribution } from '@/lib/onboarding/attribution'
 import { getAuth, useFlow } from '@/lib/onboarding/use-flow'
 import { getSupabaseClient } from '@/lib/supabase'
 import { t } from '@/lib/onboarding/t'
@@ -39,6 +39,15 @@ export default function AccountStep() {
     setPerk({ invite: !!a.invite?.freePro, bootcamp: a.bootcamp ? a.bootcamp.name : null })
     if (new URLSearchParams(window.location.search).get('mode') === 'signin') setMode('signin')
   }, [])
+
+  // The bootcamp perk is for people who arrive through the bootcamp link. A plain visit (no ?bootcamp=, nobody signed in, no
+  // draft in progress) drops any leftover one, so the banner never shows by default and nothing is applied later.
+  useEffect(() => {
+    if (flow.loading) return
+    if (new URLSearchParams(window.location.search).has('bootcamp') || flow.email || flow.draft) return
+    clearBootcamp(browserStorage())
+    setPerk((p) => (p.bootcamp ? { ...p, bootcamp: null } : p))
+  }, [flow.loading, flow.email, flow.draft])
 
   const nextParam = () => (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('next'))
   const finishCaptcha = () => setCaptchaReset((n) => n + 1)

@@ -107,3 +107,22 @@ describe('rules of hooks in the review step', () => {
     expect(after.match(/\buse(State|Ref|Effect|Memo|Callback|Debounced|Flow|Router)\(/g) ?? []).toEqual([])
   })
 })
+
+describe('the bootcamp perk is not a default', () => {
+  it('is remembered for one day only, and a plain visit clears it', async () => {
+    const { captureAttribution, readAttribution, clearBootcamp, KEYS } = await import('../lib/onboarding/attribution')
+    const data = new Map<string, string>()
+    const store = { getItem: (k: string) => data.get(k) ?? null, setItem: (k: string, v: string) => void data.set(k, v), removeItem: (k: string) => void data.delete(k) }
+    const T = 1_700_000_000_000
+    captureAttribution('?bootcamp=gomycode&name=GoMyCode%20Nigeria', store, T)
+    expect(readAttribution(store, T + 60_000).bootcamp).toMatchObject({ code: 'gomycode' })
+    expect(readAttribution(store, T + 25 * 3600_000).bootcamp).toBeNull() // gone the next day on its own
+    captureAttribution('?bootcamp=gomycode', store, T)
+    clearBootcamp(store)
+    expect(data.has(KEYS.bootcamp)).toBe(false)
+  })
+  it('the account step drops a leftover perk on a plain, idle visit but keeps it for the link, a signed-in person or a draft in progress', () => {
+    const src = read('components/onboarding/AccountStep.tsx')
+    expect(src).toMatch(/has\('bootcamp'\) \|\| flow\.email \|\| flow\.draft\) return\s+clearBootcamp\(browserStorage\(\)\)/)
+  })
+})
