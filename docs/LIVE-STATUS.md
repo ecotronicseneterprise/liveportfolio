@@ -3,9 +3,9 @@
 Built from git and `vercel env ls` (names only; Vercel will not show Sensitive values), not from memory. **Update this file at every merge to `main`.**
 Refresh with: `git fetch && git log --oneline --first-parent -5 origin/main && git log --oneline origin/main..origin/dev` and `vercel env ls production --project liveportfolio --scope cliffords-projects-0027534f`, then check `https://liveportfolio.site/api/flags` (its `commit` must equal the merge commit).
 
-Last updated: 2026-10-24. Production serves **`92440f3`** (Merge pull request #4).
+Last updated: 2026-10-25, at the release merge of `dev` into `main` (the one-time checkout release). Production serves the merge commit that `https://liveportfolio.site/api/flags` reports as `commit` (`git log --first-parent -1 origin/main` shows the same hash). `dev` and `main` are identical after this merge.
 
-## 1. What `main` (Production) contains today: `92440f3`
+## 1. What `main` (Production) contains today (everything below, including section 2 now merged)
 
 1. **Account-first onboarding** (`/create/account` to `/create/generate`) with import from CV (PDF, DOCX), pasted text and a GitHub profile, behind a PII gateway; the model sees e-mail, phone and links as placeholders (`f0d32bc`, `74fece2`, `927b686`).
 2. **Plans and entitlements**: Free (edit privately, 3 templates), Basic (publish), Pro (10 templates, analytics, QR, weekly score); template gallery with live preview (`ec5404c`, `6fd46db`).
@@ -20,16 +20,16 @@ Last updated: 2026-10-24. Production serves **`92440f3`** (Merge pull request #4
 
 Not on `main` and not built: the assistant, MCP, block catalog and new templates (design-lab only), email confirmation, Turnstile and social sign-in (code exists, switched off), renewal reminders for one-time plans.
 
-## 2. What `dev` has that `main` does not (`git log origin/main..dev`)
+## 2. What the latest release added (merged to `main`; `dev` has nothing that `main` lacks)
 
-- `27096f5` openai 4.104 to 7.43 (one code line: `chat.completions.parse`).
-- `ccc2aed` zod 3.25 to 4.6.7 and the `ops.ts` patch-schema fix. `npm audit --omit=dev`: 0 vulnerabilities.
-- `d2e2de2` webhook logs every ignored or rejected event (`[paystack-webhook] ignored ...`). Behaviour unchanged.
-- `79b8d92` payment redesign document.
-- `430f8aa` the **one-time checkout** (server-owned price, `payment_intents`, verify, return page) first built behind a flag.
-- **Next commit (flag removed, this file's commit):** the one-time checkout is the ONLY way to buy a plan (no `CHECKOUT_V2`, no fallback); the `payment_intents` table is required; Terms, pricing, landing and FAQ describe one payment for 12 months, no automatic renewal, 7-day refund guarantee; prices shown in Naira with a labelled dollar estimate; dashboard "Plan and billing" panel (`GET /api/billing`); one support address (`ecotronics.nterprise@gmail.com`, confirm the mailbox exists); `docs/MERGE-CHECKLIST.md`.
+- `27096f5` openai 4.104 to 7.43. `ccc2aed` zod 3.25 to 4.6.7 with the `ops.ts` patch-schema fix. `npm audit --omit=dev`: 0 vulnerabilities.
+- `d2e2de2` the webhook logs every ignored or rejected event (`[paystack-webhook] ignored ...`).
+- `430f8aa`, `597e31c` the **one-time checkout** (server-owned price, `payment_intents`, verify, return page). It is the ONLY way to buy a plan: no flag, no fallback. If `/api/checkout` or Paystack fails the modal shows a message with the support address. The webhook keeps the plan-code path for the one existing Test 500 subscription and renewals.
+- Terms, pricing, landing, FAQ and modal: one payment for 12 months, no automatic renewal, 7-day refund guarantee. Prices in Naira with a labelled dollar estimate. Dashboard "Plan and billing" panel (`GET /api/billing`).
+- `7a64288`, `8ac34c5` one public contact address (`ecotronics.nterprise@gmail.com`, `SUPPORT_EMAIL`); admin alerts and affiliate reports still go to the owner's personal address.
+- Docs: `docs/payment-redesign.md`, `docs/MERGE-CHECKLIST.md`, this file.
 
-**Merging `dev` changes what customers get**: the old card-subscription checkout stops being offered. Its webhook path stays for the one existing Test 500 subscription and any renewals.
+**Not proven:** no payment has ever completed in live mode. Run the first five tests in `docs/MERGE-CHECKLIST.md` section 4 on the live link before giving anyone a payment link.
 
 ## 3. Production environment variable NAMES (values are Sensitive and cannot be read here)
 
@@ -51,6 +51,6 @@ Preview differs from Production in two ways: `LLM_MODEL` is set there (the Luna 
 |---|---|---|
 | `usage_events` | import limits | run (per owner) |
 | `portfolio_revisions` | History and undo | run (per owner) |
-| `payment_intents` | **the checkout** | **run `supabase/manual/20261026110000_payment_intents.sql` before merging** |
+| `payment_intents` | **the checkout** | run (confirmed present on 2026-10-25 by an anonymous probe that is refused access, as designed) |
 
 Check with: `select to_regclass('public.usage_events'), to_regclass('public.portfolio_revisions'), to_regclass('public.payment_intents');` (each must be non-null).
