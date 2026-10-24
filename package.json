@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "fixtures:snapshot": "node scripts/fixtures.mjs snapshot",
     "fixtures:diff": "node scripts/fixtures.mjs diff",
-    "check:llm": "node scripts/check-llm-boundary.mjs"
+    "check:llm": "node scripts/check-llm-boundary.mjs",
+    "verify": "npm run typecheck && npm run check:llm && npm test && npm run build"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

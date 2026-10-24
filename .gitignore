@@ -25,3 +25,6 @@ affiliate-commands.sh
 /bench/.promptfoo/
 /bench/node_modules/
 /bench/.env.local
+
+# build artifacts
+*.tsbuildinfo
