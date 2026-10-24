@@ -40,8 +40,10 @@ export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 
             return { data: null, error: { code: '23505', message: `duplicate key value violates unique constraint "${table}_${col}_key"` }, count: null }
           }
         }
-        rows.push({ id: payload.id ?? `id-${++seq}`, at: new Date().toISOString(), ...payload })
-        return { data: null, error: null, count: null }
+        const row = { id: payload.id ?? `id-${++seq}`, at: new Date().toISOString(), ...payload }
+        rows.push(row)
+        // insert(...).select().single() returns the inserted row, like PostgREST
+        return { data: returning ? (single ? { ...row } : [{ ...row }]) : null, error: null, count: null }
       }
       if (op === 'update') {
         const hit = rows.filter(match)
@@ -62,7 +64,7 @@ export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 
 
     const q: any = {
       select: (_cols?: string, o?: { count?: string; head?: boolean }) => {
-        if (op === 'update') returning = true
+        if (op === 'update' || op === 'insert') returning = true
         else { op = 'select'; head = !!o?.head; wantCount = !!o?.count }
         return q
       },

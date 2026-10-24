@@ -162,10 +162,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Name, role, and email are required' }, { status: 400 })
   }
 
+  // Projects are optional. With none given, the prompt says not to invent any and whatever comes back is discarded below.
   const titledProjects = input.projects.filter((p) => p.title)
-  if (titledProjects.length === 0 && !input.github_url) {
-    return NextResponse.json({ error: 'Add at least one project or a GitHub URL' }, { status: 400 })
-  }
 
   // Reject if estimated input tokens exceed 2500
   const promptText = buildGenerationPrompt(input)
@@ -230,7 +228,7 @@ export async function POST(req: NextRequest) {
 
   // Preserve project image URLs — AI doesn't generate these
   const aiProjects = (portfolioContent.projects as Array<Record<string, unknown>>) || []
-  const mergedProjects = aiProjects.map((p, i) => ({
+  const mergedProjects = titledProjects.length === 0 ? [] : aiProjects.map((p, i) => ({
     ...p,
     image_url: input.projects[i]?.image_url || null,
   }))

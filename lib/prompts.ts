@@ -54,7 +54,7 @@ SKILLS: ${input.skills.join(', ')}
 ${input.certifications && input.certifications.length > 0 ? `CERTIFICATIONS: ${input.certifications.join(', ')}` : ''}
 
 PROJECTS:
-${input.projects.map((p, i) => `${i + 1}. ${p.title}
+${input.projects.length === 0 ? 'None provided. Return "projects": [] and do not invent any project.' : input.projects.map((p, i) => `${i + 1}. ${p.title}
    Description: ${p.description}
    Stack: ${p.stack.join(', ')}
    ${p.url ? `URL: ${p.url}` : ''}`).join('\n\n')}
