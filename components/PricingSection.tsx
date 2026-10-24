@@ -1,6 +1,7 @@
 'use client'
 
 import { CREATE_HREF } from '@/lib/onboarding/entry'
+import { billingCopy } from '@/lib/billing/copy'
 import Link from 'next/link'
 import { useRegion } from '@/hooks/useRegion'
 import { useUsdRate } from '@/hooks/useUsdRate'
@@ -13,7 +14,7 @@ const PriceSkeleton = () => (
   <span style={{ display: 'inline-block', width: 80, height: 20, background: '#e5e7eb', borderRadius: 4, verticalAlign: 'middle' }} />
 )
 
-export default function PricingSection() {
+export default function PricingSection({ oneTime = false }: { oneTime?: boolean }) {
   const { region } = useRegion()
   const { basicUsd, proUsd, rateLoading } = useUsdRate()
   const isIntl = region === 'INTL'
@@ -122,7 +123,7 @@ export default function PricingSection() {
             Coming soon, not included yet: {comingSoon().map((x) => x.label).join(', ')}.
           </p>
         )}
-        <p className="text-center text-sm text-gray-600 mt-6">Annual billing · Refunds reviewed within 7 days of purchase · Cancel anytime</p>
+        <p className="text-center text-sm text-gray-600 mt-6">{billingCopy(oneTime).pricingNote}</p>
       </div>
     </section>
   )

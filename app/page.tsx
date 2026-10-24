@@ -1,5 +1,7 @@
 import { CREATE_HREF } from '@/lib/onboarding/entry'
 import CookieSettingsLink from '@/components/CookieSettingsLink'
+import { billingCopy } from '@/lib/billing/copy'
+import { checkoutMode } from '@/lib/billing/flag'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
@@ -404,7 +406,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Pricing ── */}
-      <PricingSection />
+      <PricingSection oneTime={checkoutMode() === 'on'} />
 
       {/* ── FAQ ── */}
       <section className="w-full border-b border-gray-100">
@@ -442,7 +444,7 @@ export default function LandingPage() {
           >
             Build My Portfolio →
           </Link>
-          <p className="text-sm text-gray-400 mt-4">Free to build and preview. No credit card needed. 7-day refund if you publish and change your mind.</p>
+          <p className="text-sm text-gray-500 mt-4">{billingCopy(checkoutMode() === 'on').landingNote}</p>
         </div>
       </section>
 

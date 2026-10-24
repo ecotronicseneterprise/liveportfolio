@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 type Row = Record<string, any>
 const h = vi.hoisted(() => ({
-  db: { users: [] as Row[], subscriptions: [] as Row[], payments: [] as Row[] } as Record<string, Row[]>,
+  db: { users: [] as Row[], subscriptions: [] as Row[], payments: [] as Row[], payment_intents: [] as Row[] } as Record<string, Row[]>,
   // fail('subscriptions', 'update') makes that operation return a database error once (or forever with sticky)
   failures: [] as Array<{ table: string; op: string; sticky?: boolean }>,
   emails: [] as Row[],
@@ -111,7 +111,7 @@ const user = (id = U1, email = 'ada@example.com', extra: Row = {}) => ({ id, ema
 const subs = (id = U1) => h.db.subscriptions.filter((s) => s.user_id === id)
 
 beforeEach(() => {
-  h.db = { users: [user(), user(U2, 'bob@example.com')], subscriptions: [], payments: [] }
+  h.db = { users: [user(), user(U2, 'bob@example.com')], subscriptions: [], payments: [], payment_intents: [] }
   h.failures = []; h.emails = []; h.revalidated = []
   process.env.PAYSTACK_SECRET_KEY = SECRET
   process.env.PAYSTACK_BASIC_PLAN_CODE = BASIC

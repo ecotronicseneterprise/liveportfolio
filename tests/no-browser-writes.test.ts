@@ -50,7 +50,8 @@ describe('browser cannot write users/portfolios', () => {
       'app/api/cron/expire-plans/route.ts', // plan expiry
       'app/api/delete-account/route.ts',
       'app/api/generate/route.ts', // portfolios insert
-      'app/api/paystack-webhook/route.ts', // plan activation
+      'app/api/paystack-webhook/route.ts', // plan activation (its users/portfolios writes now live in lib/billing/grant.ts; kept for the refund path)
+      'lib/billing/grant.ts', // plan activation and revocation, shared by the webhook and the checkout return page
       'lib/portfolio/commit.ts', // portfolios update: the one write path for edits and restores (/api/update, /api/revisions)
     ])
     const writers = files

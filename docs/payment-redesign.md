@@ -1,6 +1,6 @@
 # Payment redesign (Phase 1: investigation and design only)
 
-Written 2026-10-24 against `dev` = `d2e2de2`. No code, env var, SQL or Paystack setting was changed for this document. Evidence is marked **verified** (read in this repo or on the live site today), **secondary** (a search summary of Paystack's docs or a third-party page; the Paystack docs site itself returned HTTP 403 to my fetcher, so I could not read it directly) or **unverified** (not checkable from here: needs your Paystack dashboard or a live test).
+Written 2026-10-24 against `dev` = `d2e2de2`. **Status: parts 2.1 to 2.4 are built on `dev` behind `CHECKOUT_V2` (off); see section 5.** No code, env var, SQL or Paystack setting was changed for this document. Evidence is marked **verified** (read in this repo or on the live site today), **secondary** (a search summary of Paystack's docs or a third-party page; the Paystack docs site itself returned HTTP 403 to my fetcher, so I could not read it directly) or **unverified** (not checkable from here: needs your Paystack dashboard or a live test).
 
 ## 0. What the facts say
 
@@ -96,26 +96,27 @@ grant select, insert, update, delete on table public.payment_intents to service_
 - **Tests:** refund reverses a one-time grant; partial refund logged; reminder dedupe keys per period; wording contains "ends", never "renews automatically".
 
 ### 2.7 Manual grant for a bank-transfer payer (not run)
-Use only after you have seen the money arrive. Edit the three values at the top. The reference is a manual one so it cannot collide with Paystack's; the unique `payments.ls_order_id` makes it idempotent.
+Use only after you have seen the money arrive. Edit the four values at the top. The reference is a manual one (`manual-YYYYMMDD-<initials>`) so it can never collide with a Paystack reference; the unique `payments.ls_order_id` makes it idempotent. Never reuse an abandoned Paystack reference for this.
 ```sql
--- 0) EDIT THESE THREE (tier is 'basic' or 'pro'; amount in kobo: 1500000 or 4500000; paid_at is when YOU received the transfer)
+-- 0) EDIT THESE FOUR (tier is 'basic' or 'pro'; amount in kobo: 1500000 or 4500000; paid_at is when YOU received the transfer)
 --    email: lower-case address of the account that paid
 \set email  'someone@example.com'
 \set tier   'pro'
 \set amount 4500000
--- (If your SQL editor does not support \set, paste the literals into the three places marked <<EDIT>> below.)
+\set ref    'manual-20261024-CN'   -- manual-YYYYMMDD-<initials of the payer>: unique, and never a Paystack reference
+-- (If your SQL editor does not support \set, paste the literals in place of `:'email'`, `:'tier'`, `:amount` and `:'ref'`.)
 
 -- 1) DRY RUN (read-only): the user must exist; no active subscription should exist; no payment should be recorded for the reference
 select id, email, slug, plan, published_at from public.users where lower(email) = lower(:'email');
 select plan, status, expires_at from public.subscriptions where user_id = (select id from public.users where lower(email) = lower(:'email'));
-select * from public.payments where ls_order_id = 'manual-' || to_char(now(), 'YYYYMMDD') || '-' || substr((select id::text from public.users where lower(email) = lower(:'email')), 1, 8);
+select * from public.payments where ls_order_id = :'ref';
 
 -- 2) GRANT (one transaction)
 begin;
 with u as (select id from public.users where lower(email) = lower(:'email')),
 pay as (
   insert into public.payments (user_id, ls_order_id, product_tier, amount_cents)
-  select u.id, 'manual-' || to_char(now(), 'YYYYMMDD') || '-' || substr(u.id::text, 1, 8), :'tier', :amount from u
+  select u.id, :'ref', :'tier', :amount from u
   on conflict (ls_order_id) do nothing returning user_id
 ),
 sub as (
@@ -132,7 +133,7 @@ select plan, status, expires_at from public.subscriptions where user_id = (selec
 -- ROLLBACK (undoes this grant only; put back the plan you recorded in step 1)
 -- begin;
 -- delete from public.subscriptions where user_id = (select id from public.users where lower(email) = lower(:'email')) and plan = :'tier' and started_at > now() - interval '1 day';
--- delete from public.payments where ls_order_id like 'manual-' || to_char(now(), 'YYYYMMDD') || '-%' and user_id = (select id from public.users where lower(email) = lower(:'email'));
+-- delete from public.payments where ls_order_id = :'ref';
 -- update public.users set plan = 'unpublished' where lower(email) = lower(:'email');
 -- commit;
 ```
@@ -181,3 +182,16 @@ The Terms (verified) say: refund requests within 7 days; generally approved if y
 2. Confirm the plan-code variables in Vercel (reveal the three server variables) match the three codes in section 0, then cancel the ₦500 monthly subscription.
 3. Decide: full-price Pro for a Basic upgrade (my default) or pro-rated credit; the refund wording (honest text above, or a real guarantee with changed Terms); 12 months hard end with reminders (my default) or keep card auto-renew as an option later.
 4. Approve this design, then say "build part 2.1 to 2.4".
+
+## 5. Build status and decisions (updated after the owner's approval)
+
+Decisions: no Basic to Pro upgrade pricing (handled by hand until a paying Basic customer exists; a Basic buyer who pays for Pro gets Pro with the time stacked, and Basic is refused while Pro is running); a real 7-day refund guarantee (Terms section 6 and every copy line now say so); a 12-month hard end with reminders at 30 and 7 days (reminders are part 2.6, not built yet); manual grants use a reference like `manual-YYYYMMDD-<initials>`, never an abandoned Paystack reference.
+
+Built (on dev, flag `CHECKOUT_V2`, default off):
+- `CHECKOUT_V2=off` (default, or any other value): the original plan-code checkout, unchanged. `owner`: the new one-time checkout for the `PAYSTACK_TEST_EMAIL` account only. `on`: for everyone. It is read on the server per request, so changing it needs a redeploy on Vercel.
+- `payment_intents` migration: `supabase/manual/20261026110000_payment_intents.sql` with its rollback. Not run. Until it is run, `/api/checkout` answers 503, the webhook uses the plan-code path, and the flag is off anyway.
+- `POST /api/checkout`, `POST /api/checkout/verify`, `GET /api/checkout/config`, the `/checkout/return` page, the webhook's intent branch, and the shared `lib/billing/grant.ts` (extracted from the webhook unchanged; its original 58 tests pass untouched).
+- Differences from the design above: (1) an expired intent that Paystack confirms as paid is still granted; (2) the new end date is decided once and stored on the intent (`granted_expires_at`), so a retry after a partial failure cannot add a second year; (3) a Basic payment can never downgrade a running Pro plan; (4) the callback URL is plain `/checkout/return` and the page reads Paystack's `reference`/`trxref` parameter, falling back to the reference stored in the browser before the redirect.
+- Not built, still pending: 2.6 reminders (30 and 7 days) and the reminder wording. **The existing 30-day reminder e-mail says the plan "renews automatically"; that is false for one-time payments, so 2.6 must ship before the first one-time plan nears its end (earliest about 11 months after the first payment).** Also pending: 2.8 abandoned-checkout follow-up, 2.9 the USD display fix, and the optional webhook IP allow-list.
+
+Rollout the owner asked for: (1) set `CHECKOUT_V2=owner` and run the owner's real payments; (2) the owner's own real ₦15,000 Basic payment (card, and bank transfer or USSD if Paystack offers it); (3) only then `CHECKOUT_V2=on`. Turning it on also switches the public Terms, landing, pricing and FAQ wording to the one-time version at the next deployment.

@@ -2,25 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { sendEmail, emailTemplates } from '@/lib/email'
+import {
+  applyEntitlement, check, claimPayment, releasePayment, notifyLive, revokeEntitlement, grantIntent, Retryable,
+  type Admin, type Plan, type PgError,
+} from '@/lib/billing/grant'
+import { findIntent } from '@/lib/billing/intents'
 
 export const dynamic = 'force-dynamic'
 
-type Plan = 'basic' | 'pro'
 type PriceKey = Plan | 'test'
-type Admin = ReturnType<typeof getSupabaseAdmin>
-type PgError = { message: string; code?: string } | null
 type User = { id: string; email: string; slug: string }
-
-const YEAR_MS = 365 * 24 * 60 * 60 * 1000
-const RENEWAL_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-// A failure that must make Paystack retry (the handler answers 500). Everything else answers 200.
-class Retryable extends Error {}
-function check(error: PgError, what: string): void {
-  if (error) throw new Retryable(`${what}: ${error.message}`)
-}
 
 // ─── Expected prices ──────────────────────────────────────────────────────────────────────────────────────
 // Amounts are in the currency's SMALLEST unit (kobo / cents), exactly as Paystack sends them. A charge whose
@@ -127,137 +119,6 @@ async function findUser(
   return u ? { user: u, viaId: false, emailMismatch: false } : null
 }
 
-// ─── Entitlement ──────────────────────────────────────────────────────────────────────────────────────────
-// subscriptions.expires_at is the source of truth; users.plan is a cache kept in sync here
-// and downgraded by /api/cron/expire-plans.
-// `absoluteExpiry` (subscription.create) sets the date outright.
-// Without it (charge.success) the call is first payment, renewal, or upgrade:
-//   - same plan, expiry still > 30 days away  → duplicate/first-payment echo, leave dates alone
-//   - same plan, expiry near/past             → renewal, extend one year from the later of now/expiry
-//   - different plan or no subscription       → new term from now
-// Throws Retryable on any database error, so the caller can undo its idempotency claim and answer 500.
-// Returns 'applied' (first activation), 'renewed' (existing subscription updated) or 'skipped' (grant-only mode and the
-// account already has a paid subscription).
-async function applyEntitlement(
-  supabaseAdmin: Admin,
-  userId: string,
-  plan: Plan,
-  opts: { absoluteExpiry?: Date; grantOnly?: boolean } = {},
-): Promise<'applied' | 'renewed' | 'skipped'> {
-  const now = Date.now()
-
-  const { data: current, error: curErr } = await supabaseAdmin
-    .from('subscriptions')
-    .select('id, plan, expires_at')
-    .eq('user_id', userId)
-    .in('status', ['active', 'cancelled'])
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-  check(curErr, 'subscription lookup')
-
-  if (opts.grantOnly && current && current.expires_at && new Date(current.expires_at).getTime() > now) return 'skipped'
-
-  let expiresAt: Date
-  if (opts.absoluteExpiry && !isNaN(opts.absoluteExpiry.getTime())) {
-    expiresAt = opts.absoluteExpiry
-  } else if (current && current.plan === plan && current.expires_at) {
-    const currentExpiry = new Date(current.expires_at).getTime()
-    if (currentExpiry - now > RENEWAL_WINDOW_MS) {
-      expiresAt = new Date(currentExpiry)
-    } else {
-      expiresAt = new Date(Math.max(currentExpiry, now) + YEAR_MS)
-    }
-  } else {
-    expiresAt = new Date(now + YEAR_MS)
-  }
-
-  if (current) {
-    const { error } = await supabaseAdmin
-      .from('subscriptions')
-      .update({ plan, status: 'active', expires_at: expiresAt.toISOString() })
-      .eq('id', current.id)
-    check(error, 'subscription update')
-  } else {
-    const { error } = await supabaseAdmin.from('subscriptions').insert({
-      user_id: userId,
-      plan,
-      status: 'active',
-      started_at: new Date().toISOString(),
-      expires_at: expiresAt.toISOString(),
-    })
-    check(error, 'subscription insert')
-  }
-
-  const { error: updateError } = await supabaseAdmin
-    .from('users')
-    .update({ plan, published_at: new Date().toISOString() })
-    .eq('id', userId)
-  check(updateError, 'user plan update')
-
-  // 'applied' only for the first activation — callers use it to avoid emailing on renewals/echo events
-  return current ? 'renewed' : 'applied'
-}
-
-// Takes access away after a refund: ends the user's subscriptions now and drops the plan, unless a separate
-// time-boxed plan (bootcamp / invite) is still running.
-async function revokeEntitlement(supabaseAdmin: Admin, userId: string) {
-  const nowIso = new Date().toISOString()
-  const { error: subErr } = await supabaseAdmin
-    .from('subscriptions')
-    .update({ status: 'expired', expires_at: nowIso })
-    .eq('user_id', userId)
-    .in('status', ['active', 'cancelled'])
-  check(subErr, 'subscription revoke')
-
-  const { data: u, error: uErr } = await supabaseAdmin.from('users').select('plan_expires_at').eq('id', userId).maybeSingle()
-  check(uErr, 'user lookup (revoke)')
-  if (u?.plan_expires_at && u.plan_expires_at > nowIso) return
-
-  const { error } = await supabaseAdmin.from('users').update({ plan: 'unpublished' }).eq('id', userId)
-  check(error, 'user downgrade')
-}
-
-// ─── Idempotency ──────────────────────────────────────────────────────────────────────────────────────────
-// payments.ls_order_id is UNIQUE (the Paystack reference). Inserting the row FIRST is the claim: only one concurrent
-// delivery can succeed; every other one gets a unique violation and does nothing. If the work after the claim fails,
-// the claim is released so Paystack's retry can try again.
-async function claimPayment(
-  supabaseAdmin: Admin,
-  userId: string,
-  reference: string,
-  plan: Plan,
-  amount: number,
-): Promise<boolean> {
-  const { error } = await supabaseAdmin.from('payments').insert({
-    user_id: userId,
-    ls_order_id: reference,
-    product_tier: plan,
-    amount_cents: amount,
-  })
-  if (!error) return true
-  if (error.code === '23505') return false
-  throw new Retryable(`payment claim: ${error.message}`)
-}
-
-async function releasePayment(supabaseAdmin: Admin, reference: string) {
-  const { error } = await supabaseAdmin.from('payments').delete().eq('ls_order_id', reference)
-  // If this fails the retry will see a "duplicate" and skip a payment that was never applied: reconcile it by hand.
-  if (error) console.error('[webhook] RECONCILE BY HAND: could not release payment claim after a failed grant. reference', reference, 'error', error.message)
-}
-
-async function notifyLive(user: { email: string; slug: string }) {
-  if (!process.env.RESEND_API_KEY) return
-  try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
-    await sendEmail({
-      to: user.email,
-      ...emailTemplates.portfolioLive(`${appUrl}/${user.slug}`),
-    })
-  } catch {
-    // Never fail the webhook because of email
-  }
-}
 
 const ok = () => NextResponse.json({ received: true })
 
@@ -404,6 +265,29 @@ export async function POST(req: NextRequest) {
         return ok()
       }
 
+      // A reference WE created (CHECKOUT_V2, one-time checkout): the stored intent decides the tier and the price, never the event's plan
+      // details (a bank-transfer or USSD payment carries none). Not found, or the intents table not created yet: the plan-code path below.
+      const looked = await findIntent(reference)
+      if (looked.kind === 'found') {
+        const intent = looked.intent
+        const confirmed =
+          data.status === 'success' &&
+          typeof data.amount === 'number' && data.amount === intent.amount_kobo &&
+          typeof data.currency === 'string' && data.currency.toUpperCase() === intent.currency
+        let payerIsOwner = metadata.user_id === intent.user_id
+        if (!payerIsOwner) {
+          const { data: owner, error: ownerErr } = await supabaseAdmin.from('users').select('email').eq('id', intent.user_id).maybeSingle()
+          check(ownerErr, 'intent user lookup')
+          payerIsOwner = !!owner?.email && String(owner.email).toLowerCase() === customerEmail.toLowerCase()
+        }
+        if (!confirmed || !payerIsOwner) {
+          logIgnored('intent_mismatch', event.event, data)
+          return ok()
+        }
+        await grantIntent(supabaseAdmin, intent)
+        return ok()
+      }
+
       // Not a plan transaction (or unknown plan) → nothing to grant
       const resolved = resolvePlan(planCodeOf(data), customerEmail)
       if (!resolved) {
@@ -466,6 +350,11 @@ export async function POST(req: NextRequest) {
       await revokeEntitlement(supabaseAdmin, payment.user_id)
       const { error: markErr } = await supabaseAdmin.from('payments').update({ refunded_at: new Date().toISOString() }).eq('id', payment.id)
       check(markErr, 'payment mark refunded')
+      try {
+        await supabaseAdmin.from('payment_intents').update({ status: 'refunded' }).eq('reference', txRef) // bookkeeping only
+      } catch {
+        // the intents table may not exist
+      }
 
       const { data: u } = await supabaseAdmin.from('users').select('slug').eq('id', payment.user_id).maybeSingle()
       if (u?.slug) {

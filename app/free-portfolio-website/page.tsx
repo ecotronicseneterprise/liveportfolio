@@ -1,5 +1,7 @@
 import { CREATE_HREF } from '@/lib/onboarding/entry'
 import CookieSettingsLink from '@/components/CookieSettingsLink'
+import { billingCopy } from '@/lib/billing/copy'
+import { checkoutMode } from '@/lib/billing/flag'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import LandingNav from '@/components/LandingNav'
@@ -29,7 +31,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Can I cancel after publishing?',
-    a: 'Yes — plans can be cancelled anytime. See the pricing page for the current refund window.',
+    a: billingCopy(checkoutMode() === 'on').faqCancel,
   },
 ]
 

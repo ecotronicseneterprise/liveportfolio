@@ -5,6 +5,7 @@ import { useRegion } from '@/hooks/useRegion'
 import { useUsdRate } from '@/hooks/useUsdRate'
 import { getSupabaseClient } from '@/lib/supabase'
 import { isProTemplate, newFeatures } from '@/lib/plans'
+import { billingCopy } from '@/lib/billing/copy'
 
 const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ''
 const BASIC_PLAN_CODE = process.env.NEXT_PUBLIC_PAYSTACK_BASIC_PLAN_CODE || ''
@@ -39,6 +40,12 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
   const { region } = useRegion()
   const isIntl = region === 'INTL'
   const regionLoading = region === null
+  // which billing wording is true right now (one-time checkout for everyone, or the original subscription checkout)
+  const [oneTime, setOneTime] = useState(false)
+  useEffect(() => {
+    if (!isOpen) return
+    fetch('/api/checkout/config').then((r) => r.json()).then((j) => setOneTime(j?.oneTime === true)).catch(() => {})
+  }, [isOpen])
 
   // Load Paystack inline script
   useEffect(() => {
@@ -75,7 +82,38 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
 
   const isTestMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('test') === '1'
 
-  const handlePay = async (planCode: string, tier: 'basic' | 'pro') => {
+  // The new one-time checkout (CHECKOUT_V2). The server decides whether this account gets it: a 404 means "not yet" and the original
+  // plan-code flow below runs unchanged. The browser only names the tier; the server picks the price and the reference.
+  const startOneTimeCheckout = async (tier: 'basic' | 'pro' | 'test'): Promise<'fallback' | 'redirected' | 'error'> => {
+    try {
+      const { data } = await getSupabaseClient().auth.getSession()
+      if (!data.session) return 'fallback'
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
+        body: JSON.stringify({ tier }),
+      })
+      if (res.status === 404) return 'fallback'
+      const j = await res.json().catch(() => ({}))
+      if (res.ok && typeof j.authorization_url === 'string' && j.authorization_url.startsWith('https://checkout.paystack.com/')) {
+        try { localStorage.setItem('lp_checkout_ref', String(j.reference || '')) } catch {}
+        window.location.href = j.authorization_url
+        return 'redirected'
+      }
+      alert(
+        j.error === 'already_has_higher_plan' ? 'You already have a Pro plan.'
+        : j.error === 'too_many_attempts' ? 'Too many attempts. Please try again in an hour.'
+        : 'Payment could not be started. Please try again in a moment, or contact support.',
+      )
+      return 'error'
+    } catch {
+      alert('Payment could not be started. Please check your connection and try again.')
+      return 'error'
+    }
+  }
+
+  const handlePay = async (planCode: string, tier: 'basic' | 'pro', checkoutTier: 'basic' | 'pro' | 'test' = tier) => {
+    if ((await startOneTimeCheckout(checkoutTier)) !== 'fallback') return
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const PaystackPop = (window as any).PaystackPop
     if (!PaystackPop) {
@@ -225,11 +263,11 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, portfolioId, 
         {/* Footer */}
         <div className="px-6 pb-5 text-center">
           <p className="text-xs text-gray-400">
-            Annual billing · 7-day refund guarantee · Cancel anytime
+            {billingCopy(oneTime).modalFooter}
           </p>
           {isTestMode && (
             <button
-              onClick={() => handlePay(TEST_PLAN_CODE, 'basic')}
+              onClick={() => handlePay(TEST_PLAN_CODE, 'basic', 'test')}
               className="mt-3 text-xs text-orange-500 underline"
             >
               [TEST] Pay ₦500 to verify payment flow
