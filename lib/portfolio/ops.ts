@@ -54,8 +54,25 @@ const ProjectInput = z
     image_url: optionalLink.optional(),
   })
   .strict()
+// Patches are written out WITHOUT defaults on purpose. Building them with .partial() from the schemas above would fill every field a
+// patch does not mention with its default under zod 4 (".default() applies inside optional fields"), silently wiping data.
+const ProjectPatch = z
+  .object({
+    title: str(120).optional(),
+    problem: str(600).optional(),
+    solution: str(600).optional(),
+    outcome: str(600).optional(),
+    stack: z.array(str(40)).max(12).optional(),
+    url: optionalLink.optional(),
+    github_url: optionalLink.optional(),
+    image_url: optionalLink.optional(),
+  })
+  .strict()
 const ExperienceInput = z
   .object({ company: str(120), role: str(120), period: str(60).default(''), bullets: z.array(str(400)).max(12).default([]) })
+  .strict()
+const ExperiencePatch = z
+  .object({ company: str(120).optional(), role: str(120).optional(), period: str(60).optional(), bullets: z.array(str(400)).max(12).optional() })
   .strict()
 const EducationInput = z.object({ degree: str(160), institution: str(160), year: str(20).default(''), grade: str(60).optional() }).strict()
 const Group = z.object({ category: str(60), items: z.array(str(60)).max(20) }).strict()
@@ -68,11 +85,11 @@ export const Op = z.discriminatedUnion('op', [
   z.object({ op: z.literal('set_skills'), skills: z.array(str(60)).max(15) }).strict(),
   z.object({ op: z.literal('set_skills_grouped'), groups: z.array(Group).max(8) }).strict(),
   z.object({ op: z.literal('add_project'), project: ProjectInput, index: idx.optional() }).strict(),
-  z.object({ op: z.literal('update_project'), index: idx, patch: ProjectInput.partial() }).strict(),
+  z.object({ op: z.literal('update_project'), index: idx, patch: ProjectPatch }).strict(),
   z.object({ op: z.literal('remove_project'), index: idx }).strict(),
   z.object({ op: z.literal('move_project'), from: idx, to: idx }).strict(),
   z.object({ op: z.literal('add_experience'), experience: ExperienceInput, index: idx.optional() }).strict(),
-  z.object({ op: z.literal('update_experience'), index: idx, patch: ExperienceInput.partial() }).strict(),
+  z.object({ op: z.literal('update_experience'), index: idx, patch: ExperiencePatch }).strict(),
   z.object({ op: z.literal('remove_experience'), index: idx }).strict(),
   z.object({ op: z.literal('move_experience'), from: idx, to: idx }).strict(),
   z.object({ op: z.literal('set_education'), education: z.array(EducationInput).max(6) }).strict(),

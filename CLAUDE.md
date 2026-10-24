@@ -352,64 +352,38 @@ Persist to `portfolios.health_score` on save and update.
 
 ## Payment Flow
 
-Payment processor: **Paystack** (not Lemon Squeezy — that was removed).
-Webhook endpoint: `/api/paystack-webhook`
+Payment processor: **Paystack**, LIVE mode only (there is no test mode in Production or on Preview; both use the live keys). Details and the design:
+`docs/payment-redesign.md`. Webhook: `/api/paystack-webhook`. Plans and prices: `lib/plans.ts` (display) and `lib/billing/prices.ts` (what is charged, in kobo).
 
-### Testing Payments (without touching real plan prices)
+### One checkout, no flag
 
-A hidden ₦500 test plan exists for verifying the full payment flow end-to-end.
+There is ONE way to buy a plan: the server-created one-time checkout below. There is no rollout flag and no fallback to the old plan-code popup (the old card-subscription flow never completed a live payment and was removed). If `/api/checkout` or Paystack initialize fails, the modal shows a message with the support address. The webhook still recognises the three plan codes (`PAYSTACK_BASIC_PLAN_CODE`, `PAYSTACK_PRO_PLAN_CODE`, `PAYSTACK_TEST_PLAN_CODE`) so the one existing Test 500 subscription and any renewals keep working; no client code uses a plan code.
 
-**How to trigger it:**
-1. Go to any preview page and append `?test=1` to the URL:
-   `https://liveportfolio.site/preview/YOUR_PORTFOLIO_ID?test=1`
-2. Click "Publish" → modal opens → click **[TEST] Pay ₦500** at the bottom
-3. Pay with real card — Paystack fires webhook → Supabase updates → email sends
-4. Verify `users.plan = 'basic'` in Supabase
+Rule: a flag is justified only for an unfinished feature or a kill switch. Settings such as `LLM_MODEL`, `GITHUB_TOKEN` and the Paystack keys are configuration, not flags.
+`docs/LIVE-STATUS.md` lists what is live and every Production env var name by class (update it at every merge); `docs/MERGE-CHECKLIST.md` is the pre-merge list.
 
-**Test plan details (live mode):**
-- Plan code: `PLN_gzi13ks4vajcdhx`
-- Amount: ₦500 monthly
-- Defined in: `components/UpgradeModal.tsx` → `TEST_PLAN_CODE`
-- Visibility: only shown when `?test=1` is in URL — never visible to real users
+### The new one-time checkout (`lib/billing/*`)
+1. `POST /api/checkout { tier }`: authenticated; the browser sends ONLY the tier. The server picks the price and currency, generates the reference (`lpi_...`), writes a row in `payment_intents` (migration `supabase/manual/20261026110000_payment_intents.sql`, run by hand; **required**, without it checkout answers 503), and calls Paystack initialize with **no plan and no channels** (so every channel enabled on the account is offered). 10 checkouts per user per hour. Basic is refused while a Pro plan is running. The owner-only `test` tier (₦500) is refused unless the account e-mail equals `PAYSTACK_TEST_EMAIL`.
+2. The person pays on Paystack, which redirects to `/checkout/return`.
+3. **Two independent paths grant, through the same idempotent function `grantIntent` (`lib/billing/grant.ts`):**
+   - the webhook's `charge.success` branch trusts only references found in `payment_intents`, and checks status, amount, currency and that the payer is the intent's user;
+   - `POST /api/checkout/verify` (called by the return page) asks Paystack `GET /transaction/verify/:reference` and checks `data.status`, amount, currency and reference.
+   `claimPayment` (unique `payments.ls_order_id`) is the lock, so webhook and return page together grant once.
+4. A grant writes the payment row, a `subscriptions` row ending 12 months out (stacked on any remaining time), and `users.plan` and `published_at`. It does **not** set `users.plan_expires_at`: refunds must be able to revoke, and the subscription row is the source of truth for paid plans. The end date is decided once and stored on the intent (`granted_expires_at`), so a retry cannot add a second year.
+5. There is no auto-renewal. At the end the nightly job (`/api/cron/expire-plans`) expires the subscription after 3 days of grace and unpublishes. **Renewal reminders for one-time plans are NOT built yet** (design in `docs/payment-redesign.md` 2.6); the existing 30-day reminder e-mail still says "renews automatically", which is false for one-time payments, so build 2.6 before the first one-time plan nears its end.
+6. Refunds (any flow): `refund.processed` marks `payments.refunded_at`, ends the subscription and sets `users.plan = 'unpublished'` (full refunds only; partial ones are logged for a human). Refunds are issued by hand in Paystack. A 7-day refund guarantee is promised on the site and in `app/terms/page.tsx`.
 
-**After testing:** manually reset the test user's plan back to `unpublished` in Supabase
-if you want to reuse the same account for another test.
+### Webhook rules (both checkouts)
+- Verify the HMAC-SHA512 signature over the RAW body (constant-time compare) before anything else.
+- Return 200 for anything deliberately ignored; 500 only for database failures (Paystack then retries).
+- **Every ignored or rejected event writes one warn line** (`[paystack-webhook] ignored event=... reason=...`): event type, reference, reason, amount, currency, whether a plan code was present; never the e-mail, card data or signature. A `charge.success` with no plan code on the ORIGINAL path is still ignored (reason `no_plan_code`): that is the gap the one-time checkout removes.
+- Never put secrets or personal data in logs. `PAYSTACK_PRICE_CHECK=enforce` makes an amount mismatch on the plan-code path reject instead of only log.
 
-**Key env vars (baked into build at compile time — must match):**
-- `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` — live: `pk_live_...`, must match `PAYSTACK_SECRET_KEY`
-- `NEXT_PUBLIC_PAYSTACK_BASIC_PLAN_CODE` — `PLN_xsu4j4jyxo67pe1`
-- `NEXT_PUBLIC_PAYSTACK_PRO_PLAN_CODE` — `PLN_npgms123sd8z2jc`
-- `NEXT_PUBLIC_` vars are baked in at **build time** by GitHub Actions — changing `.env.local` on VPS alone is NOT enough. Must update GitHub Actions secrets + redeploy.
-
-**Caddy note:** `X-Frame-Options` must NOT be `SAMEORIGIN` on liveportfolio.site block — Paystack uses an iframe. Current setting: `ALLOWALL`.
-
-```
-User clicks "Publish"
-  ↓
-Paystack popup (stays on liveportfolio.site — no redirect)
-  ↓
-User pays
-  ↓
-Paystack fires POST to /api/paystack-webhook
-  ↓
-/api/paystack-webhook:
-  1. Verify HMAC signature (x-paystack-signature header, sha512)
-  2. Check reference not already in payments table (idempotency)
-  3. Find user by user_id from metadata
-  4. Set users.plan = 'pro'
-  5. Set users.published_at = now()
-  6. Insert into payments table
-  7. Send Resend confirmation email
-  ↓
-Supabase Realtime pushes plan update to client
-  ↓
-Client removes watermark — portfolio is live (no page reload)
-```
-
-**Webhook always returns 200.** Paystack retries on non-200.
-If there's an error processing, log it but still return 200.
-
----
+### Testing payments
+Everything in Production is live money (Paystack has no test mode here; Preview shares the live keys). Local tests stub Paystack (`tests/billing-checkout.test.ts`); the live flow can only be proven with a real payment, so after any merge that touches billing run the checklist in `docs/MERGE-CHECKLIST.md`: the ₦500 owner test (`/dashboard?test=1`, account = `PAYSTACK_TEST_EMAIL`), then a real ₦15,000 Basic payment, then refund both in Paystack. Refunds are issued by hand in Paystack and reverse the plan automatically (full refunds only).
+- The dashboard has a "Plan and billing" panel (`GET /api/billing`): plan, end date, last five payments, the 7-day refund line and the support address (`SUPPORT_EMAIL` in `lib/brand.ts`; confirm the mailbox exists).
+- Prices are shown in Naira everywhere; outside Nigeria a dollar figure is only a labelled estimate (`components/PriceTag.tsx`). All customer-facing billing wording lives in `lib/billing/copy.ts` and `app/terms/page.tsx`; keep them in step. Do not promise reminder e-mails until part 2.6 of `docs/payment-redesign.md` ships.
+- Manual grant for a bank-transfer payer: dry run, grant and rollback SQL in `docs/payment-redesign.md` 2.7, with a reference like `manual-YYYYMMDD-<initials>`. Never reuse a Paystack reference (especially an abandoned one).
 
 ## Rate Limits
 
@@ -650,7 +624,7 @@ ADMIN_METRICS_SECRET, CRON_SECRET, IPINFO_TOKEN
 ### Daily health check email
 - Script: `scripts/health-check.sh`
 - Cron: daily at 6:00 AM UTC (7:00 AM Lagos time)
-- Sends to: nwannachumaclifford@gmail.com via Resend
+- Sends to: ecotronics.nterprise@gmail.com via Resend
 - Shows: app status, response time, SSL days, revenue, signups, published users,
   email list, portfolio views, top portfolios, recent signups, recent payments
 - Metrics endpoint: `GET /api/admin/metrics` (requires `x-metrics-secret` header)

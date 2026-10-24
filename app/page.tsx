@@ -1,5 +1,6 @@
 import { CREATE_HREF } from '@/lib/onboarding/entry'
 import CookieSettingsLink from '@/components/CookieSettingsLink'
+import { BILLING_COPY } from '@/lib/billing/copy'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
@@ -41,7 +42,7 @@ const faqJsonLd = {
       name: 'Is LivePortfolio free?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Building and previewing your portfolio is completely free — no credit card required. You only pay when you are ready to publish your portfolio live and make it shareable. Plans start from ₦15,000 per year in Nigeria.',
+        text: 'Building and previewing your portfolio is completely free — no credit card required. You only pay when you are ready to publish your portfolio live and make it shareable. Plans start from ₦15,000 for 12 months (about $10, charged in Naira).',
       },
     },
     {
@@ -89,7 +90,7 @@ const faqJsonLd = {
       name: 'Does LivePortfolio work for Nigerian job seekers and remote workers?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes — LivePortfolio is built with African tech professionals in mind. Basic is ₦15,000/year in Nigeria and $10/year internationally, payments are accepted via Paystack, and the AI is trained to present your experience in a way that resonates with both local and international remote employers.',
+        text: 'Yes — LivePortfolio is built with African tech professionals in mind. Basic is ₦15,000 for 12 months (about $10, charged in Naira), payments are accepted via Paystack, and the AI is trained to present your experience in a way that resonates with both local and international remote employers.',
       },
     },
     {
@@ -151,7 +152,7 @@ const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'Is LivePortfolio free?',
-    a: <>Building and previewing your portfolio is completely free — no credit card required. You only pay when you are ready to publish. Plans start from <LocalisedPrice ngn="₦15,000/year" usd="$10/year" />.</>,
+    a: <>Building and previewing your portfolio is completely free — no credit card required. You only pay when you are ready to publish. Plans start from <LocalisedPrice ngn="₦15,000 for 12 months" usd="$10" />.</>,
   },
   {
     q: 'Can I use my own domain name with LivePortfolio?',
@@ -175,7 +176,7 @@ const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'Does LivePortfolio work for Nigerian job seekers and remote workers?',
-    a: <>Yes — LivePortfolio is built with African tech professionals in mind. Plans are priced in Naira (<LocalisedPrice ngn="₦15,000/year for Basic" usd="$10/year for Basic" />), payments are accepted via Paystack, and the AI presents your experience in a way that resonates with both local and international remote employers.</>,
+    a: <>Yes — LivePortfolio is built with African tech professionals in mind. Plans are priced in Naira (<LocalisedPrice ngn="₦15,000 for 12 months for Basic" usd="$10" />), payments are accepted via Paystack, and the AI presents your experience in a way that resonates with both local and international remote employers.</>,
   },
   {
     q: 'How does the AI career score work?',
@@ -442,7 +443,7 @@ export default function LandingPage() {
           >
             Build My Portfolio →
           </Link>
-          <p className="text-sm text-gray-400 mt-4">Free to build and preview. No credit card needed. 7-day refund if you publish and change your mind.</p>
+          <p className="text-sm text-gray-500 mt-4">{BILLING_COPY.landingNote}</p>
         </div>
       </section>
 

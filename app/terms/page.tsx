@@ -2,6 +2,7 @@ import { CREATE_HREF } from '@/lib/onboarding/entry'
 import CookieSettingsLink from '@/components/CookieSettingsLink'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { SUPPORT_EMAIL } from '@/lib/brand'
 
 export const metadata: Metadata = {
   title: 'Terms of Service — LivePortfolio',
@@ -90,38 +91,31 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">5. Payment Terms</h2>
             <p>
-              Publishing your portfolio requires an annual subscription. We offer two plans: Basic at ₦15,000/year
-              (approx. $10) and Pro at ₦45,000/year (approx. $30). All charges are processed in Nigerian Naira (NGN)
-              regardless of your location; your bank will convert to your local currency at the prevailing exchange rate.
-              Subscriptions are billed annually and renew automatically unless cancelled.
+              Publishing your portfolio requires a paid plan. We offer two plans: Basic at ₦15,000 (approx. $10) and Pro at ₦45,000
+              (approx. $30). Each is a single payment that gives you 12 months of access. There is no automatic renewal: you can renew from your
+              dashboard at any time, and renewing adds 12 months to the time you have left. All charges are processed in Nigerian Naira (NGN) regardless of
+              your location; your bank will convert to your local currency at the prevailing exchange rate.
               Payment is processed securely by Paystack — we never handle or store your card details.
             </p>
             <p className="mt-3">
-              You may cancel your subscription at any time. Upon cancellation, your portfolio remains live
-              until the end of your current billing period, after which it will be unpublished.
+              If your plan ends and you do not renew, your portfolio is unpublished. Your content is kept, and you can renew and publish again later.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">6. Refunds</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">6. Refunds: 7-day guarantee</h2>
             <p>
-              We offer refund requests within 7 days of your initial purchase date. To request a refund, email
-              us at{' '}
-              <a href="mailto:support@liveportfolio.site" className="text-[#0A66C2] hover:underline">support@liveportfolio.site</a>{' '}
-              with your account email and reason for the request.
+              If you are not satisfied with your plan, email us at{' '}
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="text-[#0A66C2] hover:underline">{SUPPORT_EMAIL}</a>{' '}
+              within 7 days of your purchase, from or naming the email address of your account, and we will refund the full amount you paid,
+              whether or not you have published your portfolio.
             </p>
             <p className="mt-3">
-              Refunds are granted at our discretion and are generally approved for users who have not yet
-              published a portfolio. Once a portfolio has been published and made live, the core service has
-              been delivered and refunds may not apply.
+              We aim to respond within 3 business days. Refunds are issued to the original payment method through Paystack and may take 5–10
+              business days to appear, depending on your bank. When a refund is issued, your paid plan ends and your portfolio is unpublished.
             </p>
             <p className="mt-3">
-              We aim to respond to all refund requests within 3 business days. Approved refunds are processed
-              through Paystack and may take 5–10 business days to reflect depending on your bank.
-            </p>
-            <p className="mt-3">
-              If you have any issues with the product, contact us first — we will do our best to resolve it
-              before processing a refund.
+              If you have any issue with the product, contact us first: we will do our best to resolve it.
             </p>
           </section>
 
@@ -138,7 +132,7 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-3">8. Account Termination</h2>
             <p>
               You may request deletion of your account at any time by emailing
-              {' '}<a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">support@ecotronicsenterprise.com</a>.
+              {' '}<a href="mailto:ecotronics.nterprise@gmail.com" className="text-[#0A66C2] hover:underline">ecotronics.nterprise@gmail.com</a>.
               We will delete your account and all associated portfolio data within 14 days of your request.
               Deletion is permanent and irreversible.
             </p>
@@ -178,8 +172,8 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-3">12. Contact</h2>
             <p>
               For any questions about these terms, email us at{' '}
-              <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">
-                support@ecotronicsenterprise.com
+              <a href="mailto:ecotronics.nterprise@gmail.com" className="text-[#0A66C2] hover:underline">
+                ecotronics.nterprise@gmail.com
               </a>.
             </p>
           </section>

@@ -4,7 +4,7 @@ import { PullQuote, Callout, KeyTakeaway, CTASection, RelatedArticles } from '..
 export const metadata: Metadata = {
   title: 'Is Behance a Portfolio Website? Gallery vs Portfolio Explained | LivePortfolio',
   description: 'Behance is great for showing work to other designers. Here\'s why it is not the same as having your own portfolio website — and when the difference costs you.',
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'Is Behance a Portfolio Website? Gallery vs Portfolio Explained',
     description: 'Behance is great for showing work to other designers. Here\'s why it is not the same as having your own portfolio website.',
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

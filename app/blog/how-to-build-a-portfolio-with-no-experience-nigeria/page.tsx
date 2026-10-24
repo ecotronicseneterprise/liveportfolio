@@ -4,7 +4,7 @@ import { PullQuote, Callout, KeyTakeaway, CTASection, RelatedArticles } from '..
 export const metadata: Metadata = {
   title: "How to Build a Portfolio With No Experience — Nigeria Guide | LivePortfolio",
   description: "No full-time job yet? Here's how to build a real portfolio using coursework, personal projects, and freelance work — even without a single official role.",
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'How to Build a Portfolio With No Experience — Nigeria Guide',
     description: "No full-time job yet? Here's how to build a real portfolio using coursework, personal projects, and freelance work.",
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

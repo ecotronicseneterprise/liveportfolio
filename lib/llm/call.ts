@@ -100,7 +100,7 @@ export async function callLLM<T = unknown>(opts: CallLLMOptions<T>): Promise<Cal
   let raw: unknown
   try {
     if (opts.schema) {
-      const completion = await openai().beta.chat.completions.parse({
+      const completion = await openai().chat.completions.parse({
         ...base,
         response_format: zodResponseFormat(opts.schema, opts.schemaName ?? 'result'),
       })

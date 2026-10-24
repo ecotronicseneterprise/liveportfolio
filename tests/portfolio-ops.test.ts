@@ -93,6 +93,24 @@ describe('applyOps: projects and experience', () => {
     r = run([{ op: 'remove_project', index: 1 }])
     expect(r.changes).toEqual(['Removed project "Two"'])
   })
+  // Guards the zod 4 behaviour change: ".default() values apply inside optional fields". A patch built with .partial() from a schema
+  // whose fields use .default() would silently reset every field the patch does not mention.
+  it('a patch changes only the fields it names (update_project keeps everything else)', () => {
+    const s = base()
+    s.content.projects = [{ title: 'One', problem: 'P', solution: 'S', outcome: 'O', stack: ['Go', 'SQL'], url: 'https://x.dev', image_url: OURS }]
+    const r = run([{ op: 'update_project', index: 0, patch: { outcome: 'New outcome' } }], s)
+    expect((r.state.content.projects as unknown[])[0]).toEqual({ title: 'One', problem: 'P', solution: 'S', outcome: 'New outcome', stack: ['Go', 'SQL'], url: 'https://x.dev', image_url: OURS })
+  })
+  it('a patch changes only the fields it names (update_experience keeps everything else)', () => {
+    const s = base()
+    s.content.experience = [{ company: 'Acme', role: 'Eng', period: '2020 to 2022', bullets: ['Built x', 'Led y'] }]
+    const r = run([{ op: 'update_experience', index: 0, patch: { role: 'Senior Eng' } }], s)
+    expect((r.state.content.experience as unknown[])[0]).toEqual({ company: 'Acme', role: 'Senior Eng', period: '2020 to 2022', bullets: ['Built x', 'Led y'] })
+  })
+  it('an empty patch changes nothing and records no change', () => {
+    expect(run([{ op: 'update_project', index: 0, patch: {} }]).changes).toEqual([])
+    expect(run([{ op: 'update_experience', index: 0, patch: {} }]).changes).toEqual([])
+  })
   it('limits and ranges: six projects at most, a title is required, a missing index is refused', () => {
     const s = base(); s.content.projects = Array.from({ length: 6 }, (_, i) => ({ title: `p${i}` }))
     fails([{ op: 'add_project', project: { title: 'x' } }], 'limit', s)

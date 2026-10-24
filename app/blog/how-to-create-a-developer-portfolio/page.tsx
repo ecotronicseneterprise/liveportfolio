@@ -4,7 +4,7 @@ import { PullQuote, Callout, StepCard, Checklist, KeyTakeaway, CTASection, Relat
 export const metadata: Metadata = {
   title: 'How to Create a Developer Portfolio That Gets You Hired — liveportfolio.site',
   description: 'Learn exactly what to include in a developer portfolio, the 6 sections that matter, and the common mistakes that get candidates skipped.',
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'How to Create a Developer Portfolio That Gets You Hired',
     description: 'The 6 sections every portfolio needs, the mistakes that get you skipped, and how to build one fast.',
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

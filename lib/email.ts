@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { SUPPORT_EMAIL } from '@/lib/brand'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -14,6 +15,7 @@ export async function sendEmail({
   try {
     const { data, error } = await resend.emails.send({
       from: 'liveportfolio.site <noreply@liveportfolio.site>',
+      replyTo: SUPPORT_EMAIL, // replies reach the one support mailbox, not the unmonitored sender address
       to,
       subject,
       html,

@@ -246,7 +246,7 @@ hashed and not stored."
 - ⬜ Software-tool disclaimer in Terms §1
 - ⬜ NDPA reference in Privacy Policy
 - ⬜ Paystack webhook hardened (fail on missing env var)
-- ⬜ Contact email: support@ecotronicsenterprise.com throughout
+- ⬜ Contact email: ecotronics.nterprise@gmail.com throughout (done: SUPPORT_EMAIL in lib/brand.ts)
 
 ### Phase 1: Revenue unlock (THIS WEEKEND — additive, non-breaking)
 

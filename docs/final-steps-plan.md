@@ -7,9 +7,10 @@ Written 2026-10-24 against `main` = `dev` = `e0dbcc9`. No code, env var, SQL or 
 | Phase | Status |
 |---|---|
 | P4 consent and policy | done on dev (a27d825); Meta Pixel removed, GA4 only after consent; waiting for your checks and legal review |
-| P2a openai 7, P2b zod 4 | next |
+| P2a openai 7, P2b zod 4 | both done locally (cb0b598 + next commit), NOT pushed: waiting for your confirmation that the P4 merge to main is done |
 | P5, P6 | after P2 / in parallel |
-| P1 | your manual test |
+| Payment redesign 2.1 to 2.4, 2.9 | built on dev, no flag; needs `payment_intents` run and the merge checklist; see docs/MERGE-CHECKLIST.md and docs/LIVE-STATUS.md |
+| P1 | superseded by the owner-first rollout of the new checkout |
 | P3, P7, P8 | waiting (bench key / your "next") |
 
 ## Read this first

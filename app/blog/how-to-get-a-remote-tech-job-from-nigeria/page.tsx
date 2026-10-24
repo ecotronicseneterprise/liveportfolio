@@ -4,7 +4,7 @@ import { PullQuote, Callout, Checklist, KeyTakeaway, CTASection, RelatedArticles
 export const metadata: Metadata = {
   title: 'How to Get a Remote Tech Job From Nigeria in 2026 — liveportfolio.site',
   description: 'A practical guide to landing remote tech work from Nigeria. Covers the skills that get hired, where to apply, and why rejection is normal.',
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'How to Get a Remote Tech Job From Nigeria in 2026',
     description: 'The skills that get hired, where to apply, and why 100 applications before your first offer is completely normal.',
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

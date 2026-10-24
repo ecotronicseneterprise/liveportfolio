@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 type Row = Record<string, any>
 const h = vi.hoisted(() => ({
-  db: { users: [] as Row[], subscriptions: [] as Row[], payments: [] as Row[] } as Record<string, Row[]>,
+  db: { users: [] as Row[], subscriptions: [] as Row[], payments: [] as Row[], payment_intents: [] as Row[] } as Record<string, Row[]>,
   // fail('subscriptions', 'update') makes that operation return a database error once (or forever with sticky)
   failures: [] as Array<{ table: string; op: string; sticky?: boolean }>,
   emails: [] as Row[],
@@ -111,7 +111,7 @@ const user = (id = U1, email = 'ada@example.com', extra: Row = {}) => ({ id, ema
 const subs = (id = U1) => h.db.subscriptions.filter((s) => s.user_id === id)
 
 beforeEach(() => {
-  h.db = { users: [user(), user(U2, 'bob@example.com')], subscriptions: [], payments: [] }
+  h.db = { users: [user(), user(U2, 'bob@example.com')], subscriptions: [], payments: [], payment_intents: [] }
   h.failures = []; h.emails = []; h.revalidated = []
   process.env.PAYSTACK_SECRET_KEY = SECRET
   process.env.PAYSTACK_BASIC_PLAN_CODE = BASIC
@@ -461,5 +461,52 @@ describe('refunds', () => {
     const res = await send({ event: 'refund.processed', data: { transaction_reference: 'ref-1', amount: 1_500_000 } })
     expect(res.status).toBe(200)
     expect(h.db.payments[0].refunded_at).toBeTruthy()
+  })
+})
+
+describe('ignored and rejected events are logged (never silently dropped, never with the e-mail)', () => {
+  const lines = () => vi.mocked(console.warn).mock.calls.map((c) => String(c[0])).filter((l) => l.startsWith('[paystack-webhook]'))
+  const last = () => lines().at(-1) ?? ''
+
+  it('a charge with no plan code: 200, nothing granted, and one line naming the reason', async () => {
+    expect((await send(charge({ plan: undefined }))).status).toBe(200)
+    expect(h.db.payments).toHaveLength(0)
+    expect(last()).toContain('ignored event=charge.success reason=no_plan_code reference=ref-1 amount=1500000 currency=NGN plan_code_present=no')
+  })
+  it('an unrecognised plan code is logged as such (and says a code was present)', async () => {
+    await send(charge({ plan: { plan_code: 'PLN_other' } }))
+    expect(last()).toContain('reason=plan_code_not_recognised_or_not_allowed')
+    expect(last()).toContain('plan_code_present=yes')
+  })
+  it('a rejected signature is logged without the body', async () => {
+    await send(charge(), { sig: 'deadbeef' })
+    expect(last()).toBe('[paystack-webhook] rejected reason=invalid_signature signature_header=present')
+    await send(charge(), { sig: null })
+    expect(last()).toBe('[paystack-webhook] rejected reason=invalid_signature signature_header=missing')
+  })
+  it('an unparseable body with a valid signature, an unhandled event type, a missing reference and a duplicate delivery are each logged', async () => {
+    await send(null, { raw: 'not json' , sig: crypto.createHmac('sha512', SECRET).update('not json').digest('hex') })
+    expect(last()).toContain('reason=unparseable_body')
+    await send({ event: 'transfer.success', data: { reference: 'tr-9', amount: 5 } })
+    expect(last()).toContain('ignored event=transfer.success reason=unhandled_event_type reference=tr-9')
+    await send(charge({ reference: undefined }))
+    expect(last()).toContain('reason=no_reference')
+    await send(charge()); await send(charge())
+    expect(last()).toContain('reason=duplicate_reference reference=ref-1')
+  })
+  it('a price mismatch that is rejected is logged too', async () => {
+    await send(charge({ amount: 100 }))
+    expect(last()).toContain('reason=price_mismatch')
+  })
+  it('no log line ever contains the customer e-mail, card data or the signature', async () => {
+    await send(charge({ plan: undefined, customer: { email: 'ada@example.com' }, authorization: { last4: '4081', bin: '408408' } }))
+    await send(charge(), { sig: 'deadbeef' })
+    await send({ event: 'transfer.success', data: { customer: { email: 'ada@example.com' } } })
+    for (const l of lines()) expect(l).not.toMatch(/ada@example\.com|4081|408408|deadbeef/)
+  })
+  it('behaviour is unchanged: the same inputs still grant, or not, exactly as before', async () => {
+    await send(charge())
+    expect(h.db.users[0].plan).toBe('basic')
+    expect(h.db.payments).toHaveLength(1)
   })
 })

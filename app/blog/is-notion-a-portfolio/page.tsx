@@ -4,7 +4,7 @@ import { PullQuote, Callout, KeyTakeaway, CTASection, RelatedArticles } from '..
 export const metadata: Metadata = {
   title: "Is Notion a Portfolio? It's Clever — Here's Where It Breaks Down | LivePortfolio",
   description: "Notion portfolio pages are surprisingly popular. Here's why people build them, what actually works, and the three places where a real portfolio website pulls ahead.",
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: "Is Notion a Portfolio? It's Clever — Here's Where It Breaks Down",
     description: "Notion portfolio pages are surprisingly popular. Here's what works and where a real portfolio website pulls ahead.",
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

@@ -3,13 +3,12 @@
 import { useRegion } from '@/hooks/useRegion'
 
 interface Props {
-  ngn: string   // e.g. "₦15,000/year"
-  usd: string   // e.g. "$10/year"
-  fallback?: string // shown while region loads (defaults to usd)
+  ngn: string // the price as charged, e.g. "₦15,000 for 12 months"
+  usd: string // the estimate shown to visitors outside Nigeria, e.g. "$10"
 }
 
-export default function LocalisedPrice({ ngn, usd, fallback }: Props) {
+/** Always the Naira price. Outside Nigeria an estimate is added and labelled as such: the charge is in Naira. */
+export default function LocalisedPrice({ ngn, usd }: Props) {
   const { region } = useRegion()
-  if (region === null) return <span>{fallback ?? usd}</span>
-  return <span>{region === 'NG' ? ngn : usd}</span>
+  return <span>{region === 'INTL' ? `${ngn} (about ${usd} at today's rate, charged in Naira)` : ngn}</span>
 }

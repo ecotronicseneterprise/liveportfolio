@@ -14,6 +14,7 @@ import ImageCropper from '@/components/ImageCropper'
 import LiveToast, { pushLiveToast } from '@/components/LiveToast'
 import Turnstile from '@/components/onboarding/Turnstile'
 import HistoryPanel from '@/components/dashboard/HistoryPanel'
+import PlanBillingPanel from '@/components/dashboard/PlanBillingPanel'
 import { captchaOptions } from '@/lib/onboarding/captcha'
 import { DRAFT_KEY } from '@/lib/onboarding/draft'
 
@@ -1990,6 +1991,8 @@ export default function DashboardPage() {
         {/* ── SETTINGS TAB ── */}
         {activeTab === 'settings' && (
           <div className="space-y-5">
+
+            <PlanBillingPanel token={accessToken} onPay={() => setShowUpgradeModal(true)} />
 
             {/* Avatar upload — available to all plan types */}
             <div className="bg-white border border-gray-100 rounded-2xl p-6">
