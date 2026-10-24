@@ -2,6 +2,16 @@
 
 Written 2026-10-24 against `main` = `dev` = `e0dbcc9`. No code, env var, SQL or deployment was changed to produce this. Evidence is marked **verified** (read in this repo, or run against the live site or vendor docs today), **secondary** (docs or a vendor page read, not exercised) or **unverified** (could not be checked from here).
 
+## Status (updated as phases finish)
+
+| Phase | Status |
+|---|---|
+| P4 consent and policy | done on dev (a27d825); Meta Pixel removed, GA4 only after consent; waiting for your checks and legal review |
+| P2a openai 7, P2b zod 4 | next |
+| P5, P6 | after P2 / in parallel |
+| P1 | your manual test |
+| P3, P7, P8 | waiting (bench key / your "next") |
+
 ## Read this first
 
 **Contradictions between your prompt and the code or docs**
@@ -213,7 +223,7 @@ Note: `published_at` is set so their portfolios go live (Pro includes publishing
 | P1 Payment test | GO WITH CHANGES | use the `PAYSTACK_TEST_EMAIL` address; confirm webhook registration; cancel the subscription and refund after |
 | P2 openai 7, then zod 4 | GO WITH CHANGES | approve the `/api/generate` type fix; check Vercel Node >= 22 |
 | P3 Luna in Production | BLOCKED | bench key |
-| P4 Consent and policy | GO WITH CHANGES (do early) | lawyer review; decide on the Meta Pixel |
+| P4 Consent and policy | DONE on dev (a27d825), awaiting your checks and a lawyer | lawyer review; decide on the Meta Pixel |
 | P5 Assistant spike | GO WITH CHANGES | gateway sign-off; `usage_events` kind migration |
 | P6 Catalog and swipe | GO (prototype done) | five-person test |
 | P7 Port templates and dashboard | GO WITH CHANGES | after P6, P2 |
