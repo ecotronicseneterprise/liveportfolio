@@ -28,7 +28,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   }
 
+  // the browser shrinks images to ~200 KB; this is the ceiling for anything else, and the index goes into a storage path
+  if (file.size > 5 * 1024 * 1024) return NextResponse.json({ error: 'Image too large' }, { status: 413 })
   const idx = indexParam != null ? String(indexParam) : '0'
+  if (!/^\d{1,2}$/.test(idx)) return NextResponse.json({ error: 'Bad index' }, { status: 400 })
   const path = `${user.id}-${idx}.jpg`
   const supabaseAdmin = getSupabaseAdmin()
 

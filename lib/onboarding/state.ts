@@ -57,7 +57,7 @@ export function routeFor(state: AccountState, draft: DraftStatus, server?: Serve
       // users row exists (address chosen): content, then generate
       return draft === 'none' ? STEP_PATHS.import : draft === 'imported' ? STEP_PATHS.review : STEP_PATHS.generate
     case 'ready':
-      return server?.portfolioId ? `/preview/${server.portfolioId}` : '/dashboard'
+      return '/dashboard' // a finished account lands on its dashboard (the preview stays reachable from there)
   }
 }
 

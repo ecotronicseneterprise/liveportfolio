@@ -5,12 +5,12 @@
 //   - every string is length-capped and every URL must be http(s);
 //   - it is cleared after generation and on sign-out (signOutAndClear / the SIGNED_OUT listener in the flow hook).
 
-import { httpUrl } from '@/lib/connectors/safe-url'
+import { httpUrl, projectImageUrl } from '@/lib/connectors/safe-url'
 import type { ImportDraft, ProjectCandidate } from '@/lib/connectors/types'
 
 export const DRAFT_KEY = 'lp_draft_v1'
 
-export interface DraftProject { title: string; description: string; stack: string; url: string }
+export interface DraftProject { title: string; description: string; stack: string; url: string; image_url?: string }
 export interface DraftExperience { company: string; role: string; period: string; bullets: string }
 export interface DraftEducation { degree: string; institution: string; year: string; grade: string }
 export interface DraftCandidate {
@@ -78,6 +78,7 @@ export function sanitizeDraft(input: unknown): Draft | null {
         description: s(r.description, 200),
         stack: Array.isArray(r.stack) ? list(r.stack, 10, 30).join(', ') : s(r.stack, 200),
         url: urlOrEmpty(r.url),
+        ...(projectImageUrl(r.image_url) ? { image_url: projectImageUrl(r.image_url) } : {}),
       }
     }),
     experience: arr(d.experience, 10).map((e) => {

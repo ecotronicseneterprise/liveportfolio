@@ -40,10 +40,10 @@ export default function GenerateStep() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ portfolioId: result.portfolioId, name: flow.draft.name }),
     }).catch(() => {})
-    // an invite that upgraded the account lands on the preview's "your Pro portfolio is live" banner, as the old wizard did
+    // a finished portfolio lands on the dashboard; an invite that upgraded the account lands on the preview's "your Pro portfolio is live" banner, as the old wizard did
     let invited = false
     try { invited = sessionStorage.getItem(INVITED_FLAG) === '1'; sessionStorage.removeItem(INVITED_FLAG) } catch {}
-    router.replace(`/preview/${result.portfolioId}${invited ? '?invited=true' : ''}`)
+    router.replace(invited ? `/preview/${result.portfolioId}?invited=true` : '/dashboard')
   }, [flow, router])
 
   useEffect(() => {

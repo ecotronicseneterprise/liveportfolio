@@ -32,8 +32,8 @@ describe('resolveState / routeFor', () => {
     expect(routeFor('no_portfolio', 'imported')).toBe('/create/review')
     expect(routeFor('no_portfolio', 'reviewed')).toBe('/create/generate')
   })
-  it('ready goes to the preview, a missing id to the dashboard', () => {
-    expect(routeFor('ready', 'none', srv({ profile: true, portfolioId: 'p9' }))).toBe('/preview/p9')
+  it('ready always goes to the dashboard (with or without a portfolio id)', () => {
+    expect(routeFor('ready', 'none', srv({ profile: true, portfolioId: 'p9' }))).toBe('/dashboard')
     expect(routeFor('ready', 'none', srv({ profile: true }))).toBe('/dashboard')
   })
 

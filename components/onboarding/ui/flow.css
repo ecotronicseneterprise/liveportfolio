@@ -132,6 +132,11 @@
 .lp-btn--ghost { background: var(--lp-surface); border-color: var(--lp-edge); color: var(--lp-ink); }
 .lp-btn--ghost:hover:not(:disabled) { border-color: var(--lp-ink); }
 .lp-btn--block { width: 100%; }
+.lp-btn--stack { flex-direction: column; gap: 0; line-height: 1.15; }
+.lp-btn--stack small { font-size: var(--lp-t-xs); font-weight: var(--lp-w-regular); color: var(--lp-soft); }
+.lp-btn--sm { min-height: var(--lp-target); padding: var(--lp-s2) var(--lp-s4); font-size: var(--lp-t-sm); }
+.lp-thumbimg { display: block; width: 100%; max-width: 16rem; aspect-ratio: 16 / 9; object-fit: cover; margin-bottom: var(--lp-s2); border: 1px solid var(--lp-line); border-radius: var(--lp-r-md); background: var(--lp-canvas); }
+.lp-img-actions { display: flex; align-items: center; gap: var(--lp-s4); }
 .lp-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .lp-btn[aria-busy='true']::after { content: ''; width: 1em; height: 1em; border: 2px solid currentColor; border-inline-end-color: transparent; border-radius: 50%; animation: lp-spin 0.8s linear infinite; }
 .lp-link { display: inline-flex; align-items: center; min-height: var(--lp-target); padding: 0; background: none; border: 0; color: var(--lp-brand); font-weight: var(--lp-w-bold); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }

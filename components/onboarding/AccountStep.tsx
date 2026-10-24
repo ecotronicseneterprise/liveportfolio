@@ -37,6 +37,7 @@ export default function AccountStep() {
     captureAttribution(window.location.search, store)
     const a = readAttribution(store)
     setPerk({ invite: !!a.invite?.freePro, bootcamp: a.bootcamp ? a.bootcamp.name : null })
+    if (new URLSearchParams(window.location.search).get('mode') === 'signin') setMode('signin')
   }, [])
 
   const nextParam = () => (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('next'))

@@ -1,6 +1,6 @@
 'use client'
 
-import { CREATE_HREF } from '@/lib/onboarding/entry'
+import { CREATE_HREF, SIGNIN_HREF } from '@/lib/onboarding/entry'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -563,7 +563,7 @@ export default function DashboardPage() {
   const loadData = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.push(CREATE_HREF); return }
+      if (!session) { router.push(SIGNIN_HREF); return }
       setAccessToken(session.access_token)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
