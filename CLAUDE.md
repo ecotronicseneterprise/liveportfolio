@@ -240,6 +240,9 @@ can read all other users' data.
 `app/portfolio/[slug]/page.tsx` is a public page (no auth). It uses `supabaseAdmin`
 to bypass RLS and read any portfolio by slug. This is intentional and correct.
 
+### 4b. New tables: RLS on, grants revoked, in the same migration
+New public tables must enable RLS and revoke anon/authenticated grants in the SAME migration. Supabase grants full anon/authenticated privileges on new public tables by default; that default is what let browsers write users/portfolios. Use: alter table x enable row level security; revoke all on table x from anon, authenticated;
+
 ### 5. Never call /api/generate for editing
 Editing a portfolio (dashboard) calls `/api/update` — a direct JSONB merge in Supabase.
 No AI involved. No cost. This is intentional.
@@ -480,6 +483,8 @@ demo, test, null, undefined, liveportfolio`
 ---
 
 ## Deployment
+
+> **Current state (confirmed by the owner, 2026-10-24): production deploys on Vercel.** A push to `main` is the deploy; rollback = Vercel Instant Rollback (code) plus the rollback SQL (database). There is no staging project and preview deployments use the production Supabase. The VPS / Caddy / PM2 / GitHub Actions material below predates the June 2026 migration to Vercel and is kept for reference only; it has not been re-verified. Env vars (including secrets) live in the Vercel project settings.
 
 ### How deploys work (fully automated)
 Push to `main` → GitHub Actions does everything:

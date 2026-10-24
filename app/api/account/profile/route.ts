@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 // POST /api/account/profile — creates the signed-in user's `users` row at signup.
 //
 // This replaces a browser-side `supabase.from('users').insert(...)`. The browser can no longer write `users`
-// (see supabase/migrations/*_close_browser_writes.sql), so every column is decided HERE:
+// (see supabase/manual/*_close_browser_writes.sql), so every column is decided HERE:
 //   id, email  → from the verified token, never from the request body
 //   plan       → always 'unpublished' (paid plans are set only by the Paystack webhook / invite / bootcamp routes)
 //   slug       → validated (format, reserved words, uniqueness)
