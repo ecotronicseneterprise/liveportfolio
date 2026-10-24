@@ -261,6 +261,17 @@ async function notifyLive(user: { email: string; slug: string }) {
 
 const ok = () => NextResponse.json({ received: true })
 
+// One line for every event we do not act on, so a silent drop is findable in the logs (money taken, nothing granted).
+// Fields: event type, reference, reason, amount, currency, whether a plan code was present. NEVER the e-mail or card data.
+function logIgnored(reason: string, eventType: string, data?: Record<string, unknown>) {
+  const d = data ?? {}
+  const ref = [d.reference, d.subscription_code, d.transaction_reference].find((v) => typeof v === 'string' && v) as string | undefined
+  const clean = (v: unknown) => String(v ?? 'n/a').replace(/[^\w.:-]/g, '_').slice(0, 80)
+  console.warn(
+    `[paystack-webhook] ignored event=${clean(eventType)} reason=${reason} reference=${ref ? clean(ref) : 'none'} amount=${typeof d.amount === 'number' ? d.amount : 'n/a'} currency=${clean(d.currency)} plan_code_present=${planCodeOf(d) ? 'yes' : 'no'}`,
+  )
+}
+
 // Verify → claim → apply, shared by subscription.create and charge.success.
 async function grant(
   supabaseAdmin: Admin,
@@ -273,7 +284,10 @@ async function grant(
   }
   const { user, emailMismatch } = found
 
-  if (!(await claimPayment(supabaseAdmin, user.id, args.reference, args.plan, args.amount))) return ok() // duplicate delivery
+  if (!(await claimPayment(supabaseAdmin, user.id, args.reference, args.plan, args.amount))) {
+    logIgnored('duplicate_reference', 'grant', { reference: args.reference, amount: args.amount })
+    return ok() // duplicate delivery
+  }
 
   let result: 'applied' | 'renewed' | 'skipped'
   try {
@@ -308,6 +322,7 @@ export async function POST(req: NextRequest) {
   const hashBuf = Buffer.from(hash)
   const sigBuf = Buffer.from(sig)
   if (hashBuf.length !== sigBuf.length || !crypto.timingSafeEqual(hashBuf, sigBuf)) {
+    console.warn(`[paystack-webhook] rejected reason=invalid_signature signature_header=${sig ? 'present' : 'missing'}`)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
@@ -315,6 +330,7 @@ export async function POST(req: NextRequest) {
   try {
     event = JSON.parse(body)
   } catch {
+    logIgnored('unparseable_body', 'unknown')
     return ok()
   }
 
@@ -330,16 +346,23 @@ export async function POST(req: NextRequest) {
     // ─── subscription.create ──────────────────────────────────────────────────
     if (event.event === 'subscription.create') {
       const subscriptionCode = data.subscription_code as string | undefined
-      if (!customerEmail || !subscriptionCode) return ok()
+      if (!customerEmail || !subscriptionCode) {
+        logIgnored(!customerEmail ? 'no_customer_email' : 'no_subscription_code', event.event, data)
+        return ok()
+      }
 
       const resolved = resolvePlan(planCodeOf(data), customerEmail)
-      if (!resolved) return ok()
+      if (!resolved) {
+        logIgnored(planCodeOf(data) ? 'plan_code_not_recognised_or_not_allowed' : 'no_plan_code', event.event, data)
+        return ok()
+      }
 
       const planObj = planObjectOf(data)
       if (!priceMatches(resolved.priceKey, planObj?.currency, planObj?.amount)) {
         const detail = ['plan', resolved.priceKey, 'currency', String(planObj?.currency), 'amount', String(planObj?.amount)]
         if (priceCheckEnforced()) {
           console.error('[webhook] subscription.create price mismatch, nothing granted.', ...detail)
+          logIgnored('price_mismatch', event.event, data)
           return ok()
         }
         console.warn('[webhook] subscription.create price mismatch (log-only: PAYSTACK_PRICE_CHECK is not "enforce"), granting.', ...detail)
@@ -376,16 +399,23 @@ export async function POST(req: NextRequest) {
     // ─── charge.success (first payment, renewal, upgrade) ─────────────────────
     if (event.event === 'charge.success') {
       const reference = data.reference as string | undefined
-      if (!customerEmail || !reference) return ok()
+      if (!customerEmail || !reference) {
+        logIgnored(!customerEmail ? 'no_customer_email' : 'no_reference', event.event, data)
+        return ok()
+      }
 
       // Not a plan transaction (or unknown plan) → nothing to grant
       const resolved = resolvePlan(planCodeOf(data), customerEmail)
-      if (!resolved) return ok()
+      if (!resolved) {
+        logIgnored(planCodeOf(data) ? 'plan_code_not_recognised_or_not_allowed' : 'no_plan_code', event.event, data)
+        return ok()
+      }
 
       if (!priceMatches(resolved.priceKey, data.currency, data.amount)) {
         const detail = ['reference', reference, 'plan', resolved.priceKey, 'currency', String(data.currency), 'amount', String(data.amount)]
         if (priceCheckEnforced()) {
           console.error('[webhook] charge.success price mismatch, nothing granted.', ...detail)
+          logIgnored('price_mismatch', event.event, data)
           return ok()
         }
         console.warn('[webhook] charge.success price mismatch (log-only: PAYSTACK_PRICE_CHECK is not "enforce"), granting.', ...detail)
@@ -406,7 +436,10 @@ export async function POST(req: NextRequest) {
     // dashboard or it will charge again at renewal.)
     if (event.event === 'refund.processed') {
       const txRef = (data.transaction_reference ?? (data.transaction as Record<string, unknown> | undefined)?.reference) as string | undefined
-      if (!txRef) return ok()
+      if (!txRef) {
+        logIgnored('no_transaction_reference', event.event, data)
+        return ok()
+      }
 
       const { data: payment, error: payErr } = await supabaseAdmin
         .from('payments')
@@ -418,7 +451,10 @@ export async function POST(req: NextRequest) {
         console.error('[webhook] refund for an unknown payment reference', txRef)
         return ok()
       }
-      if (payment.refunded_at) return ok() // duplicate delivery
+      if (payment.refunded_at) {
+        logIgnored('refund_already_processed', event.event, data)
+        return ok() // duplicate delivery
+      }
 
       const refunded = Number(data.amount)
       if (!Number.isFinite(refunded) || refunded < Number(payment.amount_cents)) {
@@ -447,5 +483,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'retry' }, { status: 500 })
   }
 
+  // reached only by event types we do not handle (every handled type returns above)
+  logIgnored('unhandled_event_type', event.event, event.data)
   return ok()
 }
