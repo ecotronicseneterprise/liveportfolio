@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
 import { browserStorage, createDraftStore, draftStatusOf, type Draft } from './draft'
-import { resolveState, routeFor, STEP_ALLOWS, STEP_PATHS, type AccountState, type ServerState } from './state'
+import { accountUrl, destinationFor, resolveState, routeFor, STEP_ALLOWS, STEP_PATHS, type AccountState, type ServerState } from './state'
 import type { AuthLike } from './auth-actions'
 import { providerProfile } from './social'
 
@@ -25,6 +25,7 @@ export function useFlow(step: Step | null) {
   const [state, setState] = useState<AccountState>('no_session')
   const [server, setServer] = useState<ServerState | null>(null)
   const [email, setEmail] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   // from the provider (social sign-in only): validated, prefill-only, see lib/onboarding/social.ts
   const [provider, setProvider] = useState({ social: false, name: '', githubLogin: '' })
@@ -62,6 +63,7 @@ export function useFlow(step: Step | null) {
     if (!alive.current) return null
     setServer(srv)
     setEmail(session?.user?.email ?? null)
+    setUserId(session?.user?.id ?? null)
     const prov = providerProfile(session?.user as never)
     setProvider(prov)
     setDraft(d)
@@ -78,7 +80,10 @@ export function useFlow(step: Step | null) {
     })
     void load().then((r) => {
       if (!r || !step) return
-      if (!STEP_ALLOWS[step].includes(r.next)) router.replace(routeFor(r.next, draftStatusOf(r.d), r.srv, { social: r.social }))
+      if (STEP_ALLOWS[step].includes(r.next)) return
+      // no session: back to the account step, remembering this page so the person returns to it after signing in
+      if (r.next === 'no_session' && step !== 'account' && step !== 'verify') return router.replace(accountUrl(window.location.pathname))
+      router.replace(routeFor(r.next, draftStatusOf(r.d), r.srv, { social: r.social }))
     })
     return () => {
       alive.current = false
@@ -87,12 +92,13 @@ export function useFlow(step: Step | null) {
   }, [load, router, step, store])
 
   /** Recompute and go to the right place (after sign-in, verification, import, review, address…). */
-  const goNext = useCallback(async () => {
+  const goNext = useCallback(async (preferred?: string | null) => {
     const r = await load()
-    if (r) router.replace(routeFor(r.next, draftStatusOf(r.d), r.srv, { social: r.social }))
+    if (!r) return
+    router.replace(destinationFor(r.next, draftStatusOf(r.d), r.srv, { social: r.social, preferred }))
   }, [load, router])
 
   const saveDraft = useCallback((d: Draft) => { store.save(d); setDraft(d) }, [store])
 
-  return { loading, state, server, email, draft, provider, store, getToken, goNext, saveDraft, refresh: load }
+  return { loading, state, server, email, userId, draft, provider, store, getToken, goNext, saveDraft, refresh: load }
 }

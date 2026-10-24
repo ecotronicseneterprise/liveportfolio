@@ -8,6 +8,8 @@ import { getAuth, useFlow } from '@/lib/onboarding/use-flow'
 import { getSupabaseClient } from '@/lib/supabase'
 import { t } from '@/lib/onboarding/t'
 import { VERIFY_EMAIL_KEY } from './AccountStep'
+import FlowShell, { FlowLoading } from './ui/FlowShell'
+import { AlertIcon } from './ui/icons'
 
 const COOLDOWN = 60
 
@@ -53,26 +55,33 @@ export default function VerifyStep() {
     if (r.ok) { setNotice(t('verify.resent')); setLeft(COOLDOWN) } else setError(t(`errors.${r.code}`))
   }
 
-  if (flow.loading) return <p className="p-6">…</p>
+  if (flow.loading) return <FlowLoading step="account" />
   return (
-    <main className="max-w-md mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-2">{t('verify.title')}</h1>
-      <p className="mb-4">{t('verify.body', { email: email || '…' })}</p>
-      <form onSubmit={confirm}>
-        <label className="block mb-3">{t('verify.code')}
-          <input className="block w-full border rounded px-3 min-h-11 tracking-widest" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={code} onChange={(e) => setCode(e.target.value)} />
+    <FlowShell step="account">
+      <div className="lp-stack">
+        <h1 className="lp-title">{t('verify.title')}</h1>
+        <p className="lp-lede">{t('verify.body', { email: email || '…' })}</p>
+      </div>
+      <form onSubmit={confirm} style={{ marginTop: 'var(--lp-s5)' }}>
+        <label className="lp-field">
+          <span className="lp-label">{t('verify.code')}</span>
+          <input className="lp-input lp-code" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={code} onChange={(e) => setCode(e.target.value)} />
         </label>
-        {error && <p role="alert" className="text-red-700 mb-2">{error}</p>}
-        {notice && <p role="status" className="mb-2">{notice}</p>}
-        <button type="submit" disabled={busy} className="w-full min-h-12 border rounded">{t('verify.confirm')}</button>
+        {error && <p role="alert" className="lp-msg lp-msg--error" style={{ marginTop: 'var(--lp-s4)' }}><AlertIcon />{error}</p>}
+        {notice && <p role="status" className="lp-msg lp-msg--ok" style={{ marginTop: 'var(--lp-s4)' }}>{notice}</p>}
+        <div className="lp-actions">
+          <button type="submit" disabled={busy} aria-busy={busy} className="lp-btn lp-btn--primary lp-btn--block">{t('verify.confirm')}</button>
+        </div>
       </form>
       <Turnstile onToken={setCaptcha} resetSignal={captchaReset} />
-      <button className="block mt-4 underline min-h-11" disabled={busy || left > 0} onClick={resend}>
-        {left > 0 ? t('verify.resendIn', { seconds: left }) : t('verify.resend')}
-      </button>
-      <button className="block mt-2 underline min-h-11" onClick={() => signOutAndClear(getSupabaseClient().auth, flow.store).then(() => (location.href = '/create/account'))}>
-        {t('verify.wrongEmail')}
-      </button>
-    </main>
+      <div style={{ marginTop: 'var(--lp-s4)', display: 'grid', justifyItems: 'start' }}>
+        <button className="lp-link" disabled={busy || left > 0} onClick={resend}>
+          {left > 0 ? t('verify.resendIn', { seconds: left }) : t('verify.resend')}
+        </button>
+        <button className="lp-link" onClick={() => signOutAndClear(getSupabaseClient().auth, flow.store).then(() => (location.href = '/create/account'))}>
+          {t('verify.wrongEmail')}
+        </button>
+      </div>
+    </FlowShell>
   )
 }

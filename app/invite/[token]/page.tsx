@@ -1,3 +1,4 @@
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import { redirect } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import Logo from '@/components/Logo'
@@ -18,7 +19,7 @@ function ErrorCard({ message }: { message: string }) {
           You can still build a free portfolio — no invite needed.
         </p>
         <a
-          href="/create"
+          href={CREATE_HREF}
           className="inline-block px-6 py-3 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
         >
           Build your portfolio free →
@@ -49,6 +50,6 @@ export default async function InvitePage({ params }: Props) {
   }
 
   // Valid — redirect to create with affiliate + invite params
-  const dest = `/create?ref=${encodeURIComponent(invite.partner_key)}&invite=${encodeURIComponent(token)}${invite.free_pro ? '&free=true' : ''}`
+  const dest = `${CREATE_HREF}?ref=${encodeURIComponent(invite.partner_key)}&invite=${encodeURIComponent(token)}${invite.free_pro ? '&free=true' : ''}`
   redirect(dest)
 }

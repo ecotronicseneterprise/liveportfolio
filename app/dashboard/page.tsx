@@ -1,5 +1,6 @@
 'use client'
 
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -562,7 +563,7 @@ export default function DashboardPage() {
   const loadData = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.push('/create'); return }
+      if (!session) { router.push(CREATE_HREF); return }
       setAccessToken(session.access_token)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -573,7 +574,7 @@ export default function DashboardPage() {
         .eq('id', session.user.id)
         .single()
 
-      if (!userData) { router.push('/create'); return }
+      if (!userData) { router.push(CREATE_HREF); return }
       setUser(userData)
 
       // Fetch plan via server-side getUserPlan (handles subscriptions + legacy users)
@@ -589,7 +590,7 @@ export default function DashboardPage() {
         .eq('user_id', session.user.id)
         .single()
 
-      if (!portfolioData) { router.push('/create'); return }
+      if (!portfolioData) { router.push(CREATE_HREF); return }
       setPortfolio(portfolioData as Portfolio)
       setTemplate((portfolioData.template as string) || 'minimal')
       setPreviewTemplate((portfolioData.template as string) || 'minimal')

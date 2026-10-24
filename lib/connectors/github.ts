@@ -4,7 +4,7 @@ import { isGrounded } from './grounding'
 import { RANK, RepoFacts, isProfileOrSiteRepo, rankRepos, scoreRepo } from './github-rank'
 import { aggregateSkills, projectStack } from './github-skills'
 import { cleanUrl, normalizeProfile, truncateWords } from './normalize'
-import { GITHUB_LOGIN_RE, isGithubAvatarUrl, isLinkedinProfileUrl } from './safe-url'
+import { GITHUB_LOGIN_RE, isGithubAvatarUrl, isLinkedinProfileUrl, normalizeGithubInput } from './safe-url'
 import { ConnectorResult, ImportError, ImportProject, LIMITS, ProjectCandidate, Provenance } from './types'
 
 // GitHub connector — public data only. GITHUB_TOKEN (optional, SERVER-SIDE ONLY, never sent to the client or
@@ -109,10 +109,7 @@ async function request(path: string, o: Req = {}): Promise<Res> {
 
 /** Accepts "octocat", "@octocat", or a github.com URL. Returns null if invalid. */
 export function parseGithubUsername(input: string): string | null {
-  const s = input.trim().replace(/^@/, '')
-  const fromUrl = s.match(/^(?:https?:\/\/)?(?:www\.)?github\.com\/([^/?#\s]+)/i)
-  const name = fromUrl ? fromUrl[1] : s
-  return USERNAME_RE.test(name) ? name : null
+  return normalizeGithubInput(input)
 }
 
 // ── repo listing ──────────────────────────────────────────────────────────────────────────────────────────

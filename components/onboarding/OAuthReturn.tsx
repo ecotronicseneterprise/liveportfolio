@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
 import { decideOAuthReturn } from '@/lib/onboarding/social'
 import { t } from '@/lib/onboarding/t'
+import FlowShell from './ui/FlowShell'
+import { AlertIcon } from './ui/icons'
 
 /**
  * /auth/return — where the provider sends the browser back. supabase-js (implicit flow, this app's session model)
@@ -35,15 +37,15 @@ export default function OAuthReturn() {
   }, [router])
 
   return (
-    <main className="max-w-md mx-auto p-6">
+    <FlowShell>
       {failed ? (
         <>
-          <p role="alert" className="mb-3">{t('social.failed')}</p>
-          <a className="underline min-h-11 inline-block" href="/create/account">{t('confirm.back')}</a>
+          <p role="alert" className="lp-msg lp-msg--error"><AlertIcon />{t('social.failed')}</p>
+          <a className="lp-link" style={{ marginTop: 'var(--lp-s3)' }} href="/create/account">{t('confirm.back')}</a>
         </>
       ) : (
-        <p role="status">{t('social.finishing')}</p>
+        <div className="lp-working"><span className="lp-spinner" aria-hidden="true" /><p role="status" className="lp-lede">{t('social.finishing')}</p></div>
       )}
-    </main>
+    </FlowShell>
   )
 }

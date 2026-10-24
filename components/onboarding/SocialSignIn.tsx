@@ -51,33 +51,37 @@ export default function SocialSignIn({ next, onSignedIn }: { next: string; onSig
 
   const providers = enabled.filter((p): p is OAuthProvider => p !== 'email_otp')
   return (
-    <div className="mt-6">
-      {providers.map((p) => (
-        <button key={p} type="button" disabled={busy} onClick={() => oauth(p)} className="block w-full min-h-12 border rounded mb-2">
-          {PROVIDER_LABEL[p]}
-        </button>
-      ))}
-      {enabled.includes('email_otp') && !codeMode && (
-        <button type="button" className="block w-full min-h-12 border rounded mb-2" onClick={() => setCodeMode(true)}>{PROVIDER_LABEL.email_otp}</button>
-      )}
+    <div>
+      <p className="lp-or">{t('account.or')}</p>
+      <div className="lp-stack" style={{ display: 'grid', gap: 'var(--lp-s2)' }}>
+        {providers.map((p) => (
+          <button key={p} type="button" disabled={busy} onClick={() => oauth(p)} className="lp-btn lp-btn--ghost lp-btn--block">
+            {PROVIDER_LABEL[p]}
+          </button>
+        ))}
+        {enabled.includes('email_otp') && !codeMode && (
+          <button type="button" className="lp-btn lp-btn--ghost lp-btn--block" onClick={() => setCodeMode(true)}>{PROVIDER_LABEL.email_otp}</button>
+        )}
+      </div>
       {codeMode && !sent && (
-        <div className="border rounded p-3">
-          <label className="block mb-2">{t('account.email')}
-            <input className="block w-full border rounded px-3 min-h-11" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <div className="lp-panel" style={{ marginTop: 'var(--lp-s3)' }}>
+          <label className="lp-field">
+            <span className="lp-label">{t('account.email')}</span>
+            <input className="lp-input" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </label>
           <Turnstile onToken={setCaptcha} resetSignal={captchaReset} />
-          <button type="button" disabled={busy} className="w-full min-h-12 border rounded" onClick={send}>{t('social.sendCode')}</button>
+          <button type="button" disabled={busy} className="lp-btn lp-btn--primary lp-btn--block" style={{ marginTop: 'var(--lp-s4)' }} onClick={send}>{t('social.sendCode')}</button>
         </div>
       )}
       {codeMode && sent && (
-        <form onSubmit={confirm} className="border rounded p-3">
-          <p className="mb-2">{t('verify.body', { email })}</p>
-          <input aria-label={t('verify.code')} className="block w-full border rounded px-3 min-h-11 tracking-widest" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={code} onChange={(e) => setCode(e.target.value)} />
-          <button type="submit" disabled={busy} className="w-full min-h-12 border rounded mt-2">{t('verify.confirm')}</button>
-          <button type="button" disabled={busy} className="underline min-h-11 mt-1" onClick={() => { setSent(false); setCode('') }}>{t('social.useAnother')}</button>
+        <form onSubmit={confirm} className="lp-panel" style={{ marginTop: 'var(--lp-s3)' }}>
+          <p className="lp-fine" style={{ marginBottom: 'var(--lp-s3)' }}>{t('verify.body', { email })}</p>
+          <input aria-label={t('verify.code')} className="lp-input lp-code" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={code} onChange={(e) => setCode(e.target.value)} />
+          <button type="submit" disabled={busy} className="lp-btn lp-btn--primary lp-btn--block" style={{ marginTop: 'var(--lp-s3)' }}>{t('verify.confirm')}</button>
+          <button type="button" disabled={busy} className="lp-link" style={{ marginTop: 'var(--lp-s1)' }} onClick={() => { setSent(false); setCode('') }}>{t('social.useAnother')}</button>
         </form>
       )}
-      {error && <p role="alert" className="text-red-700 mt-2">{error}</p>}
+      {error && <p role="alert" className="lp-msg lp-msg--error" style={{ marginTop: 'var(--lp-s3)' }}>{error}</p>}
     </div>
   )
 }

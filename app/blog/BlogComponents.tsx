@@ -1,3 +1,4 @@
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import Link from 'next/link'
 
 export function PullQuote({ children }: { children: React.ReactNode }) {
@@ -88,7 +89,7 @@ export function CTASection({ headline, sub }: { headline: string; sub: string })
       <h3 className="text-xl font-bold text-gray-900 mb-2">{headline}</h3>
       <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">{sub}</p>
       <Link
-        href="/create"
+        href={CREATE_HREF}
         className="inline-flex items-center gap-2 px-6 py-3 bg-[#0A66C2] text-white text-sm font-bold rounded-full hover:bg-[#084D9A] transition-colors"
       >
         Create my portfolio →

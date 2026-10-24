@@ -4,6 +4,7 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import { TEMPLATES, TEMPLATE_LABEL } from '@/components/templates/dynamic'
 import { ALL_TEMPLATES, isProTemplate, type TemplateId } from '@/lib/plans'
+import { CheckIcon, LockIcon } from './ui/icons'
 
 export { TEMPLATE_LABEL }
 
@@ -79,30 +80,24 @@ export default function TemplateGallery({ content, selected, onSelect, isPro = f
   const items = useMemo(() => ALL_TEMPLATES.map((id) => ({ id, pro: isProTemplate(id) })), [])
   return (
     <section aria-label="Pick a look">
-      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="list">
+      <ul className="lp-tpl-grid" role="list">
         {items.map(({ id, pro }) => {
           const on = selected === id
           return (
             <li key={id}>
-              <button
-                type="button"
-                aria-pressed={on}
-                onClick={() => onSelect(id)}
-                className="block w-full text-start border rounded overflow-hidden min-h-11 focus-visible:outline focus-visible:outline-2"
-                style={{ borderColor: on ? '#111' : '#d1d5db', borderWidth: on ? 2 : 1 }}
-              >
+              <button type="button" aria-pressed={on} onClick={() => onSelect(id)} className="lp-tpl">
                 <TemplateThumb id={id} content={live} />
-                <span className="flex items-center justify-between px-3 py-2 text-sm">
+                <span className="lp-tpl-foot">
                   <span>{TEMPLATE_LABEL[id]}</span>
-                  {pro && !isPro && <span aria-label="Included with Pro">Pro 🔒</span>}
-                  {on && <span aria-hidden="true">✓</span>}
+                  {pro && !isPro && <span className="lp-pro" aria-label="Included with Pro"><LockIcon />Pro</span>}
+                  {on && <span className="lp-picked" aria-hidden="true"><CheckIcon /></span>}
                 </span>
               </button>
             </li>
           )
         })}
       </ul>
-      <p className="text-sm mt-2">Preview any template with your own details. Publishing with a Pro template needs the Pro plan.</p>
+      <p className="lp-fine" style={{ marginTop: 'var(--lp-s3)' }}>Preview any template with your own details. Publishing with a Pro template needs the Pro plan.</p>
     </section>
   )
 }

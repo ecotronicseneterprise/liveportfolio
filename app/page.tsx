@@ -1,3 +1,4 @@
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     canonical: 'https://liveportfolio.site',
   },
 }
-import SupportButton from '@/components/SupportButton'
+import ContactLinks from '@/components/ContactLinks'
 import PricingSection from '@/components/PricingSection'
 import PortfolioShowcaseWrapper from '@/components/PortfolioShowcaseWrapper'
 import PublishedCount from '@/components/PublishedCount'
@@ -227,7 +228,7 @@ export default function LandingPage() {
             </p>
             <div className="hidden lg:flex flex-wrap items-center gap-4 mb-6">
               <Link
-                href="/create"
+                href={CREATE_HREF}
                 className="px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20"
               >
                 Build My Portfolio →
@@ -252,7 +253,7 @@ export default function LandingPage() {
             LivePortfolio helps professionals turn their work into opportunities. Upload your CV and we turn it into a professional portfolio website in minutes.
           </p>
           <Link
-            href="/create"
+            href={CREATE_HREF}
             className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20"
           >
             Build My Portfolio →
@@ -435,7 +436,7 @@ export default function LandingPage() {
             Build your professional portfolio today and give recruiters, clients, and collaborators a reason to remember you.
           </p>
           <Link
-            href="/create"
+            href={CREATE_HREF}
             className="inline-flex items-center gap-2 px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors"
           >
             Build My Portfolio →
@@ -443,8 +444,6 @@ export default function LandingPage() {
           <p className="text-sm text-gray-400 mt-4">Free to build and preview. No credit card needed. 7-day refund if you publish and change your mind.</p>
         </div>
       </section>
-
-      <SupportButton />
 
       {/* ── SEO prose — crawlable, not visually prominent ── */}
       <section className="w-full border-t border-gray-50 bg-white">
@@ -467,19 +466,7 @@ export default function LandingPage() {
           <span>© 2026 Ecotronics Enterprise · liveportfolio.site</span>
 
           {/* Contact links */}
-          <div className="flex items-center gap-5">
-            <a
-              href="mailto:support@ecotronicsenterprise.com"
-              className="flex items-center gap-1.5 hover:text-[#0A66C2] transition-colors"
-              aria-label="Email us"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                <polyline points="22,6 12,13 2,6"/>
-              </svg>
-              Email us
-            </a>
-          </div>
+          <ContactLinks />
 
           <div className="flex gap-6">
             <a href="/blog" className="hover:text-gray-600 transition-colors">Blog</a>

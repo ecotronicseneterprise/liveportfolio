@@ -43,6 +43,20 @@ export function isLinkedinProfileUrl(v: unknown): v is string {
 export const GITHUB_LOGIN_RE = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/
 export const isGithubLogin = (v: unknown): v is string => typeof v === 'string' && GITHUB_LOGIN_RE.test(v)
 
+/**
+ * The GitHub username from whatever was typed or pasted: "octocat", "@octocat", "github.com/octocat",
+ * "https://github.com/octocat/repo?tab=x". Anything that is not a valid login (including look-alike hosts such as
+ * github.com.evil.example) returns null. The ONE parser: the form, the API and the connector all use it.
+ */
+export function normalizeGithubInput(input: unknown): string | null {
+  if (typeof input !== 'string') return null
+  const s = input.trim().replace(/^@/, '')
+  if (!s || s.length > 300) return null
+  const fromUrl = s.match(/^(?:https?:\/\/)?(?:www\.)?github\.com\/([^/?#\s]+)/i)
+  const name = fromUrl ? fromUrl[1] : s
+  return isGithubLogin(name) ? name : null
+}
+
 // GitHub repo names: letters, digits, '.', '_', '-' (max 100). An entry may be "owner/name".
 const REPO_PART = /^[A-Za-z0-9._-]{1,100}$/
 export function isRepoRef(s: string): boolean {

@@ -6,6 +6,8 @@ import { confirmWithTokenHash } from '@/lib/onboarding/auth-actions'
 import { safeNext } from '@/lib/onboarding/safe-next'
 import { getAuth } from '@/lib/onboarding/use-flow'
 import { t } from '@/lib/onboarding/t'
+import FlowShell from './ui/FlowShell'
+import { AlertIcon } from './ui/icons'
 
 /**
  * /auth/confirm — the e-mail link target. It shows a button and only verifies on click, so a mail scanner or link
@@ -39,11 +41,13 @@ export default function ConfirmEmail() {
   }
 
   return (
-    <main className="max-w-md mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">{t('confirm.title')}</h1>
-      {error && <p role="alert" className="text-red-700 mb-3">{error}</p>}
-      <button className="w-full min-h-12 border rounded" disabled={busy || !params?.tokenHash} onClick={confirm}>{t('confirm.button')}</button>
-      <a className="block mt-4 underline min-h-11" href="/create/account">{t('confirm.back')}</a>
-    </main>
+    <FlowShell>
+      <h1 className="lp-title" style={{ marginBottom: 'var(--lp-s5)' }}>{t('confirm.title')}</h1>
+      {error && <p role="alert" className="lp-msg lp-msg--error"><AlertIcon />{error}</p>}
+      <div className="lp-actions">
+        <button className="lp-btn lp-btn--primary lp-btn--block" disabled={busy || !params?.tokenHash} aria-busy={busy} onClick={confirm}>{t('confirm.button')}</button>
+      </div>
+      <a className="lp-link" style={{ marginTop: 'var(--lp-s3)' }} href="/create/account">{t('confirm.back')}</a>
+    </FlowShell>
   )
 }

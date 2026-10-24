@@ -4,7 +4,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { draftToGeneratePayload, generateWithRetry } from '@/lib/onboarding/generate'
 import { useFlow } from '@/lib/onboarding/use-flow'
+import { INVITED_FLAG } from '@/lib/onboarding/attribution'
+import { accountUrl } from '@/lib/onboarding/state'
 import { t } from '@/lib/onboarding/t'
+import FlowShell from './ui/FlowShell'
+import { AlertIcon } from './ui/icons'
 
 /**
  * Generate step. Safe to reload or retry at any time: /api/generate returns the existing portfolio if one exists,
@@ -20,13 +24,13 @@ export default function GenerateStep() {
     if (!flow.draft || !flow.email) return void router.replace('/create/import')
     setPhase('working')
     const token = await flow.getToken()
-    if (!token) return void router.replace('/create/account')
+    if (!token) return void router.replace(accountUrl('/create/generate'))
     const body = JSON.stringify(draftToGeneratePayload(flow.draft, flow.email))
     const result = await generateWithRetry(() =>
       fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body }),
     )
     if (!result.ok) {
-      if (result.reason === 'unauthorized') return void router.replace('/create/account')
+      if (result.reason === 'unauthorized') return void router.replace(accountUrl('/create/generate'))
       return setPhase('failed')
     }
     flow.store.clear() // the content now lives in the portfolio; nothing personal stays in localStorage
@@ -36,7 +40,10 @@ export default function GenerateStep() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ portfolioId: result.portfolioId, name: flow.draft.name }),
     }).catch(() => {})
-    router.replace(`/preview/${result.portfolioId}`)
+    // an invite that upgraded the account lands on the preview's "your Pro portfolio is live" banner, as the old wizard did
+    let invited = false
+    try { invited = sessionStorage.getItem(INVITED_FLAG) === '1'; sessionStorage.removeItem(INVITED_FLAG) } catch {}
+    router.replace(`/preview/${result.portfolioId}${invited ? '?invited=true' : ''}`)
   }, [flow, router])
 
   useEffect(() => {
@@ -46,15 +53,22 @@ export default function GenerateStep() {
   }, [flow.loading, run])
 
   return (
-    <main className="max-w-md mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">{t('generate.title')}</h1>
-      {phase === 'working' && <p role="status">{t('generate.working')}</p>}
-      {phase === 'failed' && (
+    <FlowShell step="generate">
+      <h1 className="lp-title" style={{ marginBottom: 'var(--lp-s5)' }}>{t('generate.title')}</h1>
+      {phase === 'working' && (
         <>
-          <p role="alert">{t('generate.failed')}</p>
-          <button className="mt-3 min-h-12 px-4 border rounded" onClick={() => { started.current = true; void run() }}>{t('generate.retry')}</button>
+          <div className="lp-working"><span className="lp-spinner" aria-hidden="true" /><p role="status" className="lp-lede">{t('generate.working')}</p></div>
+          <div className="lp-track" aria-hidden="true"><i /></div>
         </>
       )}
-    </main>
+      {phase === 'failed' && (
+        <>
+          <p role="alert" className="lp-msg lp-msg--error"><AlertIcon />{t('generate.failed')}</p>
+          <div className="lp-actions">
+            <button className="lp-btn lp-btn--primary lp-btn--block" onClick={() => { started.current = true; void run() }}>{t('generate.retry')}</button>
+          </div>
+        </>
+      )}
+    </FlowShell>
   )
 }

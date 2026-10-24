@@ -15,7 +15,19 @@
     "existing": "You may already have an account. If this address is new we have sent a code to it; otherwise sign in.",
     "existingSignin": "You already have an account. Sign in to continue.",
     "continueAs": "Signed in as {email}",
-    "signOut": "Use a different account"
+    "signOut": "Use a different account",
+    "inviteFree": "You've been invited: your Pro account is free.",
+    "bootcamp": "{name} students get 6 months free. It applies automatically when you finish signing up.",
+    "lede": "Free to build and preview. You pay only to publish.",
+    "or": "or",
+    "panelFree": "Free, from the first minute",
+    "panelPublish": "When you publish",
+    "sampleName": "Ada Okonkwo",
+    "sampleRole": "Backend engineer",
+    "sampleBefore": "Responsible for working on the payments system",
+    "sampleAfter": "Cut payments p95 latency by 40%",
+    "sampleTail": "at Acme.",
+    "sampleNote": "We tighten the wording. You check every line before anything goes live."
   },
   "verify": {
     "title": "Check your email",
@@ -32,12 +44,20 @@
     "file": "Upload a CV (PDF or Word)",
     "github": "GitHub username",
     "paste": "Paste text",
-    "blank": "Start blank",
     "run": "Read it",
     "reading": "Reading…",
     "aiNotice": "To read your CV and write your portfolio text we send it to OpenAI. We replace emails, phone numbers and links with placeholders where we can, but the rest of the text is sent.",
     "limit": "You've reached today's import limit. You can fill in your details by hand.",
-    "failed": "We couldn't read that. You can fill in your details by hand."
+    "failed": "We couldn't read that. You can fill in your details by hand.",
+    "fileHint": "PDF or Word, up to 5 MB",
+    "githubHint": "Username or profile link",
+    "pasteHint": "From LinkedIn or anywhere",
+    "manual": "Fill in manually",
+    "manualHint": "Start with an empty form",
+    "recommended": "Recommended",
+    "githubBad": "Enter a GitHub username or a profile link, like octocat or github.com/octocat.",
+    "noFile": "Choose a CV file first.",
+    "disabled": "This import is not available right now. You can upload a CV or fill in your details by hand."
   },
   "review": {
     "title": "Check what we read",
@@ -95,5 +115,21 @@
     "useAnother": "Use a different address",
     "finishing": "Signing you in…",
     "failed": "We couldn’t finish signing you in. Please try again."
+  },
+  "ui": {
+    "home": "LivePortfolio home",
+    "progress": "Progress",
+    "stepOf": "Step {n} of {total}",
+    "steps": {
+      "account": "Account",
+      "import": "Import",
+      "review": "Review",
+      "address": "Address",
+      "generate": "Generate"
+    },
+    "loading": "Loading",
+    "livePreview": "Live preview",
+    "preview": "Preview",
+    "close": "Close"
   }
 }

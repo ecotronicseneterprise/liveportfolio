@@ -5,12 +5,25 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'liveportfolio.site'
 
+// With NEXT_PUBLIC_ONBOARDING_V2=true the old 4-step wizard must not be reachable: /create goes to the account-first flow.
+// The query string is kept (?ref= affiliate, ?invite=, ?bootcamp= are captured on the account step). Applies on every host
+// EXCEPT a user's portfolio subdomain (slug.liveportfolio.site/create is that portfolio's own path), so it also covers
+// localhost and Vercel preview URLs.
+const ONBOARDING_V2 = process.env.NEXT_PUBLIC_ONBOARDING_V2 === 'true'
+
 export function middleware(req: NextRequest) {
   const host = req.headers.get('host') || ''
   const { pathname } = req.nextUrl
 
   // Strip port for local dev
   const hostname = host.split(':')[0]
+
+  const isPortfolioSubdomain = hostname.endsWith(`.${ROOT_DOMAIN}`) && hostname !== `www.${ROOT_DOMAIN}`
+  if (ONBOARDING_V2 && !isPortfolioSubdomain && (pathname === '/create' || pathname === '/create/')) {
+    const url = req.nextUrl.clone()
+    url.pathname = '/create/account'
+    return NextResponse.redirect(url)
+  }
 
   // Local development: treat as main app
   if (hostname === 'localhost' || hostname === '127.0.0.1') {

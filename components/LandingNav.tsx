@@ -1,5 +1,6 @@
 'use client'
 
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
@@ -44,7 +45,7 @@ export default function LandingNav() {
                 Sign in
               </Link>
               <Link
-                href="/create"
+                href={CREATE_HREF}
                 className="px-5 py-2 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors"
               >
                 Free Preview

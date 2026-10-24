@@ -1,5 +1,6 @@
 'use client'
 
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
@@ -54,7 +55,7 @@ export default function LoginPage() {
       if (portfolio && 'id' in portfolio) {
         router.replace('/dashboard')
       } else {
-        router.replace('/create')
+        router.replace(CREATE_HREF)
       }
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -206,7 +207,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-gray-400">
           Don&apos;t have a portfolio yet?{' '}
-          <a href="/create" className="text-[#0A66C2] hover:underline font-medium">
+          <a href={CREATE_HREF} className="text-[#0A66C2] hover:underline font-medium">
             Build yours in 5 minutes →
           </a>
         </p>

@@ -1,5 +1,6 @@
 'use client'
 
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase'
@@ -315,7 +316,7 @@ export default function PreviewPage() {
         .single()
 
       if (error || !portfolio) {
-        router.push('/create')
+        router.push(CREATE_HREF)
         return
       }
 
@@ -621,7 +622,7 @@ export default function PreviewPage() {
                     key={item.label}
                     title={item.hint}
                     className="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-100 rounded-full text-xs text-gray-500 hover:border-[#0A66C2] hover:text-[#0A66C2] cursor-pointer transition-colors"
-                    onClick={() => router.push('/create')}
+                    onClick={() => router.push(CREATE_HREF)}
                   >
                     <span className="text-gray-300">+{item.points}</span>
                     <span>{item.label}</span>

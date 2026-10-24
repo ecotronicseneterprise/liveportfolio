@@ -1,5 +1,6 @@
 'use client'
 
+import { CREATE_HREF } from '@/lib/onboarding/entry'
 import Link from 'next/link'
 import { useRegion } from '@/hooks/useRegion'
 import { useUsdRate } from '@/hooks/useUsdRate'
@@ -47,7 +48,7 @@ export default function PricingSection() {
               ))}
             </ul>
             <Link
-              href="/create"
+              href={CREATE_HREF}
               className="w-full text-center py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:border-gray-300 transition-colors"
             >
               Get started free
@@ -79,7 +80,7 @@ export default function PricingSection() {
               ))}
             </ul>
             <Link
-              href="/create"
+              href={CREATE_HREF}
               className="w-full text-center py-3 bg-[#0A66C2] text-white rounded-xl text-sm font-bold hover:bg-[#084D9A] transition-colors"
             >
               Get started →
@@ -108,7 +109,7 @@ export default function PricingSection() {
               ))}
             </ul>
             <Link
-              href="/create"
+              href={CREATE_HREF}
               className="w-full text-center py-2.5 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:border-gray-300 transition-colors"
             >
               Go Pro →

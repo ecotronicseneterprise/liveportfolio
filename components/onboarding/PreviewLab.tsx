@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import TemplateGallery from './TemplateGallery'
+import FlowShell from './ui/FlowShell'
 import { sanitizeDraft, type Draft } from '@/lib/onboarding/draft'
 import { draftToPreviewContent } from '@/lib/onboarding/preview-content'
 
@@ -20,11 +21,12 @@ export default function PreviewLab() {
   const [selected, setSelected] = useState('minimal')
   const content = useMemo(() => draftToPreviewContent({ ...SAMPLE, name }, 'ada@example.com'), [name])
   return (
-    <main className="max-w-3xl mx-auto p-4">
-      <label className="block mb-3">Name
-        <input id="lab-name" className="block w-full border rounded px-3 min-h-11" value={name} onChange={(e) => setName(e.target.value)} />
+    <FlowShell width="md">
+      <label className="lp-field" style={{ marginBottom: 'var(--lp-s4)' }}>
+        <span className="lp-label">Name</span>
+        <input id="lab-name" className="lp-input" value={name} onChange={(e) => setName(e.target.value)} />
       </label>
       <TemplateGallery content={content} selected={selected} onSelect={setSelected} />
-    </main>
+    </FlowShell>
   )
 }
