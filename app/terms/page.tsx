@@ -132,7 +132,7 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-3">8. Account Termination</h2>
             <p>
               You may request deletion of your account at any time by emailing
-              {' '}<a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">support@ecotronicsenterprise.com</a>.
+              {' '}<a href="mailto:ecotronics.nterprise@gmail.com" className="text-[#0A66C2] hover:underline">ecotronics.nterprise@gmail.com</a>.
               We will delete your account and all associated portfolio data within 14 days of your request.
               Deletion is permanent and irreversible.
             </p>
@@ -172,8 +172,8 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-3">12. Contact</h2>
             <p>
               For any questions about these terms, email us at{' '}
-              <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">
-                support@ecotronicsenterprise.com
+              <a href="mailto:ecotronics.nterprise@gmail.com" className="text-[#0A66C2] hover:underline">
+                ecotronics.nterprise@gmail.com
               </a>.
             </p>
           </section>

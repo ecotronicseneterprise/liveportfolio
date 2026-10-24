@@ -484,7 +484,7 @@ export default function PreviewPage() {
           </div>
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Your payment is being processed</h2>
           <p className="text-sm text-gray-500 mb-6">
-            We received your payment. Your portfolio will be activated shortly and you'll receive a confirmation email. If it's not live within 10 minutes, email us at <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">support@ecotronicsenterprise.com</a>.
+            We received your payment. Your portfolio will be activated shortly and you'll receive a confirmation email. If it's not live within 10 minutes, email us at <a href="mailto:ecotronics.nterprise@gmail.com" className="text-[#0A66C2] hover:underline">ecotronics.nterprise@gmail.com</a>.
           </p>
           <button
             onClick={() => router.push('/dashboard')}

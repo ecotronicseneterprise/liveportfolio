@@ -4,7 +4,7 @@ import { PullQuote, Callout, StepCard, KeyTakeaway, CTASection, RelatedArticles 
 export const metadata: Metadata = {
   title: 'Portfolio for Bootcamp Graduates — How to Get Hired With Little Experience | LivePortfolio',
   description: 'You have more to show than you think. A guide for ALX, Andela, and bootcamp graduates on turning coursework into a portfolio that gets callbacks.',
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'Portfolio for Bootcamp Graduates: How to Get Hired With Little Experience',
     description: 'How to turn coursework and side projects into a portfolio that gets responses, even when you are just starting out.',
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

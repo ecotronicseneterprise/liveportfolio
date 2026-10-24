@@ -4,7 +4,7 @@ import { PullQuote, Callout, KeyTakeaway, CTASection, RelatedArticles } from '..
 export const metadata: Metadata = {
   title: "LinkedIn to Portfolio: Turn Your Profile Into a Website Recruiters Remember | LivePortfolio",
   description: "Your LinkedIn is not a portfolio — it is a discovery tool. Here's how to turn the same experience into a portfolio website that makes a stronger impression.",
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'LinkedIn to Portfolio: Turn Your Profile Into a Website Recruiters Remember',
     description: "Your LinkedIn is not a portfolio — it is a discovery tool. Here's how to go further.",
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

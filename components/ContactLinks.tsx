@@ -1,8 +1,9 @@
 // Support contact: email, and WhatsApp as a plain icon link (replaces the old floating chat button, whose position was
 // computed once from window.innerWidth and ended up outside the viewport after a rotation or resize).
 // Static markup only: no client JS, no animation, no fixed positioning.
+import { SUPPORT_EMAIL } from '@/lib/brand'
 const WA_URL = 'https://wa.me/2349014545622?text=Hi%2C%20I%20have%20a%20question%20about%20liveportfolio.site'
-const EMAIL = 'support@ecotronicsenterprise.com'
+const EMAIL = SUPPORT_EMAIL
 
 export default function ContactLinks() {
   return (

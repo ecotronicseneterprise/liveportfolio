@@ -150,8 +150,8 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-3">
               To exercise any of these rights, email{' '}
-              <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">
-                support@ecotronicsenterprise.com
+              <a href="mailto:ecotronics.nterprise@gmail.com" className="text-[#0A66C2] hover:underline">
+                ecotronics.nterprise@gmail.com
               </a>
               . We will respond within 30 days.
             </p>
@@ -175,8 +175,8 @@ export default function PrivacyPage() {
             <h2 className={H2}>11. Contact</h2>
             <p>
               For privacy-related questions or requests, contact us at{' '}
-              <a href="mailto:support@ecotronicsenterprise.com" className="text-[#0A66C2] hover:underline">
-                support@ecotronicsenterprise.com
+              <a href="mailto:ecotronics.nterprise@gmail.com" className="text-[#0A66C2] hover:underline">
+                ecotronics.nterprise@gmail.com
               </a>.
             </p>
           </section>

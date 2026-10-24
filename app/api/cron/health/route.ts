@@ -6,7 +6,7 @@ import { sendEmail } from '@/lib/email'
 export const dynamic = 'force-dynamic'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
-const ALERT_EMAIL = 'nwannachumaclifford@gmail.com'
+const ALERT_EMAIL = 'ecotronics.nterprise@gmail.com'
 const GOAL = 500000
 const GOAL_LABEL = '₦500,000'
 

@@ -4,7 +4,7 @@ import { PullQuote, Callout, Checklist, KeyTakeaway, CTASection, RelatedArticles
 export const metadata: Metadata = {
   title: 'Portfolio Tips for African Tech Professionals — liveportfolio.site',
   description: 'How to stand out to global recruiters as an African tech professional. Frame your projects with outcomes and build a portfolio that travels.',
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'Portfolio Tips for African Tech Professionals',
     description: 'How to present your work to global recruiters, frame outcomes with numbers, and signal that you are ready for remote roles.',
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

@@ -4,7 +4,7 @@ import { PullQuote, Callout, StepCard, Checklist, KeyTakeaway, CTASection, Relat
 export const metadata: Metadata = {
   title: 'What Recruiters Actually Value in a Portfolio — liveportfolio.site',
   description: 'A recruiter has 7 seconds before they decide. Here is exactly what they are scanning for, and the red flags that get candidates skipped immediately.',
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'What Recruiters Actually Value in a Portfolio',
     description: 'The 7-second scan, projects with outcomes, and the red flags that get candidates skipped.',
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

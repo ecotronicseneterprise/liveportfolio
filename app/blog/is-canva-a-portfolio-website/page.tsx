@@ -4,7 +4,7 @@ import { PullQuote, Callout, KeyTakeaway, CTASection, RelatedArticles } from '..
 export const metadata: Metadata = {
   title: "Is Canva a Portfolio Website? Here's What It's Missing | LivePortfolio",
   description: "Canva makes beautiful documents. But a portfolio website it is not. Here's exactly what Canva can and cannot do for your career — and the one gap that costs you interviews.",
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: "Is Canva a Portfolio Website? Here's What It's Missing",
     description: "Canva makes beautiful documents. But a portfolio website it is not. Here's the one gap that costs you interviews.",
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

@@ -4,7 +4,7 @@ import { Callout, KeyTakeaway, CTASection, RelatedArticles } from '../BlogCompon
 export const metadata: Metadata = {
   title: 'Best Portfolio Builder for Nigerian Tech Professionals in 2026 | LivePortfolio',
   description: 'Comparing portfolio builders for Nigerian developers, designers, and product managers — Naira pricing, AI features, and what actually works for remote hiring.',
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'Best Portfolio Builder for Nigerian Tech Professionals in 2026',
     description: 'Comparing portfolio builders on Naira pricing, AI features, and what actually works for remote hiring.',
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

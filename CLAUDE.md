@@ -624,7 +624,7 @@ ADMIN_METRICS_SECRET, CRON_SECRET, IPINFO_TOKEN
 ### Daily health check email
 - Script: `scripts/health-check.sh`
 - Cron: daily at 6:00 AM UTC (7:00 AM Lagos time)
-- Sends to: nwannachumaclifford@gmail.com via Resend
+- Sends to: ecotronics.nterprise@gmail.com via Resend
 - Shows: app status, response time, SSL days, revenue, signups, published users,
   email list, portfolio views, top portfolios, recent signups, recent payments
 - Metrics endpoint: `GET /api/admin/metrics` (requires `x-metrics-secret` header)

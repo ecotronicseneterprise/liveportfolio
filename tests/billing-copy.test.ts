@@ -111,14 +111,27 @@ describe('the old over-promising lines are gone', () => {
 })
 
 describe('one support address', () => {
-  it('the other address is gone everywhere', () => {
-    const files = [...walk('app'), ...walk('components'), ...walk('lib')]
-    expect(files.filter((f) => /support@liveportfolio\.site/.test(read(f)))).toEqual([])
-    expect(SUPPORT_EMAIL).toBe('support@ecotronicsenterprise.com')
+  // The only public contact address is SUPPORT_EMAIL. Allowed besides it: the verified SENDING address, and obvious placeholders.
+  const allowed = new Set([SUPPORT_EMAIL, 'noreply@liveportfolio.site', 'your@email.com', 'adaeze@gmail.com'])
+  const exempt = new Set(['lib/partners.ts']) // who receives affiliate reports: internal, not a public contact
+  it('no other e-mail address appears in the app, components or lib (apart from placeholders and the sender)', () => {
+    const found: string[] = []
+    for (const f of [...walk('app'), ...walk('components'), ...walk('lib')]) {
+      if (exempt.has(f)) continue
+      for (const m of read(f).matchAll(/[A-Za-z0-9._-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[a-z]{2,}/g)) {
+        const a = m[0]
+        if (allowed.has(a) || /example\.|evil\./.test(a) || /^@/.test(a)) continue
+        found.push(`${f}: ${a}`)
+      }
+    }
+    expect(found).toEqual([])
   })
-  it('the upgrade modal, the return page and the billing panel use the constant', () => {
-    for (const f of ['components/UpgradeModal.tsx', 'app/checkout/return/ReturnClient.tsx', 'components/dashboard/PlanBillingPanel.tsx']) expect(read(f)).toMatch(/SUPPORT_EMAIL/)
+  it('the address is the one the owner chose', () => expect(SUPPORT_EMAIL).toBe('ecotronics.nterprise@gmail.com'))
+  it('the upgrade modal, the return page, the billing panel, the Terms, the privacy policy and the contact links all show it', () => {
+    for (const f of ['components/UpgradeModal.tsx', 'app/checkout/return/ReturnClient.tsx', 'components/dashboard/PlanBillingPanel.tsx', 'app/terms/page.tsx', 'components/ContactLinks.tsx']) expect(read(f)).toMatch(/SUPPORT_EMAIL/)
+    expect(read('app/privacy/page.tsx')).toContain(SUPPORT_EMAIL)
   })
+  it('outgoing mail replies to it', () => expect(read('lib/email.ts')).toMatch(/replyTo: SUPPORT_EMAIL/))
 })
 
 describe('the browser never chooses a price', () => {

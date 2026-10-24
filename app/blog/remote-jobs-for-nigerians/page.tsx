@@ -4,7 +4,7 @@ import { PullQuote, Callout, Checklist, KeyTakeaway, CTASection, RelatedArticles
 export const metadata: Metadata = {
   title: 'Remote Jobs for Nigerians: The Portfolio Trick That Gets You Noticed | LivePortfolio',
   description: "Applying for remote jobs from Nigeria? Here's why a strong portfolio link gets you further than a perfectly formatted CV — and how to build one fast.",
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'Remote Jobs for Nigerians: The Portfolio Trick That Gets You Noticed',
     description: "Why a strong portfolio link gets you further than a perfectly formatted CV — and how to build one fast.",
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

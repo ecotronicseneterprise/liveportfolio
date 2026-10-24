@@ -4,7 +4,7 @@ import { PullQuote, Callout, KeyTakeaway, CTASection, RelatedArticles } from '..
 export const metadata: Metadata = {
   title: 'Is GitHub a Portfolio Website? What Recruiters Actually See | LivePortfolio',
   description: "Your GitHub profile shows your code. It does not tell a non-technical recruiter why any of it matters. Here's the real gap between a GitHub profile and a portfolio.",
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'Is GitHub a Portfolio Website? What Recruiters Actually See',
     description: "Your GitHub profile shows your code. It does not tell a non-technical recruiter why any of it matters.",
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

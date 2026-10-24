@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 // Partner config lives in lib/partners.ts — add new partners there only.
 
-const ADMIN_EMAIL = 'nwannachumaclifford@gmail.com'
+const ADMIN_EMAIL = 'ecotronics.nterprise@gmail.com'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
 
 // ── Email helpers ────────────────────────────────────────────────────────────

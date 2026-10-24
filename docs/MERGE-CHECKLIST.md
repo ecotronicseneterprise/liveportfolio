@@ -36,7 +36,7 @@ Paystack dashboard (Live mode):
 - The account is activated and a settlement bank account is set.
 - The old **Test 500** subscription (₦500 monthly) is cancelled, or it charges you again around Nov 12.
 
-Support: `support@ecotronicsenterprise.com` is the address shown in the Terms, privacy policy, return page and dashboard. **Confirm that mailbox exists and you read it**, because refund requests go there.
+Support: `ecotronics.nterprise@gmail.com` is the address shown in the Terms, privacy policy, return page and dashboard. **Confirm that mailbox exists and you read it**, because refund requests go there.
 
 ## 3. Create the PR and merge
 

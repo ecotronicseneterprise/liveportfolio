@@ -27,7 +27,7 @@ Not on `main` and not built: the assistant, MCP, block catalog and new templates
 - `d2e2de2` webhook logs every ignored or rejected event (`[paystack-webhook] ignored ...`). Behaviour unchanged.
 - `79b8d92` payment redesign document.
 - `430f8aa` the **one-time checkout** (server-owned price, `payment_intents`, verify, return page) first built behind a flag.
-- **Next commit (flag removed, this file's commit):** the one-time checkout is the ONLY way to buy a plan (no `CHECKOUT_V2`, no fallback); the `payment_intents` table is required; Terms, pricing, landing and FAQ describe one payment for 12 months, no automatic renewal, 7-day refund guarantee; prices shown in Naira with a labelled dollar estimate; dashboard "Plan and billing" panel (`GET /api/billing`); one support address (`support@ecotronicsenterprise.com`, confirm the mailbox exists); `docs/MERGE-CHECKLIST.md`.
+- **Next commit (flag removed, this file's commit):** the one-time checkout is the ONLY way to buy a plan (no `CHECKOUT_V2`, no fallback); the `payment_intents` table is required; Terms, pricing, landing and FAQ describe one payment for 12 months, no automatic renewal, 7-day refund guarantee; prices shown in Naira with a labelled dollar estimate; dashboard "Plan and billing" panel (`GET /api/billing`); one support address (`ecotronics.nterprise@gmail.com`, confirm the mailbox exists); `docs/MERGE-CHECKLIST.md`.
 
 **Merging `dev` changes what customers get**: the old card-subscription checkout stops being offered. Its webhook path stays for the one existing Test 500 subscription and any renewals.
 

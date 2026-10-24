@@ -4,7 +4,7 @@ import { PullQuote, Callout, Checklist, KeyTakeaway, CTASection, RelatedArticles
 export const metadata: Metadata = {
   title: 'Portfolio for Web Developers: The Structure That Actually Gets Read | LivePortfolio',
   description: "Not sure what your developer portfolio needs? Here's the exact section structure recruiters expect — and the mistakes that make good developers look unprepared.",
-  authors: [{ name: 'Clifford Nwanna', url: 'mailto:nwannachumaclifford@gmail.com' }],
+  authors: [{ name: 'Clifford Nwanna', url: 'mailto:ecotronics.nterprise@gmail.com' }],
   openGraph: {
     title: 'Portfolio for Web Developers: The Structure That Actually Gets Read',
     description: "The exact section structure recruiters expect — and the mistakes that make good developers look unprepared.",
@@ -40,7 +40,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Clifford Nwanna',
-    email: 'nwannachumaclifford@gmail.com',
+    email: 'ecotronics.nterprise@gmail.com',
     url: 'https://liveportfolio.site/ezekwe',
   },
   publisher: { '@type': 'Organization', name: 'LivePortfolio', url: 'https://liveportfolio.site' },

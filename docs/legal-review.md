@@ -22,6 +22,6 @@ Status: **draft, not reviewed by a lawyer.** `app/privacy/page.tsx` carries a LE
 ## Added with the one-time checkout (docs/payment-redesign.md)
 9. The new Terms section 6 is a real 7-day refund guarantee ("we will refund the full amount you paid, whether or not you have published"). Check that it is what you intend to promise in every region you sell in, and what happens to the portfolio on refund (it is unpublished).
 10. Terms section 5 (shown only once the one-time checkout is on for everyone): "single payment that gives you 12 months of access, no automatic renewal, we email you before your plan ends". The e-mail part is only true once the renewal reminders (part 2.6) are built.
-11. Two different support addresses are in use: Terms say support@liveportfolio.site, the privacy policy says support@ecotronicsenterprise.com. Pick one and confirm the mailbox exists.
+11. One public contact address everywhere (`SUPPORT_EMAIL` in `lib/brand.ts`, a Gmail address). Check that a free-mail address is acceptable as the contact for privacy requests and refunds, and that the mailbox is monitored. Outgoing mail still comes from noreply@liveportfolio.site (a verified sending domain) with this address as the reply-to.
 12. Payment processor fees on a refund: whether Paystack returns its fee is unverified; the copy makes no promise about it.
 13. The one abandoned-checkout e-mail (design only): transactional or marketing in each region.
