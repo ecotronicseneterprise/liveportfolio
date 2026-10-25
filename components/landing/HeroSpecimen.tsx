@@ -31,11 +31,16 @@ const specimen = (): PortfolioContent => ({
     stack: [],
     image_url: `/landing/project-${n}.jpg`,
   })),
-  experience: [],
+  experience: [1, 2].map((n) => ({
+    company: t(`landing.specimenJob${n}Company`),
+    role: t(`landing.specimenJob${n}Role`),
+    period: t(`landing.specimenJob${n}Period`),
+    bullets: [t(`landing.specimenJob${n}Bullet1`), t(`landing.specimenJob${n}Bullet2`)],
+  })),
 })
 
 const s = (block: SectionSpec['block'], variant: string): SectionSpec => ({ block, variant })
-const STUDIO: SectionSpec[] = [s('hero', 'statement'), s('projects', 'proof')]
+const STUDIO: SectionSpec[] = [s('hero', 'statement'), s('projects', 'proof'), s('experience', 'timeline'), s('skills', 'groups'), s('contact', 'band')]
 const JOURNAL: SectionSpec[] = [s('hero', 'split'), s('about', 'prose'), s('projects', 'rows')]
 const LEDGER: SectionSpec[] = [s('hero', 'compact'), s('projects', 'index'), s('skills', 'inline')]
 
@@ -62,7 +67,7 @@ export default function HeroSpecimen() {
             <div className="browser-tabs"><i /><i /><i /><span className="browser-tab">{content.name} — Portfolio</span><b>+</b></div>
             <div className="browser-toolbar"><span className="browser-controls">‹　›　↻</span><span className="browser-address"><span>⌑</span> liveportfolio.site/ada-okonkwo <span className="browser-lock">Secure</span></span><span className="browser-menu">⋮</span></div>
           </div>
-          <div className="spec-frame">
+          <div className="spec-frame" tabIndex={0} role="region" aria-label={t('landing.specimenScrollLabel')}>
             {/* inert: it is a picture of a portfolio, so its links and fields are not part of the page's tab order */}
             <div className="spec-pane spec-pane-studio" inert><Studio content={content} layout={{ v: 1, arrangement: 'proof' }} sections={STUDIO} idPrefix="sp-studio" credit={false} /></div>
             <div className="spec-pane spec-pane-journal" inert><Journal content={content} layout={{ v: 1, arrangement: 'profile' }} sections={JOURNAL} idPrefix="sp-journal" credit={false} /></div>

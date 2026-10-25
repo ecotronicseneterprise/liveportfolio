@@ -218,7 +218,7 @@
     "specimenSolution1": "Moved to an append-only double-entry ledger with idempotent writes.",
     "specimenSolution2": "A shared token-bucket limiter with per-tenant budgets.",
     "specimenSolution3": "A parser that reads PDFs and posts matched lines to the ledger.",
-    "specimenCaption": "The top of a sample portfolio",
+    "specimenCaption": "Scroll inside the window to see the whole sample",
     "looksTitle": "Three looks. Your words.",
     "looksLede": "Pick the look that suits your work. You can switch at any time, and your text never changes.",
     "lookFor": {
@@ -236,7 +236,18 @@
     "typefaces": "Typefaces: {fonts}.",
     "howTitle": "How it works",
     "faqTitle": "Questions people ask",
-    "homeLink": "LivePortfolio home"
+    "homeLink": "LivePortfolio home",
+    "specimenJob1Company": "Acme Payments",
+    "specimenJob1Role": "Senior software engineer",
+    "specimenJob1Period": "2022 to now",
+    "specimenJob1Bullet1": "Led the ledger migration for a four-person team.",
+    "specimenJob1Bullet2": "Cut p95 payment latency by 40% across 12 services.",
+    "specimenJob2Company": "Kobo Finance",
+    "specimenJob2Role": "Software engineer",
+    "specimenJob2Period": "2019 to 2022",
+    "specimenJob2Bullet1": "Built the card-settlement service handling 120,000 transactions a day.",
+    "specimenJob2Bullet2": "Introduced contract tests that caught 30+ breaking changes before release.",
+    "specimenScrollLabel": "Sample portfolio, scrollable"
   },
   "lookPicker": {
     "title": "Look",

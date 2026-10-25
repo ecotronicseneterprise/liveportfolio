@@ -77,14 +77,23 @@
 .lpb[data-theme="studio"] .b-hero--statement .hero-kicker { color: #FFFFFF; opacity: .9; }
 .lpb[data-theme="studio"] .b-hero--statement .photo-monogram { background: var(--mark); color: var(--ink); }
 .lpb[data-theme="studio"] .b-hero--statement .photo { border-color: rgb(255 255 255 / .4); }
+/* the statement hero's picture: a large square, kept to the right of the words */
+.lpb .b-hero--statement .photo, .lpb .b-hero--statement .photo-monogram { width: 300px; height: 300px; border-radius: 6px; }
+.lpb .b-hero--statement .photo { object-fit: cover; object-position: 50% 14%; }
+.lpb .b-hero--statement .photo-monogram { font-size: 96px; }
+.lpb .b-hero--statement .hero-intro { align-items: center; gap: 56px; }
 .lpb[data-theme="journal"] .b-hero--statement { background: var(--band); }
 .lpb[data-theme="journal"] .b-hero--statement::after { width: 220px; height: 220px; right: 4%; bottom: -150px; border-width: 2px; }
 .lpb[data-theme="ledger"] .b-hero--statement { background: var(--band); border-bottom: 2px solid var(--rule); }
 .lpb[data-theme="ledger"] .b-hero--statement .name { font-family: var(--display); }
 .lpb[data-theme="ledger"] .b-hero--statement .hero-kicker { color: var(--mark); }
-.lpb .b-hero--split .headline { align-self: end; }
-.lpb .b-hero--split .two { grid-template-columns: 1fr 1fr; align-items: end; }
-.lpb .b-hero--split .role { margin-bottom: 24px; }
+/* Minimal's hero: the picture beside the name, then the facts underneath (never the picture on top of the name) */
+.lpb .b-hero--split .split-id { display: flex; align-items: center; gap: 44px; }
+.lpb .b-hero--split .split-text { flex: 1; min-width: 0; }
+.lpb .b-hero--split .photo, .lpb .b-hero--split .photo-monogram { width: 200px; height: 200px; border-radius: 50%; object-position: 50% 14%; }
+.lpb .b-hero--split .role { margin-bottom: 20px; }
+.lpb .b-hero--split .headline { max-width: 24em; }
+.lpb .b-hero--split .facts { margin-top: 40px; }
 .lpb .facts { margin: 0; }
 .lpb .facts div { display: flex; column-gap: 16px; padding-top: 8px; padding-bottom: 8px; border-top: 1px solid var(--rule); }
 .lpb .facts dt { width: 72px; flex: none; font-family: var(--label); font-size: 14px; color: var(--muted); }
@@ -210,7 +219,15 @@
   .lpb .hero-kicker { font-size: 12px; margin-bottom: 12px; }
   .lpb .b-hero--compact .name { font-size: 32px; }
   .lpb .b-hero--compact .headline { font-size: 21px; }
-  .lpb .two, .lpb .two2, .lpb .b-hero--split .two { grid-template-columns: 1fr; row-gap: 16px; }
+  .lpb .two, .lpb .two2 { grid-template-columns: 1fr; row-gap: 16px; }
+  .lpb .b-hero--statement .photo, .lpb .b-hero--statement .photo-monogram { width: 104px; height: 104px; }
+  .lpb .b-hero--statement .name { font-size: 34px; }
+  .lpb .b-hero--statement .headline { font-size: 20px; }
+  .lpb .b-hero--statement .photo-monogram { font-size: 44px; }
+  .lpb .b-hero--statement .hero-intro { gap: 20px; }
+  .lpb .b-hero--split .split-id { gap: 18px; align-items: flex-start; }
+  .lpb .b-hero--split .photo, .lpb .b-hero--split .photo-monogram { width: 96px; height: 96px; }
+  .lpb .b-hero--split .facts { margin-top: 28px; }
   .lpb .two > h2, .lpb .two2 > h2 { margin-bottom: 8px; }
   .lpb .prow { grid-template-columns: 36px minmax(0, 1fr); column-gap: 14px; row-gap: 14px; }
   .lpb .prow .project-result { grid-column: 2; }

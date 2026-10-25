@@ -43,14 +43,19 @@
 .lpl .browser-controls, .lpl .browser-menu { flex: none; font-size: 15px; }
 .lpl .browser-address { min-width: 0; flex: 1; height: 24px; display: flex; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid #E2E8F0; border-radius: 99px; background: #FFFFFF; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .lpl .browser-lock { margin-left: auto; color: #64748B; font-size: 10px; }
-.lpl .spec-frame { height: calc(100% - 68px); overflow: hidden; background: #FFFFFF; }
+.lpl .spec-frame { height: calc(100% - 68px); overflow-x: hidden; overflow-y: auto; background: #FFFFFF; overscroll-behavior: contain; }
 @media (max-width: 639px) { .lpl .browser-window { height: 540px; } .lpl .browser-chrome { padding-inline: 8px; } .lpl .browser-toolbar { gap: 6px; } .lpl .browser-tab { max-width: 160px; } .lpl .browser-controls { font-size: 12px; } .lpl .browser-lock { display: none; } }
 /* the specimen shows the top of a portfolio, so its hero and spacing are tighter than on a full page */
+.lpl .spec-frame:focus-visible { outline: 3px solid #0A66C2; outline-offset: -3px; }
 .lpl .spec-frame .lpb { --sec: 44px; --sec-m: 36px; --h1: 44px; --lead: 22px; }
 .lpl .spec-frame .lpb .b-hero { padding-top: 32px; padding-bottom: 24px; }
+@media (min-width: 640px) {
+  .lpl .spec-frame .lpb .b-hero--statement .photo, .lpl .spec-frame .lpb .b-hero--statement .photo-monogram { width: 228px; height: 228px; }
+  .lpl .spec-frame .lpb .b-hero--split .photo, .lpl .spec-frame .lpb .b-hero--split .photo-monogram { width: 150px; height: 150px; }
+}
 .lpl .spec-frame .lpb .b h2 { margin-bottom: 20px; }
 .lpl .spec-frame .lpb .pproof .big { font-size: 22px; line-height: 1.3; }
-.lpl .spec-pane { display: none; height: 100%; overflow: hidden; }
+.lpl .spec-pane { display: none; }
 .lpl #spec-studio:checked ~ .browser-window .spec-frame .spec-pane-studio,
 .lpl #spec-journal:checked ~ .browser-window .spec-frame .spec-pane-journal,
 .lpl #spec-ledger:checked ~ .browser-window .spec-frame .spec-pane-ledger { display: block; }

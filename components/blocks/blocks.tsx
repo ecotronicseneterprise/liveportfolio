@@ -85,19 +85,21 @@ const hero: Record<string, Render> = {
   ),
   split: (d, c) => (
     <section className="b b-hero b-hero--split" id={id(c, 'top')}>
-      <div className="wrap two">
-        <div>
+      <div className="wrap">
+        <div className="split-id">
           <HeroPortrait d={d} />
-          <h1 className="name">{d.name}</h1>
-          {d.role && <p className="role">{d.role}</p>}
-          {(d.location || d.email) && (
-            <dl className="facts">
-              {d.location && <div><dt>{t('portfolio.based')}</dt><dd>{d.location}</dd></div>}
-              {d.email && <div><dt>{t('portfolio.email')}</dt><dd><a href={mailto(d.email)}>{d.email}</a></dd></div>}
-            </dl>
-          )}
+          <div className="split-text">
+            <h1 className="name">{d.name}</h1>
+            {d.role && <p className="role">{d.role}</p>}
+            {d.headline && <p className="headline">{d.headline}</p>}
+          </div>
         </div>
-        {d.headline && <p className="headline">{d.headline}</p>}
+        {(d.location || d.email) && (
+          <dl className="facts">
+            {d.location && <div><dt>{t('portfolio.based')}</dt><dd>{d.location}</dd></div>}
+            {d.email && <div><dt>{t('portfolio.email')}</dt><dd><a href={mailto(d.email)}>{d.email}</a></dd></div>}
+          </dl>
+        )}
       </div>
     </section>
   ),
