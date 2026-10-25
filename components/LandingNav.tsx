@@ -3,6 +3,7 @@
 import { CREATE_HREF } from '@/lib/onboarding/entry'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { t } from '@/lib/onboarding/t'
 import Logo from '@/components/Logo'
 import { getSupabaseClient } from '@/lib/supabase'
 
@@ -27,7 +28,7 @@ export default function LandingNav() {
   return (
     <nav className="border-b border-gray-100 sticky top-0 z-50 bg-white/95 backdrop-blur-sm">
       <div className="w-full px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-between">
-        <Link href="/"><Logo /></Link>
+        <Link href="/" aria-label={t('landing.homeLink')}><Logo /></Link>
         <div className="flex items-center gap-4">
           <Link href="/blog" className="text-sm text-gray-500 hover:text-gray-800 transition-colors hidden sm:block">
             Blog

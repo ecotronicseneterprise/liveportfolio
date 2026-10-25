@@ -15,6 +15,9 @@ import LiveToast, { pushLiveToast } from '@/components/LiveToast'
 import Turnstile from '@/components/onboarding/Turnstile'
 import HistoryPanel from '@/components/dashboard/HistoryPanel'
 import PlanBillingPanel from '@/components/dashboard/PlanBillingPanel'
+import LookPicker from '@/components/dashboard/LookPicker'
+import { parseLayout } from '@/lib/blocks/settings'
+import type { StoredContent } from '@/lib/blocks/mode'
 import { captchaOptions } from '@/lib/onboarding/captcha'
 import { DRAFT_KEY } from '@/lib/onboarding/draft'
 
@@ -1414,7 +1417,27 @@ export default function DashboardPage() {
               </p>
             )}
 
-            {/* Template switcher — all 10, Pro gated */}
+            {/* The look: new block designs (every portfolio created since the redesign) get the look picker; older portfolios keep the classic template switcher below. */}
+            {parseLayout((editContent as StoredContent).layout) ? (
+              <div>
+                <LookPicker
+                  content={editContent as StoredContent}
+                  template={template}
+                  isPro={isPro}
+                  onChange={(next) => {
+                    if (next.template) { setTemplate(next.template); setPreviewTemplate(next.template); setLockedTemplateMsg(null) }
+                    if (next.layout) setEditContent((prev) => ({ ...prev, layout: next.layout }) as Partial<PortfolioContent>)
+                  }}
+                  onLocked={(name) => setLockedTemplateMsg(`"${name}" is a Pro template.`)}
+                />
+                {lockedTemplateMsg && (
+                  <div className="mt-3 p-3 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-xl text-sm text-[#084D9A] font-medium flex items-center justify-between gap-3">
+                    <span>{lockedTemplateMsg}</span>
+                    <button onClick={() => { setLockedTemplateMsg(null); setShowUpgradeModal(true) }} className="underline flex-shrink-0 min-h-[44px]">Upgrade →</button>
+                  </div>
+                )}
+              </div>
+            ) : (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
               {/* Template preview card */}
@@ -1556,6 +1579,7 @@ export default function DashboardPage() {
                 })}
               </div>
             </div>
+            )}
 
             {/* Editable fields */}
             <div className="grid gap-4">

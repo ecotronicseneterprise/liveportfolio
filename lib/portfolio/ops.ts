@@ -7,6 +7,7 @@
 // Deliberately NOT here: publishing, plans, the slug, the email address of the account. Those are not "content".
 import { z } from 'zod'
 import { httpUrl, isGithubAvatarUrl, projectImageUrl } from '@/lib/connectors/safe-url'
+import { LayoutSettings, parseLayout } from '@/lib/blocks/settings'
 
 export type Json = Record<string, unknown>
 export interface PortfolioState {
@@ -30,6 +31,7 @@ export const LINK_FIELDS = ['github_url', 'linkedin_url', 'avatar_url'] as const
 export const CONTENT_KEYS = [
   'name', 'role', 'about', 'headline', 'location', 'email', 'github_url', 'linkedin_url', 'avatar_url',
   'skills', 'skills_grouped', 'skills_narrative', 'projects', 'experience', 'education', 'certifications',
+  'layout', // the look: an arrangement and a few presentation choices, validated by lib/blocks/settings.ts (never words)
 ] as const
 const ARRAY_KEYS = new Set(['skills', 'skills_grouped', 'projects', 'experience', 'education', 'certifications'])
 const MAX_ITEMS = 50
@@ -97,6 +99,8 @@ export const Op = z.discriminatedUnion('op', [
   // The dashboard's "Save" sends whole sections; this is that, validated for shape. The assistant is not given this op.
   z.object({ op: z.literal('replace_content'), content: z.record(z.string(), z.unknown()) }).strict(),
   z.object({ op: z.literal('set_template'), template: z.string().max(40) }).strict(),
+  // The look of the portfolio (null = back to the classic design). Content is never touched.
+  z.object({ op: z.literal('set_layout'), layout: LayoutSettings.nullable() }).strict(),
 ])
 export type Op = z.infer<typeof Op>
 export const Ops = z.array(Op).min(1).max(MAX_OPS)
@@ -153,6 +157,14 @@ function cleanContentPatch(raw: Record<string, unknown>, i: number): Json {
   for (const k of CONTENT_KEYS) {
     if (!(k in raw)) continue
     const v = raw[k]
+    if (k === 'layout') {
+      if (v === null) { out.layout = null; continue }
+      // a whole-section save is lenient (an invalid or hand-edited layout is dropped, so one bad value can never block saving other edits); the
+      // typed set_layout op is strict
+      const parsed = parseLayout(v)
+      if (parsed) out.layout = parsed
+      continue
+    }
     if (ARRAY_KEYS.has(k)) {
       if (!Array.isArray(v) || v.length > MAX_ITEMS) throw new OpError('invalid_op', `${k} must be a list of at most ${MAX_ITEMS}`, i)
       out[k] = v
@@ -308,6 +320,10 @@ export function applyOps(input: PortfolioState, rawOps: unknown): ApplyResult {
           })
         }
         for (const [k, v] of Object.entries(patch)) {
+          if (k === 'layout') {
+            if (v === null) { if ('layout' in c) { delete c.layout; note('Went back to the classic design') } } else if (!same(c.layout, v)) { c.layout = v; note('Changed look') }
+            continue
+          }
           if (k.endsWith('_url') && typeof v === 'string') {
             const checked = checkLink(k as 'github_url', v, c[k], i)
             if (!same(c[k] ?? '', checked)) { if (checked) c[k] = checked; else delete c[k]; note(`Changed ${k.replace('_url', '')} link`) }
@@ -318,6 +334,11 @@ export function applyOps(input: PortfolioState, rawOps: unknown): ApplyResult {
             note(Array.isArray(v) ? `Changed ${k.replace('_', ' ')}` : `Changed ${k.replace('_', ' ')}`)
           }
         }
+        break
+      }
+      case 'set_layout': {
+        if (op.layout === null) { if ('layout' in c) { delete c.layout; note('Went back to the classic design') } }
+        else if (!same(c.layout, op.layout)) { c.layout = op.layout; note('Changed look') }
         break
       }
       case 'set_template': {

@@ -91,7 +91,7 @@ export function sanitizeDraft(input: unknown): Draft | null {
       const r = rec(e)
       return { degree: s(r.degree, 100), institution: s(r.institution, 100), year: s(r.year, 20), grade: s(r.grade, 40) }
     }),
-    template: /^[a-z][a-z-]{1,29}$/.test(typeof d.template === 'string' ? d.template : '') ? (d.template as string) : 'minimal',
+    template: /^[a-z][a-z-]{1,29}$/.test(typeof d.template === 'string' ? d.template : '') ? (d.template as string) : '', // '' = not chosen: the recommended look is used
     candidates: arr(d.candidates, 10)
       .map((c): DraftCandidate => {
         const r = rec(c)

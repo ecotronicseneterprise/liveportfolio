@@ -112,7 +112,7 @@ describe('draft: stores only reviewed fields', () => {
     expect(d.skills).toHaveLength(15)
     expect(d.projects).toHaveLength(4)
     expect(d.projects[0].url).toBe('')
-    expect(d.template).toBe('minimal')
+    expect(d.template).toBe('') // not chosen: the recommended look is used (lib/blocks/presets.ts)
     expect(d.candidates[0].repo_url).toBe('')
     expect(d.candidates[0].live_url).toBeNull()
   })

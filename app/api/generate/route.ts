@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 import { SYSTEM_PROMPT, buildGenerationPrompt } from '@/lib/prompts'
 import { resolveModel, paramsFor } from '@/lib/llm/model'
+import { layoutForTemplate, recommend } from '@/lib/blocks/presets'
 
 // In-memory IP rate limit: 5 per day
 const ipCounts = new Map<string, { count: number; resetAt: number }>()
@@ -105,7 +106,7 @@ function parseInput(body: Partial<InputData>) {
     })),
     template: (() => {
       const allowed = ['minimal', 'bold', 'creative', 'developer', 'designer', 'data-scientist', 'product-manager', 'finance', 'graduate', 'cybersecurity']
-      return allowed.includes(body.template || '') ? (body.template as string) : 'minimal'
+      return allowed.includes(body.template || '') ? (body.template as string) : '' // '' = not chosen: the recommended look is used
     })(),
   }
 }
@@ -255,6 +256,11 @@ export async function POST(req: NextRequest) {
       : input.certifications?.length ? input.certifications : undefined,
   }
 
+  // New portfolios are drawn with the block renderer: store the look (an arrangement, no words) inside the content. A Pro template stays legacy.
+  const chosenTemplate = input.template || recommend(content as never).template
+  const layout = layoutForTemplate(content as never, chosenTemplate)
+  if (layout) (content as Record<string, unknown>).layout = layout
+
   const healthScore = calculateHealthScore(content)
 
   // Save to Supabase
@@ -262,7 +268,7 @@ export async function POST(req: NextRequest) {
     .from('portfolios')
     .insert({
       user_id: user.id,
-      template: input.template,
+      template: chosenTemplate,
       content,
       health_score: healthScore,
       seo_title: (content.seo_title as string) || `${input.name} | ${input.role} Portfolio`,

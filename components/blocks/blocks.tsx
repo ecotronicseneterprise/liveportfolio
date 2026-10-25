@@ -1,0 +1,316 @@
+// The ten blocks and their variants. Plain functions of (data, options): no hooks, no client JS, safe to render on the server and inside
+// client trees (gallery thumbnails, the dashboard preview). A block whose data is empty returns null: a portfolio never shows an empty
+// heading. All words that are not the person's own come from messages/en.json (t('portfolio.*')); nothing here is hard-coded English.
+import type { ReactNode } from 'react'
+import { t } from '@/lib/onboarding/t'
+import type { BlockData, BlockProject } from '@/lib/blocks/adapt'
+import type { SectionSpec } from '@/lib/blocks/presets'
+
+export interface BlockCtx {
+  /** Prefix for anchor ids, so several portfolios on one page (the landing specimens, the gallery) never share an id. */
+  idp: string
+  /** Show only the first paragraph of the About text. */
+  bioShort: boolean
+  /** At most this many projects. */
+  projectLimit: number
+}
+
+// Display only: pick the figures out of a sentence the person wrote. A figure needs its unit (%, x, hours, days, ... or the naira sign):
+// a bare number is never picked out, and a digit inside a word ("p95") is ignored. Nothing is parsed into a statistic.
+const FIGURE = /(₦\s?\d[\d,]*(?:\.\d+)?\s?[KMB]?|(?<![A-Za-z\d.,\-])\d(?:[\d,]*\d)?(?:\.\d+)?\s?(?:%|x|hours?|minutes?|days?|weeks?|months?|years?|seconds?))/i
+export function Figures({ text }: { text: string }): ReactNode {
+  return text.split(FIGURE).map((part, i) => (i % 2 === 1 ? <mark key={i}>{part}</mark> : part))
+}
+
+const id = (c: BlockCtx, name: string) => `${c.idp}-${name}`
+const mailto = (e: string) => `mailto:${e}`
+
+function ProjectLinks({ p }: { p: BlockProject }) {
+  if (!p.url && !p.sourceUrl) return null
+  return (
+    <p className="plinks">
+      {p.url && <a href={p.url} rel="noopener noreferrer">{t('portfolio.visitProject')}<span className="sr-only"> {p.title}</span></a>}
+      {p.sourceUrl && <a href={p.sourceUrl} rel="noopener noreferrer">{t('portfolio.sourceCode')}<span className="sr-only"> {p.title}</span></a>}
+    </p>
+  )
+}
+
+/** A project picture the person uploaded, or (for the image-led layout) a plain labelled slot only when asked. Never a stock image. */
+function Picture({ p, slot }: { p: BlockProject; slot: boolean }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  if (p.imageUrl) return <img className="pimg" src={p.imageUrl} alt={p.title} width={1280} height={800} loading="lazy" decoding="async" />
+  return slot ? <div className="ph" role="img" aria-label={t('portfolio.imageSlot')}><span>{t('portfolio.imageSlot')}</span></div> : null
+}
+
+type Render = (d: BlockData, c: BlockCtx) => ReactNode
+
+// ── hero ─────────────────────────────────────────────────────────────────────────────────────────────────
+const Photo = ({ d }: { d: BlockData }) =>
+  d.avatarUrl ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img className="photo" src={d.avatarUrl} alt={t('portfolio.photoOf', { name: d.name })} width={96} height={96} decoding="async" fetchPriority="high" />
+  ) : null
+
+const hero: Record<string, Render> = {
+  statement: (d, c) => (
+    <section className="b b-hero b-hero--statement" id={id(c, 'top')}>
+      <div className="wrap">
+        <Photo d={d} />
+        <h1 className="name">{d.name}</h1>
+        {d.role && <p className="role">{d.role}</p>}
+        {d.headline && <p className="headline">{d.headline}</p>}
+      </div>
+    </section>
+  ),
+  split: (d, c) => (
+    <section className="b b-hero b-hero--split" id={id(c, 'top')}>
+      <div className="wrap two">
+        <div>
+          <Photo d={d} />
+          <h1 className="name">{d.name}</h1>
+          {d.role && <p className="role">{d.role}</p>}
+          {(d.location || d.email) && (
+            <dl className="facts">
+              {d.location && <div><dt>{t('portfolio.based')}</dt><dd>{d.location}</dd></div>}
+              {d.email && <div><dt>{t('portfolio.email')}</dt><dd><a href={mailto(d.email)}>{d.email}</a></dd></div>}
+            </dl>
+          )}
+        </div>
+        {d.headline && <p className="headline">{d.headline}</p>}
+      </div>
+    </section>
+  ),
+  compact: (d, c) => (
+    <section className="b b-hero b-hero--compact" id={id(c, 'top')}>
+      <div className="wrap">
+        <div className="row">
+          <h1 className="name">{d.name}</h1>
+          {(d.role || d.location) && <p className="role">{[d.role, d.location].filter(Boolean).join(' · ')}</p>}
+        </div>
+        {d.headline && <p className="headline">{d.headline}</p>}
+      </div>
+    </section>
+  ),
+}
+
+// ── about ────────────────────────────────────────────────────────────────────────────────────────────────
+const paras = (d: BlockData, c: BlockCtx) => (c.bioShort ? d.about.slice(0, 1) : d.about)
+const about: Record<string, Render> = {
+  prose: (d, c) => d.about.length ? (
+    <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap"><h2>{t('portfolio.about')}</h2><div className="prose">{paras(d, c).map((p, i) => <p key={i}>{p}</p>)}</div></div></section>
+  ) : null,
+  columns: (d, c) => d.about.length ? (
+    <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap two"><h2>{t('portfolio.about')}</h2><div className="prose">{paras(d, c).map((p, i) => <p key={i}>{p}</p>)}</div></div></section>
+  ) : null,
+  short: (d, c) => d.about.length ? (
+    <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap"><h2>{t('portfolio.about')}</h2><div className="prose"><p>{d.about[0]}</p></div></div></section>
+  ) : null,
+}
+
+// ── projects ─────────────────────────────────────────────────────────────────────────────────────────────
+const list = (d: BlockData, c: BlockCtx) => d.projects.slice(0, c.projectLimit)
+const projects: Record<string, Render> = {
+  index: (d, c) => d.projects.length ? (
+    <section className="b b-projects b-anchor" id={id(c, 'work')}>
+      <div className="wrap">
+        <h2>{t('portfolio.work')}</h2>
+        {list(d, c).map((p, i) => (
+          <article className="prow" key={i}>
+            <span className="yr" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <div className="main"><h3>{p.title}</h3>{p.problem && <p>{p.problem}</p>}<ProjectLinks p={p} /></div>
+            <p className="res">{p.outcome ? <Figures text={p.outcome} /> : p.solution}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  ) : null,
+  grid: (d, c) => d.projects.length ? (
+    <section className="b b-projects b-anchor" id={id(c, 'work')}>
+      <div className="wrap">
+        <h2>{t('portfolio.work')}</h2>
+        <div className="pgrid">
+          {list(d, c).map((p, i) => (
+            <article className="pitem" key={i}>
+              <Picture p={p} slot={false} />
+              <h3>{p.title}</h3>
+              {(p.outcome || p.solution) && <p className="res">{p.outcome || p.solution}</p>}
+              {p.problem && <p className="sub">{p.problem}</p>}
+              <ProjectLinks p={p} />
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  ) : null,
+  proof: (d, c) => d.projects.length ? (
+    <section className="b b-projects b-anchor" id={id(c, 'work')}>
+      <div className="wrap">
+        <h2>{t('portfolio.results')}</h2>
+        <div className="pproof">
+          {list(d, c).map((p, i) => (
+            <article key={i}>
+              <p className="big">{p.outcome ? <Figures text={p.outcome} /> : p.solution || p.problem}</p>
+              <h3>{p.title}</h3>
+              {(p.problem || p.solution) && <p className="sub">{[p.problem, p.solution].filter(Boolean).join(' ')}</p>}
+              <ProjectLinks p={p} />
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  ) : null,
+  rows: (d, c) => d.projects.length ? (
+    <section className="b b-projects b-anchor" id={id(c, 'work')}>
+      <div className="wrap">
+        <h2>{t('portfolio.work')}</h2>
+        {list(d, c).map((p, i) => (
+          <article className="case" key={i}>
+            <h3>{p.title}</h3>
+            <dl>
+              {p.problem && <div><dt>{t('portfolio.situation')}</dt><dd>{p.problem}</dd></div>}
+              {p.solution && <div><dt>{t('portfolio.didWhat')}</dt><dd>{p.solution}</dd></div>}
+              {p.outcome && <div><dt>{t('portfolio.result')}</dt><dd className="res"><Figures text={p.outcome} /></dd></div>}
+            </dl>
+            <ProjectLinks p={p} />
+          </article>
+        ))}
+      </div>
+    </section>
+  ) : null,
+}
+
+// ── experience ───────────────────────────────────────────────────────────────────────────────────────────
+const experience: Record<string, Render> = {
+  timeline: (d, c) => d.experience.length ? (
+    <section className="b b-exp b-anchor" id={id(c, 'experience')}>
+      <div className="wrap">
+        <h2>{t('portfolio.experience')}</h2>
+        {d.experience.map((e, i) => (
+          <article className="job" key={i}>
+            <p className="when">{e.period}</p>
+            <div>
+              <h3>{e.role || e.company}</h3>
+              {e.role && e.company && <p className="org">{e.company}</p>}
+              {e.bullets.length > 0 && <ul>{e.bullets.map((b, k) => <li key={k}>{b}</li>)}</ul>}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  ) : null,
+  table: (d, c) => d.experience.length ? (
+    <section className="b b-exp b-anchor" id={id(c, 'experience')}>
+      <div className="wrap">
+        <h2>{t('portfolio.experience')}</h2>
+        {d.experience.map((e, i) => (
+          <article className="trow" key={i}>
+            <p className="when">{e.period}</p>
+            <h3>{e.role || e.company}</h3>
+            <p className="org">{e.role ? e.company : ''}</p>
+            <p className="what">{e.bullets[0] ?? ''}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  ) : null,
+}
+
+// ── skills, credentials ──────────────────────────────────────────────────────────────────────────────────
+const skills: Record<string, Render> = {
+  groups: (d, c) => d.skillGroups.length ? (
+    <section className="b b-skills b-anchor" id={id(c, 'skills')}>
+      <div className="wrap"><h2>{t('portfolio.skills')}</h2><div className="sgrid">{d.skillGroups.map((g, i) => <div key={i}><h3>{g.category}</h3><p>{g.items.join(', ')}</p></div>)}</div></div>
+    </section>
+  ) : null,
+  inline: (d, c) => d.skillGroups.length ? (
+    <section className="b b-skills b-anchor" id={id(c, 'skills')}>
+      <div className="wrap"><h2>{t('portfolio.skills')}</h2><p className="sline">{d.skillGroups.map((g, i) => <span key={i}><strong>{g.category}.</strong> {g.items.join(', ')}. </span>)}</p></div>
+    </section>
+  ) : null,
+}
+
+const credentials: Record<string, Render> = {
+  list: (d, c) => (d.education.length || d.certifications.length) ? (
+    <section className="b b-cred b-anchor" id={id(c, 'credentials')}>
+      <div className="wrap">
+        <h2>{t('portfolio.credentials')}</h2>
+        <div className="two2">
+          {d.education.length > 0 && <ul>{d.education.map((x, i) => <li key={i}>{x}</li>)}</ul>}
+          {d.certifications.length > 0 && <ul>{d.certifications.map((x, i) => <li key={i}>{x}</li>)}</ul>}
+        </div>
+      </div>
+    </section>
+  ) : null,
+  inline: (d, c) => (d.education.length || d.certifications.length) ? (
+    <section className="b b-cred b-anchor" id={id(c, 'credentials')}>
+      <div className="wrap"><h2>{t('portfolio.credentials')}</h2><p className="sline">{[...d.education, ...d.certifications].join('. ')}.</p></div>
+    </section>
+  ) : null,
+}
+
+// ── quote ────────────────────────────────────────────────────────────────────────────────────────────────
+const quoteBlock = (variant: 'pull' | 'band'): Render => (d) => d.quote ? (
+  <section className={`b b-quote b-quote--${variant}`}>
+    <div className="wrap">
+      <figure>
+        <blockquote><p>“{d.quote.text}”</p></blockquote>
+        <figcaption>{[d.quote.author, d.quote.role].filter(Boolean).join(', ')}</figcaption>
+      </figure>
+    </div>
+  </section>
+) : null
+const quote: Record<string, Render> = { pull: quoteBlock('pull'), band: quoteBlock('band') }
+
+// ── social links ─────────────────────────────────────────────────────────────────────────────────────────
+const social: Record<string, Render> = {
+  inline: (d) => d.links.length ? (
+    <section className="b b-social"><div className="wrap"><h2>{t('portfolio.elsewhere')}</h2><p className="slinks">{d.links.map((l) => <a key={l.url} href={l.url} rel="noopener noreferrer">{l.label}</a>)}</p></div></section>
+  ) : null,
+  stacked: (d) => d.links.length ? (
+    <section className="b b-social">
+      <div className="wrap two"><h2>{t('portfolio.elsewhere')}</h2><ul className="slist">{d.links.map((l) => <li key={l.url}><a href={l.url} rel="noopener noreferrer"><span>{l.label}</span><span className="u">{l.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span></a></li>)}</ul></div>
+    </section>
+  ) : null,
+}
+
+// ── contact (never hidden when there is something to reach the person with) ─────────────────────────────
+const contact: Record<string, Render> = {
+  band: (d, c) => (d.email || d.links.length) ? (
+    <section className="b b-contact b-contact--band b-anchor" id={id(c, 'contact')}>
+      <div className="wrap">
+        <h2>{t('portfolio.getInTouch')}</h2>
+        {d.email && <a className="mail" href={mailto(d.email)}>{d.email}</a>}
+        {d.links.length > 0 && <p className="clinks">{d.links.map((l) => <a key={l.url} href={l.url} rel="noopener noreferrer">{l.label}</a>)}</p>}
+      </div>
+    </section>
+  ) : null,
+  plain: (d, c) => (d.email || d.links.length) ? (
+    <section className="b b-contact b-contact--plain b-anchor" id={id(c, 'contact')}>
+      <div className="wrap two">
+        <h2>{t('portfolio.contact')}</h2>
+        <div>
+          {d.email && <a className="mail" href={mailto(d.email)}>{d.email}</a>}
+          {d.links.length > 0 && <p className="clinks">{d.links.map((l) => <a key={l.url} href={l.url} rel="noopener noreferrer">{l.label}</a>)}</p>}
+        </div>
+      </div>
+    </section>
+  ) : null,
+}
+
+const REGISTRY: Record<string, Record<string, Render>> = {
+  hero, about, projects, experience, skills, credentials, quote, 'social-links': social, contact,
+}
+
+/** One section. An unknown block or variant renders nothing (a layout is validated before it gets here). */
+export function renderSection(spec: SectionSpec, d: BlockData, c: BlockCtx): ReactNode {
+  return REGISTRY[spec.block]?.[spec.variant]?.(d, c) ?? null
+}
+
+/** Which of the page's anchors will actually exist (drives the top navigation). */
+export function presentAnchors(d: BlockData): Array<'work' | 'experience' | 'contact'> {
+  const out: Array<'work' | 'experience' | 'contact'> = []
+  if (d.projects.length) out.push('work')
+  if (d.experience.length) out.push('experience')
+  if (d.email || d.links.length) out.push('contact')
+  return out
+}

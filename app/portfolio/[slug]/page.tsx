@@ -22,6 +22,8 @@ import type { PortfolioContent } from '@/components/templates/Minimal'
 import AcquisitionBar from './AcquisitionBar'
 import { canUseTemplate } from '@/lib/plans'
 import { planFromUserColumn } from '@/lib/getUserPlan'
+import Look from '@/components/blocks/Look'
+import { storedLayout } from '@/lib/blocks/mode'
 
 const DEMO_SLUGS = new Set([
   'james-chen', 'sofia-martinez', 'fatima-hassan',
@@ -206,6 +208,9 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
   // The stored template value is preserved — upgrading to Pro activates it automatically.
   const effectiveTemplate = canUseTemplate(planFromUserColumn((data as { plan?: string }).plan), portfolio.template) ? portfolio.template : 'minimal'
   const Template = TEMPLATE_MAP[effectiveTemplate] ?? Minimal
+  // New block designs: only a portfolio that stores a valid layout AND uses one of the 3 free template ids. Everything else is legacy, untouched.
+  const layout = storedLayout(portfolio.content, effectiveTemplate)
+  const paid = (data as { plan?: string }).plan === 'basic' || (data as { plan?: string }).plan === 'pro'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
   const c = portfolio.content
 
@@ -228,7 +233,9 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(personSchema) }}
       />
-      <Template content={portfolio.content} />
+      {layout
+        ? <Look template={effectiveTemplate} content={portfolio.content} layout={layout} page credit={!paid} />
+        : <Template content={portfolio.content} />}
       {(data as { plan?: string }).plan !== 'basic' && (data as { plan?: string }).plan !== 'pro' && (
         <AcquisitionBar />
       )}

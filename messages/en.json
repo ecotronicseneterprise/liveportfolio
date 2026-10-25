@@ -139,5 +139,131 @@
     "preview": "Preview",
     "previewSub": "and templates",
     "close": "Close"
+  },
+  "portfolio": {
+    "skip": "Skip to content",
+    "nav": "Sections",
+    "about": "About",
+    "work": "Work",
+    "results": "Results",
+    "experience": "Experience",
+    "skills": "Skills",
+    "credentials": "Education and credentials",
+    "elsewhere": "Elsewhere",
+    "contact": "Contact",
+    "getInTouch": "Get in touch",
+    "situation": "Situation",
+    "didWhat": "What I did",
+    "result": "Result",
+    "based": "Based",
+    "email": "Email",
+    "builtWith": "Built with liveportfolio.site",
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "imageSlot": "Your project image",
+    "visitProject": "Visit project",
+    "sourceCode": "Source code",
+    "photoOf": "Photo of {name}",
+    "look": {
+      "studio": "Studio",
+      "journal": "Journal",
+      "ledger": "Ledger"
+    },
+    "lookNote": {
+      "studio": "Your results first, set large",
+      "journal": "Calm and editorial, a person and their cases",
+      "ledger": "Ruled and exact, one row per piece of work"
+    },
+    "arrangement": {
+      "proof": "Results first",
+      "profile": "Profile",
+      "index": "Index",
+      "showcase": "Showcase"
+    }
+  },
+  "landing": {
+    "specimenLabel": "A portfolio built by LivePortfolio, with invented content",
+    "specimenNote": "Same words, three looks. This is a sample, not a real person.",
+    "lookGroup": "Choose a look",
+    "specimenName": "Ada Okonkwo",
+    "specimenRole": "Backend engineer",
+    "specimenHeadline": "I build payment systems that stay up, and I can show you the numbers.",
+    "specimenAbout": "Five years building payment and ledger systems in Go and Postgres, most of it at a Lagos fintech serving two million customers.",
+    "specimenProject1": "Ledger migration",
+    "specimenOutcome1": "Nightly reconciliation went from 3 hours to 9 minutes, with zero manual fixes in 6 months.",
+    "specimenProject2": "Rate limiter",
+    "specimenOutcome2": "p95 latency down 40% during traffic spikes; no checkout incidents since launch.",
+    "specimenProject3": "Invoice parser",
+    "specimenOutcome3": "Cut data entry from 40 hours a week to 6.",
+    "specimenSkillsLabel": "Languages",
+    "specimenSkills": "Go, Python, SQL",
+    "speakable": "LivePortfolio helps professionals turn their work into opportunities.",
+    "heroBody": "Upload your CV or tell us your story. We write it up as a finished portfolio at your own address, and you choose how it looks. Free to build and preview.",
+    "heroAudience": "For developers, designers, data scientists, clinicians, graduates and freelancers, anywhere in the world.",
+    "cta": "Build My Portfolio →",
+    "ctaNote": "Free to build and preview. No credit card required. Publish only when you're ready.",
+    "specimenLocation": "Lagos, Nigeria",
+    "specimenSkillGroup2": "Data",
+    "specimenSkills2": "Postgres, Redis, Kafka",
+    "specimenProblem1": "The old ledger could not reconcile card and bank transfers without a nightly manual step.",
+    "specimenProblem2": "Twelve services each rolled their own limits, and one bad client could take down checkout.",
+    "specimenProblem3": "Supplier invoices were keyed in by hand.",
+    "specimenSolution1": "Moved to an append-only double-entry ledger with idempotent writes.",
+    "specimenSolution2": "A shared token-bucket limiter with per-tenant budgets.",
+    "specimenSolution3": "A parser that reads PDFs and posts matched lines to the ledger.",
+    "specimenCaption": "The top of a sample portfolio",
+    "looksTitle": "Three looks. Your words.",
+    "looksLede": "Pick the look that suits your work. You can switch at any time, and your text never changes.",
+    "lookFor": {
+      "studio": "For people whose work has numbers: engineers, analysts, marketers.",
+      "journal": "For people with a story to tell: clinicians, writers, researchers.",
+      "ledger": "For people who want it plain and scannable: engineers, data and security."
+    },
+    "lookFont": {
+      "studio": "Bricolage Grotesque and Hanken Grotesk",
+      "journal": "Source Serif and Hanken Grotesk",
+      "ledger": "Schibsted Grotesk and Space Mono"
+    },
+    "swatches": "Colours in this look",
+    "h1": "Turn Your CV Into a Portfolio in Minutes. No Design Skills Needed",
+    "typefaces": "Typefaces: {fonts}.",
+    "howTitle": "How it works",
+    "faqTitle": "Questions people ask",
+    "homeLink": "LivePortfolio home"
+  },
+  "lookPicker": {
+    "title": "Look",
+    "lede": "The same words in a different look. Changes show right away and are saved when you press Save changes. You can undo a save from History.",
+    "looks": "Look",
+    "layout": "Layout",
+    "accent": "Colour",
+    "accentDefault": "The look's own",
+    "density": "Spacing",
+    "bio": "About text",
+    "selected": "Selected",
+    "recommended": "Reset to the recommended look",
+    "livePreview": "Your portfolio as it looks now",
+    "classic": "Classic templates",
+    "classicNote": "These keep their own design and are part of Pro.",
+    "classicActive": "You are using the classic template {name}. Choose a look above to switch to the new designs.",
+    "proLocked": "{name} is included with Pro.",
+    "accents": {
+      "blue": "Blue",
+      "teal": "Teal",
+      "green": "Green",
+      "crimson": "Crimson",
+      "amber": "Amber",
+      "slate": "Slate"
+    },
+    "densities": {
+      "compact": "Tight",
+      "comfortable": "Comfortable",
+      "airy": "Roomy"
+    },
+    "bios": {
+      "long": "All of it",
+      "short": "First paragraph only"
+    },
+    "pro": "Pro"
   }
 }

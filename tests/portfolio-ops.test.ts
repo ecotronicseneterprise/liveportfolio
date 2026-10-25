@@ -328,3 +328,39 @@ describe('/api/revisions: history, undo, restore', () => {
     expect((await revPOST(req('/api/revisions', 'POST', {}))).status).toBe(401)
   })
 })
+
+describe('applyOps: the look (layout) is a typed, validated, undoable part of the content', () => {
+  const L = { v: 1 as const, arrangement: 'proof' as const }
+  it('set_layout stores a valid layout and reports one change; the same layout again is no change', () => {
+    const r = run([{ op: 'set_layout', layout: L }])
+    expect(r.state.content.layout).toEqual(L); expect(r.changes).toEqual(['Changed look'])
+    const s = base(); s.content.layout = L
+    expect(run([{ op: 'set_layout', layout: L }], s).changes).toEqual([])
+  })
+  it('set_layout with null goes back to the classic design (the key is removed); with nothing stored it is no change', () => {
+    const s = base(); s.content.layout = L
+    const r = run([{ op: 'set_layout', layout: null }], s)
+    expect('layout' in r.state.content).toBe(false); expect(r.changes).toEqual(['Went back to the classic design'])
+    expect(run([{ op: 'set_layout', layout: null }]).changes).toEqual([])
+  })
+  it('set_layout refuses anything outside the fixed lists: unknown arrangement, free colour, css, extra keys, words', () => {
+    for (const bad of [{ v: 1, arrangement: 'carousel' }, { v: 1, arrangement: 'proof', accent: '#ff00ff' }, { v: 1, arrangement: 'proof', css: 'x' }, { v: 2, arrangement: 'proof' }, { v: 1, arrangement: 'proof', title: 'Hi' }, 'proof']) {
+      fails([{ op: 'set_layout', layout: bad }], 'invalid_op')
+    }
+  })
+  it('a whole-section save carries the layout through, drops an invalid one without blocking other edits, and null removes it', () => {
+    expect(run([{ op: 'replace_content', content: { headline: 'H', layout: L } }]).state.content.layout).toEqual(L)
+    const bad = run([{ op: 'replace_content', content: { headline: 'H', layout: { v: 1, arrangement: 'nope' } } }])
+    expect(bad.state.content.headline).toBe('H'); expect('layout' in bad.state.content).toBe(false)
+    const s = base(); s.content.layout = L
+    expect(run([{ op: 'replace_content', content: { layout: null } }], s).changes).toEqual(['Went back to the classic design'])
+    expect(run([{ op: 'replace_content', content: { layout: L, name: 'Ada' } }], s).changes).toEqual([]) // unchanged layout and name: nothing to record
+  })
+  it('changing the look never touches the words, and changing the words never touches the look', () => {
+    const s = base(); s.content.layout = L
+    const a = run([{ op: 'set_layout', layout: { ...L, arrangement: 'index' } }], s)
+    expect({ ...a.state.content, layout: undefined }).toEqual({ ...s.content, layout: undefined })
+    const b = run([{ op: 'set_field', field: 'headline', value: 'New' }], s)
+    expect(b.state.content.layout).toEqual(L)
+  })
+})

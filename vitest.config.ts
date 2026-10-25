@@ -7,6 +7,6 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   esbuild: { jsx: 'automatic' },
   // 'next/font/local' only runs through Next's compiler, so unit tests get a stub with the same shape
-  resolve: { alias: { '@': path.resolve(__dirname), 'next/font/local': path.resolve(__dirname, 'tests/stubs/next-font-local.ts') } },
+  resolve: { alias: { '@': path.resolve(__dirname), 'next/font/local': path.resolve(__dirname, 'tests/stubs/next-font-local.ts'), 'next/font/google': path.resolve(__dirname, 'tests/stubs/next-font-google.ts') } },
   test: { include: ['tests/**/*.test.ts'], exclude: ['**/node_modules/**', 'bench/**', 'reactive-resume/**'] },
 })

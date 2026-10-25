@@ -14,7 +14,10 @@ export const metadata: Metadata = {
 }
 import ContactLinks from '@/components/ContactLinks'
 import PricingSection from '@/components/PricingSection'
-import PortfolioShowcaseWrapper from '@/components/PortfolioShowcaseWrapper'
+import HeroSpecimen from '@/components/landing/HeroSpecimen'
+import LooksSection from '@/components/landing/LooksSection'
+import { studioFonts as landingFonts } from '@/components/blocks/looks/fonts-studio'
+import { t } from '@/lib/onboarding/t'
 import PublishedCount from '@/components/PublishedCount'
 
 const faqJsonLd = {
@@ -186,7 +189,7 @@ const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white text-[#0A0A0A] overflow-x-hidden">
+    <div className={`lpl ${landingFonts} min-h-screen bg-white text-[#0A0A0A] overflow-x-hidden`}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -207,70 +210,28 @@ export default function LandingPage() {
       {/* ── Nav ── */}
       <LandingNav />
 
-      {/* ── Hero ── */}
+      {/* ── Hero: the headline, and a real portfolio drawn by the block renderer (invented person) with a CSS-only switch between the three looks ── */}
       <section className="w-full border-b border-gray-100">
-        <div className="w-full px-6 sm:px-10 lg:px-16 pt-4 sm:pt-14 lg:pt-20 pb-0 lg:pb-0 grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-16 items-start">
-
-          {/* Left: headline + CTA */}
-          <div className="flex flex-col pb-0 lg:pb-16">
-            {/* Badge — hidden on mobile, shown on desktop */}
-            <div className="hidden lg:inline-flex items-center gap-2 px-3 py-1.5 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-full text-xs text-[#0A66C2] font-medium w-fit mb-6">
-              <span className="w-2 h-2 bg-[#0A66C2] rounded-full animate-pulse flex-shrink-0" />
-              For developers, designers, data scientists, graduates and freelancers — anywhere in the world.
+        <div className="w-full px-6 sm:px-10 lg:px-16 pt-8 sm:pt-14 lg:pt-20 pb-12 lg:pb-20 hero-grid">
+          <div className="flex flex-col">
+            <h1 className="hero-h1">{t('landing.h1')}</h1>
+            <p className="speakable hero-lead">{t('landing.speakable')}</p>
+            <p className="hero-body">{t('landing.heroBody')}</p>
+            <p className="hero-aud">{t('landing.heroAudience')}</p>
+            <div>
+              <Link href={CREATE_HREF} className="hero-cta">{t('landing.cta')}</Link>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0A0A0A] leading-[1.05] mt-0 mb-3 lg:mb-6">
-              Turn Your CV Into a Portfolio in Minutes. No Design Skills Needed
-            </h1>
-            {/* Subheadline — hidden on mobile, shown on desktop */}
-            <p className="speakable hidden lg:block text-lg text-gray-500 leading-relaxed mb-6">
-              LivePortfolio helps professionals turn their work into opportunities.
-            </p>
-            <p className="hidden lg:block text-lg text-gray-500 leading-relaxed mb-6">
-              Upload your CV or tell us your story, and we'll turn it into a professional portfolio website in minutes. Showcase your projects, skills, and achievements with beautiful templates, real-time visitor analytics, and SEO built in. Free to build and preview. No credit card required.
-            </p>
-            <div className="hidden lg:flex flex-wrap items-center gap-4 mb-6">
-              <Link
-                href={CREATE_HREF}
-                className="px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20"
-              >
-                Build My Portfolio →
-              </Link>
-            </div>
-            <div className="hidden lg:flex flex-col gap-1">
-              <span className="text-sm text-gray-400">Free to build and preview. No credit card required. Publish only when you're ready.</span>
-              <PublishedCount />
-            </div>
+            <p className="hero-note">{t('landing.ctaNote')}</p>
+            <div style={{ minHeight: 24 }}><PublishedCount /></div>
           </div>
-
-          {/* Right: slideshow — on mobile sits directly below H1, on desktop side-by-side */}
-          <div className="w-full border-t lg:border-t-0 border-gray-100 lg:border-l lg:border-gray-100 -mx-6 sm:-mx-10 lg:-mx-0 lg:self-stretch pt-1 lg:pt-0">
-            <PortfolioShowcaseWrapper />
-          </div>
-
-        </div>
-
-        {/* Mobile-only copy — shows below the slideshow on small screens */}
-        <div className="lg:hidden px-6 sm:px-10 pt-8 pb-10 flex flex-col gap-5">
-          <p className="speakable text-base text-gray-500 leading-relaxed">
-            LivePortfolio helps professionals turn their work into opportunities. Upload your CV and we turn it into a professional portfolio website in minutes.
-          </p>
-          <Link
-            href={CREATE_HREF}
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors shadow-lg shadow-[#0A66C2]/20"
-          >
-            Build My Portfolio →
-          </Link>
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-gray-400">Free to build and preview. No credit card required. Publish only when you're ready.</span>
-            <PublishedCount />
-          </div>
+          <HeroSpecimen />
         </div>
       </section>
 
       {/* ── How it works ── */}
       <section className="w-full bg-gray-50 border-b border-gray-100">
         <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
-          <h2 className="text-sm font-bold text-[#0A66C2] tracking-widest uppercase mb-4">How it works</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-8 leading-tight">{t('landing.howTitle')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-gray-200 rounded-2xl overflow-hidden">
             {[
               {
@@ -293,116 +254,20 @@ export default function LandingPage() {
                 key={item.step}
                 className={`p-8 sm:p-10 bg-white${i < 2 ? ' border-b sm:border-b-0 sm:border-r border-gray-200' : ''}`}
               >
-                <div className="text-sm font-bold text-[#0A66C2] tracking-widest mb-4">{item.step}</div>
+                <div className="text-sm font-bold text-[#084D9A] mb-4" aria-hidden="true">{item.step}</div>
                 <h3 className="text-lg font-bold text-gray-900 mb-3">{item.title}</h3>
                 <p className="text-base text-gray-500 leading-[1.7]">{item.desc}</p>
               </div>
             ))}
           </div>
-          <p className="text-sm text-gray-400 mt-6">
-            Not sure <Link href="/what-is-a-portfolio" className="text-[#0A66C2] hover:underline">what a portfolio is</Link> and whether you need one? We explain it here.
+          <p className="text-sm text-gray-600 mt-6">
+            Not sure <Link href="/what-is-a-portfolio" className="text-[#0A66C2] underline underline-offset-2 hover:text-[#084D9A]">what a portfolio is</Link> and whether you need one? We explain it here.
           </p>
         </div>
       </section>
 
-      {/* ── Templates ── */}
-      <section className="w-full border-b border-gray-100">
-        <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
-          <p className="text-sm font-bold text-[#0A66C2] tracking-widest uppercase mb-4">Templates</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-            {/* Minimal */}
-            <div className="flex flex-col border border-gray-100 rounded-2xl overflow-hidden">
-              <div className="flex-1 bg-white p-8 border-b border-gray-100 min-h-[200px]">
-                <div className="h-5 bg-gray-900 w-36 mb-2" style={{ borderRadius: 2 }} />
-                <div className="w-8 h-0.5 bg-[#0A66C2] my-3" />
-                <div className="h-2.5 bg-gray-200 w-28 mb-5" />
-                <div className="h-2 bg-gray-100 w-full mb-1.5" />
-                <div className="h-2 bg-gray-100 w-5/6 mb-5" />
-                <div className="border border-gray-100 rounded-xl p-4">
-                  <div className="h-2.5 bg-gray-800 w-40 mb-3" />
-                  <div className="h-1.5 bg-gray-100 w-full mb-1.5" />
-                  <div className="h-1.5 bg-gray-100 w-4/5 mb-3" />
-                  <div className="flex gap-1.5">
-                    {['React', 'TypeScript', 'Node'].map((t) => (
-                      <span key={t} className="text-[9px] px-1.5 py-0.5 bg-gray-50 border border-gray-100 rounded-full text-gray-400">{t}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="px-6 py-5">
-                <p className="font-semibold text-gray-900">Minimal</p>
-                <p className="text-sm text-gray-400 mt-0.5">Clean, editorial. Works for any role.</p>
-              </div>
-            </div>
-
-            {/* Bold */}
-            <div className="flex flex-col border border-gray-100 rounded-2xl overflow-hidden">
-              <div className="flex-1 bg-[#0D1117] p-8 border-b border-[#1C2128] min-h-[200px]">
-                <div className="flex gap-5">
-                  <div className="w-24 flex-shrink-0 flex flex-col gap-2.5 border-r border-[#1C2128] pr-4">
-                    <div className="h-3 bg-[#F0F6FF] rounded w-full mb-1" />
-                    <div className="h-2 bg-[#58A6FF] rounded w-3/4" />
-                    <div className="h-px bg-[#1C2128] w-full my-1" />
-                    {['About', 'Projects', 'Contact'].map((t) => (
-                      <div key={t} className="h-2 bg-[#1C2128] rounded w-full" />
-                    ))}
-                  </div>
-                  <div className="flex-1 flex flex-col gap-2.5">
-                    <div className="h-2 bg-[#8B949E] rounded w-24 mb-1" />
-                    <div className="h-4 bg-[#F0F6FF] rounded w-full" />
-                    <div className="h-2.5 bg-gradient-to-r from-[#F0F6FF] to-[#58A6FF] rounded w-5/6 opacity-60" />
-                    <div className="w-8 h-0.5 bg-[#58A6FF] mt-1 mb-2" />
-                    <div className="bg-[#1C2128] border border-[#30363D] rounded-lg p-3" style={{ borderLeft: '2px solid #58A6FF' }}>
-                      <div className="h-2.5 bg-[#F0F6FF] rounded w-3/4 mb-2" />
-                      <div className="h-2 bg-[#8B949E] rounded w-full" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="px-6 py-5">
-                <p className="font-semibold text-gray-900">Bold</p>
-                <p className="text-sm text-gray-400 mt-0.5">Designed for developers and technical professionals who want a modern, code-inspired look.</p>
-              </div>
-            </div>
-
-            {/* Creative */}
-            <div className="flex flex-col border border-gray-100 rounded-2xl overflow-hidden">
-              <div className="flex-1 bg-[#f5f2eb] p-8 border-b border-[#d4cfc2] min-h-[200px]">
-                <div className="flex justify-between items-start mb-5">
-                  <div>
-                    <div className="h-5 bg-[#0d0d0d] w-32" style={{ borderRadius: 0 }} />
-                    <div className="h-2 bg-[#d4cfc2] w-40 mt-2" style={{ borderRadius: 0 }} />
-                  </div>
-                  <div className="h-2 bg-[#c8401a] w-14" style={{ borderRadius: 0 }} />
-                </div>
-                <div className="border-t border-[#d4cfc2] pt-4 grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="h-2 bg-[#7a7060] w-full mb-2" style={{ borderRadius: 0 }} />
-                    <div className="h-1.5 bg-[#d4cfc2] w-4/5 mb-1.5" style={{ borderRadius: 0 }} />
-                    <div className="h-1.5 bg-[#d4cfc2] w-3/5" style={{ borderRadius: 0 }} />
-                  </div>
-                  <div>
-                    <div className="h-5 bg-[#c8401a] w-14 mb-2" style={{ borderRadius: 0 }} />
-                    <div className="h-1.5 bg-[#d4cfc2] w-full mb-1.5" style={{ borderRadius: 0 }} />
-                    <div className="h-1.5 bg-[#d4cfc2] w-4/5" style={{ borderRadius: 0 }} />
-                  </div>
-                </div>
-                <div className="flex gap-1.5 mt-4">
-                  {['AI', 'Python', 'SaaS'].map((t) => (
-                    <span key={t} className="text-[9px] px-2 py-0.5 border border-[#d4cfc2] text-[#7a7060]" style={{ borderRadius: 0 }}>{t}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="px-6 py-5">
-                <p className="font-semibold text-gray-900">Creative</p>
-                <p className="text-sm text-gray-400 mt-0.5">Warm editorial grid. For designers, founders, and creators. </p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
+      {/* ── The three looks ── */}
+      <LooksSection />
 
       {/* ── Pricing ── */}
       <PricingSection />
@@ -410,7 +275,7 @@ export default function LandingPage() {
       {/* ── FAQ ── */}
       <section className="w-full border-b border-gray-100">
         <div className="w-full px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
-          <p className="text-sm font-bold text-[#0A66C2] tracking-widest uppercase mb-4">FAQ</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-8 leading-tight">{t('landing.faqTitle')}</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-gray-100 rounded-2xl overflow-hidden">
             {FAQ_ITEMS.map((item, i) => (
               <details
@@ -419,7 +284,7 @@ export default function LandingPage() {
               >
                 <summary className="flex items-center justify-between px-6 sm:px-8 py-5 cursor-pointer list-none gap-4">
                   <span className="text-sm font-semibold text-gray-900">{item.q}</span>
-                  <span className="text-gray-400 group-open:rotate-180 transition-transform text-xs flex-shrink-0">▼</span>
+                  <span className="text-gray-600 group-open:rotate-180 transition-transform text-xs flex-shrink-0">▼</span>
                 </summary>
                 <div className="px-6 sm:px-8 pb-5 text-base text-gray-600 leading-[1.7]">{item.a}</div>
               </details>
@@ -450,8 +315,8 @@ export default function LandingPage() {
       {/* ── SEO prose — crawlable, not visually prominent ── */}
       <section className="w-full border-t border-gray-50 bg-white">
         <div className="w-full px-6 sm:px-10 lg:px-16 py-12 lg:text-center lg:flex lg:flex-col lg:items-center">
-          <h2 className="text-sm font-semibold text-gray-400 mb-4">The fastest way to look hireable online</h2>
-          <p className="text-sm text-gray-400 leading-relaxed max-w-3xl">
+          <h2 className="text-sm font-semibold text-gray-600 mb-4">The fastest way to look hireable online</h2>
+          <p className="text-sm text-gray-600 leading-relaxed max-w-[34rem]">
             LivePortfolio helps anyone build a professional portfolio website. No design or coding skills needed.
             Upload your CV or answer a few questions, and we tell your story. Transforming your raw experience into polished, professional copy.
             Share your portfolio link on LinkedIn, via WhatsApp, in job applications, or anywhere you want to be found.
@@ -464,7 +329,7 @@ export default function LandingPage() {
 
       {/* ── Footer ── */}
       <footer className="w-full border-t border-gray-100 bg-white">
-        <div className="w-full px-6 sm:px-10 lg:px-16 py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs text-gray-400">
+        <div className="w-full px-6 sm:px-10 lg:px-16 py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs text-gray-600">
           <span>© 2026 Ecotronics Enterprise · liveportfolio.site</span>
 
           {/* Contact links */}

@@ -1,0 +1,53 @@
+/* Landing page: the typeface (Bricolage Grotesque for headings, Hanken Grotesk for text, the same pair the product uses) and the hero specimen.
+   Scoped under .lpl. The page used to inherit the browser's default serif because the Tailwind font stack pointed at variables nothing defined. */
+.lpl { font-family: var(--f-studio-text), var(--f-studio-text-ext), system-ui, sans-serif; color: #0F172A; background: #FFFFFF; }
+.lpl h1, .lpl h2, .lpl h3 { font-family: var(--f-studio-display), var(--f-studio-display-ext), system-ui, sans-serif; letter-spacing: -0.02em; text-wrap: balance; }
+.lpl p { text-wrap: pretty; }
+.lpl summary { font-family: var(--f-studio-display), var(--f-studio-display-ext), system-ui, sans-serif; }
+
+.lpl .hero-grid { display: grid; grid-template-columns: 1fr; row-gap: 32px; align-items: start; }
+@media (min-width: 1024px) { .lpl .hero-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); column-gap: 56px; row-gap: 0; } }
+.lpl .hero-h1 { font-size: 40px; line-height: 1.08; font-weight: 700; margin: 0 0 16px 0; }
+@media (min-width: 640px) { .lpl .hero-h1 { font-size: 52px; } }
+@media (min-width: 1024px) { .lpl .hero-h1 { font-size: 60px; } }
+.lpl .hero-lead { font-size: 20px; line-height: 1.45; font-weight: 600; margin: 0 0 12px 0; max-width: 34em; }
+.lpl .hero-body { font-size: 18px; line-height: 1.6; color: #334155; margin: 0 0 16px 0; max-width: 34em; }
+.lpl .hero-aud { font-size: 16px; line-height: 1.55; color: #475569; margin: 0 0 28px 0; max-width: 34em; }
+.lpl .hero-cta { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding-left: 32px; padding-right: 32px; background: #0A66C2; color: #FFFFFF; font-weight: 700; font-size: 17px; border-radius: 999px; text-decoration: none; }
+.lpl .hero-cta:hover { background: #084D9A; }
+.lpl .hero-cta:focus-visible, .lpl .spec-bar label:focus-visible { outline: 3px solid #0A66C2; outline-offset: 3px; }
+.lpl .hero-note { font-size: 15px; color: #475569; margin: 14px 0 0 0; }
+
+/* The specimen: a real portfolio drawn by the block renderer. Three panes, one visible; a CSS-only switch (radio inputs and sibling selectors),
+   so it works without JavaScript. The frame has a fixed height, so switching never moves the page. */
+.lpl .spec { position: relative; }
+.lpl .spec-r { position: absolute; width: 1px; height: 1px; opacity: 0; margin: 0; }
+.lpl .spec-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px 0; }
+.lpl .spec-bar label { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border: 1px solid #475569; border-radius: 999px; background: #FFFFFF; color: #0F172A; font-weight: 600; font-size: 15px; cursor: pointer; transition: background-color 150ms; }
+.lpl .spec-bar label:hover { background: #F1F5F9; }
+.lpl #spec-studio:checked ~ .spec-bar label[for="spec-studio"],
+.lpl #spec-journal:checked ~ .spec-bar label[for="spec-journal"],
+.lpl #spec-ledger:checked ~ .spec-bar label[for="spec-ledger"] { background: #E6EFF9; border-color: #0A66C2; color: #084D9A; }
+.lpl #spec-studio:focus-visible ~ .spec-bar label[for="spec-studio"],
+.lpl #spec-journal:focus-visible ~ .spec-bar label[for="spec-journal"],
+.lpl #spec-ledger:focus-visible ~ .spec-bar label[for="spec-ledger"] { outline: 3px solid #0A66C2; outline-offset: 3px; }
+.lpl .spec-frame { height: 600px; overflow: hidden; border: 1px solid #94A3B8; border-radius: 12px; background: #FFFFFF; }
+@media (max-width: 639px) { .lpl .spec-frame { height: 520px; } }
+/* the specimen shows the top of a portfolio, so its hero and spacing are tighter than on a full page */
+.lpl .spec-frame .lpb { --sec: 44px; --sec-m: 36px; --h1: 44px; --lead: 22px; }
+.lpl .spec-frame .lpb .b-hero { padding-top: 32px; padding-bottom: 24px; }
+.lpl .spec-frame .lpb .b h2 { margin-bottom: 20px; }
+.lpl .spec-frame .lpb .pproof .big { font-size: 22px; line-height: 1.3; }
+.lpl .spec-pane { display: none; height: 100%; overflow: hidden; }
+.lpl #spec-studio:checked ~ .spec-frame .spec-pane-studio,
+.lpl #spec-journal:checked ~ .spec-frame .spec-pane-journal,
+.lpl #spec-ledger:checked ~ .spec-frame .spec-pane-ledger { display: block; }
+.lpl .spec-cap { font-size: 14px; color: #475569; margin: 10px 0 0 0; }
+.lpl .spec-pane .topbar a { pointer-events: none; }
+
+/* Three looks section (no fonts to load: names, notes and the actual palette only) */
+.lpl .look-card { border: 1px solid #CBD5E1; border-radius: 16px; padding: 24px; background: #FFFFFF; }
+.lpl .look-chips { display: flex; gap: 8px; margin: 16px 0 0 0; padding: 0; list-style: none; }
+.lpl .look-chips li { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #94A3B8; }
+
+@media (prefers-reduced-motion: reduce) { .lpl .spec-bar label { transition: none; } }

@@ -3,6 +3,8 @@
 // individually; they are written to read as obvious samples instead.)
 
 import type { PortfolioContent } from '@/components/templates/Minimal'
+import { recommend } from '@/lib/blocks/presets'
+import type { StoredContent } from '@/lib/blocks/mode'
 import type { Draft } from './draft'
 
 export const PLACEHOLDER = {
@@ -18,13 +20,13 @@ export const PLACEHOLDER = {
 
 const list = (csv: string) => csv.split(',').map((s) => s.trim()).filter(Boolean)
 
-export function draftToPreviewContent(d: Draft | null, email: string): PortfolioContent {
+export function draftToPreviewContent(d: Draft | null, email: string): StoredContent {
   const name = d?.name.trim() || PLACEHOLDER.name
   const role = d?.role.trim() || PLACEHOLDER.role
   const skills = d?.skills.length ? d.skills : [...PLACEHOLDER.skills]
   const projects = (d?.projects ?? []).filter((p) => p.title.trim())
   const experience = (d?.experience ?? []).filter((e) => e.company.trim() || e.role.trim())
-  return {
+  const content: PortfolioContent = {
     name,
     role,
     headline: role,
@@ -50,4 +52,6 @@ export function draftToPreviewContent(d: Draft | null, email: string): Portfolio
     education: (d?.education ?? []).filter((e) => e.degree.trim()).map((e) => ({ degree: e.degree, institution: e.institution, year: e.year, grade: e.grade || undefined })),
     certifications: d?.certifications.length ? d.certifications : undefined,
   }
+  // every new portfolio is drawn with the block renderer, so the preview carries the layout a generated portfolio would get
+  return { ...content, layout: recommend(content).layout }
 }

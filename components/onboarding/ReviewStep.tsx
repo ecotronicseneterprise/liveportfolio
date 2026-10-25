@@ -9,6 +9,7 @@ import { useFlow } from '@/lib/onboarding/use-flow'
 import { accountUrl } from '@/lib/onboarding/state'
 import { t } from '@/lib/onboarding/t'
 import { isProTemplate, isTemplateId, type TemplateId } from '@/lib/plans'
+import { recommend } from '@/lib/blocks/presets'
 import { projectImageUrl } from '@/lib/connectors/safe-url'
 import { checkImageFile, toJpeg } from '@/lib/onboarding/image'
 import FlowShell, { FlowLoading } from './ui/FlowShell'
@@ -63,6 +64,8 @@ export default function ReviewStep() {
 
   const content = useMemo(() => draftToPreviewContent(d, flow.email ?? ''), [d, flow.email])
   const live = useDebounced(content, 300)
+  // until the person picks a look, the one that suits their role and results is selected
+  const recommended = useMemo(() => recommend(content).template as TemplateId, [content])
 
   if (flow.loading || !d) return <FlowLoading step="review" />
 
@@ -125,7 +128,7 @@ export default function ReviewStep() {
     </label>
   )
 
-  const template: TemplateId = isTemplateId(d.template) ? d.template : 'minimal'
+  const template: TemplateId = isTemplateId(d.template) ? d.template : recommended
   const form = (
     <div className="lp-review-form">
       <h1 className="lp-title">{t('review.title')}</h1>
