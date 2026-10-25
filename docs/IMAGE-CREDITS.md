@@ -4,7 +4,7 @@ Pictures in `public/landing/` are used only by the sample portfolio in the landi
 
 | File | What it is |
 |---|---|
-| `ada-avatar.png` | A cartoon avatar for the invented sample person "Ada Okonkwo": a flat illustration with a purple skin tone, so it does not stand for any real person or any race. Drawn as an SVG for this site and saved as a PNG. |
+| `dev-avatar.png` | A cartoon avatar of a developer with round glasses and a hoodie, for the sample person "Clifford Nwanna": a flat illustration with a purple skin tone, so it does not stand for any real person or any race. Drawn as an SVG for this site and saved as a PNG. |
 | `project-1.jpg`, `project-2.jpg`, `project-3.jpg` | Screens of three invented products (a reconciliation dashboard, a rate-limiter chart, an invoice parser), drawn in HTML and screenshotted. |
 
 ## Notes

@@ -112,7 +112,8 @@ describe('the old over-promising lines are gone', () => {
 
 describe('one support address', () => {
   // The only public contact address is SUPPORT_EMAIL. Allowed besides it: the verified SENDING address, and obvious placeholders.
-  const allowed = new Set([SUPPORT_EMAIL, 'noreply@liveportfolio.site', 'your@email.com', 'adaeze@gmail.com'])
+  // 'nwannachumaclifford@gmail.com' is the owner's own address, chosen by the owner to appear as the contact e-mail of the sample portfolio on the landing page (components/landing/HeroSpecimen.tsx)
+  const allowed = new Set([SUPPORT_EMAIL, 'noreply@liveportfolio.site', 'your@email.com', 'adaeze@gmail.com', 'nwannachumaclifford@gmail.com'])
   // Internal recipients, not public contacts: who receives affiliate reports (lib/partners.ts) and the owner's admin alerts and reports (the two
   // cron routes, which go to the owner's personal address on purpose).
   const exempt = new Set(['lib/partners.ts', 'app/api/cron/affiliate/route.ts', 'app/api/cron/health/route.ts'])

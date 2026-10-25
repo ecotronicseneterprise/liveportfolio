@@ -15,8 +15,8 @@ const specimen = (): PortfolioContent => ({
   headline: t('landing.specimenHeadline'),
   about: t('landing.specimenAbout'),
   location: t('landing.specimenLocation'),
-  email: 'ada@example.com',
-  avatar_url: '/landing/ada-avatar.png',
+  email: 'nwannachumaclifford@gmail.com',
+  avatar_url: '/landing/dev-avatar.png',
   skills: [],
   skills_narrative: '',
   skills_grouped: [
@@ -65,7 +65,7 @@ export default function HeroSpecimen() {
         <div className="browser-window">
           <div className="browser-chrome" aria-hidden="true">
             <div className="browser-tabs"><i /><i /><i /><span className="browser-tab">{content.name} — Portfolio</span><b>+</b></div>
-            <div className="browser-toolbar"><span className="browser-controls">‹　›　↻</span><span className="browser-address"><span>⌑</span> liveportfolio.site/ada-okonkwo <span className="browser-lock">Secure</span></span><span className="browser-menu">⋮</span></div>
+            <div className="browser-toolbar"><span className="browser-controls">‹　›　↻</span><span className="browser-address"><span>⌑</span> liveportfolio.site/clifford-nwanna <span className="browser-lock">Secure</span></span><span className="browser-menu">⋮</span></div>
           </div>
           <div className="spec-frame" tabIndex={0} role="region" aria-label={t('landing.specimenScrollLabel')}>
             {/* inert: it is a picture of a portfolio, so its links and fields are not part of the page's tab order */}
