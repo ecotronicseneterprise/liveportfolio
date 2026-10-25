@@ -67,6 +67,8 @@ export function middleware(req: NextRequest) {
         'favicon.ico',
         'robots.txt',
         'sitemap.xml',
+        // Next's generated social image has no file extension; it is not a portfolio slug.
+        'opengraph-image',
       ])
 
       const looksLikeFile = slug.includes('.')

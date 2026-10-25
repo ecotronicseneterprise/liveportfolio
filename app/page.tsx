@@ -329,19 +329,19 @@ export default function LandingPage() {
 
       {/* ── Footer ── */}
       <footer className="w-full border-t border-gray-100 bg-white">
-        <div className="w-full px-6 sm:px-10 lg:px-16 py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs text-gray-600">
-          <span>© 2026 Ecotronics Enterprise · liveportfolio.site</span>
+        <div className="w-full px-6 sm:px-10 lg:px-16 py-6 flex flex-col items-center xl:flex-row xl:justify-between gap-4 text-xs text-gray-600">
+          <span className="text-center xl:text-left">© 2026 Ecotronics Enterprise · liveportfolio.site</span>
 
           {/* Contact links */}
           <ContactLinks />
 
-          <div className="flex gap-6">
-            <a href="/blog" className="hover:text-gray-600 transition-colors">Blog</a>
-            <a href="/terms" className="hover:text-gray-600 transition-colors">Terms</a>
-            <a href="/privacy" className="hover:text-gray-600 transition-colors">Privacy</a>
-            <CookieSettingsLink />
-            <a href="https://ecotronicsenterprise.com" className="hover:text-gray-600 transition-colors">Ecotronics</a>
-          </div>
+          <nav aria-label="Footer" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+            <a href="/blog" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">Blog</a>
+            <a href="/terms" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">Terms</a>
+            <a href="/privacy" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">Privacy</a>
+            <CookieSettingsLink className="inline-flex items-center whitespace-nowrap hover:text-gray-900 transition-colors" />
+            <a href="https://ecotronicsenterprise.com" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">Ecotronics</a>
+          </nav>
         </div>
       </footer>
 
