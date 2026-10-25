@@ -215,8 +215,8 @@ export default function LandingPage() {
         <div className="w-full px-6 sm:px-10 lg:px-16 pt-8 sm:pt-14 lg:pt-20 pb-12 lg:pb-20 hero-grid">
           <div className="flex flex-col">
             <h1 className="hero-h1">{t('landing.h1')}</h1>
-            <p className="speakable hero-lead">{t('landing.speakable')}</p>
             <p className="hero-body">{t('landing.heroBody')}</p>
+            <p className="speakable hero-lead">{t('landing.speakable')}</p>
             <p className="hero-aud">{t('landing.heroAudience')}</p>
             <div>
               <Link href={CREATE_HREF} className="hero-cta">{t('landing.cta')}</Link>

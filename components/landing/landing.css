@@ -7,16 +7,16 @@
 
 .lpl .hero-grid { display: grid; grid-template-columns: 1fr; row-gap: 32px; align-items: start; }
 @media (min-width: 1024px) { .lpl .hero-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); column-gap: 56px; row-gap: 0; } }
-.lpl .hero-h1 { font-size: 40px; line-height: 1.08; font-weight: 700; margin: 0 0 16px 0; }
-@media (min-width: 640px) { .lpl .hero-h1 { font-size: 52px; } }
-@media (min-width: 1024px) { .lpl .hero-h1 { font-size: 60px; } }
-.lpl .hero-lead { font-size: 20px; line-height: 1.45; font-weight: 600; margin: 0 0 12px 0; max-width: 34em; }
+.lpl .hero-h1 { font-size: 34px; line-height: 1.08; font-weight: 700; margin: 0 0 16px 0; }
+@media (min-width: 640px) { .lpl .hero-h1 { font-size: 44px; } }
+@media (min-width: 1024px) { .lpl .hero-h1 { font-size: 50px; } }
+.lpl .hero-lead { font-size: 18px; line-height: 1.5; font-weight: 600; margin: 0 0 12px 0; max-width: 34em; }
 .lpl .hero-body { font-size: 18px; line-height: 1.6; color: #334155; margin: 0 0 16px 0; max-width: 34em; }
 .lpl .hero-aud { font-size: 16px; line-height: 1.55; color: #475569; margin: 0 0 28px 0; max-width: 34em; }
 .lpl .hero-cta { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding-left: 32px; padding-right: 32px; background: #0A66C2; color: #FFFFFF; font-weight: 700; font-size: 17px; border-radius: 999px; text-decoration: none; }
 .lpl .hero-cta:hover { background: #084D9A; }
 .lpl .hero-cta:focus-visible, .lpl .spec-bar label:focus-visible { outline: 3px solid #0A66C2; outline-offset: 3px; }
-.lpl .hero-note { font-size: 15px; color: #475569; margin: 14px 0 0 0; }
+.lpl .hero-note { font-size: 16px; line-height: 1.55; color: #334155; margin: 20px 0 0 0; max-width: 34em; }
 
 /* The specimen: a real portfolio drawn by the block renderer. Three panes, one visible; a CSS-only switch (radio inputs and sibling selectors),
    so it works without JavaScript. The frame has a fixed height, so switching never moves the page. */
