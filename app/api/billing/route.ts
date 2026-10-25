@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/server-auth'
 import { getUserPlan } from '@/lib/getUserPlan'
+import { refundableNow } from '@/lib/billing/refund'
+import { daysLeft as daysLeftFrom, upgradePriceKobo } from '@/lib/billing/upgrade'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,11 +39,20 @@ export async function GET(req: NextRequest) {
   const expiresAt = s?.expires_at ?? null
   const daysLeft = expiresAt ? Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 86_400_000)) : null
 
+  // What the panel may offer, decided here from server time. The refund and upgrade endpoints re-check everything themselves.
+  let refund: Awaited<ReturnType<typeof refundableNow>> | null = null
+  try { refund = await refundableNow(admin, user.id) } catch { refund = null }
+  const upgrade = s?.plan === 'basic' && expiresAt && new Date(expiresAt).getTime() > Date.now()
+    ? { price_kobo: upgradePriceKobo(daysLeftFrom(expiresAt)) }
+    : null
+
   return NextResponse.json({
     plan,
     expires_at: expiresAt,
     days_left: daysLeft,
     one_time: rows.length > 0 ? rows[0].ls_order_id.startsWith('lpi_') : null,
+    refund: refund?.paid_at ? { eligible: refund.eligible, deadline: refund.deadline, tier: refund.tier, amount_kobo: refund.amount_kobo, one_time: refund.reference_kind === 'one_time' } : undefined, // keys are left out when there is nothing to say
+    upgrade: upgrade ?? undefined,
     payments: rows.map((p) => ({ date: p.created_at, plan: p.product_tier, amount_kobo: p.amount_cents, refunded: !!p.refunded_at })),
   })
 }

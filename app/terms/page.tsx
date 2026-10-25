@@ -115,6 +115,11 @@ export default function TermsPage() {
               business days to appear, depending on your bank. When a refund is issued, your paid plan ends and your portfolio is unpublished.
             </p>
             <p className="mt-3">
+              You can also cancel and get your refund yourself: open Plan and billing in your dashboard and choose Cancel and refund. This is
+              available for 7 days after payment. After 7 days refunds are not available; your plan stays active until its end date and does
+              not renew automatically.
+            </p>
+            <p className="mt-3">
               If you have any issue with the product, contact us first: we will do our best to resolve it.
             </p>
           </section>

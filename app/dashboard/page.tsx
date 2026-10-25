@@ -1,9 +1,9 @@
 'use client'
 
 import { CREATE_HREF, SIGNIN_HREF } from '@/lib/onboarding/entry'
-import { features } from '@/lib/plans'
+import { features, isProTemplate, type TemplateId } from '@/lib/plans'
 import { initialOf, tidyName } from '@/lib/onboarding/name'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getSupabaseClient } from '@/lib/supabase'
@@ -16,6 +16,8 @@ import Turnstile from '@/components/onboarding/Turnstile'
 import HistoryPanel from '@/components/dashboard/HistoryPanel'
 import PlanBillingPanel from '@/components/dashboard/PlanBillingPanel'
 import LookPicker from '@/components/dashboard/LookPicker'
+import FreeSplit from '@/components/dashboard/FreeSplit'
+import FreePreview from '@/components/dashboard/FreePreview'
 import { parseLayout } from '@/lib/blocks/settings'
 import type { StoredContent } from '@/lib/blocks/mode'
 import { captchaOptions } from '@/lib/onboarding/captcha'
@@ -536,6 +538,14 @@ export default function DashboardPage() {
   const [editContent, setEditContent] = useState<Partial<PortfolioContent>>({})
   const [activeTab, setActiveTab] = useState<'overview' | 'edit' | 'settings'>('overview')
   const [userPlan, setUserPlan] = useState<'free' | 'basic' | 'pro'>('free')
+  const landedFree = useRef(false)
+  const saveAfterPick = useRef(false)
+  const saveRef = useRef<() => Promise<void>>(async () => {})
+  // a design picked from the tiles is saved once the state has updated (declared with the other hooks, above every early return)
+  useEffect(() => {
+    if (saveAfterPick.current) { saveAfterPick.current = false; void saveRef.current() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [template])
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [copied, setCopied] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
@@ -591,6 +601,7 @@ export default function DashboardPage() {
       })
       const { plan } = await planRes.json()
       setUserPlan(plan as 'free' | 'basic' | 'pro')
+      if (plan === 'free' && !landedFree.current) { landedFree.current = true; setActiveTab('edit') } // a free account lands on the split view
 
       const { data: portfolioData } = await sb
         .from('portfolios')
@@ -908,6 +919,7 @@ export default function DashboardPage() {
 
   if (!user || !portfolio) return null
 
+  saveRef.current = handleSave
   const portfolioUrl = `https://liveportfolio.site/${user.slug}`
   const isPublished = userPlan !== 'free'
   const isPro = userPlan === 'pro'
@@ -960,7 +972,7 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-5 py-8 pb-[72px] md:pb-8">
+      <div className={`${userPlan === 'free' && activeTab === 'edit' ? 'max-w-7xl' : 'max-w-5xl'} mx-auto px-5 py-8 pb-[72px] md:pb-8`}>
 
         {/* Identity header */}
         <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6">
@@ -1394,6 +1406,23 @@ export default function DashboardPage() {
 
         {/* ── EDIT TAB ── */}
         {activeTab === 'edit' && (
+          <FreeSplit
+            enabled={userPlan === 'free'}
+            preview={
+              <FreePreview
+                content={editContent as PortfolioContent}
+                slug={user.slug}
+                previewId={previewTemplate}
+                savedId={template}
+                onPick={(id: TemplateId) => {
+                  if (isProTemplate(id)) { setPreviewTemplate(id); return } // a Pro design can be previewed, never saved by a free account
+                  setTemplate(id); setPreviewTemplate(id); setLockedTemplateMsg(null)
+                  saveAfterPick.current = true
+                }}
+                onPublish={() => setShowUpgradeModal(true)}
+              />
+            }
+          >
           <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Edit your portfolio</h2>
@@ -2010,6 +2039,7 @@ export default function DashboardPage() {
               }}
             />
           </div>
+          </FreeSplit>
         )}
 
         {/* ── SETTINGS TAB ── */}
