@@ -44,7 +44,7 @@
 
 .lpb .topbar { background: var(--bg); border-bottom: 1px solid var(--rule); }
 .lpb[data-page] .topbar { position: sticky; top: 0; z-index: 10; }
-.lpb .topbar .wrap { display: flex; align-items: center; justify-content: flex-start; column-gap: 16px; min-height: 56px; }
+.lpb .topbar .wrap { display: flex; align-items: center; justify-content: flex-end; column-gap: 16px; min-height: 56px; }
 .lpb .topbar a { display: inline-flex; align-items: center; min-height: 44px; padding-left: 4px; padding-right: 4px; font-family: var(--label); font-size: 15px; font-weight: 600; text-decoration: none; color: var(--ink); }
 .lpb .topbar a:hover { color: var(--accent); }
 .lpb .topbar nav { display: flex; column-gap: 20px; }
