@@ -738,6 +738,37 @@ export default function DashboardPage() {
     }
   }, [portfolio, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleAvatarDelete = useCallback(async () => {
+    if (!portfolio) return
+    setAvatarUploading(true)
+    setAvatarMsg(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { setAvatarMsg({ type: 'err', text: 'Session expired.' }); return }
+
+      const res = await fetch('/api/update', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ content: { avatar_url: null }, expected_edit_count: portfolio.edit_count ?? null }),
+      })
+      if (!res.ok) throw new Error('Failed to remove photo')
+      const updated = await res.json()
+      setPortfolio((prev) => prev ? { ...prev, edit_count: updated.edit_count ?? prev.edit_count, content: { ...prev.content, avatar_url: '' } } : prev)
+      setEditContent((prev) => ({ ...prev, avatar_url: '' }))
+      setAvatarPreview(null)
+      setAvatarMsg({ type: 'ok', text: 'Photo removed' })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[avatar delete]', msg)
+      setAvatarMsg({ type: 'err', text: `Could not remove photo: ${msg.slice(0, 120)}` })
+    } finally {
+      setAvatarUploading(false)
+    }
+  }, [portfolio, supabase])
+
   const handleProjectImageCropped = useCallback(async (blob: Blob) => {
     setProjectImageCropperSrc(null)
     const idx = projectImageCropperIndex
@@ -1730,15 +1761,28 @@ export default function DashboardPage() {
                     className="w-14 h-14 rounded-full object-cover border border-gray-200 flex-shrink-0" />
                 )}
                 <div>
-                  <label htmlFor="edit-avatar-upload" className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    {avatarUploading ? 'Uploading…' : 'Change photo'}
-                  </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label htmlFor="edit-avatar-upload" className={`cursor-pointer inline-flex items-center gap-2 px-4 py-2 border rounded-xl text-sm transition-colors ${avatarUploading ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+                      {avatarUploading ? 'Working…' : 'Change photo'}
+                    </label>
+                    {(avatarPreview || editContent.avatar_url) && (
+                      <button
+                        type="button"
+                        onClick={() => void handleAvatarDelete()}
+                        disabled={avatarUploading}
+                        className="inline-flex items-center px-4 py-2 border border-red-200 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                      >
+                        Remove photo
+                      </button>
+                    )}
+                  </div>
                   <input
                     id="edit-avatar-upload"
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     className="hidden"
                     onChange={(e) => { const f = e.target.files?.[0]; if (f) { handleAvatarUpload(f); e.target.value = '' } }}
+                    disabled={avatarUploading}
                   />
                   <p className="text-xs text-gray-400 mt-1">Square image recommended · JPEG, PNG, or WebP</p>
                   {avatarMsg && (
@@ -2146,7 +2190,8 @@ export default function DashboardPage() {
                 </div>
                 {/* Upload controls */}
                 <div>
-                  <label className="cursor-pointer inline-block">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="cursor-pointer inline-block">
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
@@ -2164,9 +2209,20 @@ export default function DashboardPage() {
                           <span className="w-3.5 h-3.5 border-2 border-[#0A66C2] border-t-transparent rounded-full animate-spin" />
                           Uploading…
                         </>
-                      ) : 'Update photo'}
+                      ) : 'Change photo'}
                     </span>
-                  </label>
+                    </label>
+                    {(avatarPreview || editContent.avatar_url) && (
+                      <button
+                        type="button"
+                        onClick={() => void handleAvatarDelete()}
+                        disabled={avatarUploading}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                      >
+                        Remove photo
+                      </button>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-400 mt-1.5">JPEG, PNG, or WebP · max 2MB</p>
                   {avatarMsg && (
                     <p className={`text-xs mt-1.5 font-medium ${avatarMsg.type === 'ok' ? 'text-green-600' : 'text-red-500'}`}>

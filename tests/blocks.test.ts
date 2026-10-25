@@ -185,17 +185,17 @@ describe('what is drawn: every theme x arrangement x fixture', () => {
   it('a photo is drawn only when there is one, with a real alt text and fixed size (no layout shift)', () => {
     expect(html('creative', SAMPLE_PEOPLE.engineer, 'proof')).not.toContain('class="photo"')
     const out = html('creative', { ...SAMPLE_PEOPLE.engineer, avatar_url: 'https://cdn.example.com/a.jpg' }, 'proof')
-    expect(out).toMatch(/class="photo" src="https:\/\/cdn\.example\.com\/a\.jpg" alt="Photo of Ada Okonkwo" width="176" height="176"/)
+    expect(out).toMatch(/class="photo" src="https:\/\/cdn\.example\.com\/a\.jpg" alt="Photo of Ada Okonkwo" width="208" height="208"/)
   })
   it('the portfolio name appears once in the identity hero, not again beside section navigation or in the footer', () => {
     const out = html('creative', SAMPLE_PEOPLE.engineer, 'proof')
     expect(out.match(/Ada Okonkwo/g)).toHaveLength(1)
     expect(out).not.toMatch(/class="brand"/) // nothing but the section links sits in the navigation bar
   })
-  it('the public desktop hero reserves the first viewport below the navigation', () => {
+  it('the public hero sizes to its content and tightens the gap before the next section', () => {
     const styles = read('components/blocks/blocks.css')
-    expect(styles).toContain('min-height: calc(100svh - 56px)')
-    expect(styles).toContain('align-items: center')
+    expect(styles).toContain('.lpb[data-page] main > .b-hero { min-height: auto; display: flex; align-items: flex-start; }')
+    expect(styles).toContain('.lpb .b-hero + .b { padding-top: clamp(28px, calc(var(--sec) * 0.55), 52px); }')
     expect(styles).toContain('main > .b-hero { min-height: auto; }')
   })
   it('renders every stored project instead of truncating beyond six', () => {
@@ -203,10 +203,11 @@ describe('what is drawn: every theme x arrangement x fixture', () => {
     const out = html('creative', { ...SAMPLE_PEOPLE.engineer, projects }, 'index')
     expect(out).toContain('Project 8')
   })
-  it('uses initials and an abstract project cover when users have no uploaded images, and shows project stack', () => {
+  it('omits the portrait when users have no uploaded image, and still shows the abstract project cover and project stack', () => {
     const projects = SAMPLE_PEOPLE.engineer.projects.map((project) => ({ ...project, stack: ['Go', 'Postgres'] }))
     const out = html('creative', { ...SAMPLE_PEOPLE.engineer, avatar_url: null, projects }, 'showcase')
-    expect(out).toContain('class="photo-monogram" aria-hidden="true">AO</span>')
+    expect(out).not.toContain('photo-monogram')
+    expect(out).not.toContain('class="photo"')
     expect(out).toContain('class="pvisual" aria-hidden="true"')
     expect(out).toContain('aria-label="Tools and technologies used"')
     expect(out).toContain('Go')

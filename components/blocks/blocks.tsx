@@ -60,10 +60,9 @@ function Picture({ p }: { p: BlockProject }) {
 function HeroPortrait({ d }: { d: BlockData }) {
   if (d.avatarUrl) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img className="photo" src={d.avatarUrl} alt={t('portfolio.photoOf', { name: d.name })} width={176} height={176} decoding="async" fetchPriority="high" />
+    return <img className="photo" src={d.avatarUrl} alt={t('portfolio.photoOf', { name: d.name })} width={208} height={208} decoding="async" fetchPriority="high" />
   }
-  const initials = d.name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join('').toUpperCase()
-  return initials ? <span className="photo-monogram" aria-hidden="true">{initials}</span> : null
+  return null
 }
 
 type Render = (d: BlockData, c: BlockCtx) => ReactNode
