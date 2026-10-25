@@ -4,7 +4,6 @@
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { sendEmail, emailTemplates } from '@/lib/email'
-import { isUpgradeAmount } from './upgrade'
 
 export type Plan = 'basic' | 'pro'
 export type Admin = ReturnType<typeof getSupabaseAdmin>
@@ -189,9 +188,7 @@ export async function grantIntent(supabaseAdmin: Admin, intent: IntentForGrant):
     check(curErr, 'subscription lookup (intent)')
     const now = Date.now()
     const curExpiry = cur?.expires_at ? new Date(cur.expires_at as string).getTime() : 0
-    // an upgrade (Pro bought for less than the Pro price, by a Basic owner) starts a fresh 12 months from payment; everything else stacks
-    const base = isUpgradeAmount(intent.tier, intent.amount_kobo) ? now : Math.max(curExpiry, now)
-    target = new Date(base + YEAR_MS).toISOString()
+    target = new Date(Math.max(curExpiry, now) + YEAR_MS).toISOString()
     const { error: setErr } = await supabaseAdmin.from('payment_intents').update({ granted_expires_at: target }).eq('id', intent.id).is('granted_expires_at', null)
     check(setErr, 'intent expiry')
     // another delivery may have decided first: use the stored value so every attempt agrees

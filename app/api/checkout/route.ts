@@ -3,7 +3,6 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/server-auth'
 import { CURRENCY, PRICES_KOBO, isTier } from '@/lib/billing/prices'
 import { initializeTransaction } from '@/lib/billing/paystack'
-import { daysLeft, upgradePriceKobo } from '@/lib/billing/upgrade'
 import { INTENT_TTL_MS, MAX_INTENTS_PER_HOUR, newReference } from '@/lib/billing/intents'
 
 export const dynamic = 'force-dynamic'
@@ -15,7 +14,7 @@ export async function POST(req: NextRequest) {
   const user = await getUserFromRequest(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  let body: { tier?: unknown; upgrade?: unknown; expected_kobo?: unknown } = {}
+  let body: { tier?: unknown } = {}
   try { body = await req.json() } catch { /* handled below */ }
   const tier = body?.tier
   if (!isTier(tier)) return NextResponse.json({ error: 'invalid_tier' }, { status: 400 })
@@ -61,30 +60,8 @@ export async function POST(req: NextRequest) {
   }
   if ((count ?? 0) >= MAX_INTENTS_PER_HOUR) return NextResponse.json({ error: 'too_many_attempts' }, { status: 429 })
 
-  // Upgrade (Basic to Pro for the difference): only when the browser asks for it AND the server finds a running Basic plan. The price is
-  // computed here from the days left; the browser may send the amount it was shown, and a mismatch is refused so nobody pays a number
-  // they did not see. Without the upgrade flag Pro costs the full price, exactly as before.
-  let amountKobo = PRICES_KOBO[tier]
-  if (body?.upgrade === true) {
-    if (tier !== 'pro') return NextResponse.json({ error: 'invalid_tier' }, { status: 400 })
-    const { data: cur, error: curErr } = await admin
-      .from('subscriptions')
-      .select('plan, expires_at')
-      .eq('user_id', user.id)
-      .in('status', ['active', 'cancelled'])
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    if (curErr) return NextResponse.json({ error: 'checkout_unavailable' }, { status: 500 })
-    const c = cur as { plan?: string; expires_at?: string } | null
-    if (c?.plan !== 'basic') return NextResponse.json({ error: 'not_upgradable' }, { status: 409 })
-    amountKobo = upgradePriceKobo(daysLeft(c.expires_at))
-    if (body.expected_kobo !== undefined && body.expected_kobo !== amountKobo) {
-      return NextResponse.json({ error: 'price_changed', amount_kobo: amountKobo }, { status: 409 })
-    }
-  }
   const reference = newReference()
+  const amountKobo = PRICES_KOBO[tier]
   const now = Date.now()
   const { data: intent, error: insErr } = await admin
     .from('payment_intents')

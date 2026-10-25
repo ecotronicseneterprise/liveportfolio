@@ -7,7 +7,7 @@ export const BILLING_COPY = {
   modalFooter: 'One payment for 12 months · No automatic renewal · 7-day refund guarantee',
   pricingNote: 'One payment for 12 months · No automatic renewal · 7-day refund guarantee',
   landingNote: 'Free to build and preview. No credit card needed. Pay once for 12 months, with a 7-day refund guarantee.',
-  faqCancel: 'There is nothing to cancel. You pay once for 12 months and the plan does not renew automatically; you can renew from your dashboard. If you are not happy, you can cancel and get a refund yourself from Plan and billing in your dashboard within 7 days of paying. After 7 days there are no refunds.',
+  faqCancel: 'There is nothing to cancel. You pay once for 12 months and the plan does not renew automatically; you can renew from your dashboard. If you are not happy, you can request a refund from Plan and billing in your dashboard within 7 days of paying. After 7 days there are no refunds.',
   period: 'for 12 months',
   nairaNote: "You are charged in Naira and your bank converts it at its own rate.",
 } as const

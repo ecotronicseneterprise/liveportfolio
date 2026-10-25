@@ -38,17 +38,16 @@ describe('billing panel: cancel, refunds closed, upgrade', () => {
     payments: [{ date: '2026-10-22T10:00:00.000Z', plan: 'basic', amount_kobo: 1_500_000, refunded: false }], ...extra,
   })
   it('inside 7 days: the deadline, the latest-payment note and a Cancel and refund button', () => {
-    const t = text(createElement(PlanBillingView, { b: paid({ refund: { eligible: true, deadline: '2026-10-29T10:00:00.000Z', tier: 'basic', amount_kobo: 1_500_000, one_time: true } }), onPay: noop, onRefund: async () => 'refunded' as const }))
-    expect(t).toContain('Cancel and refund'); expect(t).toContain('29 October 2026'); expect(t).toMatch(/latest payment only/)
+    const t = text(createElement(PlanBillingView, { b: paid({ refund: { eligible: true, deadline: '2026-10-29T10:00:00.000Z', tier: 'basic', amount_kobo: 1_500_000, one_time: true } }), onPay: noop, onRefund: async () => 'requested' as const }))
+    expect(t).toContain('Request a refund'); expect(t).toContain('29 October 2026'); expect(t).toMatch(/latest payment only/)
   })
   it('after 7 days: no cancel button, plain wording with the end date', () => {
-    const t = text(createElement(PlanBillingView, { b: paid({ refund: { eligible: false, deadline: '2026-10-01T10:00:00.000Z', tier: 'basic', amount_kobo: 1_500_000, one_time: true } }), onPay: noop, onRefund: async () => 'refunded' as const }))
-    expect(t).not.toContain('Cancel and refund')
+    const t = text(createElement(PlanBillingView, { b: paid({ refund: { eligible: false, deadline: '2026-10-01T10:00:00.000Z', tier: 'basic', amount_kobo: 1_500_000, one_time: true } }), onPay: noop, onRefund: async () => 'requested' as const }))
+    expect(t).not.toContain('Request a refund')
     expect(t).toContain('Refunds are available for 7 days after payment. Your plan stays active until 5 October 2027. It does not renew automatically.')
   })
-  it('a Basic owner sees the server-computed upgrade price; Pro owners and Free do not', () => {
-    const b = paid({ upgrade: { price_kobo: 2_000_000 } })
-    expect(text(createElement(PlanBillingView, { b, onPay: noop, onUpgrade: async () => null }))).toContain('Upgrade to Pro for ₦20,000')
-    expect(text(createElement(PlanBillingView, { b: paid({ plan: 'pro' }), onPay: noop, onUpgrade: async () => null }))).not.toContain('Upgrade to Pro for')
+  it('a Basic owner gets an Upgrade to Pro button that opens the normal checkout; Pro owners do not', () => {
+    expect(text(createElement(PlanBillingView, { b: paid({}), onPay: noop }))).toContain('Upgrade to Pro')
+    expect(text(createElement(PlanBillingView, { b: paid({ plan: 'pro' }), onPay: noop }))).not.toContain('Upgrade to Pro')
   })
 })

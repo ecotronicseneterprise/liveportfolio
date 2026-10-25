@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { formatNaira } from '@/lib/billing/copy'
 import { SUPPORT_EMAIL } from '@/lib/brand'
 import { t } from '@/lib/onboarding/t'
-import { getSupabaseClient } from '@/lib/supabase'
 
 export interface Billing {
   plan: 'free' | 'basic' | 'pro'
@@ -14,14 +13,12 @@ export interface Billing {
   payments: Array<{ date: string; plan: string; amount_kobo: number; refunded: boolean }>
   /** What a refund would cover right now, decided by the server (absent on older responses). */
   refund?: { eligible: boolean; deadline: string | null; tier: string | null; amount_kobo: number | null; one_time: boolean } | null
-  /** Basic owners only: the prorated Pro price, computed by the server. */
-  upgrade?: { price_kobo: number } | null
 }
 
 const NAME = { free: 'Free', basic: 'Basic', pro: 'Pro' } as const
 const date = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
-export type RefundResult = 'refunded' | 'pending_manual' | 'error'
+export type RefundResult = 'requested' | 'error'
 
 /** What you are on, when it ends, what you paid, and how to cancel, upgrade or renew. Paying goes through the checkout. */
 export default function PlanBillingPanel({ token, onPay }: { token: string; onPay: () => void }) {
@@ -43,32 +40,10 @@ export default function PlanBillingPanel({ token, onPay }: { token: string; onPa
     try {
       const res = await fetch('/api/billing/refund', { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
       const j = await res.json().catch(() => ({}))
-      if (j.outcome === 'refunded') { load(); return 'refunded' }
-      if (j.outcome === 'pending_manual') return 'pending_manual'
-      load() // the window may have closed or the refund may already be done: show the truth
+      if (j.outcome === 'requested') return 'requested'
+      load() // the window may have closed or a refund may already be done: show the truth
       return 'error'
     } catch { return 'error' }
-  }
-
-  /** Starts the upgrade checkout. Sends the tier, the upgrade flag and the amount that was shown; the server prices it. */
-  const onUpgrade = async (expectedKobo: number): Promise<string | null> => {
-    try {
-      const { data } = await getSupabaseClient().auth.getSession()
-      const accessToken = data.session?.access_token ?? token
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ tier: 'pro', upgrade: true, expected_kobo: expectedKobo }),
-      })
-      const j = await res.json().catch(() => ({}))
-      if (res.ok && typeof j.authorization_url === 'string' && j.authorization_url.startsWith('https://checkout.paystack.com/')) {
-        try { localStorage.setItem('lp_checkout_ref', String(j.reference || '')) } catch { /* storage blocked */ }
-        window.location.href = j.authorization_url
-        return null
-      }
-      if (j.error === 'price_changed') { load(); return t('billing.upgradePriceChanged') }
-      return t('billing.upgradeFailed', { email: SUPPORT_EMAIL })
-    } catch { return t('billing.upgradeFailed', { email: SUPPORT_EMAIL }) }
   }
 
   if (failed) {
@@ -80,15 +55,14 @@ export default function PlanBillingPanel({ token, onPay }: { token: string; onPa
     )
   }
   if (!b) return null
-  return <PlanBillingView b={b} onPay={onPay} onRefund={onRefund} onUpgrade={onUpgrade} />
+  return <PlanBillingView b={b} onPay={onPay} onRefund={onRefund} />
 }
 
 /** The panel itself (separate from the fetching so it can be rendered and tested on its own). */
-export function PlanBillingView({ b, onPay, onRefund, onUpgrade }: {
+export function PlanBillingView({ b, onPay, onRefund }: {
   b: Billing
   onPay: () => void
   onRefund?: () => Promise<RefundResult>
-  onUpgrade?: (expectedKobo: number) => Promise<string | null>
 }) {
   const card = 'bg-white border border-gray-100 rounded-2xl p-6'
   const btn = 'inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#0A66C2] px-5 text-sm font-semibold text-white hover:bg-[#084D9A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2] focus-visible:ring-offset-2 disabled:opacity-60'
@@ -99,7 +73,6 @@ export function PlanBillingView({ b, onPay, onRefund, onUpgrade }: {
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string | null>(null)
-  const [upgradeError, setUpgradeError] = useState<string | null>(null)
 
   const canCancel = !!(b.refund?.eligible && b.refund.deadline && onRefund)
   const lastPaid = b.refund && b.refund.amount_kobo !== null ? formatNaira(b.refund.amount_kobo / 100) : ''
@@ -112,16 +85,8 @@ export function PlanBillingView({ b, onPay, onRefund, onUpgrade }: {
     const r = await onRefund()
     setBusy(false)
     setConfirming(false)
-    setNote(r === 'refunded' ? t('billing.refundDone') : r === 'pending_manual' ? t('billing.refundPending', { email: SUPPORT_EMAIL }) : t('billing.refundFailed', { email: SUPPORT_EMAIL }))
+    setNote(r === 'requested' ? t('billing.refundDone') : t('billing.refundFailed', { email: SUPPORT_EMAIL }))
   }
-  const doUpgrade = async () => {
-    if (!onUpgrade || !b.upgrade || busy) return
-    setBusy(true)
-    setUpgradeError(null)
-    const err = await onUpgrade(b.upgrade.price_kobo)
-    if (err) { setUpgradeError(err); setBusy(false) } // on success the page is leaving for Paystack
-  }
-
   return (
     <section className={card} aria-labelledby="plan-h">
       <h2 id="plan-h" className="text-base font-semibold text-gray-900 mb-1">Plan and billing</h2>
@@ -142,12 +107,11 @@ export function PlanBillingView({ b, onPay, onRefund, onUpgrade }: {
           )}
           <div className="mt-4 flex flex-wrap gap-3">
             <button type="button" className={btn} onClick={onPay}>{b.one_time === false ? 'Manage or upgrade' : 'Renew for 12 months'}</button>
-            {b.upgrade && onUpgrade && (
-              <button type="button" className={btnQuiet} onClick={doUpgrade} disabled={busy}>{t('billing.upgradeButton', { amount: formatNaira(b.upgrade.price_kobo / 100) })}</button>
+            {b.plan === 'basic' && (
+              <button type="button" className={btnQuiet} onClick={onPay}>{t('billing.upgradeButton')}</button>
             )}
           </div>
-          {b.upgrade && onUpgrade && <p className="mt-2 text-sm text-gray-600">{t('billing.upgradeNote')}</p>}
-          {upgradeError && <p role="alert" className="mt-2 text-sm text-red-800">{upgradeError}</p>}
+          {b.plan === 'basic' && <p className="mt-2 text-sm text-gray-600">{t('billing.upgradeNote', { email: SUPPORT_EMAIL })}</p>}
         </>
       )}
 

@@ -12,6 +12,7 @@ import { DAY_MS } from './upgrade'
 export const REFUND_WINDOW_MS = 7 * DAY_MS
 
 export type RefundOutcome =
+  | 'requested' // the owner has been e-mailed; the refund is made by hand in Paystack
   | 'refunded' // Paystack accepted; access ended
   | 'pending_manual' // Paystack refused or was unreachable; the owner has been told
   | 'no_payment'
@@ -145,4 +146,36 @@ export async function requestRefund(admin: Admin, userId: string, deps: RefundDe
   }
   console.log('[refund] refunded. reference', pay.ls_order_id)
   return { outcome: 'refunded' }
+}
+
+/**
+ * The gate in front of the refund. A person cannot hop in and out of a paid plan on their own: asking for a refund checks the same
+ * rules as above (own latest one-time payment, within 7 days, not already refunded) and then e-mails the owner at SUPPORT_EMAIL with
+ * the details. Nothing is changed here. The owner issues the refund in the Paystack dashboard, and the existing refund.processed
+ * webhook then ends the plan and unpublishes the portfolio. requestRefund (the one-click Paystack refund) is kept, unused, for later.
+ */
+export async function submitRefundRequest(admin: Admin, userId: string, deps: { notifyOwner?: RefundDeps['notifyOwner']; now?: () => number } = {}): Promise<{ outcome: RefundOutcome }> {
+  const notifyOwner = deps.notifyOwner ?? defaultNotify
+  const now = (deps.now ?? Date.now)()
+  let pay: PaymentRow | null
+  try { pay = await latestPayment(admin, userId) } catch { return { outcome: 'unavailable' } }
+  if (!pay) return { outcome: 'no_payment' }
+  if (pay.refunded_at) return { outcome: 'already_refunded' }
+  const paid = new Date(pay.created_at).getTime()
+  if (!Number.isFinite(paid)) return { outcome: 'unavailable' }
+  if (now - paid > REFUND_WINDOW_MS) return { outcome: 'window_closed' }
+
+  let email = ''
+  try {
+    const { data } = await admin.from('users').select('email').eq('id', userId).maybeSingle()
+    email = (data as { email?: string } | null)?.email ?? ''
+  } catch { /* the reference below is enough to find the payment */ }
+
+  const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string)
+  await notifyOwner(
+    'Refund request: please review',
+    `<p>A customer asked for a refund inside the 7-day window.</p><p>Account: ${esc(email) || '(unknown)'}<br/>Payment reference: ${esc(pay.ls_order_id)}<br/>Plan: ${esc(pay.product_tier)}<br/>Amount (kobo): ${pay.amount_cents}<br/>Paid: ${esc(pay.created_at)}</p><p>To approve, refund the transaction in the Paystack dashboard. The refund.processed webhook then ends the plan and unpublishes the portfolio. To decline, reply to the customer. Their plan stays active until you refund.</p>`,
+  )
+  console.log('[refund] request sent to the owner. reference', pay.ls_order_id)
+  return { outcome: 'requested' }
 }

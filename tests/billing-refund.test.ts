@@ -5,9 +5,8 @@ vi.mock('@/lib/email', () => ({ sendEmail: vi.fn(async () => ({ success: true })
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 
 import { createFakeDb } from './helpers/fake-supabase'
-import { REFUND_WINDOW_MS, refundableNow, requestRefund } from '../lib/billing/refund'
-import { DAY_MS, UPGRADE_FLOOR_KOBO, daysLeft, isUpgradeAmount, upgradePriceKobo } from '../lib/billing/upgrade'
-import { PRICES_KOBO } from '../lib/billing/prices'
+import { REFUND_WINDOW_MS, refundableNow, requestRefund, submitRefundRequest } from '../lib/billing/refund'
+import { DAY_MS } from '../lib/billing/upgrade'
 
 const NOW = Date.UTC(2026, 9, 25, 12, 0, 0)
 const iso = (t: number) => new Date(t).toISOString()
@@ -104,33 +103,39 @@ describe('refund', () => {
   })
 })
 
-describe('upgrade price', () => {
-  const diff = PRICES_KOBO.pro - PRICES_KOBO.basic
-  it('is the full difference on day 365 and never more', () => {
-    expect(upgradePriceKobo(365)).toBe(diff)
-    expect(upgradePriceKobo(1000)).toBe(diff)
+describe('refund request (the gate: it only e-mails the owner)', () => {
+  const ask = async (ctx: ReturnType<typeof seed>, uid = 'u1') => {
+    const notifyOwner = vi.fn(async (_s: string, _h: string) => {})
+    const r = await submitRefundRequest(ctx.admin as never, uid, { notifyOwner, now: () => NOW })
+    return { ...r, notifyOwner }
+  }
+  it('inside 7 days: e-mails the owner the reference, plan and amount, and changes nothing', async () => {
+    const ctx = seed()
+    const r = await ask(ctx)
+    expect(r.outcome).toBe('requested')
+    expect(r.notifyOwner).toHaveBeenCalledTimes(1)
+    const [subject, html] = r.notifyOwner.mock.calls[0]
+    expect(subject).toMatch(/Refund request/)
+    expect(html).toContain('lpi_abc'); expect(html).toContain('1500000'); expect(html).toContain('a@example.com')
+    expect(ctx.db.users[0].plan).toBe('basic')
+    expect(ctx.db.payments[0].refunded_at).toBeNull()
+    expect(ctx.db.payment_intents[0].status).toBe('paid')
   })
-  it('day 0 and day 364 (1 day left) hit the floor', () => {
-    expect(upgradePriceKobo(0)).toBe(UPGRADE_FLOOR_KOBO)
-    expect(upgradePriceKobo(1)).toBe(UPGRADE_FLOOR_KOBO)
+  it('exactly 7 days is accepted, 7 days and 1 second is not, and nothing is sent then', async () => {
+    expect((await ask(seed({ paidAgoMs: REFUND_WINDOW_MS }))).outcome).toBe('requested')
+    const late = await ask(seed({ paidAgoMs: REFUND_WINDOW_MS + 1000 }))
+    expect(late.outcome).toBe('window_closed'); expect(late.notifyOwner).not.toHaveBeenCalled()
   })
-  it('rounds down to a whole N100 (the buyer\'s favour)', () => {
-    for (const d of [2, 17, 100, 183, 300, 364]) {
-      const p = upgradePriceKobo(d)
-      expect(p % 10_000).toBe(0)
-      expect(p).toBeLessThanOrEqual(Math.max(UPGRADE_FLOOR_KOBO, (diff * d) / 365))
-    }
-    expect(upgradePriceKobo(183)).toBe(Math.floor((diff * 183) / 365 / 10_000) * 10_000)
+  it('refuses another account and an already refunded payment', async () => {
+    const other = await ask(seed(), 'u2')
+    expect(other.outcome).toBe('no_payment'); expect(other.notifyOwner).not.toHaveBeenCalled()
+    const done = await ask(seed({ refunded: true }))
+    expect(done.outcome).toBe('already_refunded'); expect(done.notifyOwner).not.toHaveBeenCalled()
   })
-  it('daysLeft counts partial days upwards and clamps', () => {
-    expect(daysLeft(iso(NOW + 3 * 3_600_000), NOW)).toBe(1)
-    expect(daysLeft(iso(NOW - 1), NOW)).toBe(0)
-    expect(daysLeft(iso(NOW + 400 * DAY_MS), NOW)).toBe(365)
-    expect(daysLeft(null, NOW)).toBe(0)
-  })
-  it('recognises an upgrade payment by its amount', () => {
-    expect(isUpgradeAmount('pro', 2_000_000)).toBe(true)
-    expect(isUpgradeAmount('pro', PRICES_KOBO.pro)).toBe(false)
-    expect(isUpgradeAmount('basic', PRICES_KOBO.basic)).toBe(false)
+  it('the e-mail escapes what it includes', async () => {
+    const ctx = seed()
+    ctx.db.users[0].email = '<b>x</b>@example.com'
+    const r = await ask(ctx)
+    expect(r.notifyOwner.mock.calls[0][1]).not.toContain('<b>x</b>')
   })
 })
