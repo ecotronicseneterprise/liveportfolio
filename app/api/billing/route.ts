@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/server-auth'
 import { getUserPlan } from '@/lib/getUserPlan'
 import { refundableNow } from '@/lib/billing/refund'
+import { daysLeft as cohortDaysLeft } from '@/lib/cohort/schedule'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,12 +43,26 @@ export async function GET(req: NextRequest) {
   let refund: Awaited<ReturnType<typeof refundableNow>> | null = null
   try { refund = await refundableNow(admin, user.id) } catch { refund = null }
 
+  // Free cohort access (bootcamp / university link): the countdown the dashboard shows. Left out once the person has a paid plan running.
+  let cohort: { name: string; ends_at: string; days_left: number; active: boolean } | undefined
+  try {
+    const { data: cu } = await admin.from('users').select('bootcamp_code, plan_expires_at').eq('id', user.id).maybeSingle()
+    const c = cu as { bootcamp_code?: string | null; plan_expires_at?: string | null } | null
+    const paidRunning = !!expiresAt && new Date(expiresAt).getTime() > Date.now()
+    if (c?.bootcamp_code && c.plan_expires_at && !paidRunning) {
+      const { data: bc } = await admin.from('bootcamp_codes').select('name').eq('code', c.bootcamp_code).maybeSingle()
+      const left = cohortDaysLeft(c.plan_expires_at)
+      cohort = { name: (bc as { name?: string } | null)?.name || 'your programme', ends_at: c.plan_expires_at, days_left: left, active: left > 0 }
+    }
+  } catch { cohort = undefined }
+
   return NextResponse.json({
     plan,
     expires_at: expiresAt,
     days_left: daysLeft,
     one_time: rows.length > 0 ? rows[0].ls_order_id.startsWith('lpi_') : null,
     refund: refund?.paid_at ? { requested: refund.requested, eligible: refund.eligible, deadline: refund.deadline, tier: refund.tier, amount_kobo: refund.amount_kobo, one_time: refund.reference_kind === 'one_time' } : undefined, // keys are left out when there is nothing to say
+    cohort,
     payments: rows.map((p) => ({ date: p.created_at, plan: p.product_tier, amount_kobo: p.amount_cents, refunded: !!p.refunded_at })),
   })
 }

@@ -180,16 +180,141 @@ export async function sendRenewalReminder(
   const date = new Date(expiresAt).toLocaleDateString('en-GB', {
     day: 'numeric', month: 'long', year: 'numeric',
   })
+  // One-time plans do not renew by themselves. This used to say "renews automatically", which was false for everyone who pays through
+  // the one-time checkout (and that includes people who convert from a free cohort link).
   const html = baseLayout(`
-    ${heading('Your LivePortfolio plan renews in 30 days.')}
-    ${para(`Your <strong>${plan === 'pro' ? 'Pro' : 'Basic'} plan</strong> renews on <strong>${date}</strong>. Your portfolio stays live automatically — no action needed.`)}
-    ${para('If you ever want to cancel or upgrade, you can do that from your dashboard settings.')}
-    ${ctaButton('Manage my plan', `${DASHBOARD_URL}?tab=settings`)}
+    ${heading('Your LivePortfolio plan ends in 30 days.')}
+    ${para(`Your <strong>${plan === 'pro' ? 'Pro' : 'Basic'} plan</strong> ends on <strong>${date}</strong>. It does <strong>not</strong> renew automatically: after that date your portfolio goes private (nothing is deleted).`)}
+    ${para('To keep it live, renew from your dashboard. Renewing adds 12 months to the time you have left, so there is no rush to do it today.')}
+    ${ctaButton('Renew my plan', `${DASHBOARD_URL}?tab=settings`)}
   `, email)
 
   await sendEmail({
     to: email,
-    subject: 'Your LivePortfolio plan renews in 30 days',
+    subject: 'Your LivePortfolio plan ends in 30 days',
     html,
   })
+}
+
+// ── Flow D: cohort access (bootcamp and university links) ───────────────────────────────────────────────
+// The sequence for people who got 6 months of free access through a cohort link. Its job is to turn that access into a paid plan before it
+// ends, honestly: it says what happens at the end (the portfolio goes private; nothing is deleted) and what keeping it live costs.
+// Prices and the template count come from lib/plans.ts. Timing and dedupe live in lib/cohort/schedule.ts and lib/cohort/send.ts.
+import type { CohortStep } from '@/lib/cohort/schedule'
+import { ALL_TEMPLATES, PLANS } from '@/lib/plans'
+import { BILLING_COPY, formatNaira } from '@/lib/billing/copy'
+
+export interface CohortCtx {
+  email: string
+  cohortName: string
+  daysLeft: number
+  /** Human date the access ends, e.g. "25 April 2027". */
+  endDate: string
+  portfolioUrl: string
+}
+
+const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string)
+
+function keepLine(): string {
+  return `Keep it live: <strong>Basic</strong> is ${formatNaira(PLANS.basic.priceNgn ?? 0)} for 12 months (your own address, your portfolio stays public). <strong>Pro</strong> is ${formatNaira(PLANS.pro.priceNgn ?? 0)} and adds all ${ALL_TEMPLATES.length} templates, who viewed your portfolio, a QR code and a weekly career score. ${BILLING_COPY.pricingNote}.`
+}
+
+export function renderCohortEmail(step: CohortStep, c: CohortCtx): { subject: string; html: string } {
+  const who = esc(c.cohortName)
+  const end = esc(c.endDate)
+  const url = esc(c.portfolioUrl)
+  const days = `${c.daysLeft} day${c.daysLeft === 1 ? '' : 's'}`
+  const wrap = (body: string, subject: string) => ({ subject, html: baseLayout(body, c.email) })
+
+  switch (step) {
+    case 'welcome':
+      return wrap(`
+        ${heading('Your 6 months of free access has started.')}
+        ${para(`You joined through <strong>${who}</strong>. Your access runs until <strong>${end}</strong>.`)}
+        ${para(`Finish your portfolio and it goes live at <strong>${url}</strong>. Put that link on your CV and your LinkedIn profile today.`)}
+        ${ctaButton('Open my dashboard', DASHBOARD_URL)}
+      `, 'Your 6 months of free access has started')
+    case 'share':
+      return wrap(`
+        ${heading('Put your link where people will see it.')}
+        ${para('Three places that matter: the top of your CV, your LinkedIn headline or Featured section, and your WhatsApp status.')}
+        ${para(`Your address: <strong>${url}</strong>`)}
+        ${ctaButton('View my portfolio', c.portfolioUrl)}
+      `, 'Put your portfolio link where people will see it')
+    case 'cv':
+      return wrap(`
+        ${heading('Make your best project impossible to miss.')}
+        ${para('Recruiters read the first project and its result. Put your strongest one first, and write what changed because of it, with a number if you have one.')}
+        ${ctaButton('Edit my portfolio', DASHBOARD_URL)}
+      `, 'Make your best project impossible to miss')
+    case 'fresh':
+      return wrap(`
+        ${heading('Add what you have built since.')}
+        ${para('A portfolio that changes is worth more than one that was finished once. Add a recent project or a new skill. It takes a few minutes and updates your live page.')}
+        ${ctaButton('Update my portfolio', DASHBOARD_URL)}
+      `, 'Add what you have built since')
+    case 'halfway':
+      return wrap(`
+        ${heading('Halfway through your free access.')}
+        ${para(`Your access ends on <strong>${end}</strong>. When it ends, your portfolio goes private and the link stops working for visitors. Nothing is deleted.`)}
+        ${para(keepLine())}
+        ${ctaButton('See my options', DASHBOARD_URL)}
+      `, 'Halfway through your free access')
+    case 'left30':
+      return wrap(`
+        ${heading(`${days} left on your free access.`)}
+        ${para(`On <strong>${end}</strong> your portfolio goes private. If you are applying for roles, keep the link working for the people you have already sent it to.`)}
+        ${para(keepLine())}
+        ${ctaButton('Keep my portfolio live', DASHBOARD_URL)}
+      `, `${days} left on your free access`)
+    case 'left14':
+      return wrap(`
+        ${heading('Two weeks left.')}
+        ${para(`Your free access ends on <strong>${end}</strong>. Any CV, LinkedIn profile or application that links to <strong>${url}</strong> will stop showing your work after that.`)}
+        ${para(keepLine())}
+        ${ctaButton('Keep my portfolio live', DASHBOARD_URL)}
+      `, 'Two weeks left on your free access')
+    case 'left7':
+      return wrap(`
+        ${heading('Seven days left.')}
+        ${para(`Your portfolio goes private on <strong>${end}</strong>. If you are mid-application, this is the week to decide.`)}
+        ${para(keepLine())}
+        ${ctaButton('Keep my portfolio live', DASHBOARD_URL)}
+      `, 'Seven days left on your free access')
+    case 'left1':
+      return wrap(`
+        ${heading('Your free access ends tomorrow.')}
+        ${para(`After <strong>${end}</strong> your portfolio is private. Everything you built stays saved, and you can bring it back at any time.`)}
+        ${para(keepLine())}
+        ${ctaButton('Keep my portfolio live', DASHBOARD_URL)}
+      `, 'Your free access ends tomorrow')
+    case 'ended':
+      return wrap(`
+        ${heading('Your free access has ended.')}
+        ${para('Your portfolio is private now, and everything you built is saved. Visitors to your link will not see it until you choose a plan.')}
+        ${para(keepLine())}
+        ${ctaButton('Bring my portfolio back', DASHBOARD_URL)}
+      `, 'Your free access has ended: your portfolio is saved')
+    case 'after14':
+      return wrap(`
+        ${heading('Your portfolio is still saved.')}
+        ${para('Your name, your projects and your work are all here. It goes live again the moment you pay.')}
+        ${para(keepLine())}
+        ${ctaButton('Bring my portfolio back', DASHBOARD_URL)}
+      `, 'Your portfolio is still saved')
+    case 'after45':
+      return wrap(`
+        ${heading('One last note about your saved portfolio.')}
+        ${para('It is still saved and ready. If you are applying for roles, a live portfolio is one more thing that works for you while you sleep.')}
+        ${para(keepLine())}
+        ${ctaButton('Bring my portfolio back', DASHBOARD_URL)}
+      `, 'Your saved portfolio is ready when you are')
+  }
+}
+
+/** Sends one cohort e-mail. Resolves true only if the e-mail service accepted it (so the caller marks it sent only then). */
+export async function sendCohortEmail(step: CohortStep, c: CohortCtx): Promise<boolean> {
+  const { subject, html } = renderCohortEmail(step, c)
+  const r = await sendEmail({ to: c.email, subject, html })
+  return !!(r as { success?: boolean } | undefined)?.success
 }

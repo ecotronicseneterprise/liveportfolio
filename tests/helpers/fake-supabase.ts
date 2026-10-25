@@ -19,7 +19,8 @@ export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 
 
   function from(table: string) {
     db[table] ??= []
-    let op: 'select' | 'insert' | 'update' | 'delete' = 'select'
+    let op: 'select' | 'insert' | 'update' | 'delete' | 'upsert' = 'select'
+    let upsertOpts: { onConflict?: string; ignoreDuplicates?: boolean } = {}
     let payload: Row = {}
     let head = false
     let wantCount = false
@@ -45,6 +46,13 @@ export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 
         // insert(...).select().single() returns the inserted row, like PostgREST
         return { data: returning ? (single ? { ...row } : [{ ...row }]) : null, error: null, count: null }
       }
+      if (op === 'upsert') {
+        const col = upsertOpts.onConflict ?? 'id'
+        const hit = rows.find((r) => payload[col] !== undefined && r[col] === payload[col])
+        if (hit) { if (!upsertOpts.ignoreDuplicates) Object.assign(hit, payload); return { data: null, error: null, count: null } }
+        rows.push({ id: payload.id ?? `id-${++seq}`, at: new Date().toISOString(), ...payload })
+        return { data: null, error: null, count: null }
+      }
       if (op === 'update') {
         const hit = rows.filter(match)
         for (const r of hit) Object.assign(r, payload)
@@ -69,6 +77,9 @@ export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 
         return q
       },
       insert: (row: Row) => { op = 'insert'; payload = row; return q },
+      upsert: (row: Row, o?: { onConflict?: string; ignoreDuplicates?: boolean }) => { op = 'upsert'; payload = row; upsertOpts = o ?? {}; return q },
+      not: (c: string, operator: string, v: unknown) => { if (operator === 'is' && v === null) filters.push((r) => r[c] != null); return q },
+      lte: (c: string, v: string) => { filters.push((r) => String(r[c]) <= v); return q },
       update: (p: Row) => { op = 'update'; payload = p; return q },
       delete: () => { op = 'delete'; return q },
       eq: (c: string, v: unknown) => { filters.push((r) => r[c] === v); return q },

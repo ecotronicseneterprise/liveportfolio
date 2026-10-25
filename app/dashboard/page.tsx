@@ -18,6 +18,7 @@ import PlanBillingPanel from '@/components/dashboard/PlanBillingPanel'
 import LookPicker from '@/components/dashboard/LookPicker'
 import FreeSplit from '@/components/dashboard/FreeSplit'
 import FreePreview from '@/components/dashboard/FreePreview'
+import CohortBanner from '@/components/dashboard/CohortBanner'
 import { parseLayout } from '@/lib/blocks/settings'
 import type { StoredContent } from '@/lib/blocks/mode'
 import { captchaOptions } from '@/lib/onboarding/captcha'
@@ -1040,6 +1041,9 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Free cohort access (bootcamp / university link): the countdown. Renders nothing for everyone else. */}
+        {accessToken && <CohortBanner token={accessToken} onKeep={() => { setUpgradeProOnly(false); setShowUpgradeModal(true) }} />}
 
         {/* Tabs — active: blue underline + blue text — desktop only */}
         <div className="hidden md:flex mb-6 bg-white border border-gray-100 rounded-xl overflow-hidden w-fit">

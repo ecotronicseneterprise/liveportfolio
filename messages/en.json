@@ -311,5 +311,23 @@
     "publish": "Publish my portfolio",
     "seePro": "See Pro",
     "soon": "Coming soon, not included yet: {list}."
+  },
+  "cohort": {
+    "title": "Free access through {name}",
+    "ends": "Your access ends on {date}.",
+    "keep": "After that your portfolio goes private; nothing is deleted. Keep it live with Basic: {price} for 12 months, paid once.",
+    "cta": "Keep my portfolio live",
+    "day": "day left",
+    "days": "days left",
+    "hour": "hour left",
+    "hours": "hours left",
+    "daysLeft": "{n} days left",
+    "hoursLeft": "{n} hours left",
+    "endedTitle": "Your free access through {name} has ended",
+    "endedBody": "Your portfolio is private and saved. Choose a plan to bring it back: Basic is {price} for 12 months, paid once.",
+    "endedCta": "Bring my portfolio back",
+    "panelLine": "Free access through {name}, until {date}.",
+    "panelNote": "After that your portfolio goes private; nothing is deleted. Pay once to keep it live.",
+    "panelEndedLine": "Your free access through {name} ended on {date}."
   }
 }

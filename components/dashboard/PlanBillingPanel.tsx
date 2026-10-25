@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { formatNaira } from '@/lib/billing/copy'
 import { SUPPORT_EMAIL } from '@/lib/brand'
+import { PLANS } from '@/lib/plans'
 import { t } from '@/lib/onboarding/t'
 
 export interface Billing {
@@ -11,6 +12,8 @@ export interface Billing {
   days_left: number | null
   one_time: boolean | null
   payments: Array<{ date: string; plan: string; amount_kobo: number; refunded: boolean }>
+  /** Free cohort access (bootcamp / university link), while it lasts or after it ended without a plan. */
+  cohort?: { name: string; ends_at: string; days_left: number; active: boolean } | null
   /** What a refund would cover right now, decided by the server (absent on older responses). */
   refund?: { requested?: boolean; eligible: boolean; deadline: string | null; tier: string | null; amount_kobo: number | null; one_time: boolean } | null
 }
@@ -70,7 +73,8 @@ export function PlanBillingView({ b, onPay, onRefund, onUpgrade }: {
   const card = 'bg-white border border-gray-100 rounded-2xl p-6'
   const btn = 'inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#0A66C2] px-5 text-sm font-semibold text-white hover:bg-[#084D9A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2] focus-visible:ring-offset-2 disabled:opacity-60'
   const btnQuiet = 'inline-flex min-h-[44px] items-center justify-center rounded-full border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-900 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2] focus-visible:ring-offset-2 disabled:opacity-60'
-  const paid = b.plan !== 'free'
+  const cohort = b.cohort ?? null
+  const paid = b.plan !== 'free' && !cohort
   const ending = paid && b.days_left !== null && b.days_left <= 60
 
   const [confirming, setConfirming] = useState(false)
@@ -95,7 +99,16 @@ export function PlanBillingView({ b, onPay, onRefund, onUpgrade }: {
     <section className={card} aria-labelledby="plan-h">
       <h2 id="plan-h" className="text-base font-semibold text-gray-900 mb-1">Plan and billing</h2>
 
-      {!paid ? (
+      {cohort ? (
+        <>
+          <p className="text-sm text-gray-700">
+            {cohort.active ? t('cohort.panelLine', { name: cohort.name, date: date(cohort.ends_at) }) : t('cohort.panelEndedLine', { name: cohort.name, date: date(cohort.ends_at) })}
+            {cohort.active && <span className="text-gray-600"> ({cohort.days_left} {cohort.days_left === 1 ? 'day' : 'days'} left)</span>}
+          </p>
+          <p className="mt-1 text-sm text-gray-600">{cohort.active ? t('cohort.panelNote') : t('cohort.endedBody', { price: formatNaira((PLANS.basic.priceNgn ?? 0)) })}</p>
+          <div className="mt-4"><button type="button" className={btn} onClick={onPay}>{cohort.active ? t('cohort.cta') : t('cohort.endedCta')}</button></div>
+        </>
+      ) : !paid ? (
         <>
           <p className="text-sm text-gray-700">You are on the <strong>Free</strong> plan. Your portfolio is private: only you can see it.</p>
           <div className="mt-4"><button type="button" className={btn} onClick={onPay}>Publish my portfolio</button></div>
@@ -161,7 +174,7 @@ export function PlanBillingView({ b, onPay, onRefund, onUpgrade }: {
         <p className="mt-4 text-sm text-gray-600">{t('billing.refundClosed', { date: date(b.expires_at) })}</p>
       )}
 
-      {(!paid || !b.refund) && !note && (
+      {!cohort && (!paid || !b.refund) && !note && (
         <p className="mt-4 text-sm text-gray-600">
           7-day refund guarantee. To ask for a refund, e-mail{' '}
           <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-[#0A66C2] underline">{SUPPORT_EMAIL}</a> within 7 days of paying.

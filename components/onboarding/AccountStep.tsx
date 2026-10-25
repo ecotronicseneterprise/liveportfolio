@@ -6,7 +6,7 @@ import Turnstile from './Turnstile'
 import SocialSignIn from './SocialSignIn'
 import { createAccount, sendReset, signIn } from '@/lib/onboarding/auth-actions'
 import { browserStorage, signOutAndClear } from '@/lib/onboarding/draft'
-import { captureAttribution, clearBootcamp, readAttribution } from '@/lib/onboarding/attribution'
+import { captureAttribution, clearBootcamp, confirmNext, readAttribution } from '@/lib/onboarding/attribution'
 import { getAuth, useFlow } from '@/lib/onboarding/use-flow'
 import { getSupabaseClient } from '@/lib/supabase'
 import { t } from '@/lib/onboarding/t'
@@ -62,7 +62,7 @@ export default function AccountStep() {
     try {
       const auth = getAuth()
       if (mode === 'create') {
-        const out = await createAccount(auth, { email: email.trim(), password, captchaToken: captcha, redirectTo: `${origin}/auth/confirm?next=/create` })
+        const out = await createAccount(auth, { email: email.trim(), password, captchaToken: captcha, redirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(confirmNext(readAttribution(browserStorage()).bootcamp))}` })
         finishCaptcha()
         if (out.kind === 'signed_in') return void (await flow.goNext(nextParam()))
         if (out.kind === 'verify') {

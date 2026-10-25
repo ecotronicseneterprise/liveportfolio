@@ -114,3 +114,14 @@ export async function applyAfterProfile(
   if (inviteUpgraded) { try { session?.setItem(INVITED_FLAG, '1') } catch { /* ignore */ } }
   return { inviteUpgraded }
 }
+
+/**
+ * Where the e-mail confirmation link sends the person. Normally /create. With a cohort link it carries the code, so someone who creates
+ * the account on a laptop and opens the confirmation e-mail on their phone still gets their free access (the browser storage that
+ * remembers the link is per device).
+ */
+export function confirmNext(bootcamp: { code: string; name: string } | null): string {
+  if (!bootcamp || !CODE_RE.test(bootcamp.code)) return '/create'
+  const name = bootcamp.name && bootcamp.name !== bootcamp.code ? `&name=${encodeURIComponent(bootcamp.name.slice(0, 50))}` : ''
+  return `/create?bootcamp=${bootcamp.code}${name}`
+}

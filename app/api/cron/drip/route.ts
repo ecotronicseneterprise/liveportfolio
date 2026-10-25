@@ -1,6 +1,8 @@
 import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { nextCohortStep, daysLeft } from '@/lib/cohort/schedule'
+import { sendCohortStep } from '@/lib/cohort/send'
 import {
   sendFlowA,
   sendFlowB,
@@ -86,11 +88,14 @@ export async function GET(req: NextRequest) {
     // Check if user is still on free plan (not published)
     const { data: userData } = await supabaseAdmin
       .from('users')
-      .select('plan, slug, created_at')
+      .select('plan, slug, created_at, bootcamp_code')
       .eq('id', sub.user_id)
       .single()
 
     if (!userData || userData.plan !== 'unpublished') continue
+    // People who came through a cohort link have their own sequence (Flow D). Flow A says "permanent, no expiry" and counts from sign-up,
+    // which is wrong for someone whose free access has ended.
+    if (userData.bootcamp_code) continue
 
     // Also check subscriptions table — they may have a subscription but plan not updated yet
     const { data: activeSub } = await supabaseAdmin
@@ -335,6 +340,49 @@ export async function GET(req: NextRequest) {
         log.push(`flow_c renewal FAILED → ${userData.email}: ${err}`)
       }
     }
+  }
+
+  // ── Flow D: cohort access (bootcamp / university link) → convert before and after the 6 months end ──────────
+  const { data: cohortUsers } = await supabaseAdmin
+    .from('users')
+    .select('id, email, slug, plan_expires_at, bootcamp_code')
+    .not('bootcamp_code', 'is', null)
+    .not('plan_expires_at', 'is', null)
+
+  const cohortNames = new Map<string, string>()
+  for (const u of cohortUsers || []) {
+    if (!u.email || !u.plan_expires_at) continue
+
+    // Someone who has paid has converted: no more conversion e-mails.
+    const { data: paid } = await supabaseAdmin
+      .from('subscriptions')
+      .select('id')
+      .eq('user_id', u.id)
+      .in('status', ['active', 'cancelled'])
+      .gt('expires_at', now.toISOString())
+      .limit(1)
+      .maybeSingle()
+    if (paid) continue
+
+    const { data: subRow } = await supabaseAdmin.from('email_subscribers').select('subscribed, sent_flows').eq('email', u.email).maybeSingle()
+    if ((subRow as { subscribed?: boolean } | null)?.subscribed === false) continue
+    const sent = ((subRow as { sent_flows?: Record<string, boolean> } | null)?.sent_flows) ?? null
+
+    const step = nextCohortStep(u.plan_expires_at, sent, now.getTime())
+    if (!step) continue
+
+    if (!cohortNames.has(u.bootcamp_code)) {
+      const { data: c } = await supabaseAdmin.from('bootcamp_codes').select('name').eq('code', u.bootcamp_code).maybeSingle()
+      cohortNames.set(u.bootcamp_code, (c as { name?: string } | null)?.name || 'your programme')
+    }
+    const endDate = new Date(u.plan_expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    const result = await sendCohortStep(supabaseAdmin, { id: u.id, email: u.email }, step, {
+      cohortName: cohortNames.get(u.bootcamp_code)!,
+      daysLeft: daysLeft(u.plan_expires_at, now.getTime()),
+      endDate,
+      portfolioUrl: `${APP_URL}/${u.slug}`,
+    })
+    log.push(`flow_d ${step} ${result} → ${u.email}`)
   }
 
   console.log('[cron/drip]', log)

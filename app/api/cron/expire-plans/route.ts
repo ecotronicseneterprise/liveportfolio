@@ -30,7 +30,20 @@ export async function GET(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const bootcampIds = (bootcampExpired ?? []).map((u) => u.id)
+  // A person whose free cohort access has ended but who has since PAID must keep their plan: the paid subscription is what counts now.
+  // (Without this check, someone who converted in month 5 would be set back to Free when the 6 months ran out.)
+  const bootcampIds: string[] = []
+  for (const u of bootcampExpired ?? []) {
+    const { data: paid } = await supabase
+      .from('subscriptions')
+      .select('id')
+      .eq('user_id', u.id)
+      .in('status', ['active', 'cancelled'])
+      .gt('expires_at', nowIso)
+      .limit(1)
+      .maybeSingle()
+    if (!paid) bootcampIds.push(u.id)
+  }
 
   // 2. Paid subscriptions past expiry + grace
   const cutoff = new Date(now.getTime() - GRACE_MS).toISOString()
