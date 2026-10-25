@@ -16,7 +16,7 @@ const specimen = (): PortfolioContent => ({
   about: t('landing.specimenAbout'),
   location: t('landing.specimenLocation'),
   email: 'ada@example.com',
-  avatar_url: '/landing/ada-portrait.jpg',
+  avatar_url: '/landing/ada-avatar.png',
   skills: [],
   skills_narrative: '',
   skills_grouped: [
@@ -41,8 +41,8 @@ const specimen = (): PortfolioContent => ({
 
 const s = (block: SectionSpec['block'], variant: string): SectionSpec => ({ block, variant })
 const STUDIO: SectionSpec[] = [s('hero', 'statement'), s('projects', 'proof'), s('experience', 'timeline'), s('skills', 'groups'), s('contact', 'band')]
-const JOURNAL: SectionSpec[] = [s('hero', 'split'), s('about', 'prose'), s('projects', 'rows')]
-const LEDGER: SectionSpec[] = [s('hero', 'compact'), s('projects', 'index'), s('skills', 'inline')]
+const JOURNAL: SectionSpec[] = [s('hero', 'split'), s('about', 'prose'), s('projects', 'rows'), s('experience', 'timeline'), s('skills', 'groups'), s('contact', 'plain')]
+const LEDGER: SectionSpec[] = [s('hero', 'compact'), s('about', 'columns'), s('projects', 'index'), s('experience', 'table'), s('skills', 'inline'), s('contact', 'plain')]
 
 const LOOKS = [
   { id: 'studio', label: t('portfolio.look.studio') },
