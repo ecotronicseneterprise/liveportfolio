@@ -29,9 +29,10 @@ describe('homepage message and footer', () => {
 
   it('uses the logo as the social share image', () => {
     const source = fs.readFileSync(path.resolve(__dirname, '../app/layout.tsx'), 'utf8')
-    expect(source).toContain("url: 'https://liveportfolio.site/logo-1024.png'")
+    expect(source).toContain("const HOME_LOGO_SHARE_IMAGE = 'https://liveportfolio.site/logo-1024.png?v=2'")
+    expect(source).toContain('url: HOME_LOGO_SHARE_IMAGE')
     expect(source).toContain('width: 1024')
     expect(source).toContain('height: 1024')
-    expect(source).toContain("images: ['https://liveportfolio.site/logo-1024.png']")
+    expect(source).toContain('images: [HOME_LOGO_SHARE_IMAGE]')
   })
 })
