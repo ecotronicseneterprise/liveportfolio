@@ -65,9 +65,9 @@ describe('LookPicker', () => {
   it('uses only choices from fixed lists (no colour input, no text input, no free CSS)', () => {
     expect(fs.readFileSync('components/dashboard/LookPicker.tsx', 'utf8')).not.toMatch(/type="color"|type="text"|<input|<textarea|dangerouslySetInnerHTML/)
   })
-  it('the dashboard shows it only for portfolios that store a valid layout; older portfolios keep the classic switcher', () => {
+  it('the dashboard shows it for portfolios that have or can derive a valid layout; the classic switcher still exists as the fallback block', () => {
     const src = fs.readFileSync('app/dashboard/page.tsx', 'utf8')
-    expect(src).toMatch(/parseLayout\(\(editContent as StoredContent\)\.layout\) \? \(/)
+    expect(src).toMatch(/storedLayout\(editContent as StoredContent, template\) \? \(/)
     expect(src).toMatch(/<LookPicker/)
     expect(src).toMatch(/Template<\/label>/) // the classic block is still there for legacy portfolios
   })

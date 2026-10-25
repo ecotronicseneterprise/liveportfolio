@@ -12,16 +12,16 @@
     "bytes": 19150
   },
   "developer": {
-    "sha256": "233634ddb57f223f44d465534713564bf7ce06de650f059ae871ae51da78d7d6",
-    "bytes": 20393
+    "sha256": "6a19222acad5cf40cc0129b6e0d9b8ac2c1c1e0cba1f6b8fa914307188097ea7",
+    "bytes": 20406
   },
   "designer": {
     "sha256": "e4e594d63356f09d8a70760a355c98643f6ef0127c5c3ea35165de1d30455845",
     "bytes": 17775
   },
   "data-scientist": {
-    "sha256": "a7905468286a9184f8bb8831d90f0f15687434c585fc3f9b13df31fe8079923a",
-    "bytes": 19164
+    "sha256": "49f2326075ac67429bc9771a75f9ce903160af3c8af5d0d55f8cb17bdc1fc94a",
+    "bytes": 19161
   },
   "product-manager": {
     "sha256": "f26f03a1827205256b07c4be780b1d553eab33aaa14e8d5a29d242ef5ff37aed",
@@ -36,7 +36,7 @@
     "bytes": 18218
   },
   "cybersecurity": {
-    "sha256": "df21915061c58b0fbe4f4c8e0136f3162241047192c2483e979edf3621c5de7f",
-    "bytes": 19320
+    "sha256": "aae577efcf7904ab05d0699e699dd45f6640697bd21f05f5d21745938edd4e2d",
+    "bytes": 19317
   }
 }
