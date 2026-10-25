@@ -20,7 +20,19 @@ Last updated: 2026-10-25, at the release merge of `dev` into `main` (the one-tim
 
 Not on `main` and not built: the assistant, MCP, block catalog and new templates (design-lab only), email confirmation, Turnstile and social sign-in (code exists, switched off), renewal reminders for one-time plans.
 
-## 2. What the latest release added (merged to `main`; `dev` has nothing that `main` lacks)
+## 1b. What the 2026-10-25 release added (merged `dev` into `main`; no SQL, no new required environment variables)
+
+- **Free-user dashboard**: split editor with a live preview, a row of design tiles (Pro designs preview with a lock), and one Publish action.
+- **Money**: refund is a *request* (the server checks the 7-day window, e-mails the support address, one request per payment); the owner refunds in Paystack and the existing webhook ends the plan. A refund of an older payment no longer ends a newer plan. Basic owners get "Upgrade to Pro", which opens the plan chooser with Pro only (normal full-price checkout). Checkout and grant code unchanged.
+- **Cohort links** (bootcamps, universities): 6 months free through `/bootcamp/<code>`; dashboard countdown, a 12-step e-mail sequence (Flow D), expiry job no longer sets back someone who paid, no-SQL link creation. See [COHORT-ACCESS.md](COHORT-ACCESS.md).
+- **`/admin`** (owner only): numbers, sign-ups, revenue, refund requests, cohort links. Access = the signed-in, e-mail-verified account listed in `ADMIN_EMAILS` (optional), otherwise `PAYSTACK_TEST_EMAIL`. No shared password.
+- **Templates**: the three free templates (Creative, Minimal, Bold) draw with the block renderer for NEW portfolios; older portfolios and all seven Pro templates render as before. The public page drops non-http(s) links before drawing.
+- **Landing page and pricing**: new hero copy, a browser-window sample of the three templates (invented person, own pictures, see [IMAGE-CREDITS.md](IMAGE-CREDITS.md)), equal-size pricing cards with coming-soon items under Pro.
+- **Needs in Vercel** (names only): `PAYSTACK_TEST_EMAIL` = the owner's sign-in e-mail (already set); `ADMIN_EMAILS` optional. Needs existing tables `payment_intents` and column `payments.refunded_at` (present).
+- **Not in this release**: the Pro template correctness fixes and redesigns (pending local work), the AI agent.
+- **Live tests, in order**: new account to the split dashboard; ₦15,000 Basic; request a refund (check the e-mail); ₦45,000 Pro; a cohort link on a throwaway account (steps in COHORT-ACCESS.md); open `/admin`.
+
+## 2. What the previous release added (merged earlier)
 
 - `27096f5` openai 4.104 to 7.43. `ccc2aed` zod 3.25 to 4.6.7 with the `ops.ts` patch-schema fix. `npm audit --omit=dev`: 0 vulnerabilities.
 - `d2e2de2` the webhook logs every ignored or rejected event (`[paystack-webhook] ignored ...`).
