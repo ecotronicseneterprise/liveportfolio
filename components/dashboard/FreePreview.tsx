@@ -1,14 +1,14 @@
 'use client'
 
-// The free-user conversion surface (right side of the split on desktop, the "Preview" tab on a phone): ONE full live preview of the
-// person's own details, a single row of small square design tiles under it (tap, swipe or arrow keys to compare), and a short, factual
-// value panel with one main action. Everything the panel says about plans comes from lib/plans.ts; prices are display figures in Naira.
+// The split editor's preview surface: one live preview of the person's own details, a single row of small square design tiles under it
+// (tap, swipe or arrow keys to compare), plus a short plan-aware panel. On phones this is the Preview tab; on larger screens it sits
+// beside the form.
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import { TemplateThumb, useDebounced } from '@/components/onboarding/TemplateGallery'
 import { TEMPLATE_LABEL } from '@/components/templates/dynamic'
 import { LockIcon, CheckIcon } from '@/components/onboarding/ui/icons'
-import { ALL_TEMPLATES, PLANS, PRO_TEMPLATES, comingSoon, isProTemplate, type TemplateId } from '@/lib/plans'
+import { ALL_TEMPLATES, PLANS, PRO_TEMPLATES, comingSoon, isProTemplate, type PlanId, type TemplateId } from '@/lib/plans'
 import { formatNaira } from '@/lib/billing/copy'
 import { t } from '@/lib/onboarding/t'
 
@@ -17,12 +17,15 @@ const SWIPE_PX = 56
 
 export interface FreePreviewProps {
   content: PortfolioContent
+  plan: PlanId
   slug: string
+  liveUrl: string
   /** The design being previewed (may be a Pro one). */
   previewId: string
-  /** The design that is saved as the person's choice (always a free one for a free account). */
+  /** The design currently saved as the person's public choice. */
   savedId: string
   onPick: (id: TemplateId) => void
+  onUpgrade: () => void
   onPublish: () => void
 }
 
@@ -33,14 +36,16 @@ export const stepTemplate = (current: string, delta: 1 | -1): TemplateId => {
   return ALL_TEMPLATES[(from + delta + ALL_TEMPLATES.length) % ALL_TEMPLATES.length]
 }
 
-export default function FreePreview({ content, slug, previewId, savedId, onPick, onPublish }: FreePreviewProps) {
+export default function FreePreview({ content, plan, slug, liveUrl, previewId, savedId, onPick, onUpgrade, onPublish }: FreePreviewProps) {
   const live = useDebounced(content, 250)
   const row = useRef<HTMLUListElement>(null)
   const tileRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const interacted = useRef(false)
   const start = useRef<{ x: number; y: number } | null>(null)
   const id = (ALL_TEMPLATES.includes(previewId as TemplateId) ? previewId : 'minimal') as TemplateId
-  const locked = isProTemplate(id)
+  const isFree = plan === 'free'
+  const isBasic = plan === 'basic'
+  const locked = isProTemplate(id) && plan !== 'pro'
   const name = TEMPLATE_LABEL[id]
 
   // First visit: nudge the row once so people see it moves. Never with reduced motion, never again after any interaction.
@@ -151,8 +156,8 @@ export default function FreePreview({ content, slug, previewId, savedId, onPick,
 
       {locked && (
         <p className="text-sm text-[#084D9A] bg-[#E8F0F9] rounded-xl px-4 py-3" role="note">
-          {t('freeSplit.proLocked', { name })}{' '}
-          <button type="button" onClick={onPublish} className="underline font-semibold min-h-[44px]">{t('freeSplit.seePro')}</button>
+          {t(isFree ? 'freeSplit.proLocked' : 'freeSplit.proLockedBasic', { name })}{' '}
+          <button type="button" onClick={onUpgrade} className="underline font-semibold min-h-[44px]">{t('freeSplit.upgradePro')}</button>
         </p>
       )}
       {!locked && savedId === id && (
@@ -160,23 +165,43 @@ export default function FreePreview({ content, slug, previewId, savedId, onPick,
       )}
 
       <section aria-labelledby="fp-value" className="border-t border-gray-200 pt-4">
-        <h3 id="fp-value" className="text-base font-semibold text-gray-900">{t('freeSplit.valueTitle')}</h3>
-        <p className="mt-1 text-sm text-gray-700">{t('freeSplit.valueLead')}</p>
-        <button
-          type="button"
-          onClick={onPublish}
-          className="mt-3 inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-[#0A66C2] px-6 text-base font-semibold text-white hover:bg-[#084D9A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2] focus-visible:ring-offset-2"
-        >
-          {t('freeSplit.publish')}
-        </button>
-        <ul className="mt-3 space-y-1.5 text-sm text-gray-800 list-disc pl-5">
-          <li>{t('freeSplit.valuePoint1', { slug: slug || 'yourname' })}</li>
-          <li>{t('freeSplit.valuePoint2')}</li>
-          <li>{t('freeSplit.basicLine', { price: formatNaira(PLANS.basic.priceNgn ?? 0) })}</li>
-          <li>{t('freeSplit.proLine', { price: formatNaira(PLANS.pro.priceNgn ?? 0), count: PRO_TEMPLATES.length })}</li>
-        </ul>
-        <p className="mt-3 text-sm text-gray-600">{t('freeSplit.oneTime')} {t('freeSplit.refund')}</p>
-        {soon && <p className="mt-3 text-xs text-gray-600">{t('freeSplit.soon', { list: soon })}</p>}
+        <h3 id="fp-value" className="text-base font-semibold text-gray-900">{t(isFree ? 'freeSplit.valueTitle' : 'freeSplit.liveTitle')}</h3>
+        <p className="mt-1 text-sm text-gray-700">{t(isFree ? 'freeSplit.valueLead' : 'freeSplit.liveLead')}</p>
+        {isFree ? (
+          <>
+            <button
+              type="button"
+              onClick={onPublish}
+              className="mt-3 inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-[#0A66C2] px-6 text-base font-semibold text-white hover:bg-[#084D9A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2] focus-visible:ring-offset-2"
+            >
+              {t('freeSplit.publish')}
+            </button>
+            <ul className="mt-3 space-y-1.5 text-sm text-gray-800 list-disc pl-5">
+              <li>{t('freeSplit.valuePoint1', { slug: slug || 'yourname' })}</li>
+              <li>{t('freeSplit.valuePoint2')}</li>
+              <li>{t('freeSplit.basicLine', { price: formatNaira(PLANS.basic.priceNgn ?? 0) })}</li>
+              <li>{t('freeSplit.proLine', { price: formatNaira(PLANS.pro.priceNgn ?? 0), count: PRO_TEMPLATES.length })}</li>
+            </ul>
+            <p className="mt-3 text-sm text-gray-600">{t('freeSplit.oneTime')} {t('freeSplit.refund')}</p>
+            {soon && <p className="mt-3 text-xs text-gray-600">{t('freeSplit.soon', { list: soon })}</p>}
+          </>
+        ) : (
+          <>
+            <a
+              href={liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-[#0A66C2] px-6 text-base font-semibold text-white hover:bg-[#084D9A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2] focus-visible:ring-offset-2"
+            >
+              {t('freeSplit.viewLive')}
+            </a>
+            <ul className="mt-3 space-y-1.5 text-sm text-gray-800 list-disc pl-5">
+              <li>{t('freeSplit.livePoint1', { slug: slug || 'yourname' })}</li>
+              <li>{t('freeSplit.livePoint2')}</li>
+              {isBasic && <li>{t('freeSplit.upgradeLine', { count: PRO_TEMPLATES.length })}</li>}
+            </ul>
+          </>
+        )}
       </section>
     </div>
   )

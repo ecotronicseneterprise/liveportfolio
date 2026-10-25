@@ -1,5 +1,5 @@
 // How the block renderer is wired in: which portfolios use it, what a NEW portfolio stores, what the onboarding preview shows.
-// The key promise: a portfolio without a valid layout, or on a Pro template, is untouched legacy.
+// The key promise now: every free-template portfolio gets a valid block layout, while Pro templates keep their own renderer.
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const h = vi.hoisted(() => ({
@@ -47,15 +47,21 @@ beforeEach(() => { h.ctx!.db.portfolios = []; h.ctx!.db.users = []; h.user = { i
 
 describe('which portfolios use the block renderer', () => {
   const L = { v: 1, arrangement: 'proof' }
-  it('no layout, or an invalid one: legacy, for every template', () => {
-    for (const tpl of [...FREE_TEMPLATES, ...PRO_TEMPLATES]) {
+  it('no layout, or an invalid one: free templates derive the new layout and Pro templates still ignore it', () => {
+    for (const tpl of FREE_TEMPLATES) {
+      expect(storedLayout({ ...SAMPLE_PEOPLE.engineer }, tpl), tpl).toMatchObject({ v: 1 })
+      expect(storedLayout({ ...SAMPLE_PEOPLE.engineer, layout: { v: 1, arrangement: 'carousel' } } as never, tpl), tpl).toMatchObject({ v: 1 })
+      expect(storedLayout({ ...SAMPLE_PEOPLE.engineer, layout: 'proof' } as never, tpl), tpl).toMatchObject({ v: 1 })
+    }
+    for (const tpl of PRO_TEMPLATES) {
       expect(storedLayout({ ...SAMPLE_PEOPLE.engineer }, tpl), tpl).toBeNull()
       expect(storedLayout({ ...SAMPLE_PEOPLE.engineer, layout: { v: 1, arrangement: 'carousel' } } as never, tpl), tpl).toBeNull()
       expect(storedLayout({ ...SAMPLE_PEOPLE.engineer, layout: 'proof' } as never, tpl), tpl).toBeNull()
     }
-    expect(storedLayout(null, 'minimal')).toBeNull(); expect(storedLayout(undefined, 'minimal')).toBeNull()
+    expect(storedLayout(null, 'minimal')).toEqual({ v: 1, arrangement: 'profile' })
+    expect(storedLayout(undefined, 'minimal')).toEqual({ v: 1, arrangement: 'profile' })
   })
-  it('a valid layout on a free template id: blocks. On a Pro template id: legacy (the layout is kept in the data, ignored)', () => {
+  it('a valid layout on a free template id: blocks. On a Pro template id: the free-template layout is still ignored', () => {
     for (const tpl of FREE_TEMPLATES) expect(storedLayout({ ...SAMPLE_PEOPLE.engineer, layout: L } as never, tpl), tpl).toEqual(L)
     for (const tpl of PRO_TEMPLATES) expect(storedLayout({ ...SAMPLE_PEOPLE.engineer, layout: L } as never, tpl), tpl).toBeNull()
   })
@@ -64,6 +70,7 @@ describe('which portfolios use the block renderer', () => {
     expect(fs.readFileSync('app/portfolio/[slug]/page.tsx', 'utf8')).toMatch(/portfolioRenderMode\(safe, effectiveTemplate\)/)
     expect(fs.readFileSync('components/templates/dynamic.ts', 'utf8')).toMatch(/portfolioRenderMode\(content, id\)/)
     for (const template of FREE_TEMPLATES) expect(portfolioRenderMode({ ...SAMPLE_PEOPLE.engineer, layout: L }, template)).toEqual({ kind: 'blocks', layout: L })
+    for (const template of FREE_TEMPLATES) expect(portfolioRenderMode({ ...SAMPLE_PEOPLE.engineer }, template).kind).toBe('blocks')
     // a Pro template shows its redesign by default (free-look layout settings never matter); the original only if the owner kept it (marker 1)
     for (const template of PRO_TEMPLATES) {
       expect(portfolioRenderMode({ ...SAMPLE_PEOPLE.engineer, layout: L }, template)).toEqual({ kind: 'pro', template })

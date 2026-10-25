@@ -1,8 +1,8 @@
 'use client'
 
-// Layout for a free account's Edit tab. Desktop (1024px and up): the edit form on the left, the live preview and the value panel on the
-// right, which stays in view while the form scrolls. Phone and tablet: no cramped split, but two tabs, "Edit" and "Preview".
-// With `enabled` false (paid accounts) it renders the form alone, exactly as before.
+// Layout for the split editor. Desktop (1024px and up): the edit form on the left, the live preview and the action panel on the right,
+// which stays in view while the form scrolls. Phone and tablet: no cramped split, but two tabs, "Edit" and "Preview". `enabled=false`
+// keeps the component reusable in tests and fallbacks.
 import { useState } from 'react'
 import { t } from '@/lib/onboarding/t'
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { CREATE_HREF, SIGNIN_HREF } from '@/lib/onboarding/entry'
-import { features, isProTemplate, type TemplateId } from '@/lib/plans'
+import { features, isProTemplate, type PlanId, type TemplateId } from '@/lib/plans'
 import { initialOf, tidyName } from '@/lib/onboarding/name'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -22,7 +22,7 @@ import { removeSkill } from '@/lib/portfolio/editor'
 import FreeSplit from '@/components/dashboard/FreeSplit'
 import FreePreview from '@/components/dashboard/FreePreview'
 import CohortBanner from '@/components/dashboard/CohortBanner'
-import { parseLayout } from '@/lib/blocks/settings'
+import { storedLayout } from '@/lib/blocks/mode'
 import type { StoredContent } from '@/lib/blocks/mode'
 import { captchaOptions } from '@/lib/onboarding/captcha'
 import { DRAFT_KEY } from '@/lib/onboarding/draft'
@@ -787,6 +787,12 @@ export default function DashboardPage() {
     }
   }, [projectImageCropperIndex, editContent, portfolio, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const contentForSave = (content: Partial<PortfolioContent>, nextTemplate: string) => {
+    const cleaned = { ...content, certifications: content.certifications?.filter((c) => c.trim()) }
+    const layout = storedLayout(cleaned as StoredContent, nextTemplate)
+    return layout ? { ...cleaned, layout } : cleaned
+  }
+
   const handleSave = async (nextTemplate: string = template) => {
     if (!portfolio) return
     setSaving(true)
@@ -794,17 +800,19 @@ export default function DashboardPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
+      const nextContent = contentForSave(editContent, nextTemplate)
       const res = await fetch('/api/update', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ content: { ...editContent, certifications: editContent.certifications?.filter((c) => c.trim()) }, template: nextTemplate, portfolio_id: portfolio.id, expected_edit_count: portfolio.edit_count ?? null }),
+        body: JSON.stringify({ content: nextContent, template: nextTemplate, portfolio_id: portfolio.id, expected_edit_count: portfolio.edit_count ?? null }),
       })
       if (res.ok) {
         const updated = await res.json()
-        setPortfolio((prev) => prev ? { ...prev, content: { ...prev.content, ...editContent }, template: nextTemplate, edit_count: updated.edit_count ?? prev.edit_count, health_score: updated.health_score ?? prev.health_score } : prev)
+        setEditContent(nextContent)
+        setPortfolio((prev) => prev ? { ...prev, content: { ...prev.content, ...nextContent }, template: nextTemplate, edit_count: updated.edit_count ?? prev.edit_count, health_score: updated.health_score ?? prev.health_score } : prev)
         setHistoryTick((n) => n + 1)
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
@@ -957,9 +965,10 @@ export default function DashboardPage() {
   if (!user || !portfolio) return null
 
   saveRef.current = handleSave
-  const portfolioUrl = `https://liveportfolio.site/${user.slug}`
+  const portfolioUrl = `${APP_URL}/${user.slug}`
   const isPublished = userPlan !== 'free'
   const isPro = userPlan === 'pro'
+  const previewPlan = userPlan as PlanId
 
   // Plan badge styles
   const planBadge =
@@ -1010,7 +1019,7 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <div className={`${userPlan === 'free' && activeTab === 'edit' ? 'max-w-7xl' : 'max-w-5xl'} mx-auto px-5 py-8 pb-[72px] md:pb-8`}>
+      <div className={`${activeTab === 'edit' ? 'max-w-7xl' : 'max-w-5xl'} mx-auto px-5 py-8 pb-[72px] md:pb-8`}>
 
         {/* Identity header */}
         <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6">
@@ -1448,18 +1457,21 @@ export default function DashboardPage() {
         {/* ── EDIT TAB ── */}
         {activeTab === 'edit' && (
           <FreeSplit
-            enabled={userPlan === 'free'}
+            enabled
             preview={
               <FreePreview
                 content={editContent as PortfolioContent}
+                plan={previewPlan}
                 slug={user.slug}
+                liveUrl={portfolioUrl}
                 previewId={previewTemplate}
                 savedId={template}
                 onPick={(id: TemplateId) => {
-                  if (isProTemplate(id)) { setPreviewTemplate(id); return } // a Pro design can be previewed, never saved by a free account
+                  if (isProTemplate(id) && !isPro) { setPreviewTemplate(id); return }
                   setTemplate(id); setPreviewTemplate(id); setLockedTemplateMsg(null)
                   saveAfterPick.current = true
                 }}
+                onUpgrade={() => { setUpgradeProOnly(true); setShowUpgradeModal(true) }}
                 onPublish={() => setShowUpgradeModal(true)}
               />
             }
@@ -1488,10 +1500,10 @@ export default function DashboardPage() {
             )}
 
             {/* The look: new block designs (every portfolio created since the redesign) get the look picker; older portfolios keep the classic template switcher below. */}
-            {parseLayout((editContent as StoredContent).layout) ? (
+            {storedLayout(editContent as StoredContent, template) ? (
               <div>
                 <LookPicker
-                  content={editContent as StoredContent}
+                  content={{ ...(editContent as StoredContent), layout: storedLayout(editContent as StoredContent, template) }}
                   template={template}
                   isPro={isPro}
                   onChange={(next) => {
