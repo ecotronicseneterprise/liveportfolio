@@ -75,3 +75,29 @@ describe('landing page wiring', () => {
     expect(html).toContain(t('landing.looksTitle'))
   })
 })
+
+describe('landing hero pictures', () => {
+  const html = renderToStaticMarkup(HeroSpecimen())
+  it('shows a real portrait and a picture for each project, served from our own /landing folder', async () => {
+    const fs = await import('node:fs')
+    expect(html).toContain('/landing/ada-portrait.jpg')
+    for (const n of [1, 2, 3]) {
+      expect(html).toContain(`/landing/project-${n}.jpg`)
+      expect(fs.existsSync(`public/landing/project-${n}.jpg`)).toBe(true)
+    }
+    expect(fs.existsSync('public/landing/ada-portrait.jpg')).toBe(true)
+    expect(html).not.toMatch(/https?:\/\/images\.pexels|unsplash/) // no hot-linking
+  })
+  it('the tabs carry the template names, and the caption says the photo is a stock image', () => {
+    for (const name of ['Creative', 'Minimal', 'Bold']) expect(html).toContain(`>${name}</label>`)
+    expect(html).toContain('licensed stock image')
+  })
+  it('only the landing folder is accepted as a local image path; every other picture must still be https', async () => {
+    const { localAsset, toBlockData } = await import('../lib/blocks/adapt')
+    expect(localAsset('/landing/project-1.jpg')).toBe('/landing/project-1.jpg')
+    for (const bad of ['/etc/passwd', '/landing/../secret.jpg', '//evil.com/a.jpg', '/landing/x.svg', 'landing/x.jpg', 'javascript:alert(1)', '/landing/a/b.jpg']) expect(localAsset(bad), bad).toBeUndefined()
+    const d = toBlockData({ name: 'A', avatar_url: '/landing/ada-portrait.jpg', projects: [{ title: 'P', image_url: '/other/x.jpg' }] } as never)
+    expect(d.avatarUrl).toBe('/landing/ada-portrait.jpg')
+    expect(d.projects[0].imageUrl ?? '').not.toMatch(/^\//) // a local path outside /landing/ is never kept as a local path
+  })
+})

@@ -172,9 +172,9 @@
     "sourceCode": "Source code",
     "photoOf": "Photo of {name}",
     "look": {
-      "studio": "Studio",
-      "journal": "Journal",
-      "ledger": "Ledger"
+      "studio": "Creative",
+      "journal": "Minimal",
+      "ledger": "Bold"
     },
     "lookNote": {
       "studio": "Your results first, set large",
@@ -190,7 +190,7 @@
   },
   "landing": {
     "specimenLabel": "A portfolio built by LivePortfolio, with invented content",
-    "specimenNote": "Same words, three looks. This is a sample, not a real person.",
+    "specimenNote": "Same words, three templates. A sample with invented details; the photo is a licensed stock image.",
     "lookGroup": "Choose a look",
     "specimenName": "Ada Okonkwo",
     "specimenRole": "Backend engineer",

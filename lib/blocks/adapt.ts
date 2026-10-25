@@ -25,6 +25,12 @@ export interface BlockData {
 const str = (v: unknown, max = 2000): string => (typeof v === 'string' ? v.trim().slice(0, max) : '')
 const strs = (v: unknown, max = 200, cap = 50): string[] => (Array.isArray(v) ? v.map((x) => str(x, max)).filter(Boolean).slice(0, cap) : [])
 
+/** The landing page's own sample pictures live in /public/landing. Only that exact folder is accepted as a local path. */
+const LOCAL_ASSET = /^\/landing\/[a-z0-9-]+\.(jpg|jpeg|png|webp)$/
+export function localAsset(v: unknown): string | undefined {
+  return typeof v === 'string' && LOCAL_ASSET.test(v.trim()) ? v.trim() : undefined
+}
+
 /** http(s) only. A stored value that is not a web address is dropped, never rendered as a link. */
 export function safeUrl(v: unknown): string | undefined {
   const s = str(v, 500)
@@ -51,7 +57,7 @@ export function toBlockData(c: Partial<PortfolioContent> | null | undefined): Bl
       stack: strs(p?.stack, 40, 12),
       url: safeUrl(p?.url),
       sourceUrl: safeUrl(p?.github_url),
-      imageUrl: ((): string | undefined => { const u = safeUrl(p?.image_url); return u && u.startsWith('https://') ? u : undefined })(),
+      imageUrl: localAsset(p?.image_url) ?? ((): string | undefined => { const u = safeUrl(p?.image_url); return u && u.startsWith('https://') ? u : undefined })(),
     }))
     .filter((p) => p.title)
 
@@ -93,7 +99,7 @@ export function toBlockData(c: Partial<PortfolioContent> | null | undefined): Bl
     headline: str(content.headline, 240),
     location: str(content.location, 120),
     email: str(content.email, 254),
-    avatarUrl: avatar && avatar.startsWith('https://') ? avatar : undefined,
+    avatarUrl: localAsset(content.avatar_url) ?? (avatar && avatar.startsWith('https://') ? avatar : undefined),
     about: str(content.about, 6000).split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean),
     projects,
     experience,

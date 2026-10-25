@@ -16,6 +16,7 @@ const specimen = (): PortfolioContent => ({
   about: t('landing.specimenAbout'),
   location: t('landing.specimenLocation'),
   email: 'ada@example.com',
+  avatar_url: '/landing/ada-portrait.jpg',
   skills: [],
   skills_narrative: '',
   skills_grouped: [
@@ -28,6 +29,7 @@ const specimen = (): PortfolioContent => ({
     solution: t(`landing.specimenSolution${n}`),
     outcome: t(`landing.specimenOutcome${n}`),
     stack: [],
+    image_url: `/landing/project-${n}.jpg`,
   })),
   experience: [],
 })
