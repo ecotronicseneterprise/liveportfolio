@@ -51,7 +51,7 @@
 .lpb .topbar nav a { font-weight: 400; color: var(--muted); }
 .lpb .topbar .brand { font-family: var(--display); font-size: 18px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
 .lpb[data-theme="ledger"] .topbar { border-bottom-width: 2px; }
-.lpb[data-page] main > .b-hero { min-height: calc(100svh - 56px); display: flex; align-items: center; }
+.lpb[data-page] main > .b-hero { min-height: calc(100svh - 56px); display: flex; align-items: flex-start; }
 
 .lpb .b { padding-top: var(--sec); padding-bottom: var(--sec); }
 .lpb .b h2 { font-family: var(--label); font-size: 14px; line-height: 1.4; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 0 0 32px 0; }

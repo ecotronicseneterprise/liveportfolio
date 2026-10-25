@@ -26,4 +26,13 @@ describe('homepage message and footer', () => {
     expect(footer).toContain('<ContactLinks />')
     expect(footer).toContain('<CookieSettingsLink className="inline-flex items-center whitespace-nowrap')
   })
+
+  it('uses the captured homepage specimen as the social share image', () => {
+    const source = fs.readFileSync(path.resolve(__dirname, '../app/layout.tsx'), 'utf8')
+    expect(source).toContain("const HOME_SHARE_IMAGE = 'https://liveportfolio.site/social/creative-portfolio-v1.png'")
+    expect(source).toContain('width: 1200')
+    expect(source).toContain('height: 630')
+    expect(source).toContain('images: [HOME_SHARE_IMAGE]')
+    expect(fs.existsSync(path.resolve(__dirname, '../public/social/creative-portfolio-v1.png'))).toBe(true)
+  })
 })
