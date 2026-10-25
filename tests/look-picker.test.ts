@@ -45,10 +45,10 @@ describe('LookPicker', () => {
     expect(render({ isPro: true })).not.toMatch(/included with Pro\./)
   })
   it('identifies the Pro version and hides irrelevant free-look controls', () => {
-    const original = render({ template: 'developer', isPro: true })
+    const original = render({ template: 'developer', isPro: true, content: { ...SAMPLE_PEOPLE.engineer, pro_designs: { developer: 1 } } })
     expect(text(original)).toContain(t('lookPicker.classicActive', { name: 'Developer' }))
     expect(original).toContain('hidden=""')
-    const redesigned = render({ template: 'developer', isPro: true, content: { ...SAMPLE_PEOPLE.engineer, pro_designs: { developer: 2 } } })
+    const redesigned = render({ template: 'developer', isPro: true }) // no marker: the redesign is the default
     expect(text(redesigned)).toContain(t('lookPicker.redesignActive', { name: 'Developer' }))
     expect(text(html)).not.toContain('You are using the original')
   })

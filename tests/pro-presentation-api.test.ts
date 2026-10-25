@@ -106,7 +106,7 @@ describe('Pro design saves use normal history and undo', () => {
     const removal = await patch({ ops: [{ op: 'set_pro_design', template: 'developer', version: null }] })
     expect(removal.status).toBe(200)
     expect((await removal.json()).changes).toEqual(['Restored classic developer design'])
-    expect(pf().content.pro_designs).toEqual({ finance: 2 })
+    expect(pf().content.pro_designs).toEqual({ developer: 1, finance: 2 })
     expect(pf().content.layout).toEqual(layout)
     rows('portfolio_revisions')[0].created_at = '2026-10-25T09:00:00.000Z'
     rows('portfolio_revisions')[1].created_at = '2026-10-25T10:00:00.000Z'
@@ -290,11 +290,11 @@ describe('plan checks cover every marker, not just the active template', () => {
       const removal = await patch({ ops: [{ op: 'set_pro_design', template: 'developer', version: null }] })
       expect(removal.status).toBe(200)
       const { revision_id } = await removal.json()
-      expect(pf().content.pro_designs).toEqual({ finance: 2 })
+      expect(pf().content.pro_designs).toEqual({ developer: 1, finance: 2 })
       const count = rows('portfolio_revisions').length
       expect((await restore(revision_id)).status).toBe(403)
       expect(rows('portfolio_revisions')).toHaveLength(count)
-      expect(pf().content.pro_designs).toEqual({ finance: 2 })
+      expect(pf().content.pro_designs).toEqual({ developer: 1, finance: 2 })
     })
   }
 

@@ -6,7 +6,7 @@ import { PRO_TEMPLATES, ALL_TEMPLATES } from '../lib/plans'
 import { proContent as fixture, contentMarkers } from './fixtures/pro-content'
 import { proContent } from '../lib/portfolio/pro-content'
 import { PRO_SAMPLES } from '../lib/portfolio/pro-samples'
-import { withProDesign } from '../lib/portfolio/presentation'
+import { withProDesign, isProTemplateId } from '../lib/portfolio/presentation'
 import { portfolioRenderMode } from '../lib/portfolio/render-mode'
 
 const plain = (html: string) => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ')
@@ -28,12 +28,15 @@ describe.each(PRO_TEMPLATES)('%s redesigned', (template) => {
     const html = plain(render(PRO_SAMPLES.many))
     for (let i = 1; i <= 50; i++) for (const name of ['Project', 'Company', 'Degree', 'Certificate', 'Author', 'Reference text']) expect(html).toContain(`${name} ${i}`)
   })
-  it('only an explicit marker selects this version; unrelated template metadata never does', () => {
+  it('the redesign is the default for a Pro template; only an explicit marker of 1 keeps the original; other templates are never affected', () => {
+    const byDefault = (id: string) => (isProTemplateId(id) ? 'pro' : 'legacy')
     for (const id of ALL_TEMPLATES) {
-      expect(portfolioRenderMode(fixture, id).kind).toBe('legacy')
-      expect(portfolioRenderMode(withProDesign(fixture, template, true), id).kind).toBe(id === template ? 'pro' : 'legacy')
+      expect(portfolioRenderMode(fixture, id).kind).toBe(byDefault(id))
+      expect(portfolioRenderMode(withProDesign(fixture, template, true), id).kind).toBe(byDefault(id))
+      // keeping the original affects only this template
+      expect(portfolioRenderMode(withProDesign(fixture, template, false), id).kind).toBe(id === template ? 'legacy' : byDefault(id))
     }
-    expect(portfolioRenderMode({ ...fixture, pro_designs: { [template]: 999 } }, template).kind).toBe('legacy')
+    expect(portfolioRenderMode({ ...fixture, pro_designs: { [template]: 999 } }, template).kind).toBe('pro') // an unknown version means the default
   })
 })
 it('normalization is defensive, complete, immutable and keeps historical education dates', () => {

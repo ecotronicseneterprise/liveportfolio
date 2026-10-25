@@ -24,8 +24,9 @@ it('the public page honors explicit Pro opt-in', async () => {
   expect(html).toContain('data-pro-template="developer"')
   expect(html).toContain('About evidence marker')
 })
-it('the public page keeps legacy rendering without a valid marker', async () => {
-  for (const marker of [undefined, { developer: 99 }, { finance: 2 }]) expect(await render('pro', marker)).not.toContain('data-design-version="2"')
+it('the public page shows the redesign by default, and the original only when the owner kept it', async () => {
+  for (const marker of [undefined, { developer: 99 }, { finance: 2 }, { developer: 2 }]) expect(await render('pro', marker)).toContain('data-design-version="2"')
+  expect(await render('pro', { developer: 1 })).not.toContain('data-design-version="2"')
 })
 it('a Basic account cannot activate a stored Pro redesign through public rendering', async () => {
   expect(await render('basic', { developer: 2 })).not.toContain('data-pro-template')

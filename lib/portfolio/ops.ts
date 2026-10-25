@@ -164,7 +164,7 @@ function cleanContentPatch(raw: Record<string, unknown>, i: number): Json {
     const v = raw[k]
     if (k === 'pro_designs') {
       const parsed = ProDesignsSchema.safeParse(v)
-      if (!parsed.success) throw new OpError('invalid_op', 'pro_designs must contain only known Pro template ids with version 2', i)
+      if (!parsed.success) throw new OpError('invalid_op', 'pro_designs must contain only known Pro template ids with version 1 or 2', i)
       out.pro_designs = parsed.data
       continue
     }

@@ -64,7 +64,11 @@ describe('which portfolios use the block renderer', () => {
     expect(fs.readFileSync('app/portfolio/[slug]/page.tsx', 'utf8')).toMatch(/portfolioRenderMode\(safe, effectiveTemplate\)/)
     expect(fs.readFileSync('components/templates/dynamic.ts', 'utf8')).toMatch(/portfolioRenderMode\(content, id\)/)
     for (const template of FREE_TEMPLATES) expect(portfolioRenderMode({ ...SAMPLE_PEOPLE.engineer, layout: L }, template)).toEqual({ kind: 'blocks', layout: L })
-    for (const template of PRO_TEMPLATES) expect(portfolioRenderMode({ ...SAMPLE_PEOPLE.engineer, layout: L }, template)).toEqual({ kind: 'legacy' })
+    // a Pro template shows its redesign by default (free-look layout settings never matter); the original only if the owner kept it (marker 1)
+    for (const template of PRO_TEMPLATES) {
+      expect(portfolioRenderMode({ ...SAMPLE_PEOPLE.engineer, layout: L }, template)).toEqual({ kind: 'pro', template })
+      expect(portfolioRenderMode({ ...SAMPLE_PEOPLE.engineer, layout: L, pro_designs: { [template]: 1 } }, template)).toEqual({ kind: 'legacy' })
+    }
   })
 })
 

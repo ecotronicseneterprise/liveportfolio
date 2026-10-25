@@ -17,12 +17,13 @@ describe('Pro presentation read/write contract', () => {
     const map: ProDesigns = { [template]: 2 }
     expect(ProDesignsSchema.parse(map)).toEqual(map)
     expect(ProDesignsSchema.parse({})).toEqual({})
+    expect(ProDesignsSchema.parse({ developer: 1 })).toEqual({ developer: 1 }) // 1 = the owner kept the original design
     expect(ProDesignsSchema.parse(Object.fromEntries(PRO_TEMPLATES.map((id) => [id, 2])))).toHaveProperty('cybersecurity', 2)
   })
 
   it.each([
     null, undefined, [], 'developer', 2,
-    { developer: 1 }, { developer: 3 }, { developer: '2' }, { developer: true },
+    { developer: 3 }, { developer: '2' }, { developer: true },
     { developer: null }, { developer: undefined }, { minimal: 2 }, { unknown: 2 },
     { developer: 2, future: 2 }, { developer: 2, designer: 3 },
     JSON.parse('{"__proto__":2}'),
@@ -48,14 +49,18 @@ describe('Pro presentation read/write contract', () => {
     expect(parseLayout(content.layout)).toEqual(layout)
     expect(usesProDesign(content, 'developer')).toBe(true)
     expect(usesProDesign({ pro_designs: { developer: 2 } }, 'developer')).toBe(true)
-    for (const template of [...FREE_TEMPLATES, 'designer', 'finance', 'future']) {
+    // free templates and unknown ids never use a Pro design, whatever the metadata says
+    for (const template of [...FREE_TEMPLATES, 'future']) {
       expect(usesProDesign(content, template)).toBe(false)
     }
+    // a Pro template shows its redesign by default: no marker, a missing map and an unrecognised version all mean "redesigned"
     for (const template of PRO_TEMPLATES) {
-      expect(usesProDesign({ ...content, pro_designs: undefined }, template)).toBe(false)
-      expect(usesProDesign(null, template)).toBe(false)
-      expect(usesProDesign(undefined, template)).toBe(false)
+      expect(usesProDesign({ ...content, pro_designs: undefined }, template)).toBe(true)
+      expect(usesProDesign(null, template)).toBe(true)
+      expect(usesProDesign(undefined, template)).toBe(true)
+      expect(usesProDesign({ pro_designs: { [template]: 1 } }, template)).toBe(false) // only an explicit 1 keeps the original
     }
+    expect(usesProDesign(content, 'designer')).toBe(true) // 3 is not a known version, so the default applies
   })
 
   it('immutably adds/removes just the named valid marker and preserves layout/content', () => {
@@ -70,10 +75,10 @@ describe('Pro presentation read/write contract', () => {
     expect(enabled.layout).toBe(content.layout)
     expect(enabled.name).toBe('Ada')
     const removed = withProDesign(enabled, 'finance', false)
-    expect(removed.pro_designs).toEqual({ developer: 2, graduate: 2 })
+    expect(removed.pro_designs).toEqual({ developer: 2, finance: 1, graduate: 2 }) // 'off' is stored as 1: keep the original
     expect(enabled.pro_designs.finance).toBe(2)
     expect(content.pro_designs).toEqual({ developer: 2, finance: 2, designer: 3, future: 2 })
-    expect(withProDesign({}, 'developer', false)).toEqual({ pro_designs: {} })
+    expect(withProDesign({}, 'developer', false)).toEqual({ pro_designs: { developer: 1 } }) // explicit: keep the original
   })
 })
 
@@ -103,7 +108,7 @@ describe('presentation operations and compatibility', () => {
     expect(replaced.state.content.pro_designs).toEqual({ graduate: 2 })
     expect(replaced.changes).toEqual(['Changed pro designs'])
     const removed = applyOps(input, [{ op: 'set_pro_design', template: 'developer', version: null }])
-    expect(removed.state.content.pro_designs).toEqual({ finance: 2 })
+    expect(removed.state.content.pro_designs).toEqual({ developer: 1, finance: 2 })
     expect(removed.state.content.layout).toEqual(input.content.layout)
     expect(removed.changes).toEqual(['Restored classic developer design'])
     expect(input).toEqual(state())
