@@ -1,5 +1,6 @@
 // PortfolioContent (what is stored) -> BlockData (what the blocks draw). Pure and defensive: stored content comes from a database and from
 // model output, so every field may be missing, the wrong type or empty. A block whose data is empty renders nothing at all.
+import { contactItems, type ContactItem } from '@/lib/contact/items'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import { t } from '@/lib/onboarding/t'
 
@@ -20,6 +21,8 @@ export interface BlockData {
   certifications: string[]
   quote?: { text: string; author: string; role: string }
   links: Array<{ label: string; url: string }>
+  /** Every way to reach the person (e-mail, phone, WhatsApp, social networks), drawn as icons by the contact section. */
+  contact: ContactItem[]
 }
 
 const str = (v: unknown, max = 2000): string => (typeof v === 'string' ? v.trim().slice(0, max) : '')
@@ -108,5 +111,6 @@ export function toBlockData(c: Partial<PortfolioContent> | null | undefined): Bl
     certifications: strs(content.certifications, 160, 12),
     quote,
     links,
+    contact: contactItems(content as Record<string, unknown>),
   }
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import ContactIcons from '@/components/contact/ContactIcons'
 import { Space_Mono, Sora } from 'next/font/google'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
@@ -165,36 +166,8 @@ export default function Bold({ content }: { content: PortfolioContent }) {
             ))}
           </nav>
 
-          <div className="space-y-2 mt-auto">
-            <a
-              href={`mailto:${content.email}`}
-              className="flex items-center gap-2 text-xs text-[#8B949E] hover:text-[#58A6FF] transition-colors"
-            >
-              <span>✉</span>
-              <span className="truncate">{content.email}</span>
-            </a>
-            {content.github_url && (
-              <a
-                href={content.github_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-xs text-[#8B949E] hover:text-[#58A6FF] transition-colors"
-              >
-                <span>⌥</span>
-                <span>GitHub</span>
-              </a>
-            )}
-            {content.linkedin_url && (
-              <a
-                href={content.linkedin_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-xs text-[#8B949E] hover:text-[#58A6FF] transition-colors"
-              >
-                <span>◈</span>
-                <span>LinkedIn</span>
-              </a>
-            )}
+          <div className="mt-auto text-[#8B949E]">
+            <ContactIcons className="lpc--stack" content={content as unknown as Record<string, unknown>} />
           </div>
 
           <div className="mt-6 pt-6 border-t border-[#1C2128]">
@@ -527,6 +500,9 @@ export default function Bold({ content }: { content: PortfolioContent }) {
             >
               Get in touch →
             </a>
+            <div className="mt-6 text-[#8B949E]">
+              <ContactIcons content={content as unknown as Record<string, unknown>} />
+            </div>
           </section>
 
           {/* Mobile footer */}

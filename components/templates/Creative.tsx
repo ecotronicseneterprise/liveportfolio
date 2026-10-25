@@ -1,5 +1,6 @@
 'use client'
 
+import ContactIcons from '@/components/contact/ContactIcons'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
@@ -449,19 +450,7 @@ export default function Creative({ content }: { content: PortfolioContent }) {
               : content.about?.split('\n')[0]}
           </p>
           <div className="nt-hero-links">
-            {content.github_url && (
-              <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="nt-hero-link nt-hero-link-secondary">
-                ↗ GitHub
-              </a>
-            )}
-            {content.linkedin_url && (
-              <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="nt-hero-link nt-hero-link-ghost">
-                ↗ LinkedIn
-              </a>
-            )}
-            <a href={`mailto:${content.email}`} className="nt-hero-link nt-hero-link-primary">
-              → Get in touch
-            </a>
+            <ContactIcons content={content as unknown as Record<string, unknown>} />
           </div>
         </div>
 
@@ -629,19 +618,7 @@ export default function Creative({ content }: { content: PortfolioContent }) {
           <div className="nt-contact-sub">Open to remote, contract, and full-time opportunities.</div>
         </div>
         <div className="nt-contact-links">
-          <a href={`mailto:${content.email}`} className="nt-contact-link">
-            <span>Email</span>{content.email}
-          </a>
-          {content.linkedin_url && (
-            <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="nt-contact-link">
-              <span>LinkedIn</span>{content.linkedin_url.replace('https://linkedin.com/in/', '')}
-            </a>
-          )}
-          {content.github_url && (
-            <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="nt-contact-link">
-              <span>GitHub</span>{content.github_url.replace('https://github.com/', '')}
-            </a>
-          )}
+          <ContactIcons content={content as unknown as Record<string, unknown>} />
         </div>
       </div>
 

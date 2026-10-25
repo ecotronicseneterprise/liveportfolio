@@ -1,5 +1,7 @@
 'use client'
 
+import ContactIcons from '@/components/contact/ContactIcons'
+import { contactItems } from '@/lib/contact/items'
 import { useState } from 'react'
 import type { PortfolioContent } from './Minimal'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
@@ -188,7 +190,7 @@ export default function Finance({ content }: { content: PortfolioContent }) {
   const groupedSkills = new Set(skillGroups.flatMap(([, items]) => items))
   const flatSkills = content.skills.filter(s => !groupedSkills.has(s))
   const hasSkills = !!(skillGroups.length || flatSkills.length || content.skills_narrative)
-  const hasContact = !!(content.email || content.linkedin_url || content.github_url)
+  const hasContact = contactItems(content as unknown as Record<string, unknown>).length > 0
 
   return (
     <div className="fin-root">
@@ -273,19 +275,7 @@ export default function Finance({ content }: { content: PortfolioContent }) {
           {hasContact && <section className="fin-sidebar-block" id="contact">
             <h2 className="fin-block-title">Contact</h2>
             <div className="fin-contact-links">
-              {content.email && <a href={`mailto:${content.email}`} className="fin-contact-link">
-                <span>✉</span><span>{content.email}</span>
-              </a>}
-              {content.linkedin_url && (
-                <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="fin-contact-link">
-                  <span>◈</span><span>LinkedIn</span>
-                </a>
-              )}
-              {content.github_url && (
-                <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="fin-contact-link">
-                  <span>⌥</span><span>GitHub</span>
-                </a>
-              )}
+              <ContactIcons className="lpc--stack" content={content as unknown as Record<string, unknown>} />
             </div>
           </section>}
 

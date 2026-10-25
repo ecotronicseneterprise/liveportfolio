@@ -27,6 +27,13 @@ export const metadata: Metadata = { title: 'Design review', robots: { index: fal
 const FIXTURES: Record<string, PortfolioContent> = { ...SAMPLE_PEOPLE, sparse: SPARSE, long: LONG_STRINGS, noimg: ONE_PROJECT_NO_FIGURES, ...PRO_SAMPLES }
 type FixtureKey = keyof typeof FIXTURES
 
+// ?c=1 adds a phone number and social links to the invented person, to look at the contact icons of every template.
+const CONTACT_DEMO = {
+  phone: '+234 801 234 5678', whatsapp: '2348012345678', linkedin_url: 'https://www.linkedin.com/in/example-person', github_url: 'https://github.com/example-person',
+  website_url: 'https://example.com', twitter_url: 'https://x.com/example_person', instagram_url: 'https://www.instagram.com/example.person',
+  facebook_url: 'https://www.facebook.com/example.person', youtube_url: 'https://www.youtube.com/@example', tiktok_url: 'https://www.tiktok.com/@example',
+}
+
 // The seven Pro templates keep their own components; ?t=developer etc. draws them from the same invented content (so every template can be looked at).
 const PRO: Record<string, React.ComponentType<{ content: PortfolioContent }>> = {
   developer: Developer, designer: Designer, 'data-scientist': DataScientist, 'product-manager': ProductManager, finance: Finance, graduate: Graduate, cybersecurity: Cybersecurity,
@@ -40,7 +47,7 @@ export default async function DesignReview({ searchParams }: { searchParams: Pro
   const arr = one('a') as Arrangement | undefined
 
   if (p && Object.hasOwn(FIXTURES, p) && isProTemplateId(tpl)) {
-    const content = withProDesign(safeContent(FIXTURES[p] as unknown as Record<string, unknown>) as unknown as PortfolioContent, tpl, one('v') === '2')
+    const content = withProDesign(safeContent({ ...(FIXTURES[p] as unknown as Record<string, unknown>), ...(one('c') ? CONTACT_DEMO : {}) }) as unknown as PortfolioContent, tpl, one('v') === '2')
     if (one('client') === '1' || one('picker') === '1') return <ProDesignLab content={content} template={tpl} picker={one('picker') === '1'} />
     const mode = portfolioRenderMode(content, tpl)
     if (mode.kind === 'pro') return <ProDesign content={content} template={mode.template} />
@@ -49,7 +56,7 @@ export default async function DesignReview({ searchParams }: { searchParams: Pro
   }
 
   if (p && p in FIXTURES && tpl && isLookTemplate(tpl)) {
-    const content = FIXTURES[p]
+    const content = one('c') ? ({ ...FIXTURES[p], ...CONTACT_DEMO } as typeof FIXTURES[typeof p]) : FIXTURES[p]
     const layout = defaultLayout(arr && (ARRANGEMENTS as readonly string[]).includes(arr) ? arr : rank(content)[0].arrangement)
     return <Look template={tpl} content={content} layout={layout} page idPrefix="r" />
   }

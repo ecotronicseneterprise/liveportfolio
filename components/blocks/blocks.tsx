@@ -1,6 +1,7 @@
 // The ten blocks and their variants. Plain functions of (data, options): no hooks, no client JS, safe to render on the server and inside
 // client trees (gallery thumbnails, the dashboard preview). A block whose data is empty returns null: a portfolio never shows an empty
 // heading. All words that are not the person's own come from messages/en.json (t('portfolio.*')); nothing here is hard-coded English.
+import ContactIcons from '@/components/contact/ContactIcons'
 import type { ReactNode } from 'react'
 import { t } from '@/lib/onboarding/t'
 import type { BlockData, BlockProject } from '@/lib/blocks/adapt'
@@ -74,8 +75,9 @@ const hero: Record<string, Render> = {
       <div className="wrap">
         <div className="hero-intro">
           <div className="hero-copy">
-            <p className="hero-kicker">{d.role}{d.location ? ` · ${d.location}` : ''}</p>
             <h1 className="name">{d.name}</h1>
+            {d.role && <p className="role">{d.role}</p>}
+            {d.location && <p className="hero-place">{d.location}</p>}
             {d.headline && <p className="headline">{d.headline}</p>}
           </div>
           <HeroPortrait d={d} />
@@ -94,10 +96,9 @@ const hero: Record<string, Render> = {
             {d.headline && <p className="headline">{d.headline}</p>}
           </div>
         </div>
-        {(d.location || d.email) && (
+        {d.location && (
           <dl className="facts">
-            {d.location && <div><dt>{t('portfolio.based')}</dt><dd>{d.location}</dd></div>}
-            {d.email && <div><dt>{t('portfolio.email')}</dt><dd><a href={mailto(d.email)}>{d.email}</a></dd></div>}
+            <div><dt>{t('portfolio.based')}</dt><dd>{d.location}</dd></div>
           </dl>
         )}
       </div>
@@ -290,36 +291,23 @@ const quoteBlock = (variant: 'pull' | 'band'): Render => (d) => d.quote ? (
 const quote: Record<string, Render> = { pull: quoteBlock('pull'), band: quoteBlock('band') }
 
 // ── social links ─────────────────────────────────────────────────────────────────────────────────────────
-const social: Record<string, Render> = {
-  inline: (d) => d.links.length ? (
-    <section className="b b-social"><div className="wrap"><h2>{t('portfolio.elsewhere')}</h2><p className="slinks">{d.links.map((l) => <a key={l.url} href={l.url} rel="noopener noreferrer">{l.label}</a>)}</p></div></section>
-  ) : null,
-  stacked: (d) => d.links.length ? (
-    <section className="b b-social">
-      <div className="wrap two"><h2>{t('portfolio.elsewhere')}</h2><ul className="slist">{d.links.map((l) => <li key={l.url}><a href={l.url} rel="noopener noreferrer"><span>{l.label}</span><span className="u">{l.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span></a></li>)}</ul></div>
-    </section>
-  ) : null,
-}
+const social: Record<string, Render> = { inline: () => null, stacked: () => null } // GitHub, LinkedIn and the rest are icons in the contact section
 
 // ── contact (never hidden when there is something to reach the person with) ─────────────────────────────
 const contact: Record<string, Render> = {
-  band: (d, c) => (d.email || d.links.length) ? (
+  band: (d, c) => d.contact.length ? (
     <section className="b b-contact b-contact--band b-anchor" id={id(c, 'contact')}>
       <div className="wrap">
         <h2>{t('portfolio.getInTouch')}</h2>
-        {d.email && <a className="mail" href={mailto(d.email)}>{d.email}</a>}
-        {d.links.length > 0 && <p className="clinks">{d.links.map((l) => <a key={l.url} href={l.url} rel="noopener noreferrer">{l.label}</a>)}</p>}
+        <ContactIcons items={d.contact} label={t('portfolio.contact')} />
       </div>
     </section>
   ) : null,
-  plain: (d, c) => (d.email || d.links.length) ? (
+  plain: (d, c) => d.contact.length ? (
     <section className="b b-contact b-contact--plain b-anchor" id={id(c, 'contact')}>
       <div className="wrap two">
         <h2>{t('portfolio.contact')}</h2>
-        <div>
-          {d.email && <a className="mail" href={mailto(d.email)}>{d.email}</a>}
-          {d.links.length > 0 && <p className="clinks">{d.links.map((l) => <a key={l.url} href={l.url} rel="noopener noreferrer">{l.label}</a>)}</p>}
-        </div>
+        <div><ContactIcons items={d.contact} label={t('portfolio.contact')} /></div>
       </div>
     </section>
   ) : null,
@@ -339,6 +327,6 @@ export function presentAnchors(d: BlockData): Array<'work' | 'experience' | 'con
   const out: Array<'work' | 'experience' | 'contact'> = []
   if (d.projects.length) out.push('work')
   if (d.experience.length) out.push('experience')
-  if (d.email || d.links.length) out.push('contact')
+  if (d.contact.length) out.push('contact')
   return out
 }

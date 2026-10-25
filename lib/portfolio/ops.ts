@@ -24,14 +24,15 @@ export class OpError extends Error {
 }
 
 // ── field catalogue ──────────────────────────────────────────────────────────────────────────────────────────
-export const TEXT_LIMITS = { name: 100, role: 160, headline: 200, about: 6000, location: 120, email: 254, skills_narrative: 400 } as const
+export const TEXT_LIMITS = { name: 100, role: 160, headline: 200, about: 6000, location: 120, email: 254, phone: 30, whatsapp: 30, skills_narrative: 400 } as const
 export type TextField = keyof typeof TEXT_LIMITS
 export const TEXT_FIELDS = Object.keys(TEXT_LIMITS) as [TextField, ...TextField[]]
-export const LINK_FIELDS = ['github_url', 'linkedin_url', 'avatar_url'] as const
+export const LINK_FIELDS = ['github_url', 'linkedin_url', 'twitter_url', 'instagram_url', 'facebook_url', 'youtube_url', 'tiktok_url', 'website_url', 'avatar_url'] as const
 
 /** Every key the dashboard may send. Anything else is dropped silently (as the route always did). */
 export const CONTENT_KEYS = [
-  'name', 'role', 'about', 'headline', 'location', 'email', 'github_url', 'linkedin_url', 'avatar_url',
+  'name', 'role', 'about', 'headline', 'location', 'email', 'phone', 'whatsapp', 'github_url', 'linkedin_url', 'avatar_url',
+  'twitter_url', 'instagram_url', 'facebook_url', 'youtube_url', 'tiktok_url', 'website_url', // more ways to be contacted, shown as icons
   'skills', 'skills_grouped', 'skills_narrative', 'projects', 'experience', 'education', 'certifications', 'testimonials',
   'layout', // the look: an arrangement and a few presentation choices, validated by lib/blocks/settings.ts (never words)
   'pro_designs', // explicit per-Pro-template opt-ins, independent of the free-template layout

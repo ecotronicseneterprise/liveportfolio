@@ -1,0 +1,19 @@
+/* Contact icons (see ContactIcons.tsx). Colours are inherited from the template. Phone: icons only, 44px touch targets. Wide screens: icon + address. */
+.lpc { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; list-style: none; margin: 0; padding: 0; }
+.lpc li { margin: 0; padding: 0; list-style: none; max-width: 100%; }
+.lpc-a { display: inline-flex; align-items: center; justify-content: center; gap: 10px; box-sizing: border-box; min-width: 44px; min-height: 44px; padding: 0 11px; border: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 32%, transparent); border-radius: 999px; color: inherit; text-decoration: none; font-size: 15px; line-height: 1.3; max-width: 100%; }
+.lpc-a:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+.lpc-a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.lpc-i { flex: none; display: block; }
+.lpc-t { display: none; min-width: 0; overflow-wrap: anywhere; }
+@media (min-width: 720px) {
+  .lpc-a { padding: 0 18px 0 13px; }
+  .lpc-t { display: inline; }
+}
+@media print { .lpc-t { display: inline; } }
+
+/* a sidebar: the links stack, one per row (the column is narrow) */
+.lpc--stack { flex-direction: column; align-items: stretch; gap: 6px; }
+.lpc--stack .lpc-a { justify-content: flex-start; border-radius: 12px; width: 100%; font-size: 14px; }
+.lpc--stack .lpc-a { min-width: 0; }
+.lpc--stack .lpc-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }

@@ -1,5 +1,7 @@
 'use client'
 
+import ContactIcons from '@/components/contact/ContactIcons'
+import { contactItems } from '@/lib/contact/items'
 import Image from 'next/image'
 import { useId, useState } from 'react'
 import type { PortfolioContent } from './Minimal'
@@ -227,7 +229,7 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
   const groupedSkills = new Set(skillGroups.flatMap(g => g.items))
   const ungroupedSkills = content.skills.filter(skill => !groupedSkills.has(skill))
   const hasSkills = skillGroups.length > 0 || ungroupedSkills.length > 0 || !!content.skills_narrative
-  const hasContact = !!(content.email || content.github_url || content.linkedin_url)
+  const hasContact = contactItems(content as unknown as Record<string, unknown>).length > 0
   const navLinks = [
     { id: 'education', label: 'Education', show: !!content.education?.length },
     { id: 'experience', label: 'Experience', show: content.experience.length > 0 },
@@ -281,9 +283,7 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
           {content.about && <p className="gr-hero-bio gr-prose">{content.about}</p>}
           {content.location && <p className="gr-hero-bio">{content.location}</p>}
           <div className="gr-hero-links">
-            {content.email && <a href={`mailto:${content.email}`} className="gr-cta">{content.email}</a>}
-            {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="gr-cta-ghost">LinkedIn</a>}
-            {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="gr-cta-ghost">GitHub</a>}
+            <ContactIcons content={content as unknown as Record<string, unknown>} />
           </div>
         </div>
       </div>
@@ -409,10 +409,8 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
       {/* Contact */}
       {hasContact && <section id="contact" className="gr-contact">
         <h2 className="gr-contact-title">Contact</h2>
-        {content.email && <a href={`mailto:${content.email}`} className="gr-contact-cta">Get in touch →</a>}
-        <div className="gr-hero-links" style={{ justifyContent: 'center', marginTop: 16 }}>
-          {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="gr-cta-ghost">LinkedIn</a>}
-          {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="gr-cta-ghost">GitHub</a>}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
+          <ContactIcons content={content as unknown as Record<string, unknown>} />
         </div>
       </section>}
 

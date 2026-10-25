@@ -1,5 +1,7 @@
 'use client'
 
+import ContactIcons from '@/components/contact/ContactIcons'
+import { contactItems } from '@/lib/contact/items'
 import { useId, useState } from 'react'
 import Image from 'next/image'
 import type { PortfolioContent } from './Minimal'
@@ -272,7 +274,7 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
   const groupedSkills = new Set(skillGroups.flatMap(g => g.items))
   const ungroupedSkills = content.skills.filter(skill => !groupedSkills.has(skill))
   const hasSkills = skillGroups.length > 0 || ungroupedSkills.length > 0 || !!content.skills_narrative
-  const hasContact = !!(content.email || content.github_url || content.linkedin_url)
+  const hasContact = contactItems(content as unknown as Record<string, unknown>).length > 0
   const navLinks = [
     { id: 'certs', label: 'Certs', show: certs.length > 0 },
     { id: 'skills', label: 'Skills', show: hasSkills },
@@ -329,9 +331,7 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
             )}
             <div className="cy-hero-meta">
               {content.location && <span className="cy-hero-meta-item">{content.location}</span>}
-              {content.email && <span className="cy-hero-meta-item"><a href={`mailto:${content.email}`}>{content.email}</a></span>}
-              {content.github_url && <span className="cy-hero-meta-item"><a href={content.github_url} target="_blank" rel="noopener noreferrer">GitHub →</a></span>}
-              {content.linkedin_url && <span className="cy-hero-meta-item"><a href={content.linkedin_url} target="_blank" rel="noopener noreferrer">LinkedIn →</a></span>}
+              <ContactIcons content={content as unknown as Record<string, unknown>} />
             </div>
           </div>
         </div>
@@ -462,10 +462,8 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
         {/* Contact */}
         {hasContact && <section id="contact" className="cy-contact">
           <h2 className="cy-section-label">Contact</h2>
-          {content.email && <a href={`mailto:${content.email}`} className="cy-contact-cta">Get in touch →</a>}
-          <div className="cy-contact-meta cy-project-links">
-            {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer">GitHub →</a>}
-            {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer">LinkedIn →</a>}
+          <div className="cy-contact-meta">
+            <ContactIcons content={content as unknown as Record<string, unknown>} />
             {content.location && <span>{content.location}</span>}
           </div>
         </section>}

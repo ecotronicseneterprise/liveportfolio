@@ -14,6 +14,8 @@ export function proContent(input: unknown): PortfolioContent {
     name: string(c.name), role: string(c.role), headline: string(c.headline), about: string(c.about), location: string(c.location),
     email: /^[^\s@?&#\r\n]+@[^\s@?&#\r\n]+\.[^\s@?&#\r\n]+$/.test(email) ? email : '',
     github_url: string(c.github_url), linkedin_url: string(c.linkedin_url), avatar_url: string(c.avatar_url),
+    phone: string(c.phone), whatsapp: string(c.whatsapp), twitter_url: string(c.twitter_url), instagram_url: string(c.instagram_url),
+    facebook_url: string(c.facebook_url), youtube_url: string(c.youtube_url), tiktok_url: string(c.tiktok_url), website_url: string(c.website_url),
     skills: strings(c.skills), skills_narrative: string(c.skills_narrative),
     skills_grouped: objects(c.skills_grouped).map((g) => ({ category: string(g.category), items: strings(g.items) })).filter((g) => g.items.length),
     projects: objects(c.projects).map((p) => ({ title: string(p.title), problem: string(p.problem), solution: string(p.solution), outcome: string(p.outcome),

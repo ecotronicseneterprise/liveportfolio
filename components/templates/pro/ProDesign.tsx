@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import ContactIcons from '@/components/contact/ContactIcons'
+import { contactItems } from '@/lib/contact/items'
 import type { PortfolioContent } from '../Minimal'
 import type { ProTemplateId } from '@/lib/portfolio/presentation'
 import { completeSkillGroups, proContent } from '@/lib/portfolio/pro-content'
@@ -23,10 +25,7 @@ function External({ href, children }: { href?: string; children: ReactNode }) {
 }
 
 function Links({ c }: { c: PortfolioContent }) {
-  return <div className="pro-links">
-    {c.email && <a href={`mailto:${c.email}`}>{c.email}<span aria-hidden="true"> ↗</span></a>}
-    <External href={c.github_url}>GitHub</External><External href={c.linkedin_url}>LinkedIn</External>
-  </div>
+  return <div className="pro-links"><ContactIcons content={c as unknown as Record<string, unknown>} /></div>
 }
 
 function Section({ id, number, title, children, className = '' }: { id: string; number: number; title: string; children: ReactNode; className?: string }) {
@@ -55,7 +54,7 @@ export default function ProDesign({ content, template, idPrefix }: { content: Po
   const prefix = idPrefix || `pro-${template}`
   const id = (section: string) => `${prefix}-${section}`
   const groups = completeSkillGroups(c)
-  const hasContact = !!(c.email || c.github_url || c.linkedin_url)
+  const hasContact = contactItems(c as unknown as Record<string, unknown>).length > 0
   const has = { about: !!c.about, projects: !!c.projects.length, experience: !!c.experience.length, skills: !!(groups.length || c.skills_narrative),
     credentials: !!(c.education?.length || c.certifications?.length), references: !!c.testimonials?.length }
   const sections = design.order.filter((s) => has[s])

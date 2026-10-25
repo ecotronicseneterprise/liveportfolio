@@ -1,5 +1,7 @@
 'use client'
 
+import ContactIcons from '@/components/contact/ContactIcons'
+import { contactItems } from '@/lib/contact/items'
 import Image from 'next/image'
 import { useState } from 'react'
 import type { PortfolioContent } from './Minimal'
@@ -241,7 +243,7 @@ export default function ProductManager({ content }: { content: PortfolioContent 
   const groupedSkills = new Set(skillGroups.flatMap(([, items]) => items))
   const flatSkills = content.skills.filter(s => !groupedSkills.has(s))
   const hasSkills = !!(skillGroups.length || flatSkills.length || content.skills_narrative)
-  const hasContact = !!(content.email || content.linkedin_url || content.github_url)
+  const hasContact = contactItems(content as unknown as Record<string, unknown>).length > 0
 
   return (
     <div className="pm-root">
@@ -275,9 +277,7 @@ export default function ProductManager({ content }: { content: PortfolioContent 
             {content.headline && <p className="pm-hero-headline">{content.headline}</p>}
             {content.about && <div className="pm-hero-headline">{content.about.split('\n\n').map((p, i) => <p key={i} style={{ marginBottom: 12 }}>{p}</p>)}</div>}
             <div className="pm-hero-links">
-              {content.email && <a href={`mailto:${content.email}`} className="pm-cta-primary">Get in touch →</a>}
-              {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="pm-cta-ghost">LinkedIn</a>}
-              {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="pm-cta-ghost">GitHub</a>}
+              <ContactIcons content={content as unknown as Record<string, unknown>} />
             </div>
           </div>
           <div>
@@ -414,10 +414,8 @@ export default function ProductManager({ content }: { content: PortfolioContent 
       )}
       {hasContact && <section id="contact" className="pm-contact">
         <h2 className="pm-contact-title">Get in touch.</h2>
-        {content.email && <a href={`mailto:${content.email}`} className="pm-contact-cta">{content.email} →</a>}
-        <div className="pm-hero-links" style={{ justifyContent: 'center', marginTop: 16 }}>
-          {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="pm-cta-ghost">LinkedIn</a>}
-          {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="pm-cta-ghost">GitHub</a>}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
+          <ContactIcons content={content as unknown as Record<string, unknown>} />
         </div>
       </section>}
 

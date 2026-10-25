@@ -1,5 +1,7 @@
 'use client'
 
+import ContactIcons from '@/components/contact/ContactIcons'
+import { contactItems } from '@/lib/contact/items'
 import Image from 'next/image'
 import { useState } from 'react'
 import type { PortfolioContent } from './Minimal'
@@ -240,7 +242,7 @@ export default function Designer({ content }: { content: PortfolioContent }) {
   const groupedSkills = new Set(skillGroups.flatMap(g => g.items))
   const flatSkills = content.skills.filter(s => !groupedSkills.has(s))
   const hasSkills = !!(flatSkills.length || skillGroups.length || content.skills_narrative)
-  const hasContact = !!(content.email || content.linkedin_url || content.github_url)
+  const hasContact = contactItems(content as unknown as Record<string, unknown>).length > 0
 
   return (
     <div className="ds-root">
@@ -272,13 +274,7 @@ export default function Designer({ content }: { content: PortfolioContent }) {
           {content.headline && <p className="ds-hero-bio">{content.headline}</p>}
           {content.about && <div className="ds-hero-about">{content.about.split('\n\n').map((p, i) => <p key={i}>{p}</p>)}</div>}
           <div className="ds-hero-links">
-            {content.email && <a href={`mailto:${content.email}`} className="ds-cta-primary">Get in touch →</a>}
-            {content.linkedin_url && (
-              <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="ds-cta-ghost">LinkedIn</a>
-            )}
-            {content.github_url && (
-              <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="ds-cta-ghost">GitHub</a>
-            )}
+            <ContactIcons content={content as unknown as Record<string, unknown>} />
           </div>
         </div>
       </section>
@@ -413,10 +409,8 @@ export default function Designer({ content }: { content: PortfolioContent }) {
       )}
       {hasContact && <section id="contact" className="ds-contact">
         <h2 className="ds-contact-title">Get in touch.</h2>
-        {content.email && <a href={`mailto:${content.email}`} className="ds-contact-cta">{content.email} →</a>}
-        <div className="ds-hero-links" style={{ justifyContent: 'center', marginTop: 16 }}>
-          {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="ds-cta-ghost">LinkedIn</a>}
-          {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="ds-cta-ghost">GitHub</a>}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
+          <ContactIcons content={content as unknown as Record<string, unknown>} />
         </div>
       </section>}
 

@@ -1665,14 +1665,23 @@ export default function DashboardPage() {
                 { key: 'role', label: 'Professional title', type: 'text' },
                 { key: 'location', label: 'Location', type: 'text' },
                 { key: 'email', label: 'Email', type: 'email' },
-                { key: 'github_url', label: 'GitHub URL', type: 'url' },
-                { key: 'linkedin_url', label: 'LinkedIn URL', type: 'url' },
                 { key: 'headline', label: 'Headline', type: 'text' },
-              ].map(({ key, label, type }) => (
+                { key: 'phone', label: 'Phone number (optional)', type: 'tel', placeholder: '+234 801 234 5678' },
+                { key: 'whatsapp', label: 'WhatsApp number, digits with country code (optional)', type: 'tel', placeholder: '2348012345678' },
+                { key: 'linkedin_url', label: 'LinkedIn (optional)', type: 'url', placeholder: 'https://www.linkedin.com/in/your-name' },
+                { key: 'github_url', label: 'GitHub (optional)', type: 'url', placeholder: 'https://github.com/your-name' },
+                { key: 'website_url', label: 'Website (optional)', type: 'url', placeholder: 'https://your-site.com' },
+                { key: 'twitter_url', label: 'X / Twitter (optional)', type: 'url', placeholder: 'https://x.com/your-name' },
+                { key: 'instagram_url', label: 'Instagram (optional)', type: 'url', placeholder: 'https://www.instagram.com/your-name' },
+                { key: 'facebook_url', label: 'Facebook (optional)', type: 'url', placeholder: 'https://www.facebook.com/your-name' },
+                { key: 'youtube_url', label: 'YouTube (optional)', type: 'url', placeholder: 'https://www.youtube.com/@your-name' },
+                { key: 'tiktok_url', label: 'TikTok (optional)', type: 'url', placeholder: 'https://www.tiktok.com/@your-name' },
+              ].map(({ key, label, type, placeholder }: { key: string; label: string; type: string; placeholder?: string }) => (
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
                   <input
                     type={type}
+                    placeholder={placeholder}
                     value={(editContent as Record<string, string>)[key] || ''}
                     onChange={(e) => setEditContent((prev) => ({ ...prev, [key]: e.target.value }))}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}

@@ -1,5 +1,7 @@
 'use client'
 
+import ContactIcons from '@/components/contact/ContactIcons'
+import { contactItems } from '@/lib/contact/items'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
@@ -283,7 +285,7 @@ export default function Developer({ content }: { content: PortfolioContent }) {
   const flatSkills = content.skills.filter(s => !groupedSkills.has(s))
   const hasSkills = !!(flatSkills.length || skillGroups.length || content.skills_narrative)
   const hasAbout = !!(content.headline || content.about)
-  const hasContact = !!(content.email || content.linkedin_url || content.github_url)
+  const hasContact = contactItems(content as unknown as Record<string, unknown>).length > 0
 
   const navItems = [
     ...(hasAbout ? [{ id: 'about', label: 'About' }] : []),
@@ -372,22 +374,7 @@ export default function Developer({ content }: { content: PortfolioContent }) {
           </nav>
 
           <div className="dv-links">
-            {content.email && <a href={`mailto:${content.email}`} className="dv-link">
-              <span className="dv-link-icon">✉</span>
-              <span>{content.email}</span>
-            </a>}
-            {content.github_url && (
-              <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="dv-link">
-                <span className="dv-link-icon">⌥</span>
-                <span>GitHub</span>
-              </a>
-            )}
-            {content.linkedin_url && (
-              <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="dv-link">
-                <span className="dv-link-icon">◈</span>
-                <span>LinkedIn</span>
-              </a>
-            )}
+            <ContactIcons className="lpc--stack" content={content as unknown as Record<string, unknown>} />
           </div>
           <a href="https://liveportfolio.site" target="_blank" rel="noopener noreferrer" className="dv-footer-link">
             Built with liveportfolio.site
@@ -555,17 +542,9 @@ export default function Developer({ content }: { content: PortfolioContent }) {
           )}
           {hasContact && <section id="contact" className="dv-section" style={{ marginBottom: 0 }}>
             <h2 className="dv-section-label">Contact</h2>
-            {content.email && <a href={`mailto:${content.email}`} className="dv-contact-email">
-              {content.email} →
-            </a>}
+            <ContactIcons content={content as unknown as Record<string, unknown>} />
             <div className="dv-contact-meta">
               {content.location && <div>{content.location}</div>}
-              {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="dv-link">GitHub →</a>}
-              {content.linkedin_url && (
-                <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="dv-link" style={{ marginTop: 6 }}>
-                  LinkedIn →
-                </a>
-              )}
             </div>
           </section>}
         </main>

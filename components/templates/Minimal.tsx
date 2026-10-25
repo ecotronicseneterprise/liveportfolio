@@ -1,5 +1,6 @@
 'use client'
 
+import ContactIcons from '@/components/contact/ContactIcons'
 import { Playfair_Display, DM_Sans } from 'next/font/google'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
@@ -27,6 +28,14 @@ export interface PortfolioContent {
   email: string
   github_url?: string
   linkedin_url?: string
+  phone?: string
+  whatsapp?: string
+  twitter_url?: string
+  instagram_url?: string
+  facebook_url?: string
+  youtube_url?: string
+  tiktok_url?: string
+  website_url?: string
   avatar_url?: string
   skills: string[]
   skills_narrative: string
@@ -143,10 +152,8 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
               </div>
               <div className="w-8 h-0.5 bg-[#0A66C2] my-4" />
               <p className="text-xl text-gray-500 mb-6">{content.role}</p>
-              <div className="flex flex-wrap items-center gap-4">
-                <a href={`mailto:${content.email}`} className="text-sm text-[#0A66C2] hover:underline font-medium">{content.email}</a>
-                {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#0A66C2] hover:underline font-medium">GitHub →</a>}
-                {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#0A66C2] hover:underline font-medium">LinkedIn →</a>}
+              <div className="flex flex-col gap-3 text-[#0A66C2]">
+                <ContactIcons content={content as unknown as Record<string, unknown>} />
                 {content.location && <span className="text-sm text-gray-400">{content.location}</span>}
               </div>
             </div>
@@ -326,10 +333,8 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
                 Get in touch →
               </a>
             </div>
-            <div className="flex flex-col gap-3">
-              <a href={`mailto:${content.email}`} className="text-sm text-gray-600 hover:text-[#0A66C2] transition-colors">{content.email}</a>
-              {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-[#0A66C2] transition-colors">GitHub</a>}
-              {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-[#0A66C2] transition-colors">LinkedIn</a>}
+            <div className="flex flex-col gap-3 text-gray-700">
+              <ContactIcons content={content as unknown as Record<string, unknown>} />
               {content.location && <p className="text-sm text-gray-400">{content.location}</p>}
             </div>
           </div>
