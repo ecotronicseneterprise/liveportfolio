@@ -10,9 +10,13 @@ import type { Admin } from './grant'
 import { DAY_MS } from './upgrade'
 
 export const REFUND_WINDOW_MS = 7 * DAY_MS
+// One request per payment. There is no column for it (no schema change allowed), so the request is recorded in payment_intents.access_code,
+// which is only used while a checkout is being opened and is never read again once the payment is made.
+const REQUEST_MARK = 'refund_requested'
 
 export type RefundOutcome =
   | 'requested' // the owner has been e-mailed; the refund is made by hand in Paystack
+  | 'already_requested' // a request for this payment was already sent
   | 'refunded' // Paystack accepted; access ended
   | 'pending_manual' // Paystack refused or was unreachable; the owner has been told
   | 'no_payment'
@@ -52,26 +56,36 @@ type PaymentRow = { id: string; ls_order_id: string; product_tier: string; amoun
 
 export interface RefundDeps {
   refund?: PaystackRefund
-  notifyOwner?: (subject: string, html: string) => Promise<void>
+  /** Resolves false when the message could not be sent. */
+  notifyOwner?: (subject: string, html: string) => Promise<boolean | void>
   now?: () => number
 }
 
-const defaultNotify = async (subject: string, html: string) => {
-  if (!process.env.RESEND_API_KEY) return
+const defaultNotify = async (subject: string, html: string): Promise<boolean> => {
+  if (!process.env.RESEND_API_KEY) return false
   try {
     const { sendEmail } = await import('@/lib/email') // loaded on demand: the e-mail client needs its key at import time
-    await sendEmail({ to: SUPPORT_EMAIL, subject, html })
-  } catch { /* never fail the request because of e-mail */ }
+    const r = await sendEmail({ to: SUPPORT_EMAIL, subject, html })
+    return !!(r as { success?: boolean } | undefined)?.success
+  } catch {
+    return false
+  }
 }
 
 /** What a refund would cover right now (for the panel). Pure read; the same rules as requestRefund. */
-export async function refundableNow(admin: Admin, userId: string, now: number = Date.now()): Promise<{ eligible: boolean; deadline: string | null; reference_kind: 'one_time' | 'other' | null; tier: string | null; amount_kobo: number | null; paid_at: string | null }> {
+export async function refundableNow(admin: Admin, userId: string, now: number = Date.now()): Promise<{ requested: boolean; eligible: boolean; deadline: string | null; reference_kind: 'one_time' | 'other' | null; tier: string | null; amount_kobo: number | null; paid_at: string | null }> {
   const p = await latestPayment(admin, userId)
-  if (!p) return { eligible: false, deadline: null, reference_kind: null, tier: null, amount_kobo: null, paid_at: null }
+  if (!p) return { requested: false, eligible: false, deadline: null, reference_kind: null, tier: null, amount_kobo: null, paid_at: null }
   const paid = new Date(p.created_at).getTime()
   const deadline = new Date(paid + REFUND_WINDOW_MS).toISOString()
   const oneTime = p.ls_order_id.startsWith('lpi_')
+  let requested = false
+  if (oneTime) {
+    const { data: it } = await admin.from('payment_intents').select('access_code').eq('reference', p.ls_order_id).eq('user_id', userId).maybeSingle()
+    requested = (it as { access_code?: string | null } | null)?.access_code === REQUEST_MARK
+  }
   return {
+    requested,
     eligible: !p.refunded_at && oneTime && now - paid <= REFUND_WINDOW_MS,
     deadline,
     reference_kind: oneTime ? 'one_time' : 'other',
@@ -165,6 +179,26 @@ export async function submitRefundRequest(admin: Admin, userId: string, deps: { 
   if (!Number.isFinite(paid)) return { outcome: 'unavailable' }
   if (now - paid > REFUND_WINDOW_MS) return { outcome: 'window_closed' }
 
+  // one request per payment: claim it first (atomic conditional update), release the claim if the e-mail cannot be sent
+  let claimedId: string | null = null
+  let prevCode: string | null = null
+  if (pay.ls_order_id.startsWith('lpi_')) {
+    const { data: it, error: itErr } = await admin.from('payment_intents').select('id, status, access_code').eq('reference', pay.ls_order_id).eq('user_id', userId).maybeSingle()
+    const intent = it as { id: string; status: string; access_code: string | null } | null
+    if (itErr) return { outcome: 'unavailable' }
+    if (intent) {
+      if (intent.status === 'refunded') return { outcome: 'already_refunded' }
+      if (intent.access_code === REQUEST_MARK) return { outcome: 'already_requested' }
+      prevCode = intent.access_code
+      let q = admin.from('payment_intents').update({ access_code: REQUEST_MARK }).eq('id', intent.id).eq('status', 'paid')
+      q = prevCode === null ? q.is('access_code', null) : q.eq('access_code', prevCode)
+      const claim = await q.select('id')
+      if (claim.error) return { outcome: 'unavailable' }
+      if (!claim.data || (claim.data as unknown[]).length === 0) return { outcome: 'already_requested' }
+      claimedId = intent.id
+    }
+  }
+
   let email = ''
   try {
     const { data } = await admin.from('users').select('email').eq('id', userId).maybeSingle()
@@ -172,10 +206,16 @@ export async function submitRefundRequest(admin: Admin, userId: string, deps: { 
   } catch { /* the reference below is enough to find the payment */ }
 
   const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string)
-  await notifyOwner(
+  const sent = await notifyOwner(
     'Refund request: please review',
     `<p>A customer asked for a refund inside the 7-day window.</p><p>Account: ${esc(email) || '(unknown)'}<br/>Payment reference: ${esc(pay.ls_order_id)}<br/>Plan: ${esc(pay.product_tier)}<br/>Amount (kobo): ${pay.amount_cents}<br/>Paid: ${esc(pay.created_at)}</p><p>To approve, refund the transaction in the Paystack dashboard. The refund.processed webhook then ends the plan and unpublishes the portfolio. To decline, reply to the customer. Their plan stays active until you refund.</p>`,
   )
+  if (sent === false) {
+    // Never tell the person it was sent when it was not: undo the claim so they can try again, and say so.
+    if (claimedId) await admin.from('payment_intents').update({ access_code: prevCode }).eq('id', claimedId).eq('access_code', REQUEST_MARK)
+    console.error('[refund] the request e-mail could not be sent; the person was told to try again. reference', pay.ls_order_id)
+    return { outcome: 'unavailable' }
+  }
   console.log('[refund] request sent to the owner. reference', pay.ls_order_id)
   return { outcome: 'requested' }
 }

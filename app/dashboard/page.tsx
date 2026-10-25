@@ -547,6 +547,7 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [template])
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [upgradeProOnly, setUpgradeProOnly] = useState(false)
   const [copied, setCopied] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' })
@@ -954,7 +955,8 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <UpgradeModal
         isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
+        onClose={() => { setShowUpgradeModal(false); setUpgradeProOnly(false) }}
+        proOnly={upgradeProOnly}
         userEmail={user.email}
         portfolioId={portfolio.id}
       />
@@ -2046,7 +2048,7 @@ export default function DashboardPage() {
         {activeTab === 'settings' && (
           <div className="space-y-5">
 
-            <PlanBillingPanel token={accessToken} onPay={() => setShowUpgradeModal(true)} />
+            <PlanBillingPanel token={accessToken} onPay={() => setShowUpgradeModal(true)} onUpgrade={() => { setUpgradeProOnly(true); setShowUpgradeModal(true) }} />
 
             {/* Avatar upload — available to all plan types */}
             <div className="bg-white border border-gray-100 rounded-2xl p-6">

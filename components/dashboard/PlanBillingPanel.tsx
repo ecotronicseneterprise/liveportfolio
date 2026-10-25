@@ -12,16 +12,16 @@ export interface Billing {
   one_time: boolean | null
   payments: Array<{ date: string; plan: string; amount_kobo: number; refunded: boolean }>
   /** What a refund would cover right now, decided by the server (absent on older responses). */
-  refund?: { eligible: boolean; deadline: string | null; tier: string | null; amount_kobo: number | null; one_time: boolean } | null
+  refund?: { requested?: boolean; eligible: boolean; deadline: string | null; tier: string | null; amount_kobo: number | null; one_time: boolean } | null
 }
 
 const NAME = { free: 'Free', basic: 'Basic', pro: 'Pro' } as const
 const date = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
-export type RefundResult = 'requested' | 'error'
+export type RefundResult = 'requested' | 'already' | 'error'
 
 /** What you are on, when it ends, what you paid, and how to cancel, upgrade or renew. Paying goes through the checkout. */
-export default function PlanBillingPanel({ token, onPay }: { token: string; onPay: () => void }) {
+export default function PlanBillingPanel({ token, onPay, onUpgrade }: { token: string; onPay: () => void; onUpgrade?: () => void }) {
   const [b, setB] = useState<Billing | null>(null)
   const [failed, setFailed] = useState(false)
 
@@ -41,6 +41,7 @@ export default function PlanBillingPanel({ token, onPay }: { token: string; onPa
       const res = await fetch('/api/billing/refund', { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
       const j = await res.json().catch(() => ({}))
       if (j.outcome === 'requested') return 'requested'
+      if (j.outcome === 'already_requested') return 'already'
       load() // the window may have closed or a refund may already be done: show the truth
       return 'error'
     } catch { return 'error' }
@@ -55,14 +56,16 @@ export default function PlanBillingPanel({ token, onPay }: { token: string; onPa
     )
   }
   if (!b) return null
-  return <PlanBillingView b={b} onPay={onPay} onRefund={onRefund} />
+  return <PlanBillingView b={b} onPay={onPay} onRefund={onRefund} onUpgrade={onUpgrade} />
 }
 
 /** The panel itself (separate from the fetching so it can be rendered and tested on its own). */
-export function PlanBillingView({ b, onPay, onRefund }: {
+export function PlanBillingView({ b, onPay, onRefund, onUpgrade }: {
   b: Billing
   onPay: () => void
   onRefund?: () => Promise<RefundResult>
+  /** Opens the checkout with Pro only. Falls back to onPay. */
+  onUpgrade?: () => void
 }) {
   const card = 'bg-white border border-gray-100 rounded-2xl p-6'
   const btn = 'inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#0A66C2] px-5 text-sm font-semibold text-white hover:bg-[#084D9A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2] focus-visible:ring-offset-2 disabled:opacity-60'
@@ -74,7 +77,8 @@ export function PlanBillingView({ b, onPay, onRefund }: {
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string | null>(null)
 
-  const canCancel = !!(b.refund?.eligible && b.refund.deadline && onRefund)
+  const alreadyAsked = !!(b.refund?.requested && b.refund.eligible)
+  const canCancel = !!(b.refund?.eligible && !b.refund.requested && b.refund.deadline && onRefund)
   const lastPaid = b.refund && b.refund.amount_kobo !== null ? formatNaira(b.refund.amount_kobo / 100) : ''
   const lastPlan = b.refund?.tier === 'pro' ? t('billing.planPro') : t('billing.planBasic')
   const lastDate = b.payments[0] ? date(b.payments[0].date) : ''
@@ -85,7 +89,7 @@ export function PlanBillingView({ b, onPay, onRefund }: {
     const r = await onRefund()
     setBusy(false)
     setConfirming(false)
-    setNote(r === 'requested' ? t('billing.refundDone') : t('billing.refundFailed', { email: SUPPORT_EMAIL }))
+    setNote(r === 'requested' ? t('billing.refundDone') : r === 'already' ? t('billing.refundAlready') : t('billing.refundUnavailable', { email: SUPPORT_EMAIL }))
   }
   return (
     <section className={card} aria-labelledby="plan-h">
@@ -108,7 +112,7 @@ export function PlanBillingView({ b, onPay, onRefund }: {
           <div className="mt-4 flex flex-wrap gap-3">
             <button type="button" className={btn} onClick={onPay}>{b.one_time === false ? 'Manage or upgrade' : 'Renew for 12 months'}</button>
             {b.plan === 'basic' && (
-              <button type="button" className={btnQuiet} onClick={onPay}>{t('billing.upgradeButton')}</button>
+              <button type="button" className={btnQuiet} onClick={onUpgrade ?? onPay}>{t('billing.upgradeButton')}</button>
             )}
           </div>
           {b.plan === 'basic' && <p className="mt-2 text-sm text-gray-600">{t('billing.upgradeNote', { email: SUPPORT_EMAIL })}</p>}
@@ -130,6 +134,8 @@ export function PlanBillingView({ b, onPay, onRefund }: {
       )}
 
       {note && <p role="status" className="mt-4 text-sm text-gray-900 border-l-4 border-[#0A66C2] pl-3">{note}</p>}
+
+      {paid && alreadyAsked && !note && <p className="mt-4 text-sm text-gray-700">{t('billing.refundAlready')}</p>}
 
       {paid && canCancel && !confirming && !note && (
         <div className="mt-4">

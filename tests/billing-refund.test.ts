@@ -139,3 +139,46 @@ describe('refund request (the gate: it only e-mails the owner)', () => {
     expect(r.notifyOwner.mock.calls[0][1]).not.toContain('<b>x</b>')
   })
 })
+
+describe('refund request: honest result and one request per payment', () => {
+  const ask = (ctx: ReturnType<typeof seed>, notifyOwner: (s: string, h: string) => Promise<boolean | void>) =>
+    submitRefundRequest(ctx.admin as never, 'u1', { notifyOwner, now: () => NOW })
+
+  it('if the e-mail cannot be sent, it is NOT reported as sent, and the person can try again', async () => {
+    const ctx = seed()
+    ctx.db.payment_intents[0].access_code = 'AC_1'
+    const failed = await ask(ctx, vi.fn(async () => false))
+    expect(failed.outcome).toBe('unavailable')
+    expect(ctx.db.payment_intents[0].access_code).toBe('AC_1') // the claim was undone
+    const retry = await ask(ctx, vi.fn(async () => true))
+    expect(retry.outcome).toBe('requested')
+  })
+
+  it('with no e-mail key configured the default notifier fails, so the request is not reported as sent', async () => {
+    const old = process.env.RESEND_API_KEY
+    delete process.env.RESEND_API_KEY
+    try {
+      const r = await submitRefundRequest(seed().admin as never, 'u1', { now: () => NOW })
+      expect(r.outcome).toBe('unavailable')
+    } finally { if (old !== undefined) process.env.RESEND_API_KEY = old }
+  })
+
+  it('a second request for the same payment sends nothing (also when two arrive together)', async () => {
+    const ctx = seed()
+    ctx.db.payment_intents[0].access_code = 'AC_1'
+    const notify = vi.fn(async () => true)
+    const [a, b] = await Promise.all([ask(ctx, notify), ask(ctx, notify)])
+    expect([a.outcome, b.outcome].sort()).toEqual(['already_requested', 'requested'])
+    expect(notify).toHaveBeenCalledTimes(1)
+    expect((await ask(ctx, notify)).outcome).toBe('already_requested')
+    expect(notify).toHaveBeenCalledTimes(1)
+  })
+
+  it('the billing panel can tell a request was already sent', async () => {
+    const ctx = seed()
+    ctx.db.payment_intents[0].access_code = 'AC_1'
+    expect((await refundableNow(ctx.admin as never, 'u1', NOW)).requested).toBe(false)
+    await ask(ctx, vi.fn(async () => true))
+    expect((await refundableNow(ctx.admin as never, 'u1', NOW)).requested).toBe(true)
+  })
+})

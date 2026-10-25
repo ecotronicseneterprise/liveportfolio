@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     expires_at: expiresAt,
     days_left: daysLeft,
     one_time: rows.length > 0 ? rows[0].ls_order_id.startsWith('lpi_') : null,
-    refund: refund?.paid_at ? { eligible: refund.eligible, deadline: refund.deadline, tier: refund.tier, amount_kobo: refund.amount_kobo, one_time: refund.reference_kind === 'one_time' } : undefined, // keys are left out when there is nothing to say
+    refund: refund?.paid_at ? { requested: refund.requested, eligible: refund.eligible, deadline: refund.deadline, tier: refund.tier, amount_kobo: refund.amount_kobo, one_time: refund.reference_kind === 'one_time' } : undefined, // keys are left out when there is nothing to say
     payments: rows.map((p) => ({ date: p.created_at, plan: p.product_tier, amount_kobo: p.amount_cents, refunded: !!p.refunded_at })),
   })
 }

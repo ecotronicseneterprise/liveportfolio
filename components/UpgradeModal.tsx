@@ -6,6 +6,7 @@ import { isProTemplate, newFeatures } from '@/lib/plans'
 import { BILLING_COPY } from '@/lib/billing/copy'
 import { SUPPORT_EMAIL } from '@/lib/brand'
 import PriceTag from '@/components/PriceTag'
+import { t } from '@/lib/onboarding/t'
 
 interface UpgradeModalProps {
   isOpen: boolean
@@ -14,6 +15,8 @@ interface UpgradeModalProps {
   portfolioId: string
   /** The template the portfolio currently uses; a Pro template gets an explanatory note at checkout. */
   template?: string
+  /** A Basic owner upgrading: only the Pro plan is offered. */
+  proOnly?: boolean
   onPaymentStarted?: () => void
 }
 
@@ -33,7 +36,7 @@ function PlanFeature({ text }: { text: string }) {
  * and returns a Paystack page that offers every payment channel enabled on the account. There is no other payment path: if checkout cannot
  * start, the person sees a clear message with the support address.
  */
-export default function UpgradeModal({ isOpen, onClose, template }: UpgradeModalProps) {
+export default function UpgradeModal({ isOpen, onClose, template, proOnly = false }: UpgradeModalProps) {
   const [busy, setBusy] = useState<Tier | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -107,8 +110,8 @@ export default function UpgradeModal({ isOpen, onClose, template }: UpgradeModal
           >
             ×
           </button>
-          <h2 id="upgrade-title" className="text-xl font-bold text-gray-900">Publish your portfolio</h2>
-          <p className="text-sm text-gray-600 mt-1">Your portfolio is ready. Choose a plan to go live.</p>
+          <h2 id="upgrade-title" className="text-xl font-bold text-gray-900">{proOnly ? t('billing.upgradeTitle') : 'Publish your portfolio'}</h2>
+          <p className="text-sm text-gray-600 mt-1">{proOnly ? t('billing.upgradeLead') : 'Your portfolio is ready. Choose a plan to go live.'}</p>
           {template && isProTemplate(template) && (
             <p className="text-sm text-gray-700 mt-2" role="note">
               Your portfolio uses a Pro template. Basic publishes it with Minimal; Pro publishes it as you see it now.
@@ -117,9 +120,10 @@ export default function UpgradeModal({ isOpen, onClose, template }: UpgradeModal
         </div>
 
         {/* Plan cards */}
-        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className={`p-4 grid grid-cols-1 ${proOnly ? '' : 'sm:grid-cols-2'} gap-3`}>
 
-          {/* BASIC: visually dominant */}
+          {/* BASIC: visually dominant (hidden when a Basic owner is upgrading) */}
+          {!proOnly && (
           <div className="relative border-2 border-[#0A66C2] rounded-2xl p-3 flex flex-col bg-[#E8F0F9]">
             <div className="flex items-start justify-between mb-2 gap-2">
               <div>
@@ -142,6 +146,7 @@ export default function UpgradeModal({ isOpen, onClose, template }: UpgradeModal
               {busy === 'basic' ? 'Opening Paystack…' : 'Publish with Basic →'}
             </button>
           </div>
+          )}
 
           {/* PRO: secondary */}
           <div className="border border-gray-200 rounded-2xl p-3 flex flex-col bg-white">

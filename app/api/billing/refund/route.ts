@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic'
 // the server. See lib/billing/refund.ts for the rules.
 const STATUS: Record<RefundOutcome, number> = {
   requested: 202,
+  already_requested: 409,
   refunded: 200,
   pending_manual: 202,
   no_payment: 404,

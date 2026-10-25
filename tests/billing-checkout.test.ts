@@ -301,6 +301,18 @@ describe('webhook: charge.success for a reference we created', () => {
     expect(rows('subscriptions')[0].status).toBe('expired')
     expect(rows('payment_intents')[0].status).toBe('refunded')
   })
+  it('refunding an OLDER payment does not end the plan from a newer payment', async () => {
+    rows('payments').push({ id: 'p-old', user_id: U1, ls_order_id: 'lpi_old', product_tier: 'basic', amount_cents: 1_500_000, created_at: new Date(Date.now() - 3 * DAY).toISOString(), refunded_at: null })
+    rows('payments').push({ id: 'p-new', user_id: U1, ls_order_id: 'lpi_new', product_tier: 'pro', amount_cents: 4_500_000, created_at: new Date(Date.now() - 1 * DAY).toISOString(), refunded_at: null })
+    rows('users')[0].plan = 'pro'
+    rows('subscriptions').push({ id: 's1', user_id: U1, plan: 'pro', status: 'active', created_at: new Date().toISOString(), expires_at: new Date(Date.now() + 400 * DAY).toISOString() })
+    await webhook({ event: 'refund.processed', data: { transaction_reference: 'lpi_old', amount: 1_500_000, currency: 'NGN' } })
+    expect(rows('payments').find((p) => p.id === 'p-old')!.refunded_at).toBeTruthy()
+    expect(rows('users')[0].plan).toBe('pro'); expect(rows('subscriptions')[0].status).toBe('active')
+    // refunding the newest payment still ends access, as before
+    await webhook({ event: 'refund.processed', data: { transaction_reference: 'lpi_new', amount: 4_500_000, currency: 'NGN' } })
+    expect(rows('users')[0].plan).toBe('unpublished'); expect(rows('subscriptions')[0].status).toBe('expired')
+  })
   it('a database failure while granting releases the claim and answers 500 so Paystack retries; the retry then succeeds', async () => {
     const { intent } = await startIntent('basic')
     h.ctx!.failures.push({ table: 'users', op: 'update' })

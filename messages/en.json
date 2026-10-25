@@ -283,7 +283,11 @@
     "upgradeButton": "Upgrade to Pro",
     "upgradeNote": "Upgrading is a normal Pro payment of 12 months. If you would like credit for unused Basic time, e-mail {email} after you pay.",
     "planBasic": "Basic",
-    "planPro": "Pro"
+    "planPro": "Pro",
+    "refundAlready": "We already have your refund request for this payment. We will reply by e-mail, normally within 3 business days.",
+    "refundUnavailable": "We could not send your request just now, so nothing was sent. Please try again in a few minutes, or e-mail {email}.",
+    "upgradeTitle": "Upgrade to Pro",
+    "upgradeLead": "You keep the time left on Basic, and Pro adds 12 months on top."
   },
   "freeSplit": {
     "tabEdit": "Edit",

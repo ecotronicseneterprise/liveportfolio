@@ -328,7 +328,7 @@ export async function POST(req: NextRequest) {
 
       const { data: payment, error: payErr } = await supabaseAdmin
         .from('payments')
-        .select('id, user_id, amount_cents, refunded_at')
+        .select('id, user_id, amount_cents, refunded_at, created_at')
         .eq('ls_order_id', txRef)
         .maybeSingle()
       check(payErr, 'payment lookup (refund)')
@@ -347,8 +347,24 @@ export async function POST(req: NextRequest) {
         return ok()
       }
 
+      // A refund of an OLDER payment must not end a plan the person has since paid for again (for example Pro bought after a Basic that is
+      // refunded later). Access is only taken away when no newer, un-refunded payment exists; otherwise the payment is just marked refunded.
+      let newerPaid = false
+      if (payment.created_at) {
+        const { data: mine, error: newerErr } = await supabaseAdmin
+          .from('payments')
+          .select('id, created_at, refunded_at')
+          .eq('user_id', payment.user_id)
+        check(newerErr, 'newer payment lookup (refund)')
+        const since = new Date(payment.created_at).getTime()
+        newerPaid = ((mine ?? []) as Array<{ id: string; created_at?: string; refunded_at?: string | null }>).some(
+          (p) => p.id !== payment.id && !p.refunded_at && !!p.created_at && new Date(p.created_at).getTime() > since,
+        )
+      }
+      if (newerPaid) console.error('[webhook] refund of an older payment; access kept because a newer payment exists. reference', txRef)
+
       // revoke first, mark second: a failure in between leaves refunded_at null, so the retry runs it again
-      await revokeEntitlement(supabaseAdmin, payment.user_id)
+      if (!newerPaid) await revokeEntitlement(supabaseAdmin, payment.user_id)
       const { error: markErr } = await supabaseAdmin.from('payments').update({ refunded_at: new Date().toISOString() }).eq('id', payment.id)
       check(markErr, 'payment mark refunded')
       try {

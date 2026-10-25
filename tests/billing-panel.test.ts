@@ -109,6 +109,6 @@ describe('the Plan and billing panel', () => {
   it('the dashboard mounts it in the account tab', async () => {
     const fs = await import('node:fs')
     const src = fs.readFileSync('app/dashboard/page.tsx', 'utf8')
-    expect(src).toMatch(/<PlanBillingPanel token=\{accessToken\} onPay=\{\(\) => setShowUpgradeModal\(true\)\} \/>/)
+    expect(src).toMatch(/<PlanBillingPanel token=\{accessToken\} onPay=\{\(\) => setShowUpgradeModal\(true\)\}[\s\S]*?\/>/)
   })
 })

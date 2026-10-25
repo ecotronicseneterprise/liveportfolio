@@ -21,9 +21,10 @@ No SQL, no schema change, no setting changed anywhere. `main` is untouched.
 The payment code that was confirmed with the N500 test is **unchanged**: `app/api/checkout/route.ts`, `lib/billing/grant.ts` and the webhook are byte-identical to the overnight base.
 - **Refund is a gated request, not an instant refund.** In the Account tab, inside 7 days of paying, a one-time payer sees "Request a refund" (with the deadline), a confirmation that says what happens, and a send button. `POST /api/billing/refund` (`submitRefundRequest` in `lib/billing/refund.ts`) checks, on the server, that the latest payment is the person's own and is no more than 7 days old by server time (`payments.created_at`; exactly 7 days is accepted, 7 days and 1 second is not), and not already refunded. It then e-mails `SUPPORT_EMAIL` (ecotronics.nterprise@gmail.com) the account e-mail, payment reference, plan, amount and paid time, escaped. **It changes nothing and moves no money.** You approve by refunding the transaction in the Paystack dashboard; the existing `refund.processed` webhook then ends the plan and unpublishes the portfolio. To decline, reply to the customer; their plan stays active.
   - The one-click Paystack refund (`requestRefund`, with the atomic claim and revoke) is still in `lib/billing/refund.ts`, tested and unused, for when you want automatic refunds.
-  - Known limit: nothing stops the same person sending the request twice (no schema change allowed, so there is nowhere to record it); you would receive two e-mails for one payment. The panel hides the button after a successful send until the page is reloaded.
+  - **Honest result:** the request is reported as sent only if the e-mail was actually sent. If the e-mail key is missing or sending fails, the person is told nothing was sent and to try again (or e-mail the support address), and the claim below is undone.
+  - **One request per payment:** recorded without a schema change in `payment_intents.access_code` (only used while a checkout is opening; never read again after payment) with an atomic conditional update. A second request, or two at once, send nothing and show "We already have your refund request"; the panel remembers it across reloads.
 - **After 7 days**: no request button; the panel says "Refunds are available for 7 days after payment. Your plan stays active until <date>. It does not renew automatically." Terms section 6 and the FAQ line in `lib/billing/copy.ts` say the same.
-- **Upgrade Basic to Pro**: no new pricing logic. A Basic owner sees an "Upgrade to Pro" button that opens the normal plan chooser and the normal checkout, exactly like Free to Basic. Pro is the full price, and the existing grant adds the 12 months on top of the Basic time left. A note says: "If you would like credit for unused Basic time, e-mail <support address> after you pay." (My guess at the end of your message; change the wording if you meant something else.) An earlier prorated-price version was removed.
+- **Upgrade Basic to Pro**: no new pricing logic. A Basic owner sees an "Upgrade to Pro" button that opens the checkout with the **Pro plan only** (the Basic card is hidden, with a short line saying the Basic time left is kept and Pro adds 12 months), then the normal checkout, exactly like Free to Basic. Pro is the full price, and the existing grant adds the 12 months on top of the Basic time left. A note says: "If you would like credit for unused Basic time, e-mail <support address> after you pay." (My guess at the end of your message; change the wording if you meant something else.) An earlier prorated-price version was removed.
 - **Renew**: unchanged ("Renew for 12 months", same one-time checkout).
 
 ## Decisions
@@ -33,7 +34,8 @@ The payment code that was confirmed with the N500 test is **unchanged**: `app/ap
 4. A design picked from the tiles is saved straight away for free accounts.
 
 ## Changes to payment code
-- None to checkout, grant or the webhook.
+- `app/api/paystack-webhook/route.ts` (`refund.processed`), added after review: a refund of an OLDER payment no longer ends a plan the person has since paid for again (for example Pro bought after a Basic that is refunded later). Access is revoked only when there is no newer, un-refunded payment; otherwise the payment is just marked refunded and a log line says why. Refunding the newest payment behaves exactly as before. Test added; the existing refund tests are unchanged.
+- Checkout and grant: none (byte-identical to the base).
 - `app/api/billing/route.ts` (read-only GET): adds a `refund` object (eligible, deadline, tier, amount) to the response; the key is left out when there is nothing to say.
 - New: `lib/billing/refund.ts`, `lib/billing/upgrade.ts` (one constant), `app/api/billing/refund/route.ts`.
 
@@ -53,6 +55,9 @@ The payment code that was confirmed with the N500 test is **unchanged**: `app/ap
 ## Known gaps
 - Tile thumbnails are about 84px wide renderings of a 1280px page: they show colour and structure, not readable text.
 - The dashboard itself still falls back to the browser's default serif font (global Tailwind font-variable issue noted in the overnight report); the new panels inherit it.
+- The refund window is measured from when the payment was recorded (`payments.created_at`, seconds after Paystack confirms it), not Paystack's own timestamp. If webhook delivery were delayed, the person would have slightly less than 7 days; say if you want a day of grace.
+- `payments.refunded_at` comes from `supabase/manual/20261025100000_payments_refund_idempotency.sql`, which shipped with the release (it is in the base commit and in your merge checklist). I cannot see your database: confirm it was run before relying on refunds.
+- A review run on another machine reported `npm run build` failing with `supabaseKey is required` while collecting `/api/admin/bootcamps`. That is the build needing Supabase and e-mail values at build time; with placeholder values it builds cleanly here (`npm run verify` passes), and Vercel has the real ones.
 - Someone else has uncommitted edits to `components/onboarding/AccountStep.tsx` and `lib/onboarding/auth-actions.ts` (signup e-mail validation). They are not part of this commit. `messages/en.json` carries their one new line (`errors.invalid_email`), which is harmless on its own.
 
 ## Merge checklist
