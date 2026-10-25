@@ -10,7 +10,7 @@
 .pro-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .pro-skip { position:absolute; top:8px; left:8px; z-index:70; padding:12px 20px; background:var(--panel); transform:translateY(-160%); }
 .pro-skip:focus { transform:none; }
-.pro-topbar { max-width:1440px; padding:22px clamp(20px,5vw,80px); margin:auto; display:flex; align-items:center; gap:22px; border-bottom:1px solid var(--line); }
+.pro-topbar { width:100%; max-width:none; padding:22px clamp(20px,5vw,88px); margin:0; display:flex; align-items:center; gap:22px; border-bottom:1px solid var(--line); }
 .pro-mark { font-family:var(--mono); font-size:24px; color:var(--accent); }
 .pro-edition { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.12em; }
 .pro-nav { display:flex; margin-left:auto; gap:30px; font-size:13px; }
@@ -18,7 +18,7 @@
 .pro-menu-button { display:none; margin-left:auto; background:none; border:1px solid var(--line); padding:8px 14px; min-height:44px; cursor:pointer; }
 .pro-mobile-nav { padding:12px 24px; border-bottom:1px solid var(--line); }
 .pro-mobile-nav:not([hidden]) { display:flex; flex-wrap:wrap; gap:20px; }
-.pro-main { max-width:1280px; padding:0 clamp(20px,5vw,80px); margin:auto; }
+.pro-main { width:100%; max-width:none; padding:0 clamp(20px,5vw,88px); margin:0; }
 .pro-hero { padding:90px 0 40px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:28px 50px; border-bottom:1px solid var(--ink); }
 .pro-hero-copy { min-width:0; }
 .pro-eyebrow,.pro-index,.pro-period { font-family:var(--mono); font-size:11px; letter-spacing:.03em; color:var(--muted); }
@@ -69,7 +69,7 @@
 .pro-contact h2 { font-size:clamp(42px,7vw,88px); letter-spacing:-.055em; margin:18px 0 30px; }
 .pro-links { display:flex; flex-wrap:wrap; gap:16px 28px; }
 .pro-links a { min-height:44px; display:inline-flex; align-items:center; gap:8px; }
-.pro-footer { max-width:1280px; margin:auto; padding:24px clamp(20px,5vw,80px); border-top:1px solid var(--line); display:flex; flex-wrap:wrap; justify-content:space-between; gap:20px; font-size:12px; color:var(--muted); }
+.pro-footer { width:100%; max-width:none; margin:0; padding:24px clamp(20px,5vw,88px); border-top:1px solid var(--line); display:flex; flex-wrap:wrap; justify-content:space-between; gap:20px; font-size:12px; color:var(--muted); }
 
 /* Developer: fixed-width field-note rail, dense numbered build dossiers. */
 .pro-developer { --paper:#181b20; --panel:#21252c; --ink:#f4f4ee; --muted:#b4b9c1; --line:#454b54; --accent:#c5ef84; }
@@ -89,7 +89,6 @@
 
 /* Data: ruled research paper with a margin for notes and a numbered notebook. */
 .pro-data-scientist { --paper:#f2f5f2; --panel:#fff; --ink:#183c38; --muted:#475f5b; --accent:#166758; --line:#bdcec5; --heading:'IBM Plex Sans',sans-serif; --body:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace; }
-.pro-data-scientist .pro-main { max-width:1100px; }
 .pro-data-scientist .pro-hero { border-bottom:3px double var(--ink); }
 .pro-data-scientist .pro-hero h1 { font-size:clamp(42px,6vw,78px); letter-spacing:-.035em; }
 .pro-data-scientist .pro-headline { font-family:var(--mono); font-size:21px; }
@@ -128,7 +127,6 @@
 
 /* Finance: centred masthead, narrow paper columns, formal report typography. */
 .pro-finance { --paper:#f8f4eb; --panel:#fffdf6; --ink:#202c45; --muted:#565b68; --accent:#8c3043; --line:#d2cabb; --heading:'Playfair Display',serif; }
-.pro-finance .pro-main { max-width:1120px; }
 .pro-finance .pro-hero { display:flex; flex-direction:column; align-items:center; text-align:center; border-bottom:4px double var(--ink); }
 .pro-finance .pro-hero-copy { max-width:850px; }
 .pro-finance .pro-hero h1 { font-size:clamp(46px,7vw,86px); letter-spacing:-.04em; }
@@ -162,7 +160,6 @@
 
 /* Designer: generous studio gallery; alternate compositions respect real artwork. */
 .pro-designer { --paper:#f5efe9; --panel:#fffaf5; --ink:#332526; --muted:#705557; --accent:#a2273f; --line:#d9c2bf; --heading:'Syne',sans-serif; }
-.pro-designer .pro-main { max-width:1440px; }
 .pro-designer .pro-mark { font-size:38px; }
 .pro-designer .pro-hero { padding-top:80px; }
 .pro-designer .pro-hero h1 { font-size:clamp(52px,11vw,150px); font-weight:600; letter-spacing:-.06em; }

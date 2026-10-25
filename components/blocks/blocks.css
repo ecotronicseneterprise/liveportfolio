@@ -37,7 +37,7 @@
 .lpb .skip { position: absolute; left: 8px; top: -64px; z-index: 20; background: var(--fill); color: var(--on-fill); padding: 12px 16px; border-radius: 6px; font-weight: 600; text-decoration: none; }
 .lpb .skip:focus { top: 8px; color: var(--on-fill); }
 
-.lpb .wrap { max-width: 1080px; margin: 0 auto; padding-left: 32px; padding-right: 32px; }
+.lpb .wrap { width: 100%; max-width: none; margin: 0; padding-left: clamp(20px, 4vw, 56px); padding-right: clamp(20px, 4vw, 56px); }
 .lpb .two { display: grid; grid-template-columns: 1fr 2fr; column-gap: 48px; row-gap: 16px; align-items: start; }
 .lpb .two > *, .lpb .two2 > *, .lpb .pgrid > *, .lpb .pproof > *, .lpb .sgrid > *, .lpb .case dl > * { min-width: 0; }
 .lpb .two2 { display: grid; grid-template-columns: 1fr 1fr; column-gap: 48px; row-gap: 16px; }
@@ -72,7 +72,7 @@
 .lpb .b-hero .photo { width: 176px; height: 176px; flex: none; border-radius: 50%; object-fit: cover; margin: 0; background: var(--band); border: 6px solid var(--bg); }
 .lpb .photo-monogram { width: 176px; height: 176px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--fill); color: var(--on-fill); font: 700 56px/1 var(--display); letter-spacing: -.06em; border: 6px solid var(--bg); }
 .lpb .b-hero--statement { position: relative; overflow: hidden; }
-.lpb .b-hero--statement::after { content: ''; position: absolute; width: 280px; height: 280px; border: 1px solid currentColor; border-radius: 50%; right: max(4vw, calc((100vw - 1080px) / 2 - 110px)); bottom: -205px; opacity: .16; pointer-events: none; }
+.lpb .b-hero--statement::after { content: ''; position: absolute; width: 280px; height: 280px; border: 1px solid currentColor; border-radius: 50%; right: clamp(24px, 6vw, 96px); bottom: -205px; opacity: .16; pointer-events: none; }
 .lpb[data-theme="studio"] .b-hero--statement { background: var(--fill); color: var(--on-fill); }
 .lpb[data-theme="studio"] .b-hero--statement .hero-kicker { color: #FFFFFF; opacity: .9; }
 .lpb[data-theme="studio"] .b-hero--statement .photo-monogram { background: var(--mark); color: var(--ink); }

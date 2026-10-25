@@ -106,7 +106,7 @@ const css = `
   .dv-footer-link { font-size: 10px; color: #64748B; text-decoration: none; margin-top: 16px; transition: color 0.15s; }
   .dv-footer-link:hover { color: var(--accent); }
 
-  .dv-main { padding: 40px 48px; max-width: 860px; min-width: 0; }
+  .dv-main { width: 100%; padding: 40px clamp(28px, 5vw, 72px); min-width: 0; }
   .dv-root { overflow-wrap: anywhere; }
   .dv-section { margin-bottom: 56px; scroll-margin-top: 80px; }
   .dv-root :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }

@@ -49,7 +49,7 @@ const css = `
   }
   .cy-nav-link:hover { color: var(--accent); }
 
-  .cy-body { padding: 0 6vw; max-width: 1000px; margin: 0 auto; }
+  .cy-body { width: 100%; padding: 0 clamp(20px, 6vw, 88px); }
 
   /* Hero */
   .cy-hero {

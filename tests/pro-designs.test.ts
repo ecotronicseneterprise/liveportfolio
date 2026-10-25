@@ -29,7 +29,7 @@ describe.each(PRO_TEMPLATES)('%s redesigned', (template) => {
     for (let i = 1; i <= 50; i++) for (const name of ['Project', 'Company', 'Degree', 'Certificate', 'Author', 'Reference text']) expect(html).toContain(`${name} ${i}`)
   })
   it('the redesign is the default for a Pro template; only an explicit marker of 1 keeps the original; other templates are never affected', () => {
-    const byDefault = (id: string) => (isProTemplateId(id) ? 'pro' : 'legacy')
+    const byDefault = (id: string) => (isProTemplateId(id) ? 'pro' : 'blocks')
     for (const id of ALL_TEMPLATES) {
       expect(portfolioRenderMode(fixture, id).kind).toBe(byDefault(id))
       expect(portfolioRenderMode(withProDesign(fixture, template, true), id).kind).toBe(byDefault(id))

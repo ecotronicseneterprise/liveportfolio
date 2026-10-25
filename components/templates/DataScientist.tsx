@@ -46,7 +46,7 @@ const css = `
   }
   .sci-nav-link:hover { color: var(--accent); }
 
-  .sci-body { padding: 0 6vw; max-width: 1100px; margin: 0 auto; }
+  .sci-body { width: 100%; padding: 0 clamp(20px, 6vw, 88px); }
 
   /* Hero */
   .sci-hero {
