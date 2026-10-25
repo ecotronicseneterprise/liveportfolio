@@ -258,3 +258,7 @@
   .lpb .pimg, .lpb .pvisual, .lpb .ph { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .lpb a { transition: none; } }
+
+/* Creative: no navigation bar, so the blue hero is the very start of the page (and fills the first screen on a full page) */
+.lpb[data-theme="studio"] .topbar { display: none; }
+.lpb[data-theme="studio"][data-page] main > .b-hero { min-height: 100svh; }
