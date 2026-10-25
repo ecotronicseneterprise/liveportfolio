@@ -1,3 +1,5 @@
+// Pro baselines reviewed 2026-10-25: explicit credentials, complete fields/links, semantic headings, no false metrics/process/availability.
+// The three FREE baselines remain byte-identical to 808555e. V2 redesigns live separately; they are not these baselines.
 // REGRESSION GUARD for existing portfolios. Every portfolio saved before the block renderer has no `layout` field and must keep rendering
 // through today's template component, byte for byte. This renders all 10 templates from one fixed fixture and compares a SHA-256 of the
 // markup with the value recorded BEFORE the block renderer was added (tests/fixtures/legacy-template-hashes.json).
@@ -58,6 +60,12 @@ const hash = (id: keyof typeof COMPONENTS) => {
 
 describe('legacy templates render exactly as they did before the block renderer', () => {
   const ids = Object.keys(COMPONENTS) as Array<keyof typeof COMPONENTS>
+  if (process.env.PRINT_LEGACY_HASHES) {
+    it('(print hashes for review; does not update baselines)', () => {
+      console.log(JSON.stringify(Object.fromEntries(ids.map((id) => [id, hash(id)])), null, 2))
+    })
+    return
+  }
   if (process.env.UPDATE_LEGACY_HASHES) {
     it('(regenerating the recorded hashes)', () => {
       fs.writeFileSync(FILE, JSON.stringify(Object.fromEntries(ids.map((id) => [id, hash(id)])), null, 2) + '\n')

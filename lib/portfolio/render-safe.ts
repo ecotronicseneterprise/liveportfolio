@@ -5,7 +5,7 @@ import { httpUrl } from '@/lib/connectors/safe-url'
 
 type Json = Record<string, unknown>
 
-const LINKS = ['github_url', 'linkedin_url', 'url', 'live_url', 'repo_url', 'website_url'] as const
+const LINKS = ['github_url', 'linkedin_url', 'url', 'live_url', 'repo_url', 'website_url', 'avatar_url', 'image_url'] as const
 
 function cleanLinks<T extends Json>(o: T): T {
   const out: Json = { ...o }

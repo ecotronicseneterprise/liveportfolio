@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useId, useState } from 'react'
 import Image from 'next/image'
 import type { PortfolioContent } from './Minimal'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
@@ -16,9 +16,14 @@ const css = `
     --border: #166534;
     background: var(--bg);
     color: var(--text);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
     min-height: 100vh;
+    overflow-wrap: anywhere;
   }
+  .cy-root section[id] { scroll-margin-top: 80px; }
+  .cy-root a:focus-visible, .cy-root button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .cy-prose { white-space: pre-line; font-size: 14px; line-height: 1.7; margin-bottom: 16px; }
+  .cy-project-links { display: flex; flex-wrap: wrap; gap: 16px; }
 
   /* Scanline effect on nav */
   .cy-nav {
@@ -33,7 +38,7 @@ const css = `
     font-size: 14px; color: var(--accent);
     letter-spacing: 0.08em;
   }
-  .cy-nav-links { display: flex; gap: 24px; }
+  .cy-nav-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 16px; }
   .cy-nav-link {
     font-family: 'Share Tech Mono', monospace;
     font-size: 11px; color: var(--muted);
@@ -80,10 +85,7 @@ const css = `
   .cy-section {
     padding: 36px 0;
     border-bottom: 1px solid var(--border);
-    opacity: 0; transform: translateY(10px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
   }
-  .cy-section.visible { opacity: 1; transform: none; }
   .cy-section-label {
     font-family: 'Share Tech Mono', monospace;
     font-size: 10px; letter-spacing: 0.2em;
@@ -219,7 +221,6 @@ const css = `
     padding: 12px 6vw;
     flex-direction: column; gap: 2px;
   }
-  .cy-mobile-menu.open { display: flex; }
   .cy-mobile-menu-link {
     font-family: 'Share Tech Mono', monospace;
     font-size: 12px; color: var(--muted);
@@ -254,61 +255,36 @@ const css = `
     .cy-hero { grid-template-columns: 1fr; }
     .cy-nav-links { display: none; }
     .cy-hamburger { display: block; }
-    .cy-cert-cards { grid-template-columns: 1fr 1fr; }
+    .cy-mobile-menu.open { display: flex; }
+    .cy-cert-cards { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cy-root *, .cy-root *::before, .cy-root *::after { animation: none !important; transition: none !important; }
   }
 `
-
-const OFFENSIVE_KEYWORDS = ['pentest', 'penetration', 'metasploit', 'burp suite', 'kali', 'nmap', 'exploit', 'red team', 'oscp', 'ctf', 'vulnerability', 'recon']
-const DEFENSIVE_KEYWORDS = ['siem', 'splunk', 'wireshark', 'ids', 'ips', 'soc', 'incident response', 'threat hunting', 'firewall', 'dlp', 'endpoint', 'edr', 'xdr', 'blue team']
-const COMPLIANCE_KEYWORDS = ['iso 27001', 'nist', 'gdpr', 'pci', 'hipaa', 'soc 2', 'cis', 'cobit', 'risk', 'audit', 'governance', 'compliance']
-const SEC_LANG_KEYWORDS = ['python', 'bash', 'powershell', 'c ', 'c++', 'go', 'rust', 'assembly', 'scripting', 'regex']
-
-function groupCyberSkills(skills: string[]) {
-  const groups: Record<string, string[]> = { Offensive: [], Defensive: [], Compliance: [], Languages: [], Other: [] }
-  for (const s of skills) {
-    const sl = s.toLowerCase()
-    if (OFFENSIVE_KEYWORDS.some((k) => sl.includes(k))) groups['Offensive'].push(s)
-    else if (DEFENSIVE_KEYWORDS.some((k) => sl.includes(k))) groups['Defensive'].push(s)
-    else if (COMPLIANCE_KEYWORDS.some((k) => sl.includes(k))) groups['Compliance'].push(s)
-    else if (SEC_LANG_KEYWORDS.some((k) => sl.includes(k))) groups['Languages'].push(s)
-    else groups['Other'].push(s)
-  }
-  return Object.entries(groups).filter(([, items]) => items.length > 0)
-}
-
-// Heuristic: cert names are typically all-caps or well-known cert names
-const COMMON_CERTS = ['ceh', 'cissp', 'oscp', 'cism', 'crisc', 'cisa', 'comptia', 'security+', 'network+', 'aws', 'gcp', 'azure', 'ccna', 'ccnp', 'offensive security']
-
-function extractCerts(skills: string[]): string[] {
-  return skills.filter(s => {
-    const sl = s.toLowerCase()
-    return COMMON_CERTS.some((k) => sl.includes(k)) || /^[A-Z]{2,8}[\+]?$/.test(s.trim())
-  })
-}
 
 export default function Cybersecurity({ content }: { content: PortfolioContent }) {
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const sections = rootRef.current?.querySelectorAll('.cy-section')
-    if (!sections) return
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible') }),
-      { threshold: 0.08 }
-    )
-    sections.forEach((s) => obs.observe(s))
-    return () => obs.disconnect()
-  }, [])
-
-  const certs = extractCerts(content.skills)
-  const skillGroups: [string, string[]][] = content.skills_grouped?.length > 0
-    ? content.skills_grouped.filter(g => g.items?.length > 0).map(g => [g.category, g.items])
-    : groupCyberSkills(content.skills)
+  const menuId = useId()
+  const certs = content.certifications ?? []
+  const skillGroups = (content.skills_grouped ?? []).filter(g => g.items?.length > 0)
+  const groupedSkills = new Set(skillGroups.flatMap(g => g.items))
+  const ungroupedSkills = content.skills.filter(skill => !groupedSkills.has(skill))
+  const hasSkills = skillGroups.length > 0 || ungroupedSkills.length > 0 || !!content.skills_narrative
+  const hasContact = !!(content.email || content.github_url || content.linkedin_url)
+  const navLinks = [
+    { id: 'certs', label: 'Certs', show: certs.length > 0 },
+    { id: 'skills', label: 'Skills', show: hasSkills },
+    { id: 'projects', label: 'Projects', show: content.projects.length > 0 },
+    { id: 'experience', label: 'Experience', show: content.experience.length > 0 },
+    { id: 'education', label: 'Education', show: !!content.education?.length },
+    { id: 'testimonials', label: 'Testimonials', show: !!content.testimonials?.length },
+    { id: 'contact', label: 'Contact', show: hasContact },
+  ].filter(link => link.show)
 
   return (
-    <div className="cy-root" ref={rootRef}>
+    <div className="cy-root">
       <style>{css}</style>
 
       <nav className="cy-nav">
@@ -321,36 +297,31 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
           </div>
         )}
         <div className="cy-nav-links">
-          {certs.length > 0 && <a href="#certs" className="cy-nav-link">Certs</a>}
-          <a href="#skills" className="cy-nav-link">Skills</a>
-          {content.projects.length > 0 && <a href="#projects" className="cy-nav-link">Projects</a>}
-          {content.experience.length > 0 && <a href="#experience" className="cy-nav-link">Experience</a>}
-          {content.education && content.education.length > 0 && <a href="#education" className="cy-nav-link">Education</a>}
-          <a href="#contact" className="cy-nav-link">Contact</a>
+          {navLinks.map(link => <a key={link.id} href={`#${link.id}`} className="cy-nav-link">{link.label}</a>)}
         </div>
-        <button
+        {navLinks.length > 0 && <button
+          type="button"
           className="cy-hamburger"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu"
+          aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileMenuOpen}
+          aria-controls={menuId}
         >
           {mobileMenuOpen ? '✕' : '☰'}
-        </button>
+        </button>}
       </nav>
-      <div className={`cy-mobile-menu${mobileMenuOpen ? ' open' : ''}`}>
-        {certs.length > 0 && <a href="#certs" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Certs</a>}
-        <a href="#skills" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Skills</a>
-        {content.projects.length > 0 && <a href="#projects" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Projects</a>}
-        {content.experience.length > 0 && <a href="#experience" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Experience</a>}
-        {content.education && content.education.length > 0 && <a href="#education" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Education</a>}
-        <a href="#contact" className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Contact</a>
+      <div id={menuId} className={`cy-mobile-menu${mobileMenuOpen ? ' open' : ''}`}>
+        {navLinks.map(link => <a key={link.id} href={`#${link.id}`} className="cy-mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>{link.label}</a>)}
       </div>
 
       <div className="cy-body">
         {/* Hero */}
         <div className="cy-hero">
           <div>
-            <div className="cy-hero-name">{content.name}</div>
+            <h1 className="cy-hero-name">{content.name}</h1>
             <div className="cy-hero-role">{content.role}</div>
+            {content.headline && <p className="cy-prose">{content.headline}</p>}
+            {content.about && <p className="cy-prose">{content.about}</p>}
             {certs.length > 0 && (
               <div className="cy-hero-certs">
                 {certs.map((c) => <span key={c} className="cy-cert-badge">{c}</span>)}
@@ -358,7 +329,7 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
             )}
             <div className="cy-hero-meta">
               {content.location && <span className="cy-hero-meta-item">{content.location}</span>}
-              <span className="cy-hero-meta-item"><a href={`mailto:${content.email}`}>{content.email}</a></span>
+              {content.email && <span className="cy-hero-meta-item"><a href={`mailto:${content.email}`}>{content.email}</a></span>}
               {content.github_url && <span className="cy-hero-meta-item"><a href={content.github_url} target="_blank" rel="noopener noreferrer">GitHub →</a></span>}
               {content.linkedin_url && <span className="cy-hero-meta-item"><a href={content.linkedin_url} target="_blank" rel="noopener noreferrer">LinkedIn →</a></span>}
             </div>
@@ -368,7 +339,7 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
         {/* Certs */}
         {certs.length > 0 && (
           <section id="certs" className="cy-section">
-            <div className="cy-section-label">Certifications</div>
+            <h2 className="cy-section-label">Certifications</h2>
             <div className="cy-cert-cards">
               {certs.map((c) => (
                 <div key={c} className="cy-cert-card">
@@ -380,18 +351,22 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
         )}
 
         {/* Skills */}
-        {content.skills.length > 0 && (
+        {hasSkills && (
           <section id="skills" className="cy-section">
-            <div className="cy-section-label">Skills</div>
+            <h2 className="cy-section-label">Skills</h2>
+            {content.skills_narrative && <p className="cy-prose">{content.skills_narrative}</p>}
             <div className="cy-skills-groups">
-              {skillGroups.map(([cat, items]) => (
-                <div key={cat} className="cy-skill-group">
-                  <div className="cy-skill-cat">{cat}</div>
+              {skillGroups.map(({ category, items }, i) => (
+                <div key={i} className="cy-skill-group">
+                  <h3 className="cy-skill-cat">{category}</h3>
                   <div className="cy-skill-pills">
                     {items.map((s) => <span key={s} className="cy-skill-pill">{s}</span>)}
                   </div>
                 </div>
               ))}
+              {ungroupedSkills.length > 0 && <div className="cy-skill-pills">
+                {ungroupedSkills.map((s) => <span key={s} className="cy-skill-pill">{s}</span>)}
+              </div>}
             </div>
           </section>
         )}
@@ -399,7 +374,7 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
         {/* Projects */}
         {content.projects.length > 0 && (
           <section id="projects" className="cy-section">
-            <div className="cy-section-label">Projects &amp; CTFs</div>
+            <h2 className="cy-section-label">Projects</h2>
             <div className="cy-projects">
               {content.projects.map((p, i) => (
                 <div key={i} className="cy-proj-card">
@@ -418,7 +393,10 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
                       {p.stack.map((t) => <span key={t} className="cy-proj-tag">{t}</span>)}
                     </div>
                   )}
-                  {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="cy-proj-link">View →</a>}
+                  {(p.url || p.github_url) && <div className="cy-project-links">
+                    {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="cy-proj-link">View demo →</a>}
+                    {p.github_url && <a href={p.github_url} target="_blank" rel="noopener noreferrer" className="cy-proj-link">Repository →</a>}
+                  </div>}
                 </div>
               ))}
             </div>
@@ -428,7 +406,7 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
         {/* Experience */}
         {content.experience.length > 0 && (
           <section id="experience" className="cy-section">
-            <div className="cy-section-label">Experience</div>
+            <h2 className="cy-section-label">Experience</h2>
             <div className="cy-exp-list">
               {content.experience.map((e, i) => (
                 <div key={i} className="cy-exp-item">
@@ -454,28 +432,43 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
         {/* Education */}
         {content.education && content.education.length > 0 && (
           <section id="education" className="cy-section">
-            <div className="cy-section-label">Education</div>
+            <h2 className="cy-section-label">Education</h2>
             <div className="cy-edu-list">
               {content.education.map((ed, i) => (
                 <div key={i} className="cy-edu-item">
                   <div className="cy-edu-degree">{ed.degree}</div>
                   <div className="cy-edu-institution">{ed.institution}</div>
-                  <div className="cy-edu-year">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
+                  <div className="cy-edu-year">{ed.year || (ed as typeof ed & { period?: string }).period}{ed.grade ? ` · ${ed.grade}` : ''}</div>
                 </div>
               ))}
             </div>
           </section>
         )}
 
+        {content.testimonials && content.testimonials.length > 0 && (
+          <section id="testimonials" className="cy-section">
+            <h2 className="cy-section-label">Testimonials</h2>
+            <div className="cy-exp-list">
+              {content.testimonials.map((testimonial, i) => (
+                <figure key={i} className="cy-edu-item">
+                  <blockquote className="cy-prose">{testimonial.text}</blockquote>
+                  <figcaption>{[testimonial.author, testimonial.role, testimonial.company].filter(Boolean).join(' · ')}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Contact */}
-        <section id="contact" className="cy-contact">
-          <div className="cy-section-label">Contact</div>
-          <a href={`mailto:${content.email}`} className="cy-contact-cta">Get in touch →</a>
-          <div className="cy-contact-meta">
-            Available for security consulting, penetration testing, and full-time roles.
-            {content.location && <span> · {content.location}</span>}
+        {hasContact && <section id="contact" className="cy-contact">
+          <h2 className="cy-section-label">Contact</h2>
+          {content.email && <a href={`mailto:${content.email}`} className="cy-contact-cta">Get in touch →</a>}
+          <div className="cy-contact-meta cy-project-links">
+            {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer">GitHub →</a>}
+            {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer">LinkedIn →</a>}
+            {content.location && <span>{content.location}</span>}
           </div>
-        </section>
+        </section>}
       </div>
 
       <footer className="cy-footer">

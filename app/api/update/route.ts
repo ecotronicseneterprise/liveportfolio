@@ -5,10 +5,12 @@ import { entitlements } from '@/lib/entitlements'
 import { canUseTemplate, isTemplateId } from '@/lib/plans'
 import { OpError, applyOps, type Op } from '@/lib/portfolio/ops'
 import { commitState } from '@/lib/portfolio/commit'
+import { canTransitionProDesigns } from '@/lib/portfolio/presentation'
 
 // PATCH /api/update: the dashboard's save. Two body shapes, same pipeline:
 //   { ops: Op[], portfolio_id? }                       typed operations (lib/portfolio/ops.ts)
 //   { content?, template?, portfolio_id? }             the dashboard's whole-section save, turned into operations here
+// Both accept expected_edit_count?: number | null to reject saves from an outdated client snapshot.
 // Every change is validated by applyOps, recorded as a revision (so it can be undone) and written with a compare-and-set.
 // No AI is involved. Nothing here publishes: publishing is driven by payment through the webhook only.
 export async function PATCH(req: NextRequest) {
@@ -32,7 +34,12 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { content: contentUpdate, template, portfolio_id: claimedPortfolioId, ops: bodyOps } = body ?? {}
+    const { content: contentUpdate, template, portfolio_id: claimedPortfolioId, ops: bodyOps, expected_edit_count: expectedEditCount } = body ?? {}
+
+    if (expectedEditCount !== undefined && expectedEditCount !== null &&
+        (typeof expectedEditCount !== 'number' || !Number.isInteger(expectedEditCount) || expectedEditCount < 0)) {
+      return NextResponse.json({ error: 'invalid_request', message: 'expected_edit_count must be a nonnegative integer or null.' }, { status: 400 })
+    }
 
     // Plans (lib/plans.ts): every signed-in user may edit content privately; the template is validated against the plan here.
     const ent = await entitlements(user.id)
@@ -60,6 +67,10 @@ export async function PATCH(req: NextRequest) {
     if (claimedPortfolioId !== undefined && claimedPortfolioId !== null && claimedPortfolioId !== portfolio.id) {
       return NextResponse.json({ error: 'forbidden' }, { status: 403 })
     }
+    const currentEditCount = (portfolio as { edit_count?: number | null }).edit_count ?? null
+    if (expectedEditCount !== undefined && expectedEditCount !== currentEditCount) {
+      return NextResponse.json({ error: 'conflict', message: 'This portfolio changed somewhere else. Reload and try again.' }, { status: 409 })
+    }
 
     // Legacy body shape -> operations
     let ops: unknown
@@ -72,7 +83,7 @@ export async function PATCH(req: NextRequest) {
     }
     if (Array.isArray(ops) && ops.length === 0) {
       // nothing to do (the old route also accepted an empty body)
-      return NextResponse.json({ updated_at: null, health_score: (portfolio as { health_score?: number | null }).health_score ?? null, changes: [], revision_id: null, unchanged: true })
+      return NextResponse.json({ updated_at: null, health_score: (portfolio as { health_score?: number | null }).health_score ?? null, edit_count: currentEditCount, changes: [], revision_id: null, unchanged: true })
     }
 
     // A Pro template can only be SELECTED on Pro. Re-sending the template already stored is fine (a lapsed Pro user saving
@@ -96,12 +107,16 @@ export async function PATCH(req: NextRequest) {
       throw e
     }
 
+    if (!canTransitionProDesigns(ent.plan, portfolio.content?.pro_designs, result.state.content.pro_designs)) {
+      return NextResponse.json({ error: 'pro_design_locked', message: 'Enabling a new Pro design requires Pro.' }, { status: 403 })
+    }
+
     if (result.changes.length === 0) {
-      return NextResponse.json({ updated_at: null, health_score: (portfolio as { health_score?: number | null }).health_score ?? null, changes: [], revision_id: null, unchanged: true })
+      return NextResponse.json({ updated_at: null, health_score: (portfolio as { health_score?: number | null }).health_score ?? null, edit_count: currentEditCount, changes: [], revision_id: null, unchanged: true })
     }
 
     const done = await commitState(
-      { id: portfolio.id, user_id: user.id, content: (portfolio.content ?? {}) as Record<string, unknown>, template: stored.template ?? 'minimal', edit_count: (portfolio as { edit_count?: number | null }).edit_count ?? null },
+      { id: portfolio.id, user_id: user.id, content: (portfolio.content ?? {}) as Record<string, unknown>, template: stored.template ?? 'minimal', edit_count: currentEditCount },
       result.state,
       { source: 'dashboard', summary: result.changes },
     )

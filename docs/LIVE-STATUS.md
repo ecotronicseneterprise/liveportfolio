@@ -29,7 +29,8 @@ Not on `main` and not built: the assistant, MCP, block catalog and new templates
 - **Templates**: the three free templates (Creative, Minimal, Bold) draw with the block renderer for NEW portfolios; older portfolios and all seven Pro templates render as before. The public page drops non-http(s) links before drawing.
 - **Landing page and pricing**: new hero copy, a browser-window sample of the three templates (invented person, own pictures, see [IMAGE-CREDITS.md](IMAGE-CREDITS.md)), equal-size pricing cards with coming-soon items under Pro.
 - **Needs in Vercel** (names only): `PAYSTACK_TEST_EMAIL` = the owner's sign-in e-mail (already set); `ADMIN_EMAILS` optional. Needs existing tables `payment_intents` and column `payments.refunded_at` (present).
-- **Not in this release**: the Pro template correctness fixes and redesigns (pending local work), the AI agent.
+- **Pro templates**: correctness fixes for all seven (only real certificates shown, metrics and units kept as written, university jobs no longer dropped, headline, about and skills shown) and a redesigned version of each, chosen per portfolio in the dashboard (Design version, preview, Save; History can undo). Existing portfolios keep the original design until their owner saves a new one. The 90+ mobile Lighthouse target is not met (see [pro-template-validation.md](pro-template-validation.md)). New dev-only test tools: Playwright and axe (no effect on the shipped app).
+- **Not in this release**: the AI agent.
 - **Live tests, in order**: new account to the split dashboard; ₦15,000 Basic; request a refund (check the e-mail); ₦45,000 Pro; a cohort link on a throwaway account (steps in COHORT-ACCESS.md); open `/admin`.
 
 ## 2. What the previous release added (merged earlier)

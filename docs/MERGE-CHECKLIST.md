@@ -1,5 +1,14 @@
 # Merge checklist: `dev` to `main` (one-time checkout, no flag)
 
+## Pro-template release checks (2026-10-25; shipped in the same release, run these after it is live)
+
+- Review [Pro template validation](pro-template-validation.md), including the unmet 90+ Lighthouse mobile target; do not mark that gate passed.
+- Confirm all seven designs visually. Existing portfolios keep their original design except for separately documented correctness fixes.
+- Verify on an owner-controlled account: preview does not save; explicit design save survives reload; the public renderer agrees; History restores; stale tabs receive 409. A Basic/free account must not save a new Pro opt-in.
+- No new SQL or production environment variable is required for the redesign. Existing JSONB/revision storage is used. Local `NEXT_BUILD_DIR` and `TEMPLATE_REVIEW_URL` must not be copied into Vercel.
+- Verify owner admin access using the configured, verified `PAYSTACK_TEST_EMAIL` account; a nonempty `ADMIN_EMAILS` list overrides it.
+- Keep the live billing tests below separate; synthetic template validation does not replace them.
+
 **What this merge changes for customers:** buying a plan now goes through our server (`POST /api/checkout`), then Paystack's page, then `/checkout/return`. The old card-subscription checkout is no longer offered. If checkout cannot start, the person sees a message with the support address; there is no fallback.
 **It also ships** openai 7, zod 4, webhook logging of ignored events, a Plan and billing panel in the dashboard, Naira prices with a labelled dollar estimate, and a real 7-day refund guarantee in the Terms.
 

@@ -16,7 +16,7 @@ const css = `
     --border: #334155;
     background: var(--bg);
     color: var(--text);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
     min-height: 100vh;
   }
   .dv-layout {
@@ -104,9 +104,13 @@ const css = `
   .dv-footer-link { font-size: 10px; color: #64748B; text-decoration: none; margin-top: 16px; transition: color 0.15s; }
   .dv-footer-link:hover { color: var(--accent); }
 
-  .dv-main { padding: 40px 48px; max-width: 860px; }
-  .dv-section { margin-bottom: 56px; opacity: 0; transform: translateY(12px); transition: opacity 0.5s ease, transform 0.5s ease; }
-  .dv-section.visible { opacity: 1; transform: none; }
+  .dv-main { padding: 40px 48px; max-width: 860px; min-width: 0; }
+  .dv-root { overflow-wrap: anywhere; }
+  .dv-section { margin-bottom: 56px; scroll-margin-top: 80px; }
+  .dv-root :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  @media (prefers-reduced-motion: reduce) {
+    .dv-root *, .dv-root *::before, .dv-root *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; transform: none !important; }
+  }
   .dv-section-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
@@ -274,26 +278,32 @@ export default function Developer({ content }: { content: PortfolioContent }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const mainRef = useRef<HTMLDivElement>(null)
+  const skillGroups = content.skills_grouped?.filter(g => g.items?.length > 0) ?? []
+  const groupedSkills = new Set(skillGroups.flatMap(g => g.items))
+  const flatSkills = content.skills.filter(s => !groupedSkills.has(s))
+  const hasSkills = !!(flatSkills.length || skillGroups.length || content.skills_narrative)
+  const hasAbout = !!(content.headline || content.about)
+  const hasContact = !!(content.email || content.linkedin_url || content.github_url)
 
   const navItems = [
-    { id: 'about', label: 'About' },
-    { id: 'skills', label: 'Tech Stack' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'experience', label: 'Experience' },
+    ...(hasAbout ? [{ id: 'about', label: 'About' }] : []),
+    ...(hasSkills ? [{ id: 'skills', label: 'Tech Stack' }] : []),
+    ...(content.projects.length ? [{ id: 'projects', label: 'Projects' }] : []),
+    ...(content.experience.length ? [{ id: 'experience', label: 'Experience' }] : []),
     ...(content.github_url ? [{ id: 'github', label: 'GitHub' }] : []),
     ...(content.education && content.education.length > 0 ? [{ id: 'education', label: 'Education' }] : []),
     ...(content.certifications && content.certifications.length > 0 ? [{ id: 'certifications', label: 'Certifications' }] : []),
-    { id: 'contact', label: 'Contact' },
+    ...(content.testimonials?.length ? [{ id: 'testimonials', label: 'Testimonials' }] : []),
+    ...(hasContact ? [{ id: 'contact', label: 'Contact' }] : []),
   ]
 
   useEffect(() => {
     const sections = mainRef.current?.querySelectorAll('.dv-section')
-    if (!sections) return
+    if (!sections || typeof IntersectionObserver === 'undefined') return
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            ;(e.target as HTMLElement).classList.add('visible')
             if (e.intersectionRatio > 0.3) setActiveSection(e.target.id)
           }
         })
@@ -305,7 +315,8 @@ export default function Developer({ content }: { content: PortfolioContent }) {
   }, [])
 
   const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    document.getElementById(id)?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' })
     setMobileOpen(false)
   }
 
@@ -323,17 +334,17 @@ export default function Developer({ content }: { content: PortfolioContent }) {
             {content.name.charAt(0).toUpperCase()}
           </div>
         )}
-        <button className="dv-mobile-toggle" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button type="button" className="dv-mobile-toggle" aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileOpen} aria-controls="dv-mobile-menu" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? '✕' : '☰'}
         </button>
       </div>
-      <div className={`dv-mobile-menu${mobileOpen ? ' open' : ''}`}>
+      <nav id="dv-mobile-menu" aria-label="Mobile sections" className={`dv-mobile-menu${mobileOpen ? ' open' : ''}`}>
         {navItems.map((item) => (
           <a key={item.id} href={`#${item.id}`} onClick={(e) => { e.preventDefault(); scrollTo(item.id) }}>
             {item.label}
           </a>
         ))}
-      </div>
+      </nav>
 
       <div className="dv-layout">
         {/* Sidebar */}
@@ -349,21 +360,22 @@ export default function Developer({ content }: { content: PortfolioContent }) {
 
           <nav className="dv-nav">
             {navItems.map((item) => (
-              <button
+              <a
                 key={item.id}
+                href={`#${item.id}`}
                 className={`dv-nav-item${activeSection === item.id ? ' active' : ''}`}
-                onClick={() => scrollTo(item.id)}
+                onClick={(e) => { e.preventDefault(); scrollTo(item.id) }}
               >
                 {item.label}
-              </button>
+              </a>
             ))}
           </nav>
 
           <div className="dv-links">
-            <a href={`mailto:${content.email}`} className="dv-link">
+            {content.email && <a href={`mailto:${content.email}`} className="dv-link">
               <span className="dv-link-icon">✉</span>
               <span>{content.email}</span>
-            </a>
+            </a>}
             {content.github_url && (
               <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="dv-link">
                 <span className="dv-link-icon">⌥</span>
@@ -384,33 +396,37 @@ export default function Developer({ content }: { content: PortfolioContent }) {
 
         {/* Main */}
         <main className="dv-main" ref={mainRef}>
+          <header style={{ marginBottom: 24 }}>
+            <h1 className="dv-name">{content.name}</h1>
+            {content.role && <p className="dv-role">{content.role}</p>}
+            {content.location && <p className="dv-location">{content.location}</p>}
+          </header>
 
           {/* About */}
-          <section id="about" className="dv-section">
-            <div className="dv-section-label">About</div>
-            <div className="dv-mobile-name-hero">{content.name}</div>
-            <h1 className="dv-headline">{content.headline}</h1>
+          {hasAbout && <section id="about" className="dv-section">
+            <h2 className="dv-section-label">About</h2>
+            {content.headline && <p className="dv-headline">{content.headline}</p>}
             <div className="dv-about">
               {content.about.split('\n\n').map((p, i) => <p key={i}>{p}</p>)}
             </div>
-          </section>
+          </section>}
 
           {/* Tech Stack */}
-          {content.skills.length > 0 && (
+          {hasSkills && (
             <section id="skills" className="dv-section">
-              <div className="dv-section-label">Tech Stack</div>
-              {content.skills_grouped && content.skills_grouped.length > 0 ? (
-                content.skills_grouped.filter(g => g.items?.length > 0).map((g, i) => (
+              <h2 className="dv-section-label">Tech Stack</h2>
+              {content.skills_narrative && <p className="dv-about" style={{ marginBottom: 16 }}>{content.skills_narrative}</p>}
+              {skillGroups.map((g, i) => (
                   <div key={i} className="dv-skills-group">
                     <div className="dv-skills-cat">{g.category}</div>
                     <div className="dv-skills-grid">
                       {g.items.map((s) => <span key={s} className="dv-skill-pill">{s}</span>)}
                     </div>
                   </div>
-                ))
-              ) : (
+                ))}
+              {flatSkills.length > 0 && (
                 <div className="dv-skills-grid">
-                  {content.skills.map((s) => <span key={s} className="dv-skill-pill">{s}</span>)}
+                  {flatSkills.map((s) => <span key={s} className="dv-skill-pill">{s}</span>)}
                 </div>
               )}
             </section>
@@ -419,7 +435,7 @@ export default function Developer({ content }: { content: PortfolioContent }) {
           {/* Projects */}
           {content.projects.length > 0 && (
             <section id="projects" className="dv-section">
-              <div className="dv-section-label">Projects</div>
+              <h2 className="dv-section-label">Projects</h2>
               <div className="dv-projects-list">
                 {content.projects.map((p, i) => (
                   <div key={i} className="dv-project-card">
@@ -439,9 +455,10 @@ export default function Developer({ content }: { content: PortfolioContent }) {
                           {p.stack.map((t) => <span key={t} className="dv-tech-tag">{t}</span>)}
                         </div>
                       )}
-                      {p.url && (
+                      {(p.url || p.github_url) && (
                         <div className="dv-project-links">
-                          <a href={p.url} target="_blank" rel="noopener noreferrer" className="dv-project-link">View project ↗</a>
+                          {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="dv-project-link">View project ↗</a>}
+                          {p.github_url && <a href={p.github_url} target="_blank" rel="noopener noreferrer" className="dv-project-link">Repository ↗</a>}
                         </div>
                       )}
                     </div>
@@ -454,7 +471,7 @@ export default function Developer({ content }: { content: PortfolioContent }) {
           {/* Experience */}
           {content.experience.length > 0 && (
             <section id="experience" className="dv-section">
-              <div className="dv-section-label">Experience</div>
+              <h2 className="dv-section-label">Experience</h2>
               <div className="dv-exp-list">
                 {content.experience.map((e, i) => (
                   <div key={i} className="dv-exp-item">
@@ -481,10 +498,10 @@ export default function Developer({ content }: { content: PortfolioContent }) {
           {/* GitHub */}
           {content.github_url && (
             <section id="github" className="dv-section">
-              <div className="dv-section-label">Open Source</div>
+              <h2 className="dv-section-label">GitHub</h2>
               <div className="dv-gh-card">
                 <div className="dv-gh-text">
-                  All projects, experiments, and open source contributions live on GitHub.
+                  Explore my GitHub profile.
                 </div>
                 <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="dv-gh-link">
                   View GitHub →
@@ -496,14 +513,14 @@ export default function Developer({ content }: { content: PortfolioContent }) {
           {/* Education */}
           {content.education && content.education.length > 0 && (
             <section id="education" className="dv-section">
-              <div className="dv-section-label">Education</div>
+              <h2 className="dv-section-label">Education</h2>
               <div className="dv-exp-list">
                 {content.education.map((ed, i) => (
                   <div key={i} className="dv-exp-item">
                     <div className="dv-exp-dot" />
                     <div className="dv-exp-role">{ed.degree}</div>
                     <div className="dv-exp-company">{ed.institution}</div>
-                    <div className="dv-exp-period">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
+                    <div className="dv-exp-period">{ed.year || (ed as typeof ed & { period?: string }).period}{ed.grade ? ` · ${ed.grade}` : ''}</div>
                   </div>
                 ))}
               </div>
@@ -513,7 +530,7 @@ export default function Developer({ content }: { content: PortfolioContent }) {
           {/* Certifications */}
           {content.certifications && content.certifications.length > 0 && (
             <section id="certifications" className="dv-section">
-              <div className="dv-section-label">Certifications</div>
+              <h2 className="dv-section-label">Certifications</h2>
               <div className="dv-skills-grid">
                 {content.certifications.map((cert) => (
                   <span key={cert} className="dv-skill-pill" style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}>{cert}</span>
@@ -523,20 +540,34 @@ export default function Developer({ content }: { content: PortfolioContent }) {
           )}
 
           {/* Contact */}
-          <section id="contact" className="dv-section" style={{ marginBottom: 0 }}>
-            <div className="dv-section-label">Contact</div>
-            <a href={`mailto:${content.email}`} className="dv-contact-email">
-              Get in touch →
-            </a>
+          {!!content.testimonials?.length && (
+            <section id="testimonials" className="dv-section">
+              <h2 className="dv-section-label">Testimonials</h2>
+              <div className="dv-exp-list">
+                {content.testimonials.map((t, i) => (
+                  <figure key={i} className="dv-project-body">
+                    <blockquote className="dv-about">{t.text}</blockquote>
+                    <figcaption className="dv-exp-company">{t.author}{t.role ? ` · ${t.role}` : ''}{t.company ? ` · ${t.company}` : ''}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            </section>
+          )}
+          {hasContact && <section id="contact" className="dv-section" style={{ marginBottom: 0 }}>
+            <h2 className="dv-section-label">Contact</h2>
+            {content.email && <a href={`mailto:${content.email}`} className="dv-contact-email">
+              {content.email} →
+            </a>}
             <div className="dv-contact-meta">
               {content.location && <div>{content.location}</div>}
+              {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="dv-link">GitHub →</a>}
               {content.linkedin_url && (
                 <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="dv-link" style={{ marginTop: 6 }}>
                   LinkedIn →
                 </a>
               )}
             </div>
-          </section>
+          </section>}
         </main>
       </div>
     </div>

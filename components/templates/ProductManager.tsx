@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import type { PortfolioContent } from './Minimal'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
@@ -46,7 +46,7 @@ const css = `
   }
   .pm-hero-inner {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 40px; align-items: start;
     margin-bottom: 40px;
   }
@@ -55,6 +55,7 @@ const css = `
     font-weight: 800; line-height: 1.0;
     letter-spacing: -0.02em;
     color: var(--text); margin-bottom: 10px;
+    overflow-wrap: anywhere;
   }
   .pm-hero-role {
     font-size: 18px; font-weight: 600;
@@ -95,28 +96,17 @@ const css = `
     font-size: 44px;
   }
 
-  /* Stats cards */
-  .pm-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .pm-stat-card {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 12px; padding: 20px 24px;
-    text-align: center;
-  }
-  .pm-stat-num {
-    font-size: 32px; font-weight: 800;
-    color: var(--primary); line-height: 1; margin-bottom: 4px;
-  }
-  .pm-stat-label { font-size: 12px; color: var(--muted); font-weight: 500; }
-
   /* Section */
   .pm-section {
     padding: 48px 7vw;
     border-bottom: 1px solid var(--border);
-    opacity: 0; transform: translateY(12px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    scroll-margin-top: 80px;
   }
-  .pm-section.visible { opacity: 1; transform: none; }
+  .pm-root { overflow-wrap: anywhere; }
+  .pm-root :focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+  @media (prefers-reduced-motion: reduce) {
+    .pm-root *, .pm-root *::before, .pm-root *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; transform: none !important; }
+  }
   .pm-section-eyebrow {
     font-size: 10px; letter-spacing: 0.18em;
     text-transform: uppercase; color: var(--primary);
@@ -219,7 +209,6 @@ const css = `
 
   @media (max-width: 700px) {
     .pm-hero-inner { grid-template-columns: 1fr; }
-    .pm-stats { grid-template-columns: 1fr 1fr; }
     .pm-skills-groups { grid-template-columns: 1fr; }
     .pm-nav-links { display: none; }
   }
@@ -243,42 +232,19 @@ function groupPMSkills(skills: string[]) {
   return Object.entries(groups).filter(([, items]) => items.length > 0)
 }
 
-function extractStat(text: string): string | null {
-  const m = text.match(/\d[\d,kKmMbB%+x\.]*/)
-  return m ? m[0] : null
-}
-
 export default function ProductManager({ content }: { content: PortfolioContent }) {
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const sections = rootRef.current?.querySelectorAll('.pm-section')
-    if (!sections) return
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible') }),
-      { threshold: 0.08 }
-    )
-    sections.forEach((s) => obs.observe(s))
-    return () => obs.disconnect()
-  }, [])
 
   const skillGroups: [string, string[]][] = content.skills_grouped?.length > 0
     ? content.skills_grouped.filter(g => g.items?.length > 0).map(g => [g.category, g.items])
     : groupPMSkills(content.skills)
-
-  // Build stats from project outcomes with numbers
-  const statsData: { num: string; label: string }[] = []
-  for (const p of content.projects) {
-    if (statsData.length >= 3) break
-    if (p.outcome) {
-      const num = extractStat(p.outcome)
-      if (num) statsData.push({ num, label: p.title })
-    }
-  }
+  const groupedSkills = new Set(skillGroups.flatMap(([, items]) => items))
+  const flatSkills = content.skills.filter(s => !groupedSkills.has(s))
+  const hasSkills = !!(skillGroups.length || flatSkills.length || content.skills_narrative)
+  const hasContact = !!(content.email || content.linkedin_url || content.github_url)
 
   return (
-    <div className="pm-root" ref={rootRef}>
+    <div className="pm-root">
       <style>{css}</style>
 
       <nav className="pm-nav">
@@ -291,11 +257,11 @@ export default function ProductManager({ content }: { content: PortfolioContent 
           </div>
         )}
         <div className="pm-nav-links">
-          <a href="#products" className="pm-nav-link">Work</a>
-          <a href="#skills" className="pm-nav-link">Skills</a>
+          {content.projects.length > 0 && <a href="#products" className="pm-nav-link">Work</a>}
+          {hasSkills && <a href="#skills" className="pm-nav-link">Skills</a>}
           {content.experience.length > 0 && <a href="#experience" className="pm-nav-link">Experience</a>}
           {(content.education && content.education.length > 0) && <a href="#education" className="pm-nav-link">Education</a>}
-          <a href="#contact" className="pm-nav-link">Contact</a>
+          {hasContact && <a href="#contact" className="pm-nav-link">Contact</a>}
         </div>
       </nav>
 
@@ -303,15 +269,13 @@ export default function ProductManager({ content }: { content: PortfolioContent 
       <div className="pm-hero">
         <div className="pm-hero-inner">
           <div>
-            <h1 className="pm-hero-name">
-              {content.name.trim().split(/\s+/).map((part, i) => (
-                <span key={i} style={{ display: 'block' }}>{part}</span>
-              ))}
-            </h1>
+            <h1 className="pm-hero-name">{content.name}</h1>
             <div className="pm-hero-role">{content.role}</div>
-            <div className="pm-hero-headline">{content.headline}</div>
+            {content.location && <p className="pm-hero-headline">{content.location}</p>}
+            {content.headline && <p className="pm-hero-headline">{content.headline}</p>}
+            {content.about && <div className="pm-hero-headline">{content.about.split('\n\n').map((p, i) => <p key={i} style={{ marginBottom: 12 }}>{p}</p>)}</div>}
             <div className="pm-hero-links">
-              <a href={`mailto:${content.email}`} className="pm-cta-primary">Get in touch →</a>
+              {content.email && <a href={`mailto:${content.email}`} className="pm-cta-primary">Get in touch →</a>}
               {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="pm-cta-ghost">LinkedIn</a>}
               {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="pm-cta-ghost">GitHub</a>}
             </div>
@@ -323,23 +287,13 @@ export default function ProductManager({ content }: { content: PortfolioContent 
           </div>
         </div>
 
-        {statsData.length > 0 && (
-          <div className="pm-stats">
-            {statsData.map((s, i) => (
-              <div key={i} className="pm-stat-card">
-                <div className="pm-stat-num">{s.num}</div>
-                <div className="pm-stat-label">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Products */}
       {content.projects.length > 0 && (
         <section id="products" className="pm-section">
           <div className="pm-section-eyebrow">Portfolio</div>
-          <div className="pm-section-title">Products Shipped</div>
+          <h2 className="pm-section-title">Projects</h2>
           <div className="pm-products">
             {content.projects.map((p, i) => (
               <div key={i} className="pm-product-card">
@@ -359,6 +313,7 @@ export default function ProductManager({ content }: { content: PortfolioContent 
                   </div>
                 )}
                 {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="pm-product-link" style={{ display: 'inline-block', marginTop: 12 }}>View product →</a>}
+                {p.github_url && <a href={p.github_url} target="_blank" rel="noopener noreferrer" className="pm-product-link" style={{ display: 'inline-block', marginTop: 12, marginLeft: p.url ? 16 : 0 }}>Repository →</a>}
               </div>
             ))}
           </div>
@@ -366,10 +321,11 @@ export default function ProductManager({ content }: { content: PortfolioContent 
       )}
 
       {/* Skills */}
-      {content.skills.length > 0 && (
+      {hasSkills && (
         <section id="skills" className="pm-section">
           <div className="pm-section-eyebrow">Expertise</div>
-          <div className="pm-section-title">Skills</div>
+          <h2 className="pm-section-title">Skills</h2>
+          {content.skills_narrative && <p className="pm-hero-headline">{content.skills_narrative}</p>}
           <div className="pm-skills-groups">
             {skillGroups.map(([cat, items]) => (
               <div key={cat} className="pm-skill-group">
@@ -380,6 +336,7 @@ export default function ProductManager({ content }: { content: PortfolioContent 
               </div>
             ))}
           </div>
+          {flatSkills.length > 0 && <div className="pm-skill-pills" style={{ marginTop: 20 }}>{flatSkills.map(s => <span key={s} className="pm-skill-pill">{s}</span>)}</div>}
         </section>
       )}
 
@@ -387,7 +344,7 @@ export default function ProductManager({ content }: { content: PortfolioContent 
       {content.experience.length > 0 && (
         <section id="experience" className="pm-section">
           <div className="pm-section-eyebrow">Career</div>
-          <div className="pm-section-title">Experience</div>
+          <h2 className="pm-section-title">Experience</h2>
           <div className="pm-exp-list">
             {content.experience.map((e, i) => (
               <div key={i} className="pm-exp-item">
@@ -414,14 +371,14 @@ export default function ProductManager({ content }: { content: PortfolioContent 
       {content.education && content.education.length > 0 && (
         <section id="education" className="pm-section">
           <div className="pm-section-eyebrow">Background</div>
-          <div className="pm-section-title">Education</div>
+          <h2 className="pm-section-title">Education</h2>
           <div className="pm-exp-list">
             {content.education.map((ed, i) => (
               <div key={i} className="pm-exp-item">
                 <div className="pm-exp-dot" />
                 <div className="pm-exp-role">{ed.degree}</div>
                 <div className="pm-exp-co">{ed.institution}</div>
-                <div className="pm-exp-period">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
+                <div className="pm-exp-period">{ed.year || (ed as typeof ed & { period?: string }).period}{ed.grade ? ` · ${ed.grade}` : ''}</div>
               </div>
             ))}
           </div>
@@ -432,7 +389,7 @@ export default function ProductManager({ content }: { content: PortfolioContent 
       {content.certifications && content.certifications.length > 0 && (
         <section id="certifications" className="pm-section">
           <div className="pm-section-eyebrow">Credentials</div>
-          <div className="pm-section-title">Certifications</div>
+          <h2 className="pm-section-title">Certifications</h2>
           <div className="pm-skill-pills">
             {content.certifications.map((cert) => (
               <span key={cert} className="pm-skill-pill" style={{ color: 'var(--primary)', borderColor: 'var(--primary)', fontWeight: 600 }}>{cert}</span>
@@ -442,11 +399,27 @@ export default function ProductManager({ content }: { content: PortfolioContent 
       )}
 
       {/* Contact */}
-      <div id="contact" className="pm-contact">
-        <h2 className="pm-contact-title">Let&apos;s build something great.</h2>
-        <p className="pm-contact-sub">Open to full-time product roles, advisory, and consulting.</p>
-        <a href={`mailto:${content.email}`} className="pm-contact-cta">Get in touch →</a>
-      </div>
+      {!!content.testimonials?.length && (
+        <section id="testimonials" className="pm-section">
+          <h2 className="pm-section-title">Testimonials</h2>
+          <div className="pm-products">
+            {content.testimonials.map((t, i) => (
+              <figure key={i} className="pm-product-card">
+                <blockquote className="pm-product-desc">{t.text}</blockquote>
+                <figcaption className="pm-exp-co">{t.author}{t.role ? ` · ${t.role}` : ''}{t.company ? ` · ${t.company}` : ''}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
+      {hasContact && <section id="contact" className="pm-contact">
+        <h2 className="pm-contact-title">Get in touch.</h2>
+        {content.email && <a href={`mailto:${content.email}`} className="pm-contact-cta">{content.email} →</a>}
+        <div className="pm-hero-links" style={{ justifyContent: 'center', marginTop: 16 }}>
+          {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="pm-cta-ghost">LinkedIn</a>}
+          {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="pm-cta-ghost">GitHub</a>}
+        </div>
+      </section>}
 
       <footer className="pm-footer">
         <span>{content.name} · {content.role}</span>

@@ -2,16 +2,7 @@
 
 import { CREATE_HREF } from '@/lib/onboarding/entry'
 import React, { useState } from 'react'
-import Minimal from '@/components/templates/Minimal'
-import Bold from '@/components/templates/Bold'
-import Creative from '@/components/templates/Creative'
-import Developer from '@/components/templates/Developer'
-import Designer from '@/components/templates/Designer'
-import DataScientist from '@/components/templates/DataScientist'
-import ProductManager from '@/components/templates/ProductManager'
-import Finance from '@/components/templates/Finance'
-import Graduate from '@/components/templates/Graduate'
-import Cybersecurity from '@/components/templates/Cybersecurity'
+import { TEMPLATES } from '@/components/templates/dynamic'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 
 type TemplateKey = 'minimal' | 'bold' | 'creative' | 'developer' | 'designer' | 'data-scientist' | 'product-manager' | 'finance' | 'graduate' | 'cybersecurity'
@@ -38,18 +29,7 @@ const LABELS: Record<TemplateKey, string> = {
   cybersecurity: 'Sec',
 }
 
-const TEMPLATE_COMPONENTS: Record<TemplateKey, React.ComponentType<{ content: PortfolioContent }>> = {
-  minimal: Minimal,
-  bold: Bold,
-  creative: Creative,
-  developer: Developer,
-  designer: Designer,
-  'data-scientist': DataScientist,
-  'product-manager': ProductManager,
-  finance: Finance,
-  graduate: Graduate,
-  cybersecurity: Cybersecurity,
-}
+const TEMPLATE_COMPONENTS = TEMPLATES
 
 export default function DemoToggle({ content, defaultTemplate }: Props) {
   const [template, setTemplate] = useState<TemplateKey>(defaultTemplate)

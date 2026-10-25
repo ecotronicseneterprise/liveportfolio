@@ -16,6 +16,9 @@ import Turnstile from '@/components/onboarding/Turnstile'
 import HistoryPanel from '@/components/dashboard/HistoryPanel'
 import PlanBillingPanel from '@/components/dashboard/PlanBillingPanel'
 import LookPicker from '@/components/dashboard/LookPicker'
+import ProDesignPicker from '@/components/dashboard/ProDesignPicker'
+import { isProTemplateId, withProDesign, type ProTemplateId } from '@/lib/portfolio/presentation'
+import { removeSkill } from '@/lib/portfolio/editor'
 import FreeSplit from '@/components/dashboard/FreeSplit'
 import FreePreview from '@/components/dashboard/FreePreview'
 import CohortBanner from '@/components/dashboard/CohortBanner'
@@ -35,6 +38,7 @@ interface UserProfile {
 
 interface Portfolio {
   id: string
+  edit_count: number | null
   template: string
   content: PortfolioContent
   health_score: number
@@ -607,7 +611,7 @@ export default function DashboardPage() {
 
       const { data: portfolioData } = await sb
         .from('portfolios')
-        .select('id, template, content, health_score, view_count, last_viewed_at, updated_at')
+        .select('id, template, content, health_score, view_count, last_viewed_at, updated_at, edit_count')
         .eq('user_id', session.user.id)
         .single()
 
@@ -717,9 +721,11 @@ export default function DashboardPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ content: { ...editContent, avatar_url: newUrl } }),
+        body: JSON.stringify({ content: { avatar_url: newUrl }, expected_edit_count: portfolio?.edit_count ?? null }),
       })
       if (!res.ok) throw new Error('Failed to update portfolio')
+      const updated = await res.json()
+      setPortfolio((prev) => prev ? { ...prev, edit_count: updated.edit_count ?? prev.edit_count, content: { ...prev.content, avatar_url: newUrl } } : prev)
       setEditContent((prev) => ({ ...prev, avatar_url: newUrl }))
       setAvatarPreview(newUrl)
       setAvatarMsg({ type: 'ok', text: 'Photo updated' })
@@ -730,7 +736,7 @@ export default function DashboardPage() {
     } finally {
       setAvatarUploading(false)
     }
-  }, [editContent, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [portfolio, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleProjectImageCropped = useCallback(async (blob: Blob) => {
     setProjectImageCropperSrc(null)
@@ -764,9 +770,11 @@ export default function DashboardPage() {
       const res = await fetch('/api/update', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ content: { ...editContent, projects: updatedProjects } }),
+        body: JSON.stringify({ content: { projects: updatedProjects }, expected_edit_count: portfolio?.edit_count ?? null }),
       })
       if (!res.ok) throw new Error('Failed to update portfolio')
+      const updated = await res.json()
+      setPortfolio((prev) => prev ? { ...prev, edit_count: updated.edit_count ?? prev.edit_count, content: { ...prev.content, projects: updatedProjects } } : prev)
       setEditContent((prev) => ({ ...prev, projects: updatedProjects }))
       setProjectImagePreviews((prev) => ({ ...prev, [idx]: URL.createObjectURL(blob) }))
       setProjectImageMsgs((prev) => ({ ...prev, [idx]: { type: 'ok', text: 'Image updated' } }))
@@ -777,9 +785,9 @@ export default function DashboardPage() {
     } finally {
       setProjectImageUploading(null)
     }
-  }, [projectImageCropperIndex, editContent, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [projectImageCropperIndex, editContent, portfolio, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSave = async () => {
+  const handleSave = async (nextTemplate: string = template) => {
     if (!portfolio) return
     setSaving(true)
     setSaveError('')
@@ -792,11 +800,11 @@ export default function DashboardPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ content: editContent, template, portfolio_id: portfolio.id }),
+        body: JSON.stringify({ content: { ...editContent, certifications: editContent.certifications?.filter((c) => c.trim()) }, template: nextTemplate, portfolio_id: portfolio.id, expected_edit_count: portfolio.edit_count ?? null }),
       })
       if (res.ok) {
         const updated = await res.json()
-        setPortfolio((prev) => prev ? { ...prev, health_score: updated.health_score ?? prev.health_score } : prev)
+        setPortfolio((prev) => prev ? { ...prev, content: { ...prev.content, ...editContent }, template: nextTemplate, edit_count: updated.edit_count ?? prev.edit_count, health_score: updated.health_score ?? prev.health_score } : prev)
         setHistoryTick((n) => n + 1)
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
@@ -811,6 +819,33 @@ export default function DashboardPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleSaveDesign = async (id: ProTemplateId, enabled: boolean) => {
+    if (!portfolio || saving) return
+    setSaving(true)
+    setSaveError('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('Session expired. Please sign in again.')
+      // A deliberate design save only. Unsaved words and image edits are not included.
+      const res = await fetch('/api/update', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ portfolio_id: portfolio.id, expected_edit_count: portfolio.edit_count ?? null, ops: [{ op: 'set_template', template: id }, { op: 'set_pro_design', template: id, version: enabled ? 2 : null }] }),
+      })
+      if (!res.ok) {
+        const result = await res.json()
+        throw new Error(result.message || 'Could not save this design. Please try again.')
+      }
+      const result = await res.json()
+      setEditContent((prev) => withProDesign(prev, id, enabled))
+      setPortfolio((prev) => prev ? { ...prev, template: id, edit_count: result.edit_count ?? prev.edit_count, content: withProDesign(prev.content, id, enabled) } : prev)
+      setTemplate(id)
+      setPreviewTemplate(id)
+      setHistoryTick((n) => n + 1)
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Could not save this design.')
+    } finally { setSaving(false) }
   }
 
   const copyLink = () => {
@@ -1434,7 +1469,7 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-gray-900">Edit your portfolio</h2>
               <div className="flex flex-col items-end gap-1">
                 <button
-                  onClick={handleSave}
+                  onClick={() => void handleSave()}
                   disabled={saving}
                   className="px-4 py-2 bg-[#0A66C2] text-white text-sm font-medium rounded-full hover:bg-[#084D9A] transition-colors disabled:opacity-50"
                 >
@@ -1463,7 +1498,7 @@ export default function DashboardPage() {
                     if (next.template) { setTemplate(next.template); setPreviewTemplate(next.template); setLockedTemplateMsg(null) }
                     if (next.layout) setEditContent((prev) => ({ ...prev, layout: next.layout }) as Partial<PortfolioContent>)
                   }}
-                  onLocked={(name) => setLockedTemplateMsg(`"${name}" is a Pro template.`)}
+                  onLocked={(name, id) => { if (id) setPreviewTemplate(id); setLockedTemplateMsg(`"${name}" is a Pro template.`) }}
                 />
                 {lockedTemplateMsg && (
                   <div className="mt-3 p-3 bg-[#E8F0F9] border border-[#0A66C2]/20 rounded-xl text-sm text-[#084D9A] font-medium flex items-center justify-between gap-3">
@@ -1520,7 +1555,7 @@ export default function DashboardPage() {
                         <button
                           onClick={async () => {
                             setTemplate(previewTemplate)
-                            await handleSave()
+                            await handleSave(previewTemplate)
                           }}
                           disabled={saving}
                           style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#0A66C2', border: 'none', borderRadius: 99, padding: '6px 14px', cursor: saving ? 'not-allowed' : 'pointer', flexShrink: 0, opacity: saving ? 0.6 : 1 }}
@@ -1567,6 +1602,7 @@ export default function DashboardPage() {
                     <button
                       key={t.id}
                       onClick={() => {
+                        setPreviewTemplate(t.id)
                         if (isLocked) {
                           setLockedTemplateMsg(`"${t.name}" is a Pro template.`)
                           return
@@ -1616,6 +1652,12 @@ export default function DashboardPage() {
             </div>
             )}
 
+            {isProTemplateId(previewTemplate) && (
+              <ProDesignPicker key={`${previewTemplate}:${historyTick}`} content={editContent as PortfolioContent}
+                template={previewTemplate} selectedTemplate={portfolio.template} isPro={isPro} busy={saving}
+                onSave={handleSaveDesign} onUpgrade={() => { setUpgradeProOnly(true); setShowUpgradeModal(true) }} />
+            )}
+
             {/* Editable fields */}
             <div className="grid gap-4">
               {[
@@ -1626,7 +1668,6 @@ export default function DashboardPage() {
                 { key: 'github_url', label: 'GitHub URL', type: 'url' },
                 { key: 'linkedin_url', label: 'LinkedIn URL', type: 'url' },
                 { key: 'headline', label: 'Headline', type: 'text' },
-                { key: 'certifications', label: 'Certifications (optional)', type: 'text' },
               ].map(({ key, label, type }) => (
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -1638,6 +1679,15 @@ export default function DashboardPage() {
                   />
                 </div>
               ))}
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium text-gray-700">Certifications (optional)</legend>
+                {(editContent.certifications ?? []).map((cert, i) => <div key={i} className="flex gap-2">
+                  <input aria-label={`Certification ${i + 1}`} value={cert} maxLength={160} className="min-w-0 flex-1 rounded-xl border border-gray-200 px-4 py-2 text-base"
+                    onChange={(event) => setEditContent((prev) => ({ ...prev, certifications: (prev.certifications ?? []).map((value, j) => j === i ? event.target.value : value) }))} />
+                  <button type="button" aria-label={`Remove certification ${i + 1}`} className="min-h-[44px] px-3 text-sm text-red-700" onClick={() => setEditContent((prev) => ({ ...prev, certifications: prev.certifications?.filter((_, j) => j !== i) }))}>Remove</button>
+                </div>)}
+                <button type="button" disabled={(editContent.certifications?.length ?? 0) >= 50} className="min-h-[44px] text-sm font-medium text-blue-700" onClick={() => setEditContent((prev) => ({ ...prev, certifications: [...(prev.certifications ?? []), ''] }))}>Add certification</button>
+              </fieldset>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">About / Bio</label>
                 <textarea
@@ -1752,15 +1802,12 @@ export default function DashboardPage() {
             <div className="pt-2 border-t border-gray-100">
               <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
               <div className="flex flex-wrap gap-2 mb-2">
-                {(editContent.skills || []).map((skill, i) => (
+                {Array.from(new Set([...(editContent.skills || []), ...(editContent.skills_grouped || []).flatMap((group) => group.items)])).map((skill, i) => (
                   <span key={i} className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
                     {skill}
                     <button
                       type="button"
-                      onClick={() => setEditContent(prev => ({
-                        ...prev,
-                        skills: (prev.skills || []).filter((_, idx) => idx !== i)
-                      }))}
+                      onClick={() => setEditContent(prev => removeSkill(prev, skill))}
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -2023,7 +2070,7 @@ export default function DashboardPage() {
 
             <div className="pt-4 border-t border-gray-100">
               <button
-                onClick={handleSave}
+                onClick={() => void handleSave()}
                 disabled={saving}
                 className="px-6 py-2.5 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors disabled:opacity-50"
               >
@@ -2041,7 +2088,8 @@ export default function DashboardPage() {
                 setEditContent(r.content as Partial<PortfolioContent>)
                 setTemplate(r.template)
                 setPreviewTemplate(r.template)
-                setPortfolio((prev) => prev ? { ...prev, content: r.content as unknown as PortfolioContent, template: r.template, health_score: r.health_score ?? prev.health_score } : prev)
+                setPortfolio((prev) => prev ? { ...prev, content: r.content as unknown as PortfolioContent, template: r.template, edit_count: r.edit_count ?? prev.edit_count, health_score: r.health_score ?? prev.health_score } : prev)
+                setHistoryTick((n) => n + 1)
               }}
             />
           </div>

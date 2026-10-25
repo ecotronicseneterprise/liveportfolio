@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect, useRef } from 'react'
+import { useId, useState } from 'react'
 import type { PortfolioContent } from './Minimal'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
@@ -18,7 +18,12 @@ const css = `
     color: var(--text);
     font-family: 'IBM Plex Sans', system-ui, sans-serif;
     min-height: 100vh;
+    overflow-wrap: anywhere;
   }
+  .sci-root section[id] { scroll-margin-top: 80px; }
+  .sci-root a:focus-visible, .sci-root button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .sci-prose { white-space: pre-line; font-size: 15px; line-height: 1.7; margin-bottom: 16px; }
+  .sci-project-links { display: flex; flex-wrap: wrap; gap: 16px; }
   .sci-nav {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -30,7 +35,7 @@ const css = `
     font-family: 'IBM Plex Mono', monospace;
     font-size: 14px; font-weight: 700; color: var(--accent);
   }
-  .sci-nav-links { display: flex; gap: 24px; }
+  .sci-nav-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 16px; }
   .sci-nav-link {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px; color: var(--muted);
@@ -71,6 +76,7 @@ const css = `
     font-size: 15px; color: #B2FAF0;
     line-height: 1.7; margin-bottom: 16px;
     max-width: 680px;
+    white-space: pre-line;
   }
   .sci-hero-meta { display: flex; gap: 16px; flex-wrap: wrap; }
   .sci-hero-meta-item {
@@ -80,40 +86,11 @@ const css = `
   .sci-hero-meta-item a { color: var(--accent); text-decoration: none; }
   .sci-hero-meta-item a:hover { text-decoration: underline; }
 
-  /* Impact stats */
-  .sci-impact {
-    padding: 32px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .sci-impact-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px; letter-spacing: 0.2em;
-    text-transform: uppercase; color: var(--accent);
-    margin-bottom: 20px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .sci-impact-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .sci-impact-stats { display: flex; gap: 40px; flex-wrap: wrap; }
-  .sci-impact-stat { display: flex; flex-direction: column; gap: 4px; }
-  .sci-impact-number {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 32px; font-weight: 700; color: var(--accent);
-    line-height: 1;
-  }
-  .sci-impact-desc {
-    font-size: 12px; color: var(--muted);
-    font-family: 'IBM Plex Mono', monospace;
-    letter-spacing: 0.05em;
-  }
-
   /* Section */
   .sci-section {
     padding: 40px 0;
     border-bottom: 1px solid var(--border);
-    opacity: 0; transform: translateY(12px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
   }
-  .sci-section.visible { opacity: 1; transform: none; }
   .sci-section-label {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px; letter-spacing: 0.2em;
@@ -123,7 +100,7 @@ const css = `
   }
   .sci-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  /* Skills Matrix */
+  /* Skills */
   .sci-matrix { display: flex; flex-direction: column; gap: 20px; }
   .sci-matrix-group {}
   .sci-matrix-cat-row {
@@ -134,14 +111,6 @@ const css = `
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px; color: var(--accent);
     letter-spacing: 0.12em; text-transform: uppercase;
-  }
-  .sci-matrix-bar-wrap {
-    height: 3px; background: var(--border); border-radius: 2px;
-    margin-bottom: 8px; overflow: hidden;
-  }
-  .sci-matrix-bar {
-    height: 100%; background: var(--accent); border-radius: 2px;
-    width: 0; transition: width 0.8s ease;
   }
   .sci-matrix-pills { display: flex; flex-wrap: wrap; gap: 6px; }
   .sci-matrix-pill {
@@ -248,128 +217,45 @@ const css = `
   .sci-footer a { color: #5EEAD4; text-decoration: none; transition: color 0.2s; }
   .sci-footer a:hover { color: var(--accent); }
 
+  .sci-hamburger { display: none; background: none; border: none; color: var(--accent); padding: 8px; font-size: 18px; cursor: pointer; }
+  .sci-mobile-menu { display: none; background: var(--surface); padding: 12px 6vw; }
+  .sci-mobile-menu a { padding: 8px 0; }
+
   @media (max-width: 700px) {
     .sci-projects { grid-template-columns: 1fr; }
     .sci-hero { grid-template-columns: 1fr; }
     .sci-nav-links { display: none; }
+    .sci-hamburger { display: block; }
+    .sci-mobile-menu.open { display: flex; flex-direction: column; }
     .sci-gh-card { flex-direction: column; align-items: flex-start; }
-    .sci-impact-stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sci-root *, .sci-root *::before, .sci-root *::after { animation: none !important; transition: none !important; }
+    .sci-proj-card:hover { transform: none; }
   }
 `
 
-const LANG_KEYWORDS = ['python', 'r', 'sql', 'scala', 'julia', 'matlab', 'bash', 'java', 'c++', 'go', 'rust']
-const ML_KEYWORDS = ['tensorflow', 'pytorch', 'scikit', 'keras', 'xgboost', 'lightgbm', 'huggingface', 'transformers', 'langchain', 'openai', 'llm', 'nlp', 'ml', 'ai', 'rag']
-const TOOLS_KEYWORDS = ['tableau', 'power bi', 'jupyter', 'databricks', 'spark', 'hadoop', 'kafka', 'airflow', 'dbt', 'pandas', 'numpy', 'plotly', 'matplotlib', 'excel']
-const CLOUD_KEYWORDS = ['aws', 'gcp', 'azure', 'google cloud', 'sagemaker', 'bigquery', 'snowflake', 'redshift', 'docker', 'kubernetes', 'mlflow', 'wandb']
-
-function categoriseSkills(skills: string[]) {
-  const groups: Record<string, string[]> = { Languages: [], 'ML / AI': [], Tools: [], Cloud: [], Other: [] }
-  for (const s of skills) {
-    const sl = s.toLowerCase()
-    if (LANG_KEYWORDS.some((k) => sl.includes(k))) groups['Languages'].push(s)
-    else if (ML_KEYWORDS.some((k) => sl.includes(k))) groups['ML / AI'].push(s)
-    else if (TOOLS_KEYWORDS.some((k) => sl.includes(k))) groups['Tools'].push(s)
-    else if (CLOUD_KEYWORDS.some((k) => sl.includes(k))) groups['Cloud'].push(s)
-    else groups['Other'].push(s)
-  }
-  return Object.entries(groups).filter(([, items]) => items.length > 0)
-}
-
-function extractImpactStats(projects: PortfolioContent['projects']): { value: number; label: string }[] {
-  const stats: { value: number; label: string }[] = []
-  for (const p of projects) {
-    if (stats.length >= 3) break
-    if (!p.outcome) continue
-    const match = p.outcome.match(/\d[\d,%.+kKmMxX]*/g)
-    if (!match) continue
-    const raw = match[0].replace(/,/g, '')
-    const num = parseFloat(raw)
-    if (!isNaN(num) && num > 0) {
-      stats.push({ value: num, label: p.title })
-    }
-  }
-  return stats
-}
-
-function useCountUp(target: number, duration: number, active: boolean) {
-  const [current, setCurrent] = useState(0)
-  useEffect(() => {
-    if (!active) return
-    let start: number | null = null
-    const step = (timestamp: number) => {
-      if (!start) start = timestamp
-      const progress = Math.min((timestamp - start) / duration, 1)
-      const eased = 1 - Math.pow(1 - progress, 3)
-      setCurrent(Math.floor(eased * target))
-      if (progress < 1) requestAnimationFrame(step)
-    }
-    requestAnimationFrame(step)
-  }, [target, duration, active])
-  return current
-}
-
-function ImpactStat({ value, label, active }: { value: number; label: string; active: boolean }) {
-  const current = useCountUp(value, 1200, active)
-  const display = value >= 1000 ? `${(current / 1000).toFixed(current >= 1000 ? 0 : 1)}k` : String(current)
-  return (
-    <div className="sci-impact-stat">
-      <div className="sci-impact-number">{display}+</div>
-      <div className="sci-impact-desc">{label}</div>
-    </div>
-  )
-}
-
 export default function DataScientist({ content }: { content: PortfolioContent }) {
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
-  const [barsVisible, setBarsVisible] = useState(false)
-  const [statsVisible, setStatsVisible] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-  const impactRef = useRef<HTMLDivElement>(null)
-  const skillsRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const sections = rootRef.current?.querySelectorAll('.sci-section')
-    if (!sections) return
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible') }),
-      { threshold: 0.08 }
-    )
-    sections.forEach((s) => obs.observe(s))
-    return () => obs.disconnect()
-  }, [])
-
-  useEffect(() => {
-    const el = impactRef.current
-    if (!el) return
-    const obs = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) setStatsVisible(true) },
-      { threshold: 0.1 }
-    )
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [])
-
-  useEffect(() => {
-    const el = skillsRef.current
-    if (!el) return
-    const obs = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) setBarsVisible(true) },
-      { threshold: 0.1 }
-    )
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [])
-
-  // Normalise to [cat, items[]] tuples regardless of source
-  const grouped: [string, string[]][] = content.skills_grouped?.length > 0
-    ? content.skills_grouped.filter(g => g.items?.length > 0).map(g => [g.category, g.items])
-    : categoriseSkills(content.skills)
-
-  const totalSkills = grouped.reduce((acc, [, items]) => acc + items.length, 0)
-  const impactStats = extractImpactStats(content.projects)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const menuId = useId()
+  const grouped = (content.skills_grouped ?? []).filter(g => g.items?.length > 0)
+  const groupedSkills = new Set(grouped.flatMap(g => g.items))
+  const ungroupedSkills = content.skills.filter(skill => !groupedSkills.has(skill))
+  const hasSkills = grouped.length > 0 || ungroupedSkills.length > 0 || !!content.skills_narrative
+  const hasContact = !!(content.email || content.github_url || content.linkedin_url)
+  const navLinks = [
+    { id: 'skills', label: 'Skills', show: hasSkills },
+    { id: 'projects', label: 'Projects', show: content.projects.length > 0 },
+    { id: 'experience', label: 'Experience', show: content.experience.length > 0 },
+    { id: 'education', label: 'Education', show: !!content.education?.length },
+    { id: 'certifications', label: 'Certifications', show: !!content.certifications?.length },
+    { id: 'testimonials', label: 'Testimonials', show: !!content.testimonials?.length },
+    { id: 'contact', label: 'Contact', show: hasContact },
+  ].filter(link => link.show)
 
   return (
-    <div className="sci-root" ref={rootRef}>
+    <div className="sci-root">
       <style>{css}</style>
 
       <nav className="sci-nav">
@@ -382,64 +268,55 @@ export default function DataScientist({ content }: { content: PortfolioContent }
           </div>
         )}
         <div className="sci-nav-links">
-          <a href="#skills" className="sci-nav-link">Stack</a>
-          <a href="#projects" className="sci-nav-link">Projects</a>
-          {content.experience.length > 0 && <a href="#experience" className="sci-nav-link">Experience</a>}
-          {content.education && content.education.length > 0 && <a href="#education" className="sci-nav-link">Education</a>}
-          <a href="#contact" className="sci-nav-link">Contact</a>
+          {navLinks.map(link => <a key={link.id} href={`#${link.id}`} className="sci-nav-link">{link.label}</a>)}
         </div>
+        {navLinks.length > 0 && <button type="button" className="sci-hamburger"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileMenuOpen} aria-controls={menuId}>
+          {mobileMenuOpen ? '✕' : '☰'}
+        </button>}
       </nav>
+      <div id={menuId} className={`sci-mobile-menu${mobileMenuOpen ? ' open' : ''}`}>
+        {navLinks.map(link => <a key={link.id} href={`#${link.id}`} className="sci-nav-link" onClick={() => setMobileMenuOpen(false)}>{link.label}</a>)}
+      </div>
 
       <div className="sci-body">
         {/* Hero */}
         <div className="sci-hero">
           <div>
-            <div className="sci-hero-name">{content.name}</div>
+            <h1 className="sci-hero-name">{content.name}</h1>
             <div className="sci-hero-role">{content.role}</div>
             {content.headline && <div className="sci-hero-headline">{content.headline}</div>}
             {content.about && <div className="sci-hero-about">{content.about}</div>}
             <div className="sci-hero-meta">
               {content.location && <span className="sci-hero-meta-item">{content.location}</span>}
-              <span className="sci-hero-meta-item"><a href={`mailto:${content.email}`}>{content.email}</a></span>
+              {content.email && <span className="sci-hero-meta-item"><a href={`mailto:${content.email}`}>{content.email}</a></span>}
               {content.github_url && <span className="sci-hero-meta-item"><a href={content.github_url} target="_blank" rel="noopener noreferrer">GitHub →</a></span>}
               {content.linkedin_url && <span className="sci-hero-meta-item"><a href={content.linkedin_url} target="_blank" rel="noopener noreferrer">LinkedIn →</a></span>}
             </div>
           </div>
         </div>
 
-        {/* Impact stats */}
-        {impactStats.length >= 1 && (
-          <div className="sci-impact" ref={impactRef}>
-            <div className="sci-impact-label">&gt;&gt;&gt; Impact</div>
-            <div className="sci-impact-stats">
-              {impactStats.map((stat, i) => (
-                <ImpactStat key={i} value={stat.value} label={stat.label} active={statsVisible} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Skills Matrix */}
-        {content.skills.length > 0 && (
-          <section id="skills" className="sci-section" ref={skillsRef}>
-            <div className="sci-section-label">&gt;&gt;&gt; Skills Matrix</div>
+        {/* Skills */}
+        {hasSkills && (
+          <section id="skills" className="sci-section">
+            <h2 className="sci-section-label">&gt;&gt;&gt; Skills</h2>
+            {content.skills_narrative && <p className="sci-prose">{content.skills_narrative}</p>}
             <div className="sci-matrix">
-              {grouped.map(([cat, items]) => (
-                <div key={cat} className="sci-matrix-group">
+              {grouped.map(({ category, items }, i) => (
+                <div key={i} className="sci-matrix-group">
                   <div className="sci-matrix-cat-row">
-                    <div className="sci-matrix-cat">{cat} ({items.length})</div>
-                  </div>
-                  <div className="sci-matrix-bar-wrap">
-                    <div
-                      className="sci-matrix-bar"
-                      style={{ width: barsVisible ? `${Math.round((items.length / totalSkills) * 100)}%` : '0%' }}
-                    />
+                    <h3 className="sci-matrix-cat">{category}</h3>
                   </div>
                   <div className="sci-matrix-pills">
                     {items.map((s) => <span key={s} className="sci-matrix-pill">{s}</span>)}
                   </div>
                 </div>
               ))}
+              {ungroupedSkills.length > 0 && <div className="sci-matrix-pills">
+                {ungroupedSkills.map(s => <span key={s} className="sci-matrix-pill">{s}</span>)}
+              </div>}
             </div>
           </section>
         )}
@@ -447,7 +324,7 @@ export default function DataScientist({ content }: { content: PortfolioContent }
         {/* Projects */}
         {content.projects.length > 0 && (
           <section id="projects" className="sci-section">
-            <div className="sci-section-label">&gt;&gt;&gt; Projects</div>
+            <h2 className="sci-section-label">&gt;&gt;&gt; Projects</h2>
             <div className="sci-projects">
               {content.projects.map((p, i) => (
                 <div key={i} className="sci-proj-card">
@@ -467,7 +344,10 @@ export default function DataScientist({ content }: { content: PortfolioContent }
                         {p.stack.map((t) => <span key={t} className="sci-proj-tag">{t}</span>)}
                       </div>
                     )}
-                    {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="sci-proj-link">View project ↗</a>}
+                    {(p.url || p.github_url) && <div className="sci-project-links">
+                      {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="sci-proj-link">View demo ↗</a>}
+                      {p.github_url && <a href={p.github_url} target="_blank" rel="noopener noreferrer" className="sci-proj-link">Repository ↗</a>}
+                    </div>}
                   </div>
                 </div>
               ))}
@@ -478,7 +358,7 @@ export default function DataScientist({ content }: { content: PortfolioContent }
         {/* Experience */}
         {content.experience.length > 0 && (
           <section id="experience" className="sci-section">
-            <div className="sci-section-label">&gt;&gt;&gt; Experience</div>
+            <h2 className="sci-section-label">&gt;&gt;&gt; Experience</h2>
             <div className="sci-exp-list">
               {content.experience.map((e, i) => (
                 <div key={i} className="sci-exp-item">
@@ -504,10 +384,10 @@ export default function DataScientist({ content }: { content: PortfolioContent }
         {/* GitHub */}
         {content.github_url && (
           <section className="sci-section">
-            <div className="sci-section-label">&gt;&gt;&gt; Open Source</div>
+            <h2 className="sci-section-label">&gt;&gt;&gt; GitHub</h2>
             <div className="sci-gh-card">
-              <div className="sci-gh-text">Notebooks, experiments, and open source projects on GitHub.</div>
-              <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="sci-gh-link">View repositories →</a>
+              <div className="sci-gh-text">GitHub profile</div>
+              <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="sci-gh-link">View GitHub →</a>
             </div>
           </section>
         )}
@@ -515,14 +395,14 @@ export default function DataScientist({ content }: { content: PortfolioContent }
         {/* Education */}
         {content.education && content.education.length > 0 && (
           <section id="education" className="sci-section">
-            <div className="sci-section-label">&gt;&gt;&gt; Education</div>
+            <h2 className="sci-section-label">&gt;&gt;&gt; Education</h2>
             <div className="sci-exp-list">
               {content.education.map((ed, i) => (
                 <div key={i} className="sci-exp-item">
                   <div className="sci-exp-dot" />
                   <div className="sci-exp-role">{ed.degree}</div>
                   <div className="sci-exp-co">{ed.institution}</div>
-                  <div className="sci-exp-period">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
+                  <div className="sci-exp-period">{ed.year || (ed as typeof ed & { period?: string }).period}{ed.grade ? ` · ${ed.grade}` : ''}</div>
                 </div>
               ))}
             </div>
@@ -532,7 +412,7 @@ export default function DataScientist({ content }: { content: PortfolioContent }
         {/* Certifications */}
         {content.certifications && content.certifications.length > 0 && (
           <section id="certifications" className="sci-section">
-            <div className="sci-section-label">&gt;&gt;&gt; Certifications</div>
+            <h2 className="sci-section-label">&gt;&gt;&gt; Certifications</h2>
             <div className="sci-matrix-pills">
               {content.certifications.map((cert) => (
                 <span key={cert} className="sci-matrix-pill" style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}>{cert}</span>
@@ -541,14 +421,30 @@ export default function DataScientist({ content }: { content: PortfolioContent }
           </section>
         )}
 
+        {content.testimonials && content.testimonials.length > 0 && (
+          <section id="testimonials" className="sci-section">
+            <h2 className="sci-section-label">&gt;&gt;&gt; Testimonials</h2>
+            <div className="sci-exp-list">
+              {content.testimonials.map((testimonial, i) => (
+                <figure key={i} className="sci-exp-item">
+                  <blockquote className="sci-prose">{testimonial.text}</blockquote>
+                  <figcaption>{[testimonial.author, testimonial.role, testimonial.company].filter(Boolean).join(' · ')}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Contact */}
-        <section id="contact" className="sci-contact">
-          <div className="sci-section-label">&gt;&gt;&gt; Contact</div>
-          <a href={`mailto:${content.email}`} className="sci-contact-cta">Get in touch →</a>
-          <div className="sci-contact-meta">
-            {content.location && <div>{content.location}</div>}
+        {hasContact && <section id="contact" className="sci-contact">
+          <h2 className="sci-section-label">&gt;&gt;&gt; Contact</h2>
+          {content.email && <a href={`mailto:${content.email}`} className="sci-contact-cta">Get in touch →</a>}
+          <div className="sci-contact-meta sci-project-links">
+            {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer">GitHub →</a>}
+            {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer">LinkedIn →</a>}
+            {content.location && <span>{content.location}</span>}
           </div>
-        </section>
+        </section>}
       </div>
 
       <footer className="sci-footer">

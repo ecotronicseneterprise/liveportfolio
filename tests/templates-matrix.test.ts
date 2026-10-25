@@ -18,7 +18,9 @@ import Finance from '../components/templates/Finance'
 import Graduate from '../components/templates/Graduate'
 import Cybersecurity from '../components/templates/Cybersecurity'
 import Look from '../components/blocks/Look'
+import ProDesign from '../components/templates/pro/ProDesign'
 import { ALL_TEMPLATES, FREE_TEMPLATES } from '../lib/plans'
+import { isProTemplateId } from '../lib/portfolio/presentation'
 import { safeContent } from '../lib/portfolio/render-safe'
 
 const LEGACY: Record<string, React.ComponentType<{ content: PortfolioContent }>> = {
@@ -66,6 +68,7 @@ const visible = (html: string) => html.replace(/<script[\s\S]*?<\/script>/g, ' '
 function renderEach(id: string, content: PortfolioContent): string[] {
   const out: string[] = []
   out.push(renderToStaticMarkup(createElement(LEGACY[id], { content })))
+  if (isProTemplateId(id)) out.push(renderToStaticMarkup(createElement(ProDesign, { template: id, content })))
   if ((FREE_TEMPLATES as readonly string[]).includes(id)) {
     for (const arrangement of ['proof', 'profile', 'index', 'showcase'] as const) {
       out.push(renderToStaticMarkup(createElement(Look, { template: id as 'minimal' | 'bold' | 'creative', content, layout: { v: 1, arrangement }, page: true })))
@@ -114,6 +117,11 @@ describe.each(ALL_TEMPLATES)('%s works for every kind of person', (id) => {
       const text = visible(html)
       for (let i = 1; i <= 12; i++) expect(text, `project ${i}`).toContain(`Project number ${i}`)
       for (let i = 1; i <= 9; i++) expect(text, `company ${i}`).toContain(`Company ${i}`)
+      for (let i = 1; i <= 8; i++) {
+        expect(text, `degree ${i}`).toContain(`Degree ${i}`)
+        expect(text, `institution ${i}`).toContain(`Institution ${i}`)
+      }
+      for (let i = 1; i <= 7; i++) expect(text, `certificate ${i}`).toContain(`Certificate ${i}`)
     }
   })
 })

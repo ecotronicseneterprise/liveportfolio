@@ -4,6 +4,7 @@ import { getUserFromRequest } from '@/lib/server-auth'
 import { entitlements } from '@/lib/entitlements'
 import { canUseTemplate, isTemplateId } from '@/lib/plans'
 import { commitState } from '@/lib/portfolio/commit'
+import { canTransitionProDesigns } from '@/lib/portfolio/presentation'
 
 // A revision row is the portfolio as it was BEFORE one change; `summary` lists what that change was. So "restore" means
 // "go back to before that change". Restoring is itself recorded (the state you leave becomes a revision), so it can be undone too.
@@ -75,6 +76,10 @@ export async function POST(req: NextRequest) {
   const wanted = typeof rev.template === 'string' && isTemplateId(rev.template) ? rev.template : pf.template
   const template = wanted === pf.template || canUseTemplate(ent.plan, wanted) ? wanted : pf.template
 
+  if (!canTransitionProDesigns(ent.plan, pf.content?.pro_designs, rev.content?.pro_designs)) {
+    return NextResponse.json({ error: 'pro_design_locked', message: 'Enabling a new Pro design requires Pro.' }, { status: 403 })
+  }
+
   if (JSON.stringify(rev.content) === JSON.stringify(pf.content) && template === pf.template) {
     return NextResponse.json({ error: 'already_current', message: 'That version is the one you have now.' }, { status: 409 })
   }
@@ -89,5 +94,5 @@ export async function POST(req: NextRequest) {
     if (done.error === 'conflict') return NextResponse.json({ error: 'conflict', message: 'This portfolio changed somewhere else. Reload and try again.' }, { status: 409 })
     return NextResponse.json({ error: 'Restore failed' }, { status: 500 })
   }
-  return NextResponse.json({ ok: true, content: rev.content, template, health_score: done.health_score, updated_at: done.updated_at })
+  return NextResponse.json({ ok: true, content: rev.content, template, health_score: done.health_score, updated_at: done.updated_at, edit_count: done.edit_count })
 }

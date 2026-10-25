@@ -9,6 +9,13 @@ import Finance from '@/components/templates/Finance'
 import Graduate from '@/components/templates/Graduate'
 import Cybersecurity from '@/components/templates/Cybersecurity'
 import type { PortfolioContent } from '@/components/templates/Minimal'
+import ProDesign from '@/components/templates/pro/ProDesign'
+import ProDesignLab from '@/components/templates/pro/ProDesignLab'
+import { PRO_SAMPLES } from '@/lib/portfolio/pro-samples'
+import { isProTemplateId, withProDesign } from '@/lib/portfolio/presentation'
+import { portfolioRenderMode } from '@/lib/portfolio/render-mode'
+import { safeContent } from '@/lib/portfolio/render-safe'
+import { PRO_TEMPLATES } from '@/lib/plans'
 import { ARRANGEMENT_SECTIONS, TEMPLATE_BY_THEME, THEMES, isLookTemplate, kindFromRole, rank } from '@/lib/blocks/presets'
 import { ARRANGEMENTS, defaultLayout, type Arrangement } from '@/lib/blocks/settings'
 import { LONG_STRINGS, ONE_PROJECT_NO_FIGURES, SAMPLE_PEOPLE, SPARSE, type SampleKind } from '@/lib/blocks/sample'
@@ -17,7 +24,7 @@ import { LONG_STRINGS, ONE_PROJECT_NO_FIGURES, SAMPLE_PEOPLE, SPARSE, type Sampl
 // indexed, and has no data of any real person. Add ?p=engineer&t=creative&a=proof to draw one portfolio full page.
 export const metadata: Metadata = { title: 'Design review', robots: { index: false, follow: false } }
 
-const FIXTURES = { ...SAMPLE_PEOPLE, sparse: SPARSE, long: LONG_STRINGS, noimg: ONE_PROJECT_NO_FIGURES } as const
+const FIXTURES: Record<string, PortfolioContent> = { ...SAMPLE_PEOPLE, sparse: SPARSE, long: LONG_STRINGS, noimg: ONE_PROJECT_NO_FIGURES, ...PRO_SAMPLES }
 type FixtureKey = keyof typeof FIXTURES
 
 // The seven Pro templates keep their own components; ?t=developer etc. draws them from the same invented content (so every template can be looked at).
@@ -32,9 +39,13 @@ export default async function DesignReview({ searchParams }: { searchParams: Pro
   const tpl = one('t')
   const arr = one('a') as Arrangement | undefined
 
-  if (p && p in FIXTURES && tpl && tpl in PRO) {
+  if (p && Object.hasOwn(FIXTURES, p) && isProTemplateId(tpl)) {
+    const content = withProDesign(safeContent(FIXTURES[p] as unknown as Record<string, unknown>) as unknown as PortfolioContent, tpl, one('v') === '2')
+    if (one('client') === '1' || one('picker') === '1') return <ProDesignLab content={content} template={tpl} picker={one('picker') === '1'} />
+    const mode = portfolioRenderMode(content, tpl)
+    if (mode.kind === 'pro') return <ProDesign content={content} template={mode.template} />
     const Pro = PRO[tpl]
-    return <Pro content={FIXTURES[p] as unknown as PortfolioContent} />
+    return <Pro content={content} />
   }
 
   if (p && p in FIXTURES && tpl && isLookTemplate(tpl)) {
@@ -55,6 +66,9 @@ export default async function DesignReview({ searchParams }: { searchParams: Pro
             {THEMES.flatMap((th) => ARRANGEMENTS.map((a) => (
               <li key={`${th}-${a}`}><Link href={`/design-review?p=${k}&t=${TEMPLATE_BY_THEME[th]}&a=${a}`}>{th} · {a}</Link></li>
             )))}
+          </ul>
+          <ul className="mt-4" style={{ columns: 2, paddingLeft: 18 }}>
+            {PRO_TEMPLATES.map((id) => <li key={id}>{id}: <Link href={`/design-review?p=${k}&t=${id}`}>Original</Link> · <Link href={`/design-review?p=${k}&t=${id}&v=2`}>Redesigned</Link> · <Link href={`/design-review?p=${k}&t=${id}&picker=1`}>Compare</Link></li>)}
           </ul>
         </section>
       ))}

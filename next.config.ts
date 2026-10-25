@@ -22,6 +22,8 @@ function supabasePattern() {
 }
 
 const nextConfig: NextConfig = {
+  // Optional local validation output: do not race an existing dev server in .next.
+  distDir: process.env.NEXT_BUILD_DIR || '.next',
   images: {
     remotePatterns: [
       ...supabasePattern(),

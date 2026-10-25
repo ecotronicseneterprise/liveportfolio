@@ -8,6 +8,7 @@ import { ACCENTS, ACCENT_IDS, ARRANGEMENTS, DENSITIES, type AccentId, type Arran
 import type { StoredContent } from '@/lib/blocks/mode'
 import { PRO_TEMPLATES, type TemplateId } from '@/lib/plans'
 import { t } from '@/lib/onboarding/t'
+import { usesProDesign } from '@/lib/portfolio/presentation'
 
 const FREE_LOOKS = ['creative', 'minimal', 'bold'] as const // Studio, Journal, Ledger
 const seg = 'inline-flex min-h-[44px] items-center justify-center rounded-full border px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2] focus-visible:ring-offset-2'
@@ -26,7 +27,7 @@ export default function LookPicker({
   template: string
   isPro: boolean
   onChange: (next: { template?: string; layout?: LayoutSettings }) => void
-  onLocked: (name: string) => void
+  onLocked: (name: string, id?: TemplateId) => void
 }) {
   const layout = (content.layout ?? { v: 1, arrangement: 'profile' }) as LayoutSettings
   const classicActive = !isLookTemplate(template)
@@ -42,7 +43,7 @@ export default function LookPicker({
 
       {classicActive && (
         <p role="status" className="rounded-xl bg-[#E8F0F9] px-4 py-3 text-sm text-gray-800">
-          {t('lookPicker.classicActive', { name: TEMPLATE_LABEL[template as TemplateId] ?? template })}
+          {t(usesProDesign(content, template) ? 'lookPicker.redesignActive' : 'lookPicker.classicActive', { name: TEMPLATE_LABEL[template as TemplateId] ?? template })}
         </p>
       )}
 
@@ -70,6 +71,7 @@ export default function LookPicker({
         </div>
       </fieldset>
 
+      <div hidden={classicActive} className="space-y-6">
       <fieldset>
         <legend className="mb-2 text-sm font-medium text-gray-900">{t('lookPicker.layout')}</legend>
         <div className="flex flex-wrap gap-2">
@@ -126,6 +128,8 @@ export default function LookPicker({
         </div>
       </div>
 
+      </div>
+
       <div>
         <h3 className="text-sm font-semibold text-gray-900">{t('lookPicker.classic')}</h3>
         <p className="mt-1 text-sm text-gray-700">{t('lookPicker.classicNote')}</p>
@@ -140,7 +144,7 @@ export default function LookPicker({
                 aria-pressed={template === id}
                 aria-label={locked ? `${name}, ${t('lookPicker.proLocked', { name })}` : name}
                 className={`${seg} ${template === id ? on : off} ${locked ? 'opacity-80' : ''}`}
-                onClick={() => (locked ? onLocked(name) : onChange({ template: id }))}
+                onClick={() => (locked ? onLocked(name, id) : onChange({ template: id }))}
               >
                 {name}{locked ? <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-800">{t('lookPicker.pro')}</span> : null}
               </button>

@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import type { PortfolioContent } from './Minimal'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
@@ -98,10 +98,13 @@ const css = `
   .ds-section {
     padding: 64px 7vw;
     border-bottom: 1px solid var(--border);
-    opacity: 0; transform: translateY(16px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    scroll-margin-top: 80px;
   }
-  .ds-section.visible { opacity: 1; transform: none; }
+  .ds-root { overflow-wrap: anywhere; }
+  .ds-root :focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+  @media (prefers-reduced-motion: reduce) {
+    .ds-root *, .ds-root *::before, .ds-root *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; transform: none !important; }
+  }
   .ds-section-eyebrow {
     font-family: 'Syne', sans-serif;
     font-size: 11px; letter-spacing: 0.18em;
@@ -129,7 +132,7 @@ const css = `
     box-shadow: 0 12px 32px rgba(109,40,217,0.12);
     border-color: rgba(109,40,217,0.4);
   }
-  .ds-case-img { width: 100%; aspect-ratio: 16/6; object-fit: cover; display: block; }
+  .ds-case-img { width: 100%; height: auto; aspect-ratio: 16/6; object-fit: contain; display: block; }
   .ds-case-body { padding: 32px; }
   .ds-case-title {
     font-family: 'Syne', sans-serif;
@@ -159,26 +162,6 @@ const css = `
     border-radius: 50px; color: var(--primary);
     font-weight: 500;
   }
-
-  /* Process steps */
-  .ds-process { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
-  .ds-process-step {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px; padding: 24px;
-    text-align: center;
-  }
-  .ds-process-num {
-    font-family: 'Syne', sans-serif;
-    font-size: 32px; font-weight: 800;
-    color: var(--accent); margin-bottom: 8px;
-  }
-  .ds-process-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px; font-weight: 700;
-    color: var(--text); margin-bottom: 6px;
-  }
-  .ds-process-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
 
   /* Skills */
   .ds-skills-list { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -245,46 +228,22 @@ const css = `
   .ds-footer a:hover { color: var(--primary); }
 
   @media (max-width: 700px) {
-    .ds-process { grid-template-columns: 1fr; }
     .ds-nav-links { display: none; }
     .ds-contact { padding: 48px 6vw; }
   }
 `
 
-const FALLBACK_STEPS = [
-  { label: 'Research', desc: 'Deep dive into user needs, business goals, and competitive landscape to frame the right problem.' },
-  { label: 'Design', desc: 'Translate insights into wireframes, prototypes, and high-fidelity visuals that are tested early and often.' },
-  { label: 'Deliver', desc: 'Collaborate with engineering to ship polished, accessible, and production-ready experiences.' },
-]
-
 export default function Designer({ content }: { content: PortfolioContent }) {
-  const rootRef = useRef<HTMLDivElement>(null)
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
-
-  useEffect(() => {
-    const sections = rootRef.current?.querySelectorAll('.ds-section')
-    if (!sections) return
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible') }),
-      { threshold: 0.08 }
-    )
-    sections.forEach((s) => obs.observe(s))
-    return () => obs.disconnect()
-  }, [])
-
   const works = content.projects
-
-  // Build process steps from skills_grouped categories (top 3), or fall back to hardcoded
-  const processSteps: { label: string; desc: string }[] =
-    content.skills_grouped && content.skills_grouped.length >= 1
-      ? content.skills_grouped.slice(0, 3).map((g) => ({
-          label: g.category,
-          desc: g.items.slice(0, 5).join(' · '),
-        }))
-      : FALLBACK_STEPS
+  const skillGroups = content.skills_grouped?.filter(g => g.items?.length > 0) ?? []
+  const groupedSkills = new Set(skillGroups.flatMap(g => g.items))
+  const flatSkills = content.skills.filter(s => !groupedSkills.has(s))
+  const hasSkills = !!(flatSkills.length || skillGroups.length || content.skills_narrative)
+  const hasContact = !!(content.email || content.linkedin_url || content.github_url)
 
   return (
-    <div className="ds-root" ref={rootRef}>
+    <div className="ds-root">
       <style>{css}</style>
 
       <nav className="ds-nav">
@@ -298,9 +257,9 @@ export default function Designer({ content }: { content: PortfolioContent }) {
         )}
         <div className="ds-nav-links">
           {works.length > 0 && <a href="#work" className="ds-nav-link">Work</a>}
-          {content.skills.length > 0 && <a href="#skills" className="ds-nav-link">Skills</a>}
+          {hasSkills && <a href="#skills" className="ds-nav-link">Skills</a>}
           {content.experience.length > 0 && <a href="#experience" className="ds-nav-link">Experience</a>}
-          <a href="#contact" className="ds-nav-link">Contact</a>
+          {hasContact && <a href="#contact" className="ds-nav-link">Contact</a>}
         </div>
       </nav>
 
@@ -309,10 +268,11 @@ export default function Designer({ content }: { content: PortfolioContent }) {
         <div>
           <h1 className="ds-hero-name">{content.name}</h1>
           <p className="ds-hero-role">{content.role}</p>
+          {content.location && <p className="ds-hero-bio">{content.location}</p>}
           {content.headline && <p className="ds-hero-bio">{content.headline}</p>}
-          {content.about && <p className="ds-hero-about">{content.about}</p>}
+          {content.about && <div className="ds-hero-about">{content.about.split('\n\n').map((p, i) => <p key={i}>{p}</p>)}</div>}
           <div className="ds-hero-links">
-            <a href={`mailto:${content.email}`} className="ds-cta-primary">Get in touch →</a>
+            {content.email && <a href={`mailto:${content.email}`} className="ds-cta-primary">Get in touch →</a>}
             {content.linkedin_url && (
               <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="ds-cta-ghost">LinkedIn</a>
             )}
@@ -327,7 +287,7 @@ export default function Designer({ content }: { content: PortfolioContent }) {
       {works.length > 0 && (
         <section id="work" className="ds-section">
           <div className="ds-section-eyebrow">Selected Work</div>
-          <div className="ds-section-title">Projects &amp; Case Studies</div>
+          <h2 className="ds-section-title">Projects &amp; Case Studies</h2>
           <div className="ds-case-grid">
             {works.map((p, i) => (
               <div key={i} className="ds-case-card">
@@ -365,6 +325,7 @@ export default function Designer({ content }: { content: PortfolioContent }) {
                       View project →
                     </a>
                   )}
+                  {p.github_url && <a href={p.github_url} target="_blank" rel="noopener noreferrer" className="ds-cta-ghost" style={{ display: 'inline-block', marginTop: 16, marginLeft: p.url ? 8 : 0 }}>Repository →</a>}
                 </div>
               </div>
             ))}
@@ -372,28 +333,20 @@ export default function Designer({ content }: { content: PortfolioContent }) {
         </section>
       )}
 
-      {/* Approach / Process */}
-      <section className="ds-section">
-        <div className="ds-section-eyebrow">How I Work</div>
-        <div className="ds-section-title">Approach</div>
-        <div className="ds-process">
-          {processSteps.map((step, i) => (
-            <div key={i} className="ds-process-step">
-              <div className="ds-process-num">0{i + 1}</div>
-              <div className="ds-process-label">{step.label}</div>
-              <div className="ds-process-desc">{step.desc}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* Skills */}
-      {content.skills.length > 0 && (
+      {hasSkills && (
         <section id="skills" className="ds-section">
           <div className="ds-section-eyebrow">Toolkit</div>
-          <div className="ds-section-title">Skills &amp; Tools</div>
+          <h2 className="ds-section-title">Skills &amp; Tools</h2>
+          {content.skills_narrative && <p className="ds-hero-about">{content.skills_narrative}</p>}
+          {skillGroups.map((g, i) => (
+            <div key={i} style={{ marginBottom: 20 }}>
+              <h3 className="ds-case-title">{g.category}</h3>
+              <div className="ds-skills-list">{g.items.map(s => <span key={s} className="ds-skill">{s}</span>)}</div>
+            </div>
+          ))}
           <div className="ds-skills-list">
-            {content.skills.map((s) => <span key={s} className="ds-skill">{s}</span>)}
+            {flatSkills.map((s) => <span key={s} className="ds-skill">{s}</span>)}
           </div>
         </section>
       )}
@@ -402,7 +355,7 @@ export default function Designer({ content }: { content: PortfolioContent }) {
       {content.experience.length > 0 && (
         <section id="experience" className="ds-section">
           <div className="ds-section-eyebrow">Career</div>
-          <div className="ds-section-title">Experience</div>
+          <h2 className="ds-section-title">Experience</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             {content.experience.map((e, i) => (
               <div key={i} style={{ borderLeft: '2px solid var(--border)', paddingLeft: 24, position: 'relative' }}>
@@ -427,11 +380,45 @@ export default function Designer({ content }: { content: PortfolioContent }) {
       )}
 
       {/* Contact */}
-      <div id="contact" className="ds-contact">
-        <h2 className="ds-contact-title">Let&apos;s create something.</h2>
-        <p className="ds-contact-sub">Open to full-time, freelance, and consulting engagements.</p>
-        <a href={`mailto:${content.email}`} className="ds-contact-cta">Start a conversation →</a>
-      </div>
+      {!!content.education?.length && (
+        <section id="education" className="ds-section">
+          <h2 className="ds-section-title">Education</h2>
+          {content.education.map((ed, i) => (
+            <div key={i} style={{ marginBottom: 24 }}>
+              <h3 className="ds-case-title">{ed.degree}</h3>
+              <p className="ds-case-problem">{ed.institution}</p>
+              <p className="ds-case-problem">{ed.year || (ed as typeof ed & { period?: string }).period}{ed.grade ? ` · ${ed.grade}` : ''}</p>
+            </div>
+          ))}
+        </section>
+      )}
+      {!!content.certifications?.length && (
+        <section id="certifications" className="ds-section">
+          <h2 className="ds-section-title">Certifications</h2>
+          <div className="ds-skills-list">{content.certifications.map(cert => <span key={cert} className="ds-skill">{cert}</span>)}</div>
+        </section>
+      )}
+      {!!content.testimonials?.length && (
+        <section id="testimonials" className="ds-section">
+          <h2 className="ds-section-title">Testimonials</h2>
+          <div className="ds-testimonials">
+            {content.testimonials.map((t, i) => (
+              <figure key={i} className="ds-testimonial">
+                <blockquote className="ds-testimonial-text">{t.text}</blockquote>
+                <figcaption><div className="ds-testimonial-author">{t.author}</div><div className="ds-testimonial-role">{[t.role, t.company].filter(Boolean).join(' · ')}</div></figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
+      {hasContact && <section id="contact" className="ds-contact">
+        <h2 className="ds-contact-title">Get in touch.</h2>
+        {content.email && <a href={`mailto:${content.email}`} className="ds-contact-cta">{content.email} →</a>}
+        <div className="ds-hero-links" style={{ justifyContent: 'center', marginTop: 16 }}>
+          {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="ds-cta-ghost">LinkedIn</a>}
+          {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="ds-cta-ghost">GitHub</a>}
+        </div>
+      </section>}
 
       <footer className="ds-footer">
         <span>{content.name} · {content.role}</span>

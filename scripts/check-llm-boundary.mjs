@@ -19,7 +19,7 @@ export const ALLOWLIST = new Map([
   ['app/api/generate/route.ts', 'pending approval'],
 ])
 
-const SKIP_DIRS = new Set(['node_modules', '.next', '.git', 'tests', 'fixtures'])
+const SKIP_DIRS = new Set(['node_modules', '.next', '.next-template-review', '.git', 'tests', 'fixtures'])
 const EXT = /\.(?:ts|tsx|js|jsx|mjs|cjs)$/
 
 function* walk(dir) {

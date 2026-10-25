@@ -261,9 +261,10 @@
     "selected": "Selected",
     "recommended": "Reset to the recommended look",
     "livePreview": "Your portfolio as it looks now",
-    "classic": "Classic templates",
-    "classicNote": "These keep their own design and are part of Pro.",
-    "classicActive": "You are using the classic template {name}. Choose a look above to switch to the new designs.",
+    "classic": "Pro templates",
+    "classicNote": "Seven distinct designs. Preview the original and redesigned versions below before saving.",
+    "classicActive": "You are using the original {name} design. Compare versions below. Free-look layout controls do not affect this template.",
+    "redesignActive": "You are using the redesigned {name}. Compare versions below. Free-look layout controls do not affect this template.",
     "proLocked": "{name} is included with Pro.",
     "accents": {
       "blue": "Blue",
@@ -283,6 +284,20 @@
       "short": "First paragraph only"
     },
     "pro": "Pro"
+  },
+  "proDesign": {
+    "title": "Design version",
+    "note": "Compare both designs with your own words. Previewing does not save or change your public portfolio.",
+    "preview": "Preview a design version",
+    "new": "Preview redesigned version",
+    "previous": "Preview original version",
+    "previewNew": "Previewing the redesigned version. Your saved choice has not changed.",
+    "previewPrevious": "Previewing the original version. Your saved choice has not changed.",
+    "save": "Save this design",
+    "saving": "Saving…",
+    "selected": "Saved design",
+    "upgrade": "Upgrade to save this design",
+    "saveNote": "Only the design is saved here. Your words stay unchanged. You can switch back or undo from History."
   },
   "billing": {
     "cancelButton": "Request a refund",

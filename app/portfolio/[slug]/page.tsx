@@ -24,7 +24,8 @@ import { canUseTemplate } from '@/lib/plans'
 import { planFromUserColumn } from '@/lib/getUserPlan'
 import { safeContent } from '@/lib/portfolio/render-safe'
 import Look from '@/components/blocks/Look'
-import { storedLayout } from '@/lib/blocks/mode'
+import ProDesign from '@/components/templates/pro/ProDesign'
+import { portfolioRenderMode } from '@/lib/portfolio/render-mode'
 
 const DEMO_SLUGS = new Set([
   'james-chen', 'sofia-martinez', 'fatima-hassan',
@@ -212,7 +213,8 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
   // New block designs: only a portfolio that stores a valid layout AND uses one of the 3 free template ids. Everything else is legacy, untouched.
   // links that are not plain http(s) addresses are dropped before drawing (defence in depth; the write paths refuse them already)
   const safe = safeContent(portfolio.content as unknown as Record<string, unknown>) as unknown as typeof portfolio.content
-  const layout = storedLayout(safe, effectiveTemplate)
+  const mode = portfolioRenderMode(safe, effectiveTemplate)
+  const layout = mode.kind === 'blocks' ? mode.layout : null
   const paid = (data as { plan?: string }).plan === 'basic' || (data as { plan?: string }).plan === 'pro'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
   const c = safe
@@ -236,7 +238,7 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(personSchema) }}
       />
-      {layout
+      {mode.kind === 'pro' ? <ProDesign content={safe} template={mode.template} /> : layout
         ? <Look template={effectiveTemplate} content={safe} layout={layout} page credit={!paid} />
         : <Template content={safe} />}
       {(data as { plan?: string }).plan !== 'basic' && (data as { plan?: string }).plan !== 'pro' && (

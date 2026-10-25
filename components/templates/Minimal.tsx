@@ -17,6 +17,8 @@ const dmSans = DM_Sans({
 })
 
 export interface PortfolioContent {
+  /** Explicit per-template opt-in; missing or unknown versions render the original design. */
+  pro_designs?: unknown
   name: string
   role: string
   headline: string
@@ -49,6 +51,7 @@ export interface PortfolioContent {
     degree: string
     institution: string
     year: string
+    period?: string
     grade?: string
   }[]
   certifications?: string[]

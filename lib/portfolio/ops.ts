@@ -8,6 +8,8 @@
 import { z } from 'zod'
 import { httpUrl, isGithubAvatarUrl, projectImageUrl } from '@/lib/connectors/safe-url'
 import { LayoutSettings, parseLayout } from '@/lib/blocks/settings'
+import { PRO_TEMPLATES } from '@/lib/plans'
+import { ProDesignsSchema, withProDesign } from '@/lib/portfolio/presentation'
 
 export type Json = Record<string, unknown>
 export interface PortfolioState {
@@ -30,10 +32,11 @@ export const LINK_FIELDS = ['github_url', 'linkedin_url', 'avatar_url'] as const
 /** Every key the dashboard may send. Anything else is dropped silently (as the route always did). */
 export const CONTENT_KEYS = [
   'name', 'role', 'about', 'headline', 'location', 'email', 'github_url', 'linkedin_url', 'avatar_url',
-  'skills', 'skills_grouped', 'skills_narrative', 'projects', 'experience', 'education', 'certifications',
+  'skills', 'skills_grouped', 'skills_narrative', 'projects', 'experience', 'education', 'certifications', 'testimonials',
   'layout', // the look: an arrangement and a few presentation choices, validated by lib/blocks/settings.ts (never words)
+  'pro_designs', // explicit per-Pro-template opt-ins, independent of the free-template layout
 ] as const
-const ARRAY_KEYS = new Set(['skills', 'skills_grouped', 'projects', 'experience', 'education', 'certifications'])
+const ARRAY_KEYS = new Set(['skills', 'skills_grouped', 'projects', 'experience', 'education', 'certifications', 'testimonials'])
 const MAX_ITEMS = 50
 
 export const MAX_PROJECTS_ADD = MAX_ITEMS // the same bound as every other list: nobody should be stopped at 6 projects
@@ -76,7 +79,7 @@ const ExperienceInput = z
 const ExperiencePatch = z
   .object({ company: str(120).optional(), role: str(120).optional(), period: str(60).optional(), bullets: z.array(str(400)).max(12).optional() })
   .strict()
-const EducationInput = z.object({ degree: str(160), institution: str(160), year: str(20).default(''), grade: str(60).optional() }).strict()
+const EducationInput = z.object({ degree: str(160), institution: str(160), year: str(20).default(''), period: str(60).optional(), grade: str(60).optional() }).strict()
 const Group = z.object({ category: str(60), items: z.array(str(60)).max(20) }).strict()
 
 const idx = z.number().int().min(0).max(99)
@@ -94,13 +97,14 @@ export const Op = z.discriminatedUnion('op', [
   z.object({ op: z.literal('update_experience'), index: idx, patch: ExperiencePatch }).strict(),
   z.object({ op: z.literal('remove_experience'), index: idx }).strict(),
   z.object({ op: z.literal('move_experience'), from: idx, to: idx }).strict(),
-  z.object({ op: z.literal('set_education'), education: z.array(EducationInput).max(6) }).strict(),
+  z.object({ op: z.literal('set_education'), education: z.array(EducationInput).max(MAX_ITEMS) }).strict(),
   z.object({ op: z.literal('set_certifications'), certifications: z.array(str(160)).max(12) }).strict(),
   // The dashboard's "Save" sends whole sections; this is that, validated for shape. The assistant is not given this op.
   z.object({ op: z.literal('replace_content'), content: z.record(z.string(), z.unknown()) }).strict(),
   z.object({ op: z.literal('set_template'), template: z.string().max(40) }).strict(),
   // The look of the portfolio (null = back to the classic design). Content is never touched.
   z.object({ op: z.literal('set_layout'), layout: LayoutSettings.nullable() }).strict(),
+  z.object({ op: z.literal('set_pro_design'), template: z.enum(PRO_TEMPLATES), version: z.literal(2).nullable() }).strict(),
 ])
 export type Op = z.infer<typeof Op>
 export const Ops = z.array(Op).min(1).max(MAX_OPS)
@@ -157,6 +161,12 @@ function cleanContentPatch(raw: Record<string, unknown>, i: number): Json {
   for (const k of CONTENT_KEYS) {
     if (!(k in raw)) continue
     const v = raw[k]
+    if (k === 'pro_designs') {
+      const parsed = ProDesignsSchema.safeParse(v)
+      if (!parsed.success) throw new OpError('invalid_op', 'pro_designs must contain only known Pro template ids with version 2', i)
+      out.pro_designs = parsed.data
+      continue
+    }
     if (k === 'layout') {
       if (v === null) { out.layout = null; continue }
       // a whole-section save is lenient (an invalid or hand-edited layout is dropped, so one bad value can never block saving other edits); the
@@ -249,6 +259,10 @@ export function applyOps(input: PortfolioState, rawOps: unknown): ApplyResult {
         const cur = arr[op.index]
         const patch = checkProjectLinks(op.patch as Json, cur, i)
         const next = { ...cur, ...patch }
+        // Link validation drops empty values; an explicit clear must also remove the stored value after merging.
+        for (const key of ['url', 'github_url', 'image_url'] as const) {
+          if (op.patch[key]?.trim() === '') delete next[key]
+        }
         if (typeof next.title === 'string' && !next.title.trim()) throw new OpError('invalid_op', 'a project needs a title', i)
         if (!same(cur, next)) { c.projects = arr.map((p, k) => (k === op.index ? next : p)); note(`Edited project ${projectName(next)}`.trim()) }
         break
@@ -339,6 +353,14 @@ export function applyOps(input: PortfolioState, rawOps: unknown): ApplyResult {
       case 'set_layout': {
         if (op.layout === null) { if ('layout' in c) { delete c.layout; note('Went back to the classic design') } }
         else if (!same(c.layout, op.layout)) { c.layout = op.layout; note('Changed look') }
+        break
+      }
+      case 'set_pro_design': {
+        const next = withProDesign({ pro_designs: c.pro_designs }, op.template, op.version === 2).pro_designs
+        if (!same(c.pro_designs ?? {}, next)) {
+          c.pro_designs = next
+          note(op.version === 2 ? `Enabled new ${op.template} design` : `Restored classic ${op.template} design`)
+        }
         break
       }
       case 'set_template': {

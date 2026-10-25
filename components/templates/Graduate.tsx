@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect, useRef } from 'react'
+import { useId, useState } from 'react'
 import type { PortfolioContent } from './Minimal'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
@@ -18,7 +18,14 @@ const css = `
     color: var(--text);
     font-family: 'Nunito', system-ui, sans-serif;
     min-height: 100vh;
+    overflow-wrap: anywhere;
   }
+  .gr-root section[id] { scroll-margin-top: 80px; }
+  .gr-root a:focus-visible, .gr-root button:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+  .gr-prose { white-space: pre-line; font-size: 15px; line-height: 1.7; margin-bottom: 16px; }
+  .gr-project-links { display: flex; flex-wrap: wrap; gap: 16px; }
+  .gr-skill-group { margin-bottom: 20px; }
+  .gr-skill-category { font-weight: 700; margin-bottom: 8px; }
   .gr-nav {
     background: rgba(238,242,255,0.92);
     backdrop-filter: blur(10px);
@@ -28,7 +35,7 @@ const css = `
     position: sticky; top: 0; z-index: 50;
   }
   .gr-nav-name { font-size: 15px; font-weight: 800; color: var(--primary); }
-  .gr-nav-links { display: flex; gap: 22px; }
+  .gr-nav-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 16px; }
   .gr-nav-link { font-size: 13px; color: var(--muted); text-decoration: none; font-weight: 600; transition: color 0.2s; }
   .gr-nav-link:hover { color: var(--primary); }
 
@@ -90,10 +97,7 @@ const css = `
   .gr-section {
     padding: 48px 7vw;
     border-bottom: 1px solid var(--border);
-    opacity: 0; transform: translateY(12px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
   }
-  .gr-section.visible { opacity: 1; transform: none; }
   .gr-section-eyebrow {
     font-size: 11px; letter-spacing: 0.16em;
     text-transform: uppercase; color: var(--primary);
@@ -117,7 +121,7 @@ const css = `
   .gr-edu-institution { font-size: 14px; color: var(--primary); font-weight: 700; margin-bottom: 4px; }
   .gr-edu-meta { font-size: 12px; color: var(--muted); font-weight: 500; }
 
-  /* Experience — internship framing */
+  /* Experience */
   .gr-exp-list { display: flex; flex-direction: column; gap: 24px; }
   .gr-exp-item {
     background: var(--surface);
@@ -199,30 +203,43 @@ const css = `
   .gr-footer a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
   .gr-footer a:hover { color: var(--primary); }
 
+  .gr-hamburger { display: none; background: none; border: none; color: var(--primary); padding: 8px; font-size: 18px; cursor: pointer; }
+  .gr-mobile-menu { display: none; background: var(--bg); padding: 12px 7vw; }
+  .gr-mobile-menu a { padding: 8px 0; }
+
   @media (max-width: 700px) {
     .gr-hero { grid-template-columns: 1fr; }
     .gr-projects { grid-template-columns: 1fr; }
     .gr-nav-links { display: none; }
+    .gr-hamburger { display: block; }
+    .gr-mobile-menu.open { display: flex; flex-direction: column; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gr-root *, .gr-root *::before, .gr-root *::after { animation: none !important; transition: none !important; }
   }
 `
 
 export default function Graduate({ content }: { content: PortfolioContent }) {
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const sections = rootRef.current?.querySelectorAll('.gr-section')
-    if (!sections) return
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible') }),
-      { threshold: 0.08 }
-    )
-    sections.forEach((s) => obs.observe(s))
-    return () => obs.disconnect()
-  }, [])
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const menuId = useId()
+  const skillGroups = (content.skills_grouped ?? []).filter(g => g.items?.length > 0)
+  const groupedSkills = new Set(skillGroups.flatMap(g => g.items))
+  const ungroupedSkills = content.skills.filter(skill => !groupedSkills.has(skill))
+  const hasSkills = skillGroups.length > 0 || ungroupedSkills.length > 0 || !!content.skills_narrative
+  const hasContact = !!(content.email || content.github_url || content.linkedin_url)
+  const navLinks = [
+    { id: 'education', label: 'Education', show: !!content.education?.length },
+    { id: 'experience', label: 'Experience', show: content.experience.length > 0 },
+    { id: 'projects', label: 'Projects', show: content.projects.length > 0 },
+    { id: 'skills', label: 'Skills', show: hasSkills },
+    { id: 'certifications', label: 'Certifications', show: !!content.certifications?.length },
+    { id: 'testimonials', label: 'Testimonials', show: !!content.testimonials?.length },
+    { id: 'contact', label: 'Contact', show: hasContact },
+  ].filter(link => link.show)
 
   return (
-    <div className="gr-root" ref={rootRef}>
+    <div className="gr-root">
       <style>{css}</style>
 
       <nav className="gr-nav">
@@ -235,12 +252,18 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
           </div>
         )}
         <div className="gr-nav-links">
-          <a href="#education" className="gr-nav-link">Education</a>
-          {content.experience.length > 0 && <a href="#experience" className="gr-nav-link">Experience</a>}
-          {content.projects.length > 0 && <a href="#projects" className="gr-nav-link">Projects</a>}
-          <a href="#contact" className="gr-nav-link">Contact</a>
+          {navLinks.map(link => <a key={link.id} href={`#${link.id}`} className="gr-nav-link">{link.label}</a>)}
         </div>
+        {navLinks.length > 0 && <button type="button" className="gr-hamburger"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileMenuOpen} aria-controls={menuId}>
+          {mobileMenuOpen ? '✕' : '☰'}
+        </button>}
       </nav>
+      <div id={menuId} className={`gr-mobile-menu${mobileMenuOpen ? ' open' : ''}`}>
+        {navLinks.map(link => <a key={link.id} href={`#${link.id}`} className="gr-nav-link" onClick={() => setMobileMenuOpen(false)}>{link.label}</a>)}
+      </div>
 
       {/* Hero */}
       <div className="gr-hero">
@@ -254,9 +277,11 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
         <div>
           <h1 className="gr-hero-name">{content.name}</h1>
           <div className="gr-hero-role">{content.role}</div>
-          <div className="gr-hero-bio">{content.headline}</div>
+          {content.headline && <p className="gr-hero-bio">{content.headline}</p>}
+          {content.about && <p className="gr-hero-bio gr-prose">{content.about}</p>}
+          {content.location && <p className="gr-hero-bio">{content.location}</p>}
           <div className="gr-hero-links">
-            <a href={`mailto:${content.email}`} className="gr-cta">Let&apos;s connect →</a>
+            {content.email && <a href={`mailto:${content.email}`} className="gr-cta">{content.email}</a>}
             {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="gr-cta-ghost">LinkedIn</a>}
             {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="gr-cta-ghost">GitHub</a>}
           </div>
@@ -264,57 +289,27 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
       </div>
 
       {/* Education first and prominent */}
-      <section id="education" className="gr-section">
+      {content.education && content.education.length > 0 && <section id="education" className="gr-section">
         <div className="gr-section-eyebrow">Academic Background</div>
-        <div className="gr-section-title">Education</div>
+        <h2 className="gr-section-title">Education</h2>
         <div className="gr-edu-list">
-          {/* content.education[] — primary source */}
-          {content.education && content.education.map((ed, i) => (
+          {content.education.map((ed, i) => (
             <div key={`edu-${i}`} className="gr-edu-card">
               <div className="gr-edu-degree">{ed.degree}</div>
               <div className="gr-edu-institution">{ed.institution}</div>
-              <div className="gr-edu-meta">{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
-            </div>
-          ))}
-          {/* experience-filtered fallback — skip entries already covered by content.education[] */}
-          {content.experience.filter(e => {
-            const isEduEntry = /universit|college|school|degree|bsc|msc|ba |ma |phd|polytechnic|institute/i.test(e.company + ' ' + e.role)
-            if (!isEduEntry) return false
-            // Skip if institution already in content.education
-            if (content.education && content.education.some(
-              ed => ed.institution.toLowerCase().trim() === e.company.toLowerCase().trim()
-            )) return false
-            return true
-          }).map((e, i) => (
-            <div key={`exp-edu-${i}`} className="gr-edu-card">
-              <div className="gr-edu-degree">{e.role}</div>
-              <div className="gr-edu-institution">{e.company}</div>
-              <div className="gr-edu-meta">{e.period}</div>
-              {e.bullets.length > 0 && (
-                <ul className="gr-exp-bullets" style={{ marginTop: 10 }}>
-                  {e.bullets.map((b, j) => (
-                    <li key={j} className="gr-exp-bullet">
-                      <span className="gr-bullet-mark">✦</span><span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div className="gr-edu-meta">{ed.year || (ed as typeof ed & { period?: string }).period}{ed.grade ? ` · ${ed.grade}` : ''}</div>
             </div>
           ))}
         </div>
-      </section>
+      </section>}
 
-      {/* Experience / Internships */}
-      {content.experience.filter(e =>
-        !/universit|college|school|degree|bsc|msc|ba |ma |phd|polytechnic|institute/i.test(e.company + ' ' + e.role)
-      ).length > 0 && (
+      {/* Experience */}
+      {content.experience.length > 0 && (
         <section id="experience" className="gr-section">
           <div className="gr-section-eyebrow">Work History</div>
-          <div className="gr-section-title">Internships &amp; Experience</div>
+          <h2 className="gr-section-title">Experience</h2>
           <div className="gr-exp-list">
-            {content.experience.filter(e =>
-              !/universit|college|school|degree|bsc|msc|ba |ma |phd|polytechnic|institute/i.test(e.company + ' ' + e.role)
-            ).map((e, i) => (
+            {content.experience.map((e, i) => (
               <div key={i} className="gr-exp-item">
                 <div className="gr-exp-role">{e.role}</div>
                 <div className="gr-exp-co">{e.company}</div>
@@ -337,8 +332,7 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
       {/* Projects */}
       {content.projects.length > 0 && (
         <section id="projects" className="gr-section">
-          <div className="gr-section-eyebrow">Personal Work</div>
-          <div className="gr-section-title">Projects</div>
+          <h2 className="gr-section-title">Projects</h2>
           <div className="gr-projects">
             {content.projects.map((p, i) => (
               <div key={i} className="gr-proj-card">
@@ -358,7 +352,10 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
                       {p.stack.map((t) => <span key={t} className="gr-proj-tag">{t}</span>)}
                     </div>
                   )}
-                  {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="gr-proj-link">View project →</a>}
+                  {(p.url || p.github_url) && <div className="gr-project-links">
+                    {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="gr-proj-link">View demo →</a>}
+                    {p.github_url && <a href={p.github_url} target="_blank" rel="noopener noreferrer" className="gr-proj-link">Repository →</a>}
+                  </div>}
                 </div>
               </div>
             ))}
@@ -367,22 +364,57 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
       )}
 
       {/* Skills */}
-      {content.skills.length > 0 && (
-        <section className="gr-section">
+      {hasSkills && (
+        <section id="skills" className="gr-section">
           <div className="gr-section-eyebrow">Toolkit</div>
-          <div className="gr-section-title">Skills</div>
+          <h2 className="gr-section-title">Skills</h2>
+          {content.skills_narrative && <p className="gr-prose">{content.skills_narrative}</p>}
+          {skillGroups.map(({ category, items }, i) => (
+            <div key={i} className="gr-skill-group">
+              <h3 className="gr-skill-category">{category}</h3>
+              <div className="gr-skills">
+                {items.map(s => <span key={s} className="gr-skill">{s}</span>)}
+              </div>
+            </div>
+          ))}
+          {ungroupedSkills.length > 0 && <div className="gr-skills">
+            {ungroupedSkills.map(s => <span key={s} className="gr-skill">{s}</span>)}
+          </div>}
+        </section>
+      )}
+
+      {content.certifications && content.certifications.length > 0 && (
+        <section id="certifications" className="gr-section">
+          <h2 className="gr-section-title">Certifications</h2>
           <div className="gr-skills">
-            {content.skills.map((s) => <span key={s} className="gr-skill">{s}</span>)}
+            {content.certifications.map(cert => <span key={cert} className="gr-skill">{cert}</span>)}
+          </div>
+        </section>
+      )}
+
+      {content.testimonials && content.testimonials.length > 0 && (
+        <section id="testimonials" className="gr-section">
+          <h2 className="gr-section-title">Testimonials</h2>
+          <div className="gr-exp-list">
+            {content.testimonials.map((testimonial, i) => (
+              <figure key={i} className="gr-exp-item">
+                <blockquote className="gr-prose">{testimonial.text}</blockquote>
+                <figcaption>{[testimonial.author, testimonial.role, testimonial.company].filter(Boolean).join(' · ')}</figcaption>
+              </figure>
+            ))}
           </div>
         </section>
       )}
 
       {/* Contact */}
-      <div id="contact" className="gr-contact">
-        <h2 className="gr-contact-title">I&apos;m actively looking for opportunities.</h2>
-        <p className="gr-contact-sub">Open to internships, entry-level roles, and graduate programmes.</p>
-        <a href={`mailto:${content.email}`} className="gr-contact-cta">Get in touch →</a>
-      </div>
+      {hasContact && <section id="contact" className="gr-contact">
+        <h2 className="gr-contact-title">Contact</h2>
+        {content.email && <a href={`mailto:${content.email}`} className="gr-contact-cta">Get in touch →</a>}
+        <div className="gr-hero-links" style={{ justifyContent: 'center', marginTop: 16 }}>
+          {content.linkedin_url && <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="gr-cta-ghost">LinkedIn</a>}
+          {content.github_url && <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="gr-cta-ghost">GitHub</a>}
+        </div>
+      </section>}
 
       <footer className="gr-footer">
         <span>{content.name}</span>

@@ -30,7 +30,7 @@ export default function HistoryPanel({
 }: {
   token: string
   refreshKey: number
-  onRestored: (r: { content: Record<string, unknown>; template: string; health_score?: number }) => void
+  onRestored: (r: { content: Record<string, unknown>; template: string; health_score?: number; edit_count?: number }) => void
 }) {
   const [rows, setRows] = useState<Revision[] | null>(null)
   const [available, setAvailable] = useState(true)
@@ -63,7 +63,7 @@ export default function HistoryPanel({
       })
       const j = await res.json().catch(() => ({}))
       if (!res.ok) { setMsg({ ok: false, text: j.message || 'Could not go back. Please try again.' }); return }
-      onRestored({ content: j.content, template: j.template, health_score: j.health_score })
+      onRestored({ content: j.content, template: j.template, health_score: j.health_score, edit_count: j.edit_count })
       setMsg({ ok: true, text: 'Done. Your portfolio is back to that version.' })
       await load()
     } catch {

@@ -1,11 +1,13 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { createElement, type ComponentType } from 'react'
+import { createElement, useId, type ComponentType } from 'react'
 import type { PortfolioContent } from './Minimal'
 import type { TemplateId } from '@/lib/plans'
-import { storedLayout } from '@/lib/blocks/mode'
 import type { LookTemplate } from '@/lib/blocks/presets'
+import { portfolioRenderMode } from '@/lib/portfolio/render-mode'
+import { safeContent } from '@/lib/portfolio/render-safe'
+import type { ProTemplateId } from '@/lib/portfolio/presentation'
 
 // Every template as its own lazily-loaded chunk (client only). Used by the onboarding gallery and the preview page, so a
 // person previewing "Minimal" does not download the other nine.
@@ -15,23 +17,34 @@ const load = (loader: () => Promise<{ default: T }>) => dynamic(loader, { ssr: f
 // The three FREE templates draw with the block renderer when the content carries a valid layout (every new portfolio does), and with today's
 // component otherwise (every portfolio saved before the block renderer). The block renderer is its own lazy chunk, loaded only when needed.
 const LookLazy = dynamic(() => import('@/components/blocks/Look'), { ssr: false, loading: () => null })
+const ProLazy = dynamic(() => import('./pro/ProDesign'), { ssr: false, loading: () => null })
+const safeTemplate = (Component: T): T => function SafeTemplate({ content }) {
+  const safe = safeContent(content as unknown as Record<string, unknown>) as unknown as PortfolioContent
+  return createElement(Component, { content: safe })
+}
+const withPro = (id: ProTemplateId, Legacy: T): T => function VersionedTemplate({ content }) {
+  const idPrefix = `pro-${useId().replace(/:/g, '')}`
+  const mode = portfolioRenderMode(content, id)
+  return mode.kind === 'pro' ? createElement(ProLazy, { template: id, content, idPrefix }) : createElement(Legacy, { content })
+}
 const withLook = (id: LookTemplate, Legacy: T): T =>
   function Templated({ content }) {
-    const layout = storedLayout(content, id)
+    const mode = portfolioRenderMode(content, id)
+    const layout = mode.kind === 'blocks' ? mode.layout : null
     return layout ? createElement(LookLazy, { template: id, content, layout }) : createElement(Legacy, { content })
   }
 
 export const TEMPLATES: Record<TemplateId, T> = {
-  minimal: withLook('minimal', load(() => import('./Minimal'))),
-  bold: withLook('bold', load(() => import('./Bold'))),
-  creative: withLook('creative', load(() => import('./Creative'))),
-  developer: load(() => import('./Developer')),
-  designer: load(() => import('./Designer')),
-  'data-scientist': load(() => import('./DataScientist')),
-  'product-manager': load(() => import('./ProductManager')),
-  finance: load(() => import('./Finance')),
-  graduate: load(() => import('./Graduate')),
-  cybersecurity: load(() => import('./Cybersecurity')),
+  minimal: safeTemplate(withLook('minimal', load(() => import('./Minimal')))),
+  bold: safeTemplate(withLook('bold', load(() => import('./Bold')))),
+  creative: safeTemplate(withLook('creative', load(() => import('./Creative')))),
+  developer: safeTemplate(withPro('developer', load(() => import('./Developer')))),
+  designer: safeTemplate(withPro('designer', load(() => import('./Designer')))),
+  'data-scientist': safeTemplate(withPro('data-scientist', load(() => import('./DataScientist')))),
+  'product-manager': safeTemplate(withPro('product-manager', load(() => import('./ProductManager')))),
+  finance: safeTemplate(withPro('finance', load(() => import('./Finance')))),
+  graduate: safeTemplate(withPro('graduate', load(() => import('./Graduate')))),
+  cybersecurity: safeTemplate(withPro('cybersecurity', load(() => import('./Cybersecurity')))),
 }
 
 export const TEMPLATE_LABEL: Record<TemplateId, string> = {

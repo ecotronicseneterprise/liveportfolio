@@ -1,7 +1,6 @@
 'use client'
 
-import Image from 'next/image'
-import { useEffect, useRef } from 'react'
+import { useState } from 'react'
 import type { PortfolioContent } from './Minimal'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
@@ -16,7 +15,7 @@ const css = `
     --border: #1E2D4F;
     background: var(--bg);
     color: var(--text);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
     min-height: 100vh;
   }
   .fin-nav {
@@ -33,7 +32,7 @@ const css = `
 
   .fin-layout {
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 320px minmax(0, 1fr);
     min-height: calc(100vh - 49px);
   }
 
@@ -92,10 +91,13 @@ const css = `
 
   .fin-section {
     margin-bottom: 48px;
-    opacity: 0; transform: translateY(10px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    scroll-margin-top: 80px;
   }
-  .fin-section.visible { opacity: 1; transform: none; }
+  .fin-root { overflow-wrap: anywhere; }
+  .fin-root :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  @media (prefers-reduced-motion: reduce) {
+    .fin-root *, .fin-root *::before, .fin-root *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; transform: none !important; }
+  }
   .fin-section-label {
     font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
     color: var(--accent); font-weight: 700;
@@ -113,19 +115,6 @@ const css = `
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-  }
-
-  /* Metric chips */
-  .fin-metrics { display: inline-flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-  .fin-metric-chip {
-    background: rgba(30,58,138,0.3);
-    border: 1px solid rgba(147,197,253,0.2);
-    border-radius: 6px;
-    padding: 4px 12px;
-    font-family: 'Inter', system-ui, sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: #93C5FD;
   }
 
   /* Projects */
@@ -191,39 +180,15 @@ function groupFinanceSkills(skills: string[]) {
   return Object.entries(groups).filter(([, items]) => items.length > 0)
 }
 
-function extractMetrics(projects: PortfolioContent['projects']): string[] {
-  const metrics: string[] = []
-  for (const p of projects) {
-    if (metrics.length >= 2) break
-    if (!p.outcome) continue
-    const matches = p.outcome.match(/[\$£€₦]?[\d,]+\.?\d*\s*[%kKmMbBxX+]?/g)
-    if (matches) {
-      const val = matches[0].trim()
-      if (val) metrics.push(val)
-    }
-  }
-  return metrics
-}
-
 export default function Finance({ content }: { content: PortfolioContent }) {
-  const mainRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const sections = mainRef.current?.querySelectorAll('.fin-section')
-    if (!sections) return
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add('visible') }),
-      { threshold: 0.08 }
-    )
-    sections.forEach((s) => obs.observe(s))
-    return () => obs.disconnect()
-  }, [])
-
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const skillGroups: [string, string[]][] = content.skills_grouped?.length > 0
     ? content.skills_grouped.filter(g => g.items?.length > 0).map(g => [g.category, g.items])
     : groupFinanceSkills(content.skills)
-
-  const metrics = extractMetrics(content.projects)
+  const groupedSkills = new Set(skillGroups.flatMap(([, items]) => items))
+  const flatSkills = content.skills.filter(s => !groupedSkills.has(s))
+  const hasSkills = !!(skillGroups.length || flatSkills.length || content.skills_narrative)
+  const hasContact = !!(content.email || content.linkedin_url || content.github_url)
 
   return (
     <div className="fin-root">
@@ -241,7 +206,7 @@ export default function Finance({ content }: { content: PortfolioContent }) {
         <div className="fin-nav-links">
           {content.projects.length > 0 && <a href="#projects" className="fin-nav-link">Work</a>}
           {content.experience.length > 0 && <a href="#experience" className="fin-nav-link">Experience</a>}
-          <a href="#contact" className="fin-nav-link">Contact</a>
+          {hasContact && <a href="#contact" className="fin-nav-link">Contact</a>}
         </div>
       </nav>
 
@@ -249,23 +214,24 @@ export default function Finance({ content }: { content: PortfolioContent }) {
         {/* Sidebar */}
         <aside className="fin-sidebar">
           <div>
-            <div className="fin-sidebar-name">{content.name}</div>
+            <h1 className="fin-sidebar-name">{content.name}</h1>
             <div className="fin-sidebar-role">{content.role}</div>
             <div className="fin-sidebar-meta">
               {content.location && <div>{content.location}</div>}
             </div>
           </div>
 
-          <div className="fin-sidebar-block">
-            <div className="fin-block-title">About</div>
+          {content.about && <section className="fin-sidebar-block">
+            <h2 className="fin-block-title">About</h2>
             <div className="fin-about">
               {content.about.split('\n\n').map((p, i) => <p key={i}>{p}</p>)}
             </div>
-          </div>
+          </section>}
 
-          {content.skills.length > 0 && (
-            <div className="fin-sidebar-block">
-              <div className="fin-block-title">Tools &amp; Skills</div>
+          {hasSkills && (
+            <section className="fin-sidebar-block">
+              <h2 className="fin-block-title">Tools &amp; Skills</h2>
+              {content.skills_narrative && <p className="fin-about" style={{ marginBottom: 16 }}>{content.skills_narrative}</p>}
               {skillGroups.map(([cat, items]) => (
                 <div key={cat} className="fin-skill-group">
                   <div className="fin-skill-cat">{cat}</div>
@@ -274,41 +240,42 @@ export default function Finance({ content }: { content: PortfolioContent }) {
                   </div>
                 </div>
               ))}
-            </div>
+              {flatSkills.length > 0 && <div className="fin-skill-pills">{flatSkills.map(s => <span key={s} className="fin-skill-pill">{s}</span>)}</div>}
+            </section>
           )}
 
           {content.education && content.education.length > 0 && (
-            <div className="fin-sidebar-block">
-              <div className="fin-block-title">Education</div>
+            <section className="fin-sidebar-block">
+              <h2 className="fin-block-title">Education</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {content.education.map((ed, i) => (
                   <div key={i}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{ed.degree}</div>
                     <div style={{ fontSize: 12, color: 'var(--accent)', marginTop: 1 }}>{ed.institution}</div>
-                    <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>{ed.year}{ed.grade ? ` · ${ed.grade}` : ''}</div>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>{ed.year || (ed as typeof ed & { period?: string }).period}{ed.grade ? ` · ${ed.grade}` : ''}</div>
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           )}
 
           {content.certifications && content.certifications.length > 0 && (
-            <div className="fin-sidebar-block">
-              <div className="fin-block-title">Certifications</div>
+            <section className="fin-sidebar-block">
+              <h2 className="fin-block-title">Certifications</h2>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {content.certifications.map((cert) => (
                   <span key={cert} className="fin-skill-pill" style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}>{cert}</span>
                 ))}
               </div>
-            </div>
+            </section>
           )}
 
-          <div className="fin-sidebar-block" id="contact">
-            <div className="fin-block-title">Contact</div>
+          {hasContact && <section className="fin-sidebar-block" id="contact">
+            <h2 className="fin-block-title">Contact</h2>
             <div className="fin-contact-links">
-              <a href={`mailto:${content.email}`} className="fin-contact-link">
+              {content.email && <a href={`mailto:${content.email}`} className="fin-contact-link">
                 <span>✉</span><span>{content.email}</span>
-              </a>
+              </a>}
               {content.linkedin_url && (
                 <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="fin-contact-link">
                   <span>◈</span><span>LinkedIn</span>
@@ -320,7 +287,7 @@ export default function Finance({ content }: { content: PortfolioContent }) {
                 </a>
               )}
             </div>
-          </div>
+          </section>}
 
           <a href="https://liveportfolio.site" target="_blank" rel="noopener noreferrer" className="fin-footer-link">
             Built with liveportfolio.site
@@ -328,27 +295,25 @@ export default function Finance({ content }: { content: PortfolioContent }) {
         </aside>
 
         {/* Main */}
-        <main className="fin-main" ref={mainRef}>
+        <main className="fin-main">
           {/* Headline */}
-          <section className="fin-section">
-            <div className="fin-section-label">Overview</div>
+          {content.headline && <section className="fin-section">
+            <h2 className="fin-section-label">Overview</h2>
             <div className="fin-headline">{content.headline}</div>
-            {metrics.length > 0 && (
-              <div className="fin-metrics">
-                {metrics.map((m, i) => (
-                  <span key={i} className="fin-metric-chip">{m}</span>
-                ))}
-              </div>
-            )}
-          </section>
+          </section>}
 
           {/* Projects */}
           {content.projects.length > 0 && (
             <section id="projects" className="fin-section">
-              <div className="fin-section-label">Selected Work</div>
+              <h2 className="fin-section-label">Selected Work</h2>
               <div className="fin-projects">
                 {content.projects.map((p, i) => (
                   <div key={i} className="fin-proj-card">
+                    {p.image_url && !failedImages.has(p.image_url) && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.image_url} alt={p.title} loading="lazy" referrerPolicy="no-referrer" style={{ width: '100%', height: 'auto', maxHeight: 440, objectFit: 'contain', marginBottom: 16 }}
+                        onError={() => setFailedImages((prev) => new Set([...prev, p.image_url!]))} />
+                    )}
                     <div className="fin-proj-name">{p.title}</div>
                     {p.outcome && <div className="fin-proj-outcome">{p.outcome}</div>}
                     <div className="fin-proj-desc">
@@ -361,6 +326,7 @@ export default function Finance({ content }: { content: PortfolioContent }) {
                       </div>
                     )}
                     {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="fin-proj-link">View →</a>}
+                    {p.github_url && <a href={p.github_url} target="_blank" rel="noopener noreferrer" className="fin-proj-link" style={{ marginLeft: p.url ? 16 : 0 }}>Repository →</a>}
                   </div>
                 ))}
               </div>
@@ -370,7 +336,7 @@ export default function Finance({ content }: { content: PortfolioContent }) {
           {/* Experience */}
           {content.experience.length > 0 && (
             <section id="experience" className="fin-section">
-              <div className="fin-section-label">Career History</div>
+              <h2 className="fin-section-label">Career History</h2>
               <div className="fin-exp-list">
                 {content.experience.map((e, i) => (
                   <div key={i} className="fin-exp-item">
@@ -392,6 +358,19 @@ export default function Finance({ content }: { content: PortfolioContent }) {
               </div>
             </section>
           )}
+          {!!content.testimonials?.length && (
+            <section id="testimonials" className="fin-section">
+              <h2 className="fin-section-label">Testimonials</h2>
+              <div className="fin-projects">
+                {content.testimonials.map((t, i) => (
+                  <figure key={i} className="fin-proj-card">
+                    <blockquote className="fin-proj-desc">{t.text}</blockquote>
+                    <figcaption className="fin-exp-co">{t.author}{t.role ? ` · ${t.role}` : ''}{t.company ? ` · ${t.company}` : ''}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            </section>
+          )}
         </main>
       </div>
 
@@ -403,7 +382,7 @@ export default function Finance({ content }: { content: PortfolioContent }) {
         alignItems: 'center',
         fontSize: 10,
         color: 'var(--muted)',
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: "'DM Sans', system-ui, sans-serif",
       }} className="fin-mobile-footer">
         <span>{content.name}</span>
         <a href="https://liveportfolio.site" target="_blank" rel="noopener noreferrer" style={{ color: '#475569', textDecoration: 'none' }}>

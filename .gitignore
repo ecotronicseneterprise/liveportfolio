@@ -1,5 +1,6 @@
 node_modules
 .next
+.next-template-review
 .env.local
 .env
 *.pem
@@ -28,3 +29,7 @@ affiliate-commands.sh
 
 # build artifacts
 *.tsbuildinfo
+
+# Synthetic browser validation output
+/test-results/
+/playwright-report/

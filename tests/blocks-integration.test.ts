@@ -25,6 +25,7 @@ import '@/lib/supabase'
 import { NextRequest } from 'next/server'
 import { POST } from '../app/api/generate/route'
 import { storedLayout } from '../lib/blocks/mode'
+import { portfolioRenderMode } from '../lib/portfolio/render-mode'
 import { parseLayout } from '../lib/blocks/settings'
 import { draftToPreviewContent } from '../lib/onboarding/preview-content'
 import { sanitizeDraft } from '../lib/onboarding/draft'
@@ -60,8 +61,10 @@ describe('which portfolios use the block renderer', () => {
   })
   it('the public page and the picker use exactly this rule', async () => {
     const fs = await import('node:fs')
-    expect(fs.readFileSync('app/portfolio/[slug]/page.tsx', 'utf8')).toMatch(/storedLayout\(safe, effectiveTemplate\)/) // `safe` is the stored content with non-http(s) links dropped (lib/portfolio/render-safe.ts)
-    expect(fs.readFileSync('components/templates/dynamic.ts', 'utf8')).toMatch(/storedLayout\(content, id\)/)
+    expect(fs.readFileSync('app/portfolio/[slug]/page.tsx', 'utf8')).toMatch(/portfolioRenderMode\(safe, effectiveTemplate\)/)
+    expect(fs.readFileSync('components/templates/dynamic.ts', 'utf8')).toMatch(/portfolioRenderMode\(content, id\)/)
+    for (const template of FREE_TEMPLATES) expect(portfolioRenderMode({ ...SAMPLE_PEOPLE.engineer, layout: L }, template)).toEqual({ kind: 'blocks', layout: L })
+    for (const template of PRO_TEMPLATES) expect(portfolioRenderMode({ ...SAMPLE_PEOPLE.engineer, layout: L }, template)).toEqual({ kind: 'legacy' })
   })
 })
 

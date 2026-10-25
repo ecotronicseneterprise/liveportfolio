@@ -274,6 +274,9 @@ export async function POST(req: NextRequest) {
     }
   })
 
+  // Pro designs require an explicit user opt-in through the save route, never model-created metadata.
+  delete portfolioContent.pro_designs
+
   // Ensure required fields have fallbacks; preserve education/certifications from user input
   const content = {
     ...fallback,

@@ -44,9 +44,13 @@ describe('LookPicker', () => {
     expect(html).toMatch(/aria-label="Developer, Developer is included with Pro\."/)
     expect(render({ isPro: true })).not.toMatch(/included with Pro\./)
   })
-  it('on a classic template the picker says so and points back to the new looks', () => {
-    expect(text(render({ template: 'developer', isPro: true }))).toContain('You are using the classic template Developer')
-    expect(text(html)).not.toContain('You are using the classic template')
+  it('identifies the Pro version and hides irrelevant free-look controls', () => {
+    const original = render({ template: 'developer', isPro: true })
+    expect(text(original)).toContain(t('lookPicker.classicActive', { name: 'Developer' }))
+    expect(original).toContain('hidden=""')
+    const redesigned = render({ template: 'developer', isPro: true, content: { ...SAMPLE_PEOPLE.engineer, pro_designs: { developer: 2 } } })
+    expect(text(redesigned)).toContain(t('lookPicker.redesignActive', { name: 'Developer' }))
+    expect(text(html)).not.toContain('You are using the original')
   })
   it('offers a reset to the recommended look, and a live preview of the whole portfolio', () => {
     expect(text(html)).toContain(t('lookPicker.recommended'))
