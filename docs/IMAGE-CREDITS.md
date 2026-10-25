@@ -4,7 +4,7 @@ Pictures in `public/landing/` are used only by the sample portfolio in the landi
 
 | File | What it is |
 |---|---|
-| `dev-avatar.png` | A cartoon avatar of a developer with round glasses and a hoodie, for the sample person "Clifford Nwanna": a flat illustration with a purple skin tone, so it does not stand for any real person or any race. Drawn as an SVG for this site and saved as a PNG. |
+| `dev-avatar.jpg` | The vector avatar of the sample person "Clifford Nwanna" (a developer with glasses), supplied by the site owner as `Professional Vector Avatar Portrait.png` and resized to 800px for the web. The original is kept outside the repository. |
 | `project-1.jpg`, `project-2.jpg`, `project-3.jpg` | Screens of three invented products (a reconciliation dashboard, a rate-limiter chart, an invoice parser), drawn in HTML and screenshotted. |
 
 ## Notes

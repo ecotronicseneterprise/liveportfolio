@@ -16,7 +16,7 @@ const specimen = (): PortfolioContent => ({
   about: t('landing.specimenAbout'),
   location: t('landing.specimenLocation'),
   email: 'nwannachumaclifford@gmail.com',
-  avatar_url: '/landing/dev-avatar.png',
+  avatar_url: '/landing/dev-avatar.jpg',
   skills: [],
   skills_narrative: '',
   skills_grouped: [

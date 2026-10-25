@@ -78,14 +78,14 @@ describe('landing page wiring', () => {
 
 describe('landing hero pictures', () => {
   const html = renderToStaticMarkup(HeroSpecimen())
-  it('shows a cartoon avatar and a picture for each project, served from our own /landing folder', async () => {
+  it('shows a vector avatar and a picture for each project, served from our own /landing folder', async () => {
     const fs = await import('node:fs')
-    expect(html).toContain('/landing/dev-avatar.png')
+    expect(html).toContain('/landing/dev-avatar.jpg')
     for (const n of [1, 2, 3]) {
       expect(html).toContain(`/landing/project-${n}.jpg`)
       expect(fs.existsSync(`public/landing/project-${n}.jpg`)).toBe(true)
     }
-    expect(fs.existsSync('public/landing/dev-avatar.png')).toBe(true)
+    expect(fs.existsSync('public/landing/dev-avatar.jpg')).toBe(true)
     expect(html).not.toMatch(/https?:\/\/images\.pexels|unsplash/) // no hot-linking
   })
   it('the tabs carry the template names, and the sample is labelled as invented', () => {
@@ -97,8 +97,8 @@ describe('landing hero pictures', () => {
     const { localAsset, toBlockData } = await import('../lib/blocks/adapt')
     expect(localAsset('/landing/project-1.jpg')).toBe('/landing/project-1.jpg')
     for (const bad of ['/etc/passwd', '/landing/../secret.jpg', '//evil.com/a.jpg', '/landing/x.svg', 'landing/x.jpg', 'javascript:alert(1)', '/landing/a/b.jpg']) expect(localAsset(bad), bad).toBeUndefined()
-    const d = toBlockData({ name: 'A', avatar_url: '/landing/dev-avatar.png', projects: [{ title: 'P', image_url: '/other/x.jpg' }] } as never)
-    expect(d.avatarUrl).toBe('/landing/dev-avatar.png')
+    const d = toBlockData({ name: 'A', avatar_url: '/landing/dev-avatar.jpg', projects: [{ title: 'P', image_url: '/other/x.jpg' }] } as never)
+    expect(d.avatarUrl).toBe('/landing/dev-avatar.jpg')
     expect(d.projects[0].imageUrl ?? '').not.toMatch(/^\//) // a local path outside /landing/ is never kept as a local path
   })
 })
