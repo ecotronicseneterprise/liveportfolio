@@ -35,30 +35,51 @@ function ProjectLinks({ p }: { p: BlockProject }) {
   )
 }
 
-/** A project picture the person uploaded, or (for the image-led layout) a plain labelled slot only when asked. Never a stock image. */
-function Picture({ p, slot }: { p: BlockProject; slot: boolean }) {
+function ProjectStack({ p }: { p: BlockProject }) {
+  return p.stack.length ? (
+    <ul className="pstack" aria-label={t('portfolio.projectStack')}>
+      {p.stack.slice(0, 5).map((item, i) => <li key={`${item}-${i}`}>{item}</li>)}
+    </ul>
+  ) : null
+}
+
+/** User-uploaded project media wins. Without it, render an abstract title/stack graphic, never a fake screenshot. */
+function Picture({ p }: { p: BlockProject }) {
   // eslint-disable-next-line @next/next/no-img-element
   if (p.imageUrl) return <img className="pimg" src={p.imageUrl} alt={p.title} width={1280} height={800} loading="lazy" decoding="async" />
-  return slot ? <div className="ph" role="img" aria-label={t('portfolio.imageSlot')}><span>{t('portfolio.imageSlot')}</span></div> : null
+  const monogram = p.title.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join('').toUpperCase()
+  return (
+    <div className="pvisual" aria-hidden="true">
+      <span className="pvisual-mark">{monogram}</span>
+      <span className="pvisual-lines"><i /><i /><i /></span>
+    </div>
+  )
+}
+
+function HeroPortrait({ d }: { d: BlockData }) {
+  if (d.avatarUrl) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img className="photo" src={d.avatarUrl} alt={t('portfolio.photoOf', { name: d.name })} width={176} height={176} decoding="async" fetchPriority="high" />
+  }
+  const initials = d.name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join('').toUpperCase()
+  return initials ? <span className="photo-monogram" aria-hidden="true">{initials}</span> : null
 }
 
 type Render = (d: BlockData, c: BlockCtx) => ReactNode
 
 // ── hero ─────────────────────────────────────────────────────────────────────────────────────────────────
-const Photo = ({ d }: { d: BlockData }) =>
-  d.avatarUrl ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img className="photo" src={d.avatarUrl} alt={t('portfolio.photoOf', { name: d.name })} width={96} height={96} decoding="async" fetchPriority="high" />
-  ) : null
-
 const hero: Record<string, Render> = {
   statement: (d, c) => (
     <section className="b b-hero b-hero--statement" id={id(c, 'top')}>
       <div className="wrap">
-        <Photo d={d} />
-        <h1 className="name">{d.name}</h1>
-        {d.role && <p className="role">{d.role}</p>}
-        {d.headline && <p className="headline">{d.headline}</p>}
+        <div className="hero-intro">
+          <div className="hero-copy">
+            <p className="hero-kicker">{d.role}{d.location ? ` · ${d.location}` : ''}</p>
+            <h1 className="name">{d.name}</h1>
+            {d.headline && <p className="headline">{d.headline}</p>}
+          </div>
+          <HeroPortrait d={d} />
+        </div>
       </div>
     </section>
   ),
@@ -66,7 +87,7 @@ const hero: Record<string, Render> = {
     <section className="b b-hero b-hero--split" id={id(c, 'top')}>
       <div className="wrap two">
         <div>
-          <Photo d={d} />
+          <HeroPortrait d={d} />
           <h1 className="name">{d.name}</h1>
           {d.role && <p className="role">{d.role}</p>}
           {(d.location || d.email) && (
@@ -117,8 +138,8 @@ const projects: Record<string, Render> = {
         {list(d, c).map((p, i) => (
           <article className="prow" key={i}>
             <span className="yr" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-            <div className="main"><h3>{p.title}</h3>{p.problem && <p>{p.problem}</p>}<ProjectLinks p={p} /></div>
-            <p className="res">{p.outcome ? <Figures text={p.outcome} /> : p.solution}</p>
+              <div className="main"><h3>{p.title}</h3>{p.problem && <p>{p.problem}</p>}{p.solution && <p className="project-solution">{p.solution}</p>}<ProjectStack p={p} /><ProjectLinks p={p} /></div>
+              <div className="project-result"><Picture p={p} />{p.outcome && <p className="res"><Figures text={p.outcome} /></p>}</div>
           </article>
         ))}
       </div>
@@ -131,10 +152,11 @@ const projects: Record<string, Render> = {
         <div className="pgrid">
           {list(d, c).map((p, i) => (
             <article className="pitem" key={i}>
-              <Picture p={p} slot={false} />
+              <Picture p={p} />
               <h3>{p.title}</h3>
               {(p.outcome || p.solution) && <p className="res">{p.outcome || p.solution}</p>}
               {p.problem && <p className="sub">{p.problem}</p>}
+              <ProjectStack p={p} />
               <ProjectLinks p={p} />
             </article>
           ))}
@@ -149,9 +171,11 @@ const projects: Record<string, Render> = {
         <div className="pproof">
           {list(d, c).map((p, i) => (
             <article key={i}>
+              <Picture p={p} />
               <p className="big">{p.outcome ? <Figures text={p.outcome} /> : p.solution || p.problem}</p>
               <h3>{p.title}</h3>
               {(p.problem || p.solution) && <p className="sub">{[p.problem, p.solution].filter(Boolean).join(' ')}</p>}
+              <ProjectStack p={p} />
               <ProjectLinks p={p} />
             </article>
           ))}
@@ -171,6 +195,8 @@ const projects: Record<string, Render> = {
               {p.solution && <div><dt>{t('portfolio.didWhat')}</dt><dd>{p.solution}</dd></div>}
               {p.outcome && <div><dt>{t('portfolio.result')}</dt><dd className="res"><Figures text={p.outcome} /></dd></div>}
             </dl>
+            <ProjectStack p={p} />
+            <Picture p={p} />
             <ProjectLinks p={p} />
           </article>
         ))}

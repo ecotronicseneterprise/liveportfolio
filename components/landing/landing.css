@@ -31,17 +31,29 @@
 .lpl #spec-studio:focus-visible ~ .spec-bar label[for="spec-studio"],
 .lpl #spec-journal:focus-visible ~ .spec-bar label[for="spec-journal"],
 .lpl #spec-ledger:focus-visible ~ .spec-bar label[for="spec-ledger"] { outline: 3px solid #0A66C2; outline-offset: 3px; }
-.lpl .spec-frame { height: 600px; overflow: hidden; border: 1px solid #94A3B8; border-radius: 12px; background: #FFFFFF; }
-@media (max-width: 639px) { .lpl .spec-frame { height: 520px; } }
+.lpl .browser-window { height: 620px; overflow: hidden; border: 1px solid #94A3B8; border-radius: 14px; background: #FFFFFF; box-shadow: 0 24px 60px rgb(15 23 42 / .16); }
+.lpl .browser-chrome { height: 68px; background: #F1F3F5; border-bottom: 1px solid #CBD5E1; padding: 7px 12px 8px; }
+.lpl .browser-tabs { height: 25px; display: flex; align-items: center; gap: 6px; color: #475569; font: 500 11px/1 system-ui, sans-serif; }
+.lpl .browser-tabs > i { width: 8px; height: 8px; border-radius: 50%; background: #F28B82; }
+.lpl .browser-tabs > i:nth-child(2) { background: #FDD663; }
+.lpl .browser-tabs > i:nth-child(3) { background: #81C995; margin-right: 6px; }
+.lpl .browser-tab { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 6px 14px; border-radius: 7px 7px 0 0; background: #FFFFFF; color: #334155; }
+.lpl .browser-tabs > b { font-size: 17px; font-weight: 400; }
+.lpl .browser-toolbar { height: 27px; display: flex; align-items: center; gap: 10px; color: #64748B; font: 500 12px/1 system-ui, sans-serif; }
+.lpl .browser-controls, .lpl .browser-menu { flex: none; font-size: 15px; }
+.lpl .browser-address { min-width: 0; flex: 1; height: 24px; display: flex; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid #E2E8F0; border-radius: 99px; background: #FFFFFF; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.lpl .browser-lock { margin-left: auto; color: #64748B; font-size: 10px; }
+.lpl .spec-frame { height: calc(100% - 68px); overflow: hidden; background: #FFFFFF; }
+@media (max-width: 639px) { .lpl .browser-window { height: 540px; } .lpl .browser-chrome { padding-inline: 8px; } .lpl .browser-toolbar { gap: 6px; } .lpl .browser-tab { max-width: 160px; } .lpl .browser-controls { font-size: 12px; } .lpl .browser-lock { display: none; } }
 /* the specimen shows the top of a portfolio, so its hero and spacing are tighter than on a full page */
 .lpl .spec-frame .lpb { --sec: 44px; --sec-m: 36px; --h1: 44px; --lead: 22px; }
 .lpl .spec-frame .lpb .b-hero { padding-top: 32px; padding-bottom: 24px; }
 .lpl .spec-frame .lpb .b h2 { margin-bottom: 20px; }
 .lpl .spec-frame .lpb .pproof .big { font-size: 22px; line-height: 1.3; }
 .lpl .spec-pane { display: none; height: 100%; overflow: hidden; }
-.lpl #spec-studio:checked ~ .spec-frame .spec-pane-studio,
-.lpl #spec-journal:checked ~ .spec-frame .spec-pane-journal,
-.lpl #spec-ledger:checked ~ .spec-frame .spec-pane-ledger { display: block; }
+.lpl #spec-studio:checked ~ .browser-window .spec-frame .spec-pane-studio,
+.lpl #spec-journal:checked ~ .browser-window .spec-frame .spec-pane-journal,
+.lpl #spec-ledger:checked ~ .browser-window .spec-frame .spec-pane-ledger { display: block; }
 .lpl .spec-cap { font-size: 14px; color: #475569; margin: 10px 0 0 0; }
 .lpl .spec-pane .topbar a { pointer-events: none; }
 

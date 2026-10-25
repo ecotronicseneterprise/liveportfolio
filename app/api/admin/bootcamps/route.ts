@@ -1,6 +1,6 @@
-import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { adminAuthorised } from '@/lib/admin/auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,16 +12,11 @@ export const dynamic = 'force-dynamic'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
 const CODE_RE = /^[a-z0-9][a-z0-9-]{1,39}$/
 
-function authorised(req: NextRequest): boolean {
-  const expected = process.env.CRON_SECRET || ''
-  const provided = req.headers.get('x-cron-secret') || req.headers.get('x-metrics-secret') || ''
-  if (!expected || provided.length !== expected.length) return false
-  return timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
-}
+const authorised = adminAuthorised // the owner signed in, or the operations secret
 
 // GET: every cohort link with how many people have used it.
 export async function GET(req: NextRequest) {
-  if (!authorised(req)) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+  if (!(await authorised(req))) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   const { data: codes, error } = await supabase
     .from('bootcamp_codes')
@@ -39,7 +34,7 @@ export async function GET(req: NextRequest) {
 // POST { code, name, plan_to_grant?: 'basic' | 'pro', max_uses?: number }: creates a cohort link (no SQL needed).
 // The link is /bootcamp/<code>. Everyone who signs up through it gets 6 months of that plan.
 export async function POST(req: NextRequest) {
-  if (!authorised(req)) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+  if (!(await authorised(req))) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   let body: { code?: unknown; name?: unknown; plan_to_grant?: unknown; max_uses?: unknown } = {}
   try { body = await req.json() } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }) }
@@ -70,7 +65,7 @@ export async function POST(req: NextRequest) {
 // PATCH { code, active?: boolean, max_uses?: number | null }: switch a link off (or on again), or change its limit. People who already
 // used it keep their 6 months.
 export async function PATCH(req: NextRequest) {
-  if (!authorised(req)) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+  if (!(await authorised(req))) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   let body: { code?: unknown; active?: unknown; max_uses?: unknown } = {}
   try { body = await req.json() } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }) }

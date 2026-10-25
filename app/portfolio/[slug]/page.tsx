@@ -22,6 +22,7 @@ import type { PortfolioContent } from '@/components/templates/Minimal'
 import AcquisitionBar from './AcquisitionBar'
 import { canUseTemplate } from '@/lib/plans'
 import { planFromUserColumn } from '@/lib/getUserPlan'
+import { safeContent } from '@/lib/portfolio/render-safe'
 import Look from '@/components/blocks/Look'
 import { storedLayout } from '@/lib/blocks/mode'
 
@@ -209,10 +210,12 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
   const effectiveTemplate = canUseTemplate(planFromUserColumn((data as { plan?: string }).plan), portfolio.template) ? portfolio.template : 'minimal'
   const Template = TEMPLATE_MAP[effectiveTemplate] ?? Minimal
   // New block designs: only a portfolio that stores a valid layout AND uses one of the 3 free template ids. Everything else is legacy, untouched.
-  const layout = storedLayout(portfolio.content, effectiveTemplate)
+  // links that are not plain http(s) addresses are dropped before drawing (defence in depth; the write paths refuse them already)
+  const safe = safeContent(portfolio.content as unknown as Record<string, unknown>) as unknown as typeof portfolio.content
+  const layout = storedLayout(safe, effectiveTemplate)
   const paid = (data as { plan?: string }).plan === 'basic' || (data as { plan?: string }).plan === 'pro'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
-  const c = portfolio.content
+  const c = safe
 
   const personSchema = {
     '@context': 'https://schema.org',
@@ -234,8 +237,8 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
         dangerouslySetInnerHTML={{ __html: safeJsonLd(personSchema) }}
       />
       {layout
-        ? <Look template={effectiveTemplate} content={portfolio.content} layout={layout} page credit={!paid} />
-        : <Template content={portfolio.content} />}
+        ? <Look template={effectiveTemplate} content={safe} layout={layout} page credit={!paid} />
+        : <Template content={safe} />}
       {(data as { plan?: string }).plan !== 'basic' && (data as { plan?: string }).plan !== 'pro' && (
         <AcquisitionBar />
       )}

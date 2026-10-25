@@ -14,6 +14,7 @@ export function draftToGeneratePayload(d: Draft, email: string) {
     email,
     github_url: d.github_url || undefined,
     linkedin_url: d.linkedin_url || undefined,
+    avatar_url: d.avatar_url || undefined,
     skills: d.skills,
     certifications: d.certifications.length ? d.certifications : undefined,
     education: d.education.filter((e) => e.degree.trim()).map((e) => ({

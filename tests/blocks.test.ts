@@ -185,7 +185,37 @@ describe('what is drawn: every theme x arrangement x fixture', () => {
   it('a photo is drawn only when there is one, with a real alt text and fixed size (no layout shift)', () => {
     expect(html('creative', SAMPLE_PEOPLE.engineer, 'proof')).not.toContain('class="photo"')
     const out = html('creative', { ...SAMPLE_PEOPLE.engineer, avatar_url: 'https://cdn.example.com/a.jpg' }, 'proof')
-    expect(out).toMatch(/class="photo" src="https:\/\/cdn\.example\.com\/a\.jpg" alt="Photo of Ada Okonkwo" width="96" height="96"/)
+    expect(out).toMatch(/class="photo" src="https:\/\/cdn\.example\.com\/a\.jpg" alt="Photo of Ada Okonkwo" width="176" height="176"/)
+  })
+  it('the portfolio name appears once in the identity hero, not again beside section navigation or in the footer', () => {
+    const out = html('creative', SAMPLE_PEOPLE.engineer, 'proof')
+    expect(out.match(/Ada Okonkwo/g)).toHaveLength(1)
+    expect(out).not.toMatch(/class="brand"/) // nothing but the section links sits in the navigation bar
+  })
+  it('the public desktop hero reserves the first viewport below the navigation', () => {
+    const styles = read('components/blocks/blocks.css')
+    expect(styles).toContain('min-height: calc(100svh - 56px)')
+    expect(styles).toContain('align-items: center')
+    expect(styles).toContain('main > .b-hero { min-height: auto; }')
+  })
+  it('renders every stored project instead of truncating beyond six', () => {
+    const projects = Array.from({ length: 8 }, (_, i) => ({ title: `Project ${i + 1}`, problem: '', solution: 'Built it.', outcome: '', stack: [] }))
+    const out = html('creative', { ...SAMPLE_PEOPLE.engineer, projects }, 'index')
+    expect(out).toContain('Project 8')
+  })
+  it('uses initials and an abstract project cover when users have no uploaded images, and shows project stack', () => {
+    const projects = SAMPLE_PEOPLE.engineer.projects.map((project) => ({ ...project, stack: ['Go', 'Postgres'] }))
+    const out = html('creative', { ...SAMPLE_PEOPLE.engineer, avatar_url: null, projects }, 'showcase')
+    expect(out).toContain('class="photo-monogram" aria-hidden="true">AO</span>')
+    expect(out).toContain('class="pvisual" aria-hidden="true"')
+    expect(out).toContain('aria-label="Tools and technologies used"')
+    expect(out).toContain('Go')
+    expect(out).not.toContain('Your project image')
+  })
+  it('falls back to a text-safe role treatment when a name is blank', () => {
+    const out = html('creative', { ...SPARSE, name: '', email: '' }, 'proof')
+    expect(out).not.toContain('photo-monogram')
+    expect(out).not.toContain('>undefined<')
   })
   it('the bio can be shortened to the first paragraph without touching the text', () => {
     const c = { ...SAMPLE_PEOPLE.engineer }
@@ -232,8 +262,9 @@ describe('design rules, checked mechanically', () => {
     for (const theme of THEMES) {
       const block = new RegExp(`\\.lpb\\[data-theme="${theme}"\\] \\{([^}]*)\\}`).exec(css)![1]
       const v = Object.fromEntries([...block.matchAll(/--([a-z-]+):\s*(#[0-9A-Fa-f]{6})/g)].map((m) => [m[1], m[2]]))
-      for (const [fg, bg] of [['ink', 'bg'], ['muted', 'bg'], ['accent', 'bg'], ['ink', 'band'], ['muted', 'band'], ['accent', 'band'], ['on-fill', 'fill'], ['ink', 'mark'], ['accent', 'tint']] as const) {
-        expect(ratio(v[fg], v[bg]), `${theme}: ${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5)
+      for (const [fg, bg] of [['ink', 'bg'], ['muted', 'bg'], ['accent', 'bg'], ['ink', 'band'], ['muted', 'band'], ['accent', 'band'], ['on-fill', 'fill'], ['mark-ink', 'mark'], ['accent', 'tint']] as const) {
+        const foreground = fg === 'mark-ink' ? (v[fg] ?? v.ink) : v[fg]
+        expect(ratio(foreground, v[bg]), `${theme}: ${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5)
       }
     }
   })

@@ -33,6 +33,7 @@ export interface AuthLike {
 export type OtpType = 'signup' | 'email' | 'recovery' | 'email_change' | 'invite' | 'magiclink'
 
 export type ErrorCode =
+  | 'invalid_email'
   | 'weak_password' | 'captcha' | 'rate_limited' | 'invalid_credentials' | 'code_invalid' | 'network' | 'unknown'
 
 export type AccountOutcome =
@@ -46,6 +47,7 @@ export function classifyAuthError(err: unknown): { code: ErrorCode | 'exists' | 
   if (err instanceof TypeError) return { code: 'network', message: 'network' }
   const e = (err ?? {}) as { message?: string; status?: number; code?: string }
   const msg = String(e.message ?? '')
+  if (e.code === 'email_address_invalid' || /invalid email|email.*invalid|valid email/i.test(msg)) return { code: 'invalid_email', message: msg }
   if (e.code === 'user_already_exists' || /already (been )?registered|already exists/i.test(msg)) return { code: 'exists', message: msg }
   if (e.code === 'email_not_confirmed' || /email not confirmed/i.test(msg)) return { code: 'unconfirmed', message: msg }
   if (e.code === 'weak_password' || /password.*(weak|at least|short|characters)|weak password/i.test(msg)) return { code: 'weak_password', message: msg }

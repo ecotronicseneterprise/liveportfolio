@@ -17,6 +17,10 @@ import { AlertIcon, CheckIcon } from './ui/icons'
 export const VERIFY_EMAIL_KEY = 'lp_verify_email'
 const MIN_PASSWORD = 10
 
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+}
+
 export default function AccountStep() {
   const router = useRouter()
   const flow = useFlow('account')
@@ -56,7 +60,7 @@ export default function AccountStep() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(''); setNotice('')
-    if (!email.includes('@')) { setError(t('errors.unknown')); return }
+    if (!isValidEmail(email)) { setError(t('errors.invalid_email')); return }
     if (mode === 'create' && password.length < MIN_PASSWORD) { setError(t('errors.weak_password')); return }
     setBusy(true)
     try {
@@ -88,7 +92,7 @@ export default function AccountStep() {
 
   const reset = async () => {
     setError(''); setNotice('')
-    if (!email.includes('@')) { setError(t('errors.unknown')); return }
+    if (!isValidEmail(email)) { setError(t('errors.invalid_email')); return }
     setBusy(true)
     const r = await sendReset(getAuth(), { email: email.trim(), captchaToken: captcha, redirectTo: `${origin}/auth/confirm?next=${encodeURIComponent('/reset-password?recovery=1')}` })
     finishCaptcha()

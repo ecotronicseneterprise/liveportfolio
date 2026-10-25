@@ -33,6 +33,7 @@ export function draftToPreviewContent(d: Draft | null, email: string): StoredCon
     about: d?.bio.trim() || PLACEHOLDER.about,
     location: d?.location.trim() || PLACEHOLDER.location,
     email: email || PLACEHOLDER.email,
+    avatar_url: d?.avatar_url || undefined,
     github_url: d?.github_url || undefined,
     linkedin_url: d?.linkedin_url || undefined,
     skills,

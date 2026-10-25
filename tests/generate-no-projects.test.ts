@@ -33,7 +33,7 @@ vi.mock('openai', () => ({
 import '@/lib/supabase' // the route imports it lazily; this runs the mock factory so the fake database exists before the first test
 import { NextRequest } from 'next/server'
 import { POST } from '../app/api/generate/route'
-import { buildGenerationPrompt } from '../lib/prompts'
+import { buildGenerationPrompt, SYSTEM_PROMPT } from '../lib/prompts'
 import { draftToGeneratePayload } from '../lib/onboarding/generate'
 import { sanitizeDraft } from '../lib/onboarding/draft'
 
@@ -93,6 +93,56 @@ describe('/api/generate with projects (unchanged behaviour)', () => {
     expect(h.prompts[0]).not.toContain('None provided')
   })
 
+  it('restores supported metrics verbatim and drops invented project and profile metrics', async () => {
+    const sourceProject = {
+      title: 'LedgerLite',
+      description: 'Processed 20,000 transactions per day. Reduced processing time by 35%.',
+      stack: ['TypeScript', 'PostgreSQL'],
+      url: '',
+    }
+    const sourceExperience = {
+      company: 'Example Labs', role: 'Backend Engineer', period: '2022–2025',
+      bullets: ['Built a reconciliation API processing 20,000 transactions per day.', 'Reduced latency by 35%.'],
+    }
+    h.modelReply = {
+      ...modelReply([{
+        ...INVENTED,
+        title: 'LedgerLite',
+        problem: 'Teams processed 10,000 transactions each day.',
+        solution: 'Built a reliable reconciliation service.',
+        outcome: 'Processed 10,000 transactions per day and cut processing time by 35%.',
+      }]),
+      about: 'I improved system throughput by 500%.',
+      experience: [{ company: 'Example Labs', role: 'Backend Engineer', period: '2022–2025', bullets: ['Processed 10,000 transactions per day.', 'Reduced latency by 35%.'] }],
+      education: [{ degree: 'Invented degree', institution: 'Invented university', year: '2024' }],
+      certifications: ['Invented certification'],
+    }
+
+    const res = await call({ ...base, projects: [sourceProject], experience: [sourceExperience] })
+    expect(res.status).toBe(200)
+    const saved = h.ctx!.db.portfolios[0].content
+    const project = (saved.projects as Array<Record<string, unknown>>)[0]
+    expect(project.title).toBe('LedgerLite')
+    expect(project.outcome).toBe('Outcome not provided.')
+    expect(project.problem).toBe('Project details provided by you.')
+    expect(project.solution).toBe('Built a reliable reconciliation service.')
+    expect(saved.about).not.toContain('500%')
+    expect(saved.experience).toEqual([{
+      company: 'Example Labs', role: 'Backend Engineer', period: '2022–2025',
+      bullets: [sourceExperience.bullets[1]],
+    }])
+    expect(saved.education).toEqual([])
+    expect(saved.certifications).toEqual([])
+  })
+
+  it('does not borrow generated project copy by array position when the model changes the title', async () => {
+    h.modelReply = modelReply([{ ...INVENTED, title: 'Different project', solution: 'Built a queue service.' }])
+    const res = await call({ ...base, projects: [{ title: 'LedgerLite', description: 'Tracks invoices.', stack: ['TypeScript'] }] })
+    expect(res.status).toBe(200)
+    const [project] = h.ctx!.db.portfolios[0].content.projects as Array<Record<string, unknown>>
+    expect(project).toMatchObject({ title: 'LedgerLite', problem: 'Project details provided by you.', solution: 'Project details provided by you.', outcome: 'Outcome not provided.' })
+  })
+
   it('still needs a name, a role and an e-mail', async () => {
     h.modelReply = modelReply([])
     expect((await call({ ...base, name: '', projects: [] })).status).toBe(400)
@@ -115,5 +165,14 @@ describe('prompt', () => {
     const p = buildGenerationPrompt(input as never)
     expect(p).toMatch(/PROJECTS:\nNone provided\./)
     expect(p).not.toMatch(/PROJECTS:\n\s*\n/)
+    expect(SYSTEM_PROMPT).toContain('never invent, estimate, round, or change a metric')
+  })
+
+  it('sends the source experience bullets so the model has the facts it must preserve', () => {
+    const p = buildGenerationPrompt({
+      ...input,
+      experience: [{ company: 'Example Labs', role: 'Engineer', period: '2022–2025', bullets: ['Reduced latency by 35%.'] }],
+    } as never)
+    expect(p).toContain('- Reduced latency by 35%.')
   })
 })

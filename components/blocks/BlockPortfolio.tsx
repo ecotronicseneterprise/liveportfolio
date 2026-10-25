@@ -30,7 +30,7 @@ const BASE_SECTION_PX_MOBILE: Record<Theme, number> = { studio: 56, journal: 64,
 
 export default function BlockPortfolio({ content, layout, theme, fontClass = '', page = false, idPrefix = 'lpb', sections, credit = true }: BlockPortfolioProps) {
   const d = toBlockData(content)
-  const ctx: BlockCtx = { idp: idPrefix, bioShort: layout.bio === 'short', projectLimit: 6 }
+  const ctx: BlockCtx = { idp: idPrefix, bioShort: layout.bio === 'short', projectLimit: Number.POSITIVE_INFINITY }
   const specs = sections ?? ARRANGEMENT_SECTIONS[layout.arrangement]
   const anchors = presentAnchors(d)
   const label: Record<'work' | 'experience' | 'contact', string> = { work: t('portfolio.work'), experience: t('portfolio.experience'), contact: t('portfolio.contact') }
@@ -54,7 +54,7 @@ export default function BlockPortfolio({ content, layout, theme, fontClass = '',
       {page && <a className="skip" href={`#${idPrefix}-main`}>{t('portfolio.skip')}</a>}
       <header className="topbar">
         <div className="wrap">
-          <a className="brand" href={`#${idPrefix}-top`}>{d.name}</a>
+          {/* no name or brand in the bar: the name is the page's heading, so it is never shown twice */}
           {anchors.length > 0 && (
             <nav aria-label={t('portfolio.nav')}>
               {anchors.map((a) => <a key={a} href={`#${idPrefix}-${a}`}>{label[a]}</a>)}
@@ -65,7 +65,7 @@ export default function BlockPortfolio({ content, layout, theme, fontClass = '',
       <main id={`${idPrefix}-main`}>{specs.map((s, i) => <FragmentKey key={`${s.block}-${i}`}>{renderSection(s, d, ctx)}</FragmentKey>)}</main>
       {credit && (
         <footer className="foot">
-          <div className="wrap"><span>{d.name}</span><span>{t('portfolio.builtWith')}</span></div>
+          <div className="wrap"><span>{t('portfolio.builtWith')}</span></div>
         </footer>
       )}
     </div>

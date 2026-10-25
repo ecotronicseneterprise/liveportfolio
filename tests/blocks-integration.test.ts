@@ -60,7 +60,7 @@ describe('which portfolios use the block renderer', () => {
   })
   it('the public page and the picker use exactly this rule', async () => {
     const fs = await import('node:fs')
-    expect(fs.readFileSync('app/portfolio/[slug]/page.tsx', 'utf8')).toMatch(/storedLayout\(portfolio\.content, effectiveTemplate\)/)
+    expect(fs.readFileSync('app/portfolio/[slug]/page.tsx', 'utf8')).toMatch(/storedLayout\(safe, effectiveTemplate\)/) // `safe` is the stored content with non-http(s) links dropped (lib/portfolio/render-safe.ts)
     expect(fs.readFileSync('components/templates/dynamic.ts', 'utf8')).toMatch(/storedLayout\(content, id\)/)
   })
 })

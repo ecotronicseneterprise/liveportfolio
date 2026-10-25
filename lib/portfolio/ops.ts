@@ -36,8 +36,8 @@ export const CONTENT_KEYS = [
 const ARRAY_KEYS = new Set(['skills', 'skills_grouped', 'projects', 'experience', 'education', 'certifications'])
 const MAX_ITEMS = 50
 
-export const MAX_PROJECTS_ADD = 6
-export const MAX_EXPERIENCE_ADD = 10
+export const MAX_PROJECTS_ADD = MAX_ITEMS // the same bound as every other list: nobody should be stopped at 6 projects
+export const MAX_EXPERIENCE_ADD = MAX_ITEMS
 export const MAX_OPS = 20
 
 // ── validators for single values ─────────────────────────────────────────────────────────────────────────────

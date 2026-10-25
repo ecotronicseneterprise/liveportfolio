@@ -4,6 +4,7 @@ import OpenAI from 'openai'
 import { SYSTEM_PROMPT, buildGenerationPrompt } from '@/lib/prompts'
 import { resolveModel, paramsFor } from '@/lib/llm/model'
 import { layoutForTemplate, recommend } from '@/lib/blocks/presets'
+import { groundMetricSentences } from '@/lib/generation/ground-metrics'
 
 // In-memory IP rate limit: 5 per day
 const ipCounts = new Map<string, { count: number; resetAt: number }>()
@@ -85,20 +86,20 @@ function parseInput(body: Partial<InputData>) {
     linkedin_url: body.linkedin_url ? stripHtml(body.linkedin_url).slice(0, 200) : undefined,
     skills: (body.skills || []).slice(0, 15).map((s) => stripHtml(s).slice(0, 50)),
     certifications: (body.certifications || []).slice(0, 20).map((c) => stripHtml(c).slice(0, 80)),
-    projects: (body.projects || []).slice(0, 4).map((p) => ({
+    projects: (body.projects || []).slice(0, 20).map((p) => ({
       title: stripHtml(p.title || '').slice(0, 80),
       description: stripHtml(p.description || '').slice(0, 200),
       stack: (p.stack || []).slice(0, 10).map((t) => stripHtml(t).slice(0, 30)),
       url: p.url ? stripHtml(p.url).slice(0, 200) : undefined,
       image_url: typeof p.image_url === 'string' ? p.image_url.slice(0, 500) : undefined,
     })),
-    experience: (body.experience || []).map((e) => ({
+    experience: (body.experience || []).slice(0, 20).map((e) => ({
       company: stripHtml(e.company || '').slice(0, 80),
       role: stripHtml(e.role || '').slice(0, 80),
       period: stripHtml(e.period || '').slice(0, 40),
       bullets: (e.bullets || []).slice(0, 4).map((b) => stripBulletMarker(stripHtml(b)).slice(0, 200)).filter((b) => b.length > 0 && !b.endsWith(':')),
     })),
-    education: (body.education || []).slice(0, 3).map((e) => ({
+    education: (body.education || []).slice(0, 20).map((e) => ({
       degree: stripHtml(e.degree || '').slice(0, 100),
       institution: stripHtml(e.institution || '').slice(0, 100),
       year: stripHtml(e.year || '').slice(0, 20),
@@ -228,17 +229,60 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Preserve project image URLs — AI doesn't generate these
-  const aiProjects = (portfolioContent.projects as Array<Record<string, unknown>>) || []
-  const mergedProjects = titledProjects.length === 0 ? [] : aiProjects.map((p, i) => ({
-    ...p,
-    image_url: input.projects[i]?.image_url || null,
-  }))
+  // Only keep projects supplied by the user, keyed to their source text. Numeric sentences are restored verbatim from
+  // that source (or dropped), so the model cannot change or invent project metrics.
+  const aiProjects = Array.isArray(portfolioContent.projects)
+    ? portfolioContent.projects as Array<Record<string, unknown>>
+    : []
+  const fallback = fallbackContent(input)
+  const mergedProjects = titledProjects.map((source) => {
+    const generated = aiProjects.find((project) =>
+      typeof project.title === 'string' && project.title.trim().toLowerCase() === source.title.trim().toLowerCase(),
+    ) ?? {}
+    const evidence = source.description
+    return {
+      ...generated,
+      title: source.title,
+      problem: groundMetricSentences(generated.problem, evidence, 'Project details provided by you.'),
+      solution: groundMetricSentences(generated.solution, evidence, 'Project details provided by you.'),
+      outcome: groundMetricSentences(generated.outcome, evidence, 'Outcome not provided.'),
+      stack: source.stack,
+      url: source.url || null,
+      image_url: source.image_url || null,
+    }
+  })
+
+  // Experience identity, dates and numeric claims come from the user's own matching entry. If the model invents a
+  // numeric bullet, drop it; supported numeric sentences are replaced with the exact source sentence.
+  const generatedExperience = Array.isArray(portfolioContent.experience)
+    ? portfolioContent.experience as Array<Record<string, unknown>>
+    : []
+  const groundedExperience = (input.experience ?? []).map((source, i) => {
+    const generated = generatedExperience[i] ?? {}
+    const sourceBullets = source.bullets.join('\n')
+    const rewritten = Array.isArray(generated.bullets)
+      ? generated.bullets
+        .filter((bullet): bullet is string => typeof bullet === 'string')
+        .map((bullet) => groundMetricSentences(bullet, sourceBullets, ''))
+        .filter(Boolean)
+      : []
+    return {
+      company: source.company,
+      role: source.role,
+      period: source.period,
+      bullets: rewritten.length ? rewritten : source.bullets,
+    }
+  })
 
   // Ensure required fields have fallbacks; preserve education/certifications from user input
   const content = {
-    ...fallbackContent(input),
+    ...fallback,
     ...portfolioContent,
+    headline: groundMetricSentences(portfolioContent.headline, input.bio, fallback.headline),
+    about: groundMetricSentences(portfolioContent.about, input.bio, fallback.about),
+    skills_narrative: groundMetricSentences(portfolioContent.skills_narrative, input.bio, fallback.skills_narrative),
+    seo_title: `${input.name} | ${input.role} Portfolio`,
+    seo_description: groundMetricSentences(portfolioContent.seo_description, input.bio, fallback.seo_description),
     name: input.name,
     role: input.role,
     email: input.email,
@@ -247,13 +291,10 @@ export async function POST(req: NextRequest) {
     linkedin_url: input.linkedin_url || null,
     avatar_url: avatarUrl || (portfolioContent.avatar_url as string | undefined) || null,
     projects: mergedProjects,
-    // Education/certifications: prefer AI output, fall back to user-provided data
-    education: (portfolioContent.education as unknown[] | undefined)?.length
-      ? portfolioContent.education
-      : input.education?.length ? input.education : undefined,
-    certifications: (portfolioContent.certifications as string[] | undefined)?.length
-      ? portfolioContent.certifications
-      : input.certifications?.length ? input.certifications : undefined,
+    experience: groundedExperience,
+    // These are credentials, not copy: never accept model-created education or certifications.
+    education: input.education?.length ? input.education : [],
+    certifications: input.certifications?.length ? input.certifications : [],
   }
 
   // New portfolios are drawn with the block renderer: store the look (an arrangement, no words) inside the content. A Pro template stays legacy.

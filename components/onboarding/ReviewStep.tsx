@@ -30,6 +30,9 @@ export default function ReviewStep() {
   const [sheet, setSheet] = useState(false)
   const [isPro, setIsPro] = useState(false)
   const closeRef = useRef<HTMLButtonElement>(null)
+  const avatarInput = useRef<HTMLInputElement>(null)
+  const [avatarBusy, setAvatarBusy] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
   // project images (hooks live up here, before the early return below)
   const imageInputs = useRef<Record<number, HTMLInputElement | null>>({})
   const [imgBusy, setImgBusy] = useState<number | null>(null)
@@ -77,6 +80,30 @@ export default function ReviewStep() {
       return { ...cur, projects: list.map((x, j) => (j === i ? { ...x, ...p } : x)) }
     })
 
+  const uploadAvatar = async (file: File | undefined) => {
+    if (!file) return
+    setAvatarError('')
+    const check = checkImageFile(file)
+    if (check !== 'ok') return setAvatarError(t(`review.image_${check}`))
+    setAvatarBusy(true)
+    try {
+      const token = await flow.getToken()
+      if (!token) return void router.replace(accountUrl('/create/review'))
+      const blob = await toJpeg(file, 512, 0.86)
+      const fd = new FormData()
+      fd.append('file', blob, 'avatar.jpg')
+      const res = await fetch('/api/upload-avatar', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
+      const data = await res.json().catch(() => ({}))
+      const url = res.ok ? projectImageUrl(data?.url, process.env.NEXT_PUBLIC_SUPABASE_URL, 'avatars') : ''
+      if (!url) throw new Error('upload')
+      set('avatar_url', `${url}?v=${Date.now()}`)
+    } catch {
+      setAvatarError(t('review.imageFailed'))
+    } finally {
+      setAvatarBusy(false)
+    }
+  }
+
   // Project image: tap the button, pick a photo, it is shrunk here and uploaded with the person's own token; only the URL is kept.
   const imgMsg = (i: number, text: string) => setImgError((m) => ({ ...m, [i]: text }))
   const uploadImage = async (i: number, file: File | undefined) => {
@@ -108,7 +135,7 @@ export default function ReviewStep() {
     const c = d.candidates.find((x) => x.id === id)
     if (!c) return
     if (picked.has(c.title.toLowerCase())) return set('projects', d.projects.filter((p) => p.title.toLowerCase() !== c.title.toLowerCase()))
-    if (d.projects.filter((p) => p.title).length >= 4) return
+    if (d.projects.filter((p) => p.title).length >= 20) return
     set('projects', [...d.projects.filter((p) => p.title), { title: c.title, description: c.description, stack: c.stack.join(', '), url: c.live_url ?? c.repo_url }])
   }
 
@@ -133,6 +160,19 @@ export default function ReviewStep() {
     <div className="lp-review-form">
       <h1 className="lp-title">{t('review.title')}</h1>
       <section className="lp-section">
+        <div className="lp-field">
+          <span className="lp-label">{t('review.profilePhoto')}</span>
+          {d.avatar_url && <img className="lp-thumbimg" src={d.avatar_url} alt={t('portfolio.photoOf', { name: d.name || t('review.name') })} />}
+          <div className="lp-img-actions">
+            <button type="button" className="lp-btn lp-btn--ghost lp-btn--sm" disabled={avatarBusy} aria-busy={avatarBusy} onClick={() => avatarInput.current?.click()}>
+              {avatarBusy ? t('review.imageUploading') : d.avatar_url ? t('review.imageReplace') : t('review.profilePhotoAdd')}
+            </button>
+            {d.avatar_url && <button type="button" className="lp-link" onClick={() => set('avatar_url', undefined)}>{t('review.imageRemove')}</button>}
+          </div>
+          <input ref={avatarInput} type="file" className="lp-sr" tabIndex={-1} accept="image/jpeg,image/png,image/webp" aria-label={t('review.profilePhoto')} onChange={(e) => { void uploadAvatar(e.target.files?.[0]); e.target.value = '' }} />
+          {avatarError && <p role="alert" className="lp-msg lp-msg--error" style={{ marginTop: 'var(--lp-s2)' }}><AlertIcon />{avatarError}</p>}
+          <p className="lp-fine" style={{ marginTop: 'var(--lp-s1)' }}>{t('review.profilePhotoHint')}</p>
+        </div>
         {field(t('review.name'), d.name, (v) => set('name', v))}
         {field(t('review.role'), d.role, (v) => set('role', v))}
         {field(t('review.location'), d.location, (v) => set('location', v))}
@@ -174,7 +214,25 @@ export default function ReviewStep() {
             </div>
           </fieldset>
         ))}
-        {d.projects.length < 4 && <button type="button" className="lp-link" style={{ marginTop: 'var(--lp-s3)' }} onClick={() => set('projects', [...d.projects, { ...blankProject }])}>+ project</button>}
+        {d.projects.length < 20 && <button type="button" className="lp-link" style={{ marginTop: 'var(--lp-s3)' }} onClick={() => set('projects', [...d.projects, { ...blankProject }])}>+ project</button>}
+      </section>
+
+      <section className="lp-section">
+        <h2 className="lp-h2">{t('review.education')}</h2>
+        {d.education.map((item, i) => (
+          <fieldset key={i} className="lp-repeat">
+            {field('Qualification', item.degree, (v) => set('education', d.education.map((x, j) => j === i ? { ...x, degree: v } : x)))}
+            {field('Institution', item.institution, (v) => set('education', d.education.map((x, j) => j === i ? { ...x, institution: v } : x)))}
+            {field('Year', item.year, (v) => set('education', d.education.map((x, j) => j === i ? { ...x, year: v } : x)))}
+            {field('Grade (optional)', item.grade, (v) => set('education', d.education.map((x, j) => j === i ? { ...x, grade: v } : x)))}
+            <button type="button" className="lp-link" onClick={() => set('education', d.education.filter((_, j) => j !== i))}>Remove education</button>
+          </fieldset>
+        ))}
+        {d.education.length < 20 && <button type="button" className="lp-link" onClick={() => set('education', [...d.education, { degree: '', institution: '', year: '', grade: '' }])}>+ education</button>}
+        <label className="lp-field">
+          <span className="lp-label">{t('review.certifications')}</span>
+          <textarea className="lp-textarea" value={d.certifications.join('\n')} onChange={(e) => set('certifications', e.target.value.split('\n').map((x) => x.trim()).filter(Boolean))} />
+        </label>
       </section>
 
       <section className="lp-section">

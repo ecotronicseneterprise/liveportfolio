@@ -26,6 +26,9 @@ export async function POST(req: NextRequest) {
   if (!file) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   }
+  if (file.type !== 'image/jpeg' || file.size === 0 || file.size > 3 * 1024 * 1024) {
+    return NextResponse.json({ error: 'Photo must be a JPEG under 3 MB.' }, { status: 400 })
+  }
 
   const path = `${user.id}.jpg`
   const supabaseAdmin = getSupabaseAdmin()

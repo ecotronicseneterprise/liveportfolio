@@ -111,9 +111,11 @@ describe('applyOps: projects and experience', () => {
     expect(run([{ op: 'update_project', index: 0, patch: {} }]).changes).toEqual([])
     expect(run([{ op: 'update_experience', index: 0, patch: {} }]).changes).toEqual([])
   })
-  it('limits and ranges: six projects at most, a title is required, a missing index is refused', () => {
-    const s = base(); s.content.projects = Array.from({ length: 6 }, (_, i) => ({ title: `p${i}` }))
+  it('limits and ranges: fifty projects at most (not six), a title is required, a missing index is refused', () => {
+    const s = base(); s.content.projects = Array.from({ length: 50 }, (_, i) => ({ title: `p${i}` }))
     fails([{ op: 'add_project', project: { title: 'x' } }], 'limit', s)
+    const six = base(); six.content.projects = Array.from({ length: 6 }, (_, i) => ({ title: `p${i}` }))
+    expect(() => applyOps(six, [{ op: 'add_project', project: { title: 'seventh' } }])).not.toThrow() // the old limit of 6 is gone
     fails([{ op: 'add_project', project: { title: '  ' } }], 'invalid_op')
     fails([{ op: 'update_project', index: 5, patch: { title: 'x' } }], 'out_of_range')
     fails([{ op: 'remove_experience', index: 3 }], 'out_of_range')

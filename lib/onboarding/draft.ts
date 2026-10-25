@@ -27,6 +27,7 @@ export interface Draft {
   bio: string
   github_url: string
   linkedin_url: string
+  avatar_url?: string
   skills: string[]
   certifications: string[]
   projects: DraftProject[]
@@ -70,9 +71,10 @@ export function sanitizeDraft(input: unknown): Draft | null {
     bio: s(d.bio, 500),
     github_url: urlOrEmpty(d.github_url),
     linkedin_url: urlOrEmpty(d.linkedin_url),
+    ...(projectImageUrl(d.avatar_url, process.env.NEXT_PUBLIC_SUPABASE_URL, 'avatars') ? { avatar_url: projectImageUrl(d.avatar_url, process.env.NEXT_PUBLIC_SUPABASE_URL, 'avatars') } : {}),
     skills: list(d.skills, 15, 50),
     certifications: list(d.certifications, 20, 80),
-    projects: arr(d.projects, 4).map((p) => {
+    projects: arr(d.projects, 20).map((p) => {
       const r = rec(p)
       return {
         title: s(r.title, 80),
@@ -82,12 +84,12 @@ export function sanitizeDraft(input: unknown): Draft | null {
         ...(projectImageUrl(r.image_url) ? { image_url: projectImageUrl(r.image_url) } : {}),
       }
     }),
-    experience: arr(d.experience, 10).map((e) => {
+    experience: arr(d.experience, 20).map((e) => {
       const r = rec(e)
       const bullets = Array.isArray(r.bullets) ? list(r.bullets, 4, 200).join('\n') : s(r.bullets, 900)
       return { company: s(r.company, 80), role: s(r.role, 80), period: s(r.period, 40), bullets }
     }),
-    education: arr(d.education, 3).map((e) => {
+    education: arr(d.education, 20).map((e) => {
       const r = rec(e)
       return { degree: s(r.degree, 100), institution: s(r.institution, 100), year: s(r.year, 20), grade: s(r.grade, 40) }
     }),

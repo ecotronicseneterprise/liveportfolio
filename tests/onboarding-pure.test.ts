@@ -102,7 +102,7 @@ describe('draft: stores only reviewed fields', () => {
     const d = sanitizeDraft({
       name: 'x'.repeat(500), bio: 'b'.repeat(2000), github_url: 'javascript:alert(1)', linkedin_url: 'https://linkedin.com/in/ada',
       skills: Array.from({ length: 40 }, (_, i) => `s${i}`),
-      projects: Array.from({ length: 9 }, (_, i) => ({ title: `p${i}`, url: i === 0 ? 'data:text/html,x' : 'https://ex.com' })),
+      projects: Array.from({ length: 25 }, (_, i) => ({ title: `p${i}`, url: i === 0 ? 'data:text/html,x' : 'https://ex.com' })),
       template: '../../etc', candidates: [{ id: 'c', title: 'T', repo_url: 'file:///x', live_url: 'ftp://x' }],
     })!
     expect(d.name).toHaveLength(80)
@@ -110,7 +110,7 @@ describe('draft: stores only reviewed fields', () => {
     expect(d.github_url).toBe('')
     expect(d.linkedin_url).toBe('https://linkedin.com/in/ada')
     expect(d.skills).toHaveLength(15)
-    expect(d.projects).toHaveLength(4)
+    expect(d.projects).toHaveLength(20) // a generous abuse bound, not a product limit
     expect(d.projects[0].url).toBe('')
     expect(d.template).toBe('') // not chosen: the recommended look is used (lib/blocks/presets.ts)
     expect(d.candidates[0].repo_url).toBe('')

@@ -55,11 +55,17 @@ export default function HeroSpecimen() {
         <div className="spec-bar">
           {LOOKS.map((l) => <label key={l.id} htmlFor={`spec-${l.id}`}>{l.label}</label>)}
         </div>
-        <div className="spec-frame">
-          {/* inert: it is a picture of a portfolio, so its links and fields are not part of the page's tab order */}
-          <div className="spec-pane spec-pane-studio" inert><Studio content={content} layout={{ v: 1, arrangement: 'proof' }} sections={STUDIO} idPrefix="sp-studio" credit={false} /></div>
-          <div className="spec-pane spec-pane-journal" inert><Journal content={content} layout={{ v: 1, arrangement: 'profile' }} sections={JOURNAL} idPrefix="sp-journal" credit={false} /></div>
-          <div className="spec-pane spec-pane-ledger" inert><Ledger content={content} layout={{ v: 1, arrangement: 'index' }} sections={LEDGER} idPrefix="sp-ledger" credit={false} /></div>
+        <div className="browser-window">
+          <div className="browser-chrome" aria-hidden="true">
+            <div className="browser-tabs"><i /><i /><i /><span className="browser-tab">{content.name} — Portfolio</span><b>+</b></div>
+            <div className="browser-toolbar"><span className="browser-controls">‹　›　↻</span><span className="browser-address"><span>⌑</span> liveportfolio.site/ada-okonkwo <span className="browser-lock">Secure</span></span><span className="browser-menu">⋮</span></div>
+          </div>
+          <div className="spec-frame">
+            {/* inert: it is a picture of a portfolio, so its links and fields are not part of the page's tab order */}
+            <div className="spec-pane spec-pane-studio" inert><Studio content={content} layout={{ v: 1, arrangement: 'proof' }} sections={STUDIO} idPrefix="sp-studio" credit={false} /></div>
+            <div className="spec-pane spec-pane-journal" inert><Journal content={content} layout={{ v: 1, arrangement: 'profile' }} sections={JOURNAL} idPrefix="sp-journal" credit={false} /></div>
+            <div className="spec-pane spec-pane-ledger" inert><Ledger content={content} layout={{ v: 1, arrangement: 'index' }} sections={LEDGER} idPrefix="sp-ledger" credit={false} /></div>
+          </div>
         </div>
       </div>
       <figcaption className="spec-cap">{t('landing.specimenCaption')}. {t('landing.specimenNote')}</figcaption>

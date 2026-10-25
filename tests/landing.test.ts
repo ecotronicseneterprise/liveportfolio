@@ -25,17 +25,20 @@ describe('landing hero specimen', () => {
   it('switches with radio inputs and sibling selectors, one checked by default', () => {
     expect(html.match(/type="radio"/g)).toHaveLength(3)
     expect(html.match(/checked=""/g)).toHaveLength(1)
-    for (const id of ['studio', 'journal', 'ledger']) expect(css).toContain(`#spec-${id}:checked ~ .spec-frame .spec-pane-${id}`)
+    for (const id of ['studio', 'journal', 'ledger']) expect(css).toContain(`#spec-${id}:checked ~ .browser-window .spec-frame .spec-pane-${id}`)
     expect(css).toMatch(/\.spec-pane \{ display: none;/)
   })
 
   it('has a fixed-height frame, so switching never shifts the page', () => {
-    expect(css).toMatch(/\.spec-frame \{ height: \d+px;/)
+    expect(css).toMatch(/\.browser-window \{ height: \d+px;/) // the window has a fixed height; the frame fills it
   })
 
   it('keeps hidden panes out of the tab order and labels it as a sample', () => {
     expect(html.match(/inert=""/g)).toHaveLength(3)
     expect(html).toContain(t('landing.specimenNote'))
+    expect(html).toContain('class="browser-window"')
+    expect(html).toContain('Ada Okonkwo — Portfolio')
+    expect(html).toContain('liveportfolio.site/ada-okonkwo')
   })
 
   it('has no autoplay, carousel, gradient or script-driven motion', () => {

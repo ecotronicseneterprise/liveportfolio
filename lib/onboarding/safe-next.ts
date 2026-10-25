@@ -1,7 +1,7 @@
 // Same-origin redirect target from a query string (?next=/create). Only a short allow-list of in-app path prefixes is
 // accepted; anything else (absolute URLs, //host, backslashes, control characters, encoded tricks) falls back.
 
-const ALLOWED_PREFIXES = ['/create', '/dashboard', '/preview', '/reset-password']
+const ALLOWED_PREFIXES = ['/create', '/dashboard', '/preview', '/reset-password', '/admin']
 // eslint-disable-next-line no-control-regex
 const UNSAFE = /[\\\u0000- \u007f]/
 
