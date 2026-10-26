@@ -13,6 +13,7 @@ export default async function Image() {
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i])
   const logo = `data:image/png;base64,${btoa(bin)}`
 
+  // Stacked and centred inside the middle 630px, so WhatsApp's square crop (and any other thumbnail crop) keeps all of it.
   return new ImageResponse(
     (
       <div
@@ -20,20 +21,20 @@ export default async function Image() {
           width: '100%',
           height: '100%',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          padding: '0 96px',
-          gap: '64px',
+          justifyContent: 'center',
+          gap: '22px',
           background: 'linear-gradient(135deg, #0A0A0A 0%, #0D1A2D 60%, #0A1628 100%)',
           fontFamily: 'system-ui, sans-serif',
+          textAlign: 'center',
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logo} width={300} height={300} alt="" style={{ borderRadius: 64 }} />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          <div style={{ color: '#F0F6FF', fontSize: 80, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>LivePortfolio</div>
-          <div style={{ color: '#F0F6FF', fontSize: 38, fontWeight: 600, lineHeight: 1.2, maxWidth: 640 }}>The fastest way to look hireable online.</div>
-          <div style={{ color: '#58A6FF', fontSize: 28 }}>liveportfolio.site</div>
-        </div>
+        <img src={logo} width={210} height={210} alt="" style={{ borderRadius: 46 }} />
+        <div style={{ color: '#F0F6FF', fontSize: 66, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>LivePortfolio</div>
+        <div style={{ color: '#F0F6FF', fontSize: 32, fontWeight: 600, lineHeight: 1.25, width: 480 }}>The fastest way to look hireable online.</div>
+        <div style={{ color: '#58A6FF', fontSize: 26 }}>liveportfolio.site</div>
       </div>
     ),
     { ...size }
