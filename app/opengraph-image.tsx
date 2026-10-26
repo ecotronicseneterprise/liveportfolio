@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'LivePortfolio: the fastest way to look hireable online'
+export const alt = 'LivePortfolio: Your work deserves to be seen'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -33,7 +33,7 @@ export default async function Image() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logo} width={210} height={210} alt="" style={{ borderRadius: 46 }} />
         <div style={{ color: '#F0F6FF', fontSize: 66, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>LivePortfolio</div>
-        <div style={{ color: '#F0F6FF', fontSize: 32, fontWeight: 600, lineHeight: 1.25, width: 480 }}>The fastest way to look hireable online.</div>
+        <div style={{ color: '#F0F6FF', fontSize: 36, fontWeight: 600, lineHeight: 1.25, width: 600, display: 'flex', justifyContent: 'center', textAlign: 'center' }}>Your work deserves to be seen.</div>
         <div style={{ color: '#58A6FF', fontSize: 26 }}>liveportfolio.site</div>
       </div>
     ),
