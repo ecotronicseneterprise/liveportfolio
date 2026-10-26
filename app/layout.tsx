@@ -3,8 +3,6 @@ import './globals.css'
 import TrackingScripts from '@/components/TrackingScripts'
 import ConsentBanner from '@/components/ConsentBanner'
 
-const HOME_LOGO_SHARE_IMAGE = 'https://liveportfolio.site/logo-1024.png?v=2'
-
 export const metadata: Metadata = {
   title: 'LivePortfolio — Build a professional portfolio in minutes',
   description: 'Upload your CV and we turn it into a professional portfolio website. Build your online presence and know when someone views your profile.',
@@ -22,6 +20,8 @@ export const metadata: Metadata = {
     'Nigeria portfolio website',
     'African tech professionals',
   ],
+  metadataBase: new URL('https://liveportfolio.site'),
+  // the share image comes from app/opengraph-image.tsx and app/twitter-image.tsx (the real logo)
   icons: {
     icon: '/logo.svg',
   },
@@ -31,20 +31,11 @@ export const metadata: Metadata = {
     url: 'https://liveportfolio.site',
     siteName: 'LivePortfolio',
     type: 'website',
-    images: [
-      {
-        url: HOME_LOGO_SHARE_IMAGE,
-        width: 1024,
-        height: 1024,
-        alt: 'LivePortfolio logo',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'LivePortfolio — Build a Portfolio That Gets You Hired',
     description: 'Upload your CV and we tell your story. Build your online presence and see when someone from a new country opens your portfolio — in real time.',
-    images: [HOME_LOGO_SHARE_IMAGE],
   },
 }
 
