@@ -27,12 +27,15 @@ describe('homepage message and footer', () => {
     expect(footer).toContain('<CookieSettingsLink className="inline-flex items-center whitespace-nowrap')
   })
 
-  it('uses the logo as the social share image', () => {
-    const source = fs.readFileSync(path.resolve(__dirname, '../app/layout.tsx'), 'utf8')
-    expect(source).toContain("const HOME_LOGO_SHARE_IMAGE = 'https://liveportfolio.site/logo-1024.png?v=2'")
-    expect(source).toContain('url: HOME_LOGO_SHARE_IMAGE')
-    expect(source).toContain('width: 1024')
-    expect(source).toContain('height: 1024')
-    expect(source).toContain('images: [HOME_LOGO_SHARE_IMAGE]')
+  it('shares the real logo: a generated 1200x630 card for Open Graph and X, set up once at the root', () => {
+    const read = (p: string) => fs.readFileSync(path.resolve(__dirname, p), 'utf8')
+    const og = read('../app/opengraph-image.tsx')
+    expect(og).toContain("logo-512.png")
+    expect(og).toContain('width: 1200, height: 630')
+    expect(read('../app/twitter-image.tsx')).toContain("from './opengraph-image'")
+    const layout = read('../app/layout.tsx')
+    expect(layout).toContain("metadataBase: new URL('https://liveportfolio.site')")
+    expect(layout).not.toContain('HOME_LOGO_SHARE_IMAGE')
+    expect(read('../middleware.ts')).toContain("'twitter-image'")
   })
 })
