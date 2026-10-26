@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // CI check: all LLM traffic goes through lib/llm/callLLM.
 // Fails if the `openai` package (any subpath) or api.openai.com appears outside lib/llm.
 //
