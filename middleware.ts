@@ -45,10 +45,13 @@ export function middleware(req: NextRequest) {
     if (isSingleSegment) {
       const slug = normalizedPath.slice(1)
       const reserved = new Set([
+        'admin',
         'api',
         'auth',
         'blog',
+        'checkout',
         'create',
+        'design-review',
         'cv-to-portfolio',
         'dashboard',
         'free-portfolio-website',
