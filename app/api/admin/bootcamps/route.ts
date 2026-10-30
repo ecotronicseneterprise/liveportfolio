@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { adminAuthorised } from '@/lib/admin/auth'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { getSupabaseAdmin } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +13,7 @@ const authorised = adminAuthorised // the owner signed in, or the operations sec
 export async function GET(req: NextRequest) {
   if (!(await authorised(req))) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
+  const supabase = getSupabaseAdmin()
   const { data: codes, error } = await supabase
     .from('bootcamp_codes')
     .select('name, code, use_count, plan_to_grant, active, max_uses, created_at')
@@ -51,6 +47,7 @@ export async function POST(req: NextRequest) {
     maxUses = n
   }
 
+  const supabase = getSupabaseAdmin()
   const { error } = await supabase
     .from('bootcamp_codes')
     .insert({ code, name, plan_to_grant: plan, active: true, max_uses: maxUses, use_count: 0 })
@@ -82,6 +79,7 @@ export async function PATCH(req: NextRequest) {
   }
   if (Object.keys(patch).length === 0) return NextResponse.json({ error: 'nothing_to_change' }, { status: 400 })
 
+  const supabase = getSupabaseAdmin()
   const { data, error } = await supabase.from('bootcamp_codes').update(patch).eq('code', code).select('code, name, active, max_uses, use_count')
   if (error) return NextResponse.json({ error: 'update_failed' }, { status: 500 })
   if (!data || data.length === 0) return NextResponse.json({ error: 'not_found' }, { status: 404 })

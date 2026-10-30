@@ -240,13 +240,17 @@ function buildDashboardNotifications(content: Partial<PortfolioContent>): Dashbo
 
 function NotificationsMenu({ notifications }: { notifications: DashboardNotification[] }) {
   const [open, setOpen] = useState(false)
-  const unread = notifications.length
+  const [dismissed, setDismissed] = useState(false)
+  const unread = dismissed ? 0 : notifications.length
 
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setOpen((v) => !v)
+          setDismissed(true)
+        }}
         aria-expanded={open}
         aria-label="Open notifications"
         className="relative rounded-full border border-gray-200 bg-white p-2 text-gray-500 hover:text-gray-700"
@@ -1104,8 +1108,8 @@ export default function DashboardPage() {
       />
 
       {/* Nav */}
-      <nav className="bg-white border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
+      <nav className="bg-white border-b border-gray-100 sticky top-0 z-30">
+        <div className="w-full px-5 md:px-8 xl:px-10 py-4 flex items-center justify-between">
           <Link href="/"><Logo /></Link>
           <div className="flex items-center gap-4">
             <NotificationsMenu notifications={buildDashboardNotifications(editContent)} />
@@ -1117,7 +1121,7 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <div className={`${activeTab === 'edit' ? 'max-w-7xl' : 'max-w-5xl'} mx-auto px-5 py-8 pb-[72px] md:pb-8`}>
+      <div className="w-full px-5 md:px-8 xl:px-10 py-8 pb-[72px] md:pb-8">
 
         {/* Identity header */}
         <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6">
