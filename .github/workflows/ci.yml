@@ -2,9 +2,8 @@
 # LLM or to Supabase: every value below is a placeholder. Deployment is Vercel's job (push to main), not this workflow's.
 name: ci
 on:
-  pull_request:
   push:
-    branches: [main, dev]
+    branches: [main]
 permissions:
   contents: read
 concurrency:

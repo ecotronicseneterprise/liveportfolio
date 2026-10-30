@@ -49,7 +49,7 @@ Support: `ecotronics.nterprise@gmail.com` is the address shown in the Terms, pri
 
 ## 3. Create the PR and merge
 
-Open `https://github.com/ecotronicseneterprise/liveportfolio/compare/main...dev`, wait for CI to pass, **Create a merge commit** (not squash, so one revert undoes it). Wait for the Production deployment to be Ready.
+Test the Vercel `dev` preview before merging. Open `https://github.com/ecotronicseneterprise/liveportfolio/compare/main...dev` and **Create a merge commit** (not squash, so one revert undoes it). GitHub CI runs only on pushes to `main`, including merges; it does not run on `dev` pushes or pull requests. After merging, check both the CI result and the Production deployment's Ready status. Vercel deploys independently of CI, so a failed check does not automatically stop deployment. If branch protection requires the old pre-merge `verify` check, update that requirement explicitly in GitHub settings.
 
 ## 4. The first five things to test on the live link (private browser window)
 
