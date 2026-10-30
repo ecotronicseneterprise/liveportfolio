@@ -146,7 +146,7 @@ export default function FreePreview({ content, plan, slug, liveUrl, previewId, s
                 </span>
                 <span className="flex items-center justify-between gap-1 px-1.5 py-1 text-[11px] font-medium text-gray-900">
                   <span className="truncate">{TEMPLATE_LABEL[tid]}</span>
-                  {pro ? <LockIcon /> : on ? <CheckIcon /> : null}
+                  {pro && plan !== 'pro' ? <LockIcon /> : on ? <CheckIcon /> : null}
                 </span>
               </button>
             </li>

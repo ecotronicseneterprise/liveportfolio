@@ -1,42 +1,42 @@
 {
   "minimal": {
-    "sha256": "3bf85ae861f3246d2d49e3968b8e3fa0c7acbb9587027a63283a29e056a3c786",
-    "bytes": 13769
+    "sha256": "f80517635fcb72bc63cdbfd380f0b32a5199e8f77f2ef0614ca801c3e47448fc",
+    "bytes": 13887
   },
   "bold": {
-    "sha256": "f1091786de8b45bb2cc8cde292bdb97607fbb4e89d0168ff00db6521ab7dd974",
-    "bytes": 17319
+    "sha256": "b3237535f27ff570e7b32011bc4896156e4c997bf62b16cc42eebf97be7bd4f9",
+    "bytes": 17452
   },
   "creative": {
-    "sha256": "df47c635ae3f80eaca2590cf7494cd07fb51478f889923e72b3fe45adae583f0",
-    "bytes": 19150
+    "sha256": "befb6cf15dd621c95e464fdc2f6395fc3ae343a89d503f8a590455084c390152",
+    "bytes": 19515
   },
   "developer": {
-    "sha256": "6a19222acad5cf40cc0129b6e0d9b8ac2c1c1e0cba1f6b8fa914307188097ea7",
-    "bytes": 20406
+    "sha256": "4aeb31052e187be4d84759325b583c8d68c281d097e425fef63ecc786ec94d4a",
+    "bytes": 20554
   },
   "designer": {
-    "sha256": "e4e594d63356f09d8a70760a355c98643f6ef0127c5c3ea35165de1d30455845",
-    "bytes": 17775
+    "sha256": "ca1905fd682301358486e1ec518e445e4c43d85e27fb14845faf4e3fd7dc849f",
+    "bytes": 18086
   },
   "data-scientist": {
     "sha256": "49f2326075ac67429bc9771a75f9ce903160af3c8af5d0d55f8cb17bdc1fc94a",
     "bytes": 19161
   },
   "product-manager": {
-    "sha256": "f26f03a1827205256b07c4be780b1d553eab33aaa14e8d5a29d242ef5ff37aed",
-    "bytes": 16864
+    "sha256": "2b13f8ff48f87a1463a98ed194e46eba15191c4320e1dc6d386d4a050803b88e",
+    "bytes": 17215
   },
   "finance": {
-    "sha256": "449af5e5e5f725e79916a723117db73398945f4372d995bf4465bb57f9449274",
-    "bytes": 14448
+    "sha256": "27e9e3ac1fdbf0effbdc6171ae2d98ecee98e335c66a7258f1ee35fb7e1c538f",
+    "bytes": 14689
   },
   "graduate": {
     "sha256": "97e41401b4bf2790646215696dcceb87ad20b7f08ff3c765fad14d70af6263ef",
     "bytes": 18218
   },
   "cybersecurity": {
-    "sha256": "aae577efcf7904ab05d0699e699dd45f6640697bd21f05f5d21745938edd4e2d",
-    "bytes": 19317
+    "sha256": "5b455aa20f9aeabbb2db299fe4c8d826d2c9305533574c014d3f15346a6aeadc",
+    "bytes": 19629
   }
 }

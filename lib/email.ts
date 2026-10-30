@@ -1,7 +1,11 @@
 import { Resend } from 'resend'
 import { SUPPORT_EMAIL } from '@/lib/brand'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() {
+  const key = process.env.RESEND_API_KEY
+  if (!key) return null
+  return new Resend(key)
+}
 
 export async function sendEmail({
   to,
@@ -12,6 +16,11 @@ export async function sendEmail({
   subject: string
   html: string
 }) {
+  const resend = getResend()
+  if (!resend) {
+    return { success: false, error: new Error('RESEND_API_KEY is not set') }
+  }
+
   try {
     const { data, error } = await resend.emails.send({
       from: 'liveportfolio.site <noreply@liveportfolio.site>',

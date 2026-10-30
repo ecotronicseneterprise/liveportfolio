@@ -1,5 +1,6 @@
 import { createHmac } from 'crypto'
 import { sendEmail } from '@/lib/email'
+import { emailLayout, emailButton, escapeEmailText } from '@/lib/email-layout'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
 const DASHBOARD_URL = `${APP_URL}/dashboard`
@@ -13,30 +14,10 @@ function unsubscribeLink(email: string): string {
 }
 
 function baseLayout(body: string, email: string): string {
-  return `
-    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-                max-width:520px;margin:0 auto;padding:40px 24px;color:#111;">
-      ${body}
-      <p style="color:#bbb;font-size:12px;margin-top:40px;
-                border-top:1px solid #f0f0f0;padding-top:16px;line-height:1.6;">
-        liveportfolio.site · Professional portfolios for tech talent<br>
-        <a href="${unsubscribeLink(email)}"
-           style="color:#bbb;text-decoration:underline;">Unsubscribe</a>
-      </p>
-    </div>
-  `
+  return emailLayout(body, { unsubscribeUrl: unsubscribeLink(email) })
 }
 
-function ctaButton(text: string, url: string): string {
-  return `
-    <a href="${url}"
-       style="display:inline-block;background:#0A66C2;color:#fff;
-              padding:12px 24px;border-radius:8px;text-decoration:none;
-              font-weight:600;font-size:15px;margin-top:8px;">
-      ${text}
-    </a>
-  `
-}
+const ctaButton = emailButton
 
 function para(text: string): string {
   return `<p style="color:#444;font-size:15px;line-height:1.7;margin:16px 0;">${text}</p>`
@@ -50,39 +31,41 @@ function heading(text: string): string {
 
 const FLOW_A: Record<number, { subject: string; html: (email: string) => string }> = {
   1: {
-    subject: 'Your portfolio is ready',
+    subject: 'Give your best project a clear story',
     html: (email) => baseLayout(`
-      ${heading('Your portfolio is ready.')}
-      ${para('You built it. It looks great. The only thing left is making it live so recruiters can actually find you.')}
-      ${para('Publishing takes one click. Your portfolio goes live instantly at <strong>liveportfolio.site/yourname</strong> — permanent, no expiry.')}
-      ${ctaButton('Publish my portfolio', DASHBOARD_URL)}
+      ${heading('Start with one project you are proud of.')}
+      ${para('You do not need a long list of projects to start. Choose one and explain the problem, what you personally did, and what changed.')}
+      ${para('<strong>A useful structure:</strong> “The challenge was … I built … The result was …” Add a real number if you have one; a clear, honest result is useful without one too.')}
+      ${ctaButton('Improve my projects', DASHBOARD_URL)}
+      ${para('You can keep editing privately on the Free plan. Publish when you are ready to share your work.')}
     `, email),
   },
   3: {
-    subject: 'Your portfolio isn\'t live yet',
+    subject: 'Three checks before you share your portfolio',
     html: (email) => baseLayout(`
-      ${heading('Your portfolio isn\'t live yet.')}
-      ${para('Job seekers with a live portfolio get significantly more recruiter responses than those without one. Yours is built and ready — it just needs to be published.')}
-      ${para('Every day it sits unpublished is a day it isn\'t working for you.')}
-      ${ctaButton('Go live now', DASHBOARD_URL)}
+      ${heading('Make your first impression easy to understand.')}
+      ${para('Before publishing, check three things: your introduction says what you do, your strongest project explains your contribution, and your contact links work.')}
+      ${para('Open the preview on your phone too. That is how many people will first see your work.')}
+      ${para(`Ready to go live? Basic is <strong>${formatNaira(PLANS.basic.priceNgn ?? 0)} for 12 months</strong>. ${BILLING_COPY.pricingNote}.`)}
+      ${ctaButton('Review and publish', DASHBOARD_URL)}
     `, email),
   },
   6: {
-    subject: 'Recruiters can\'t find you yet',
+    subject: 'Put your work one click from your next application',
     html: (email) => baseLayout(`
-      ${heading('Recruiters can\'t find you yet.')}
-      ${para('Your portfolio is built and sitting unpublished. While it\'s offline, recruiters searching for your skills are landing on someone else\'s page instead.')}
-      ${para('Your portfolio is already built. One click makes it permanently findable.')}
-      ${ctaButton('Publish today', DASHBOARD_URL)}
+      ${heading('Give people a simple way to explore your work.')}
+      ${para('Once your portfolio is published, add its link to your CV, your LinkedIn Featured section, and your email signature. In applications, point to the project most relevant to the role.')}
+      ${para('A portfolio does not guarantee an interview. It gives someone reviewing your application a place to see the detail behind your experience.')}
+      ${ctaButton('Explore publishing plans', DASHBOARD_URL)}
     `, email),
   },
   12: {
-    subject: 'We saved your portfolio (for now)',
+    subject: 'Your portfolio is here when you are ready',
     html: (email) => baseLayout(`
-      ${heading('We kept your portfolio.')}
-      ${para('It\'s still here — your name, your projects, your work. Everything you built is saved and ready the moment you decide to go live.')}
-      ${para('Whenever you\'re ready, publishing takes less than 60 seconds.')}
-      ${ctaButton('Come back and publish', DASHBOARD_URL)}
+      ${heading('Pick up where you left off.')}
+      ${para('Your portfolio is saved. There is no need to finish everything in one sitting: update one project, check your introduction, or add a recent skill.')}
+      ${para('You can continue editing privately on Free and choose a publishing plan later. If you are unsure what to add, reply and tell us where you are stuck.')}
+      ${ctaButton('Continue editing', DASHBOARD_URL)}
     `, email),
   },
 }
@@ -98,30 +81,31 @@ export async function sendFlowA(day: 1 | 3 | 6 | 12, email: string, portfolioUrl
 
 const FLOW_B: Record<number, { subject: string; html: (email: string) => string }> = {
   7: {
-    subject: 'Do you know who\'s viewing your portfolio?',
+    subject: 'See how people reach your work',
     html: (email) => baseLayout(`
-      ${heading('Your portfolio is live. But do you know who\'s viewing it?')}
-      ${para('Pro shows you the company name, country, and traffic source for every visit. See "Someone from Andela · Nigeria · via LinkedIn" instead of just a number.')}
-      ${para('That\'s the difference between knowing your portfolio is working and actually seeing it work.')}
-      ${ctaButton('Upgrade to Pro', DASHBOARD_URL)}
+      ${heading('Share your portfolio with a little more insight.')}
+      ${para('Pro adds visitor analytics: recorded visits, approximate visitor counts, country when available, and traffic sources when the browser shares them.')}
+      ${para('Use those signals to understand which places bring people to your work. They do not identify individual recruiters, and VPNs or privacy settings can affect the results.')}
+      ${ctaButton('Explore Pro analytics', DASHBOARD_URL)}
     `, email),
   },
   21: {
-    subject: 'Your career score is waiting',
+    subject: 'Find a look that suits your work',
     html: (email) => baseLayout(`
-      ${heading('Your AI career score is ready — you just need Pro to see it.')}
-      ${para('Every week, our AI scores your portfolio out of 100 across four dimensions: online presence, project impact, experience, and skills. It gives you three specific things to improve.')}
-      ${para('Pro users see their score trend over time. Yours is ready the moment you upgrade.')}
-      ${ctaButton('See your score', DASHBOARD_URL)}
+      ${heading('Let your work lead the design.')}
+      ${para(`You can preview every template with your own details. Pro lets you publish with all ${ALL_TEMPLATES.length} templates, including the role-specific designs.`)}
+      ${para('Try a different look and check how your strongest project reads on mobile. Choose the design that makes your work easiest to understand, not simply the busiest one.')}
+      ${ctaButton('Preview the templates', DASHBOARD_URL)}
     `, email),
   },
   45: {
-    subject: 'One feature that changes everything',
+    subject: 'Make your portfolio easier to share in person',
     html: (email) => baseLayout(`
-      ${heading('Your own domain. Your name, not a subdomain.')}
-      ${para('cliffordnwanna.com instead of liveportfolio.site/cliffordnwanna. Recruiters notice the difference. It signals that you take your professional presence seriously.')}
-      ${para('Custom domain is a Pro feature. One upgrade and it\'s yours permanently.')}
-      ${ctaButton('Connect your domain', DASHBOARD_URL)}
+      ${heading('One scan can open your work.')}
+      ${para('Pro includes a QR code for your portfolio. Put it on a printed CV or bring it to an event so someone can open your work on their phone.')}
+      ${para(`Pro is <strong>${formatNaira(PLANS.pro.priceNgn ?? 0)} for 12 months</strong> and also includes visitor analytics and all ${ALL_TEMPLATES.length} templates. ${BILLING_COPY.pricingNote}.`)}
+      ${para('Basic still keeps your portfolio public while your plan is active. Upgrade only if these extras are useful to you.')}
+      ${ctaButton('Compare my options', DASHBOARD_URL)}
     `, email),
   },
 }
@@ -140,10 +124,10 @@ export async function sendWeeklyScore(
   summary: string,
 ): Promise<void> {
   const html = baseLayout(`
-    ${heading(`Your career score this week: ${score}/100`)}
-    ${para(summary || 'Your portfolio is being seen. Keep improving it to stand out.')}
-    ${para('Log in to see your full breakdown — presence, projects, experience, and skills — and track your trend over time.')}
-    ${ctaButton('View my score', DASHBOARD_URL)}
+    ${heading(`Your latest saved career assessment: ${score}/100`)}
+    ${para(escapeEmailText(summary || 'Choose one project and make its result clearer this week.'))}
+    ${para('This is your latest saved AI assessment, not a hiring prediction. Your dashboard now uses a separate portfolio progress checklist to help you choose what to improve next.')}
+    ${ctaButton('Improve my portfolio', DASHBOARD_URL)}
   `, email)
 
   await sendEmail({
