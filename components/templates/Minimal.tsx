@@ -141,13 +141,16 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
 
         {/* Hero — full width, two-column on desktop */}
         <section className="w-full border-b border-gray-100">
-          <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+          <div className="w-full px-6 sm:px-10 lg:px-16 py-12 sm:py-24 grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-20 items-start">
             <div>
               <div className="flex items-start justify-between gap-4 mb-4">
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.0] break-words flex-1" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                  {content.name.trim().split(/\s+/).map((part, i) => (
-                    <span key={i} style={{ display: 'block' }}>{part}</span>
-                  ))}
+                <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] [text-wrap:balance] break-words flex-1" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+                  <span className="sm:hidden">{content.name}</span>
+                  <span className="hidden sm:block">
+                    {content.name.trim().split(/\s+/).map((part, i) => (
+                      <span key={i} style={{ display: 'block' }}>{part}</span>
+                    ))}
+                  </span>
                 </h1>
               </div>
               <div className="w-8 h-0.5 bg-[#0A66C2] my-4" />
@@ -157,7 +160,7 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
                 {content.location && <span className="text-sm text-gray-400">{content.location}</span>}
               </div>
             </div>
-            <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-6 sm:gap-8">
               <p className="text-xl sm:text-2xl leading-relaxed text-[#0A0A0A]" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
                 {content.headline}
               </p>

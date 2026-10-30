@@ -58,6 +58,7 @@ const css = `
     letter-spacing: -0.02em;
     color: var(--text); margin-bottom: 10px;
     overflow-wrap: anywhere;
+    text-wrap: balance;
   }
   .pm-hero-role {
     font-size: 18px; font-weight: 600;
@@ -67,6 +68,8 @@ const css = `
     font-size: 16px; color: var(--muted);
     line-height: 1.7; max-width: 520px;
     margin-bottom: 20px; font-weight: 400;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
   }
   .pm-hero-links { display: flex; gap: 10px; flex-wrap: wrap; }
   .pm-cta-primary {
@@ -210,7 +213,11 @@ const css = `
   .pm-footer a:hover { color: var(--primary); }
 
   @media (max-width: 700px) {
-    .pm-hero-inner { grid-template-columns: 1fr; }
+    .pm-hero { padding: 48px 6vw 36px; }
+    .pm-hero-inner { grid-template-columns: 1fr; gap: 24px; margin-bottom: 28px; }
+    .pm-hero-name { font-size: clamp(30px, 9vw, 42px); line-height: 1.02; }
+    .pm-hero-role { margin-bottom: 10px; }
+    .pm-hero-headline { font-size: 15px; line-height: 1.65; margin-bottom: 16px; }
     .pm-skills-groups { grid-template-columns: 1fr; }
     .pm-nav-links { display: none; }
   }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { createHash } from 'crypto'
+import { recordVisit, safeReferrer, validVisitReceipt, visitorFromHeaders } from '@/lib/analytics/visits'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +24,7 @@ function isRateLimited(ip: string): boolean {
 
 // In-memory dedup: ip_hash+portfolio_id+event_type+label → last seen ms
 const seen = new Map<string, number>()
-const DEDUP_MS = 60 * 1000 // 1-minute dedup per unique event
+const DEDUP_MS = 60 * 1000 // Click dedup only; views use the database primary key.
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,6 +42,22 @@ export async function POST(req: NextRequest) {
 
     // FIX 8: Allowlist event_type
     if (!event_type || !ALLOWED_EVENT_TYPES.has(event_type)) {
+      return NextResponse.json({}, { status: 200 })
+    }
+
+    if (event_type === 'portfolio_view') {
+      const visitor = visitorFromHeaders(req.headers)
+      if (!visitor || !validVisitReceipt(portfolio_id, body.receipt)) {
+        return NextResponse.json({ error: 'Invalid visit' }, { status: 400 })
+      }
+      const db = getSupabaseAdmin()
+      const { data: portfolioExists, error } = await db.from('portfolios')
+        .select('id').eq('id', portfolio_id).maybeSingle()
+      if (error) return NextResponse.json({ error: 'Analytics unavailable' }, { status: 503 })
+      if (!portfolioExists) {
+        return NextResponse.json({}, { status: 200 })
+      }
+      await recordVisit(db, portfolio_id, body.receipt, visitor, safeReferrer(referrer), true)
       return NextResponse.json({}, { status: 200 })
     }
 
@@ -85,6 +102,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({}, { status: 200 })
   } catch {
-    return NextResponse.json({}, { status: 200 })
+    console.warn('[analytics] event write failed')
+    return NextResponse.json({ error: 'Analytics unavailable' }, { status: 503 })
   }
 }

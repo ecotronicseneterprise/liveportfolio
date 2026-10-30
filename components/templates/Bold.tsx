@@ -136,8 +136,8 @@ export default function Bold({ content }: { content: PortfolioContent }) {
           </div>
 
           <h1
-            className="text-xl font-bold text-[#F0F6FF] mb-1 leading-tight break-words"
-            style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+            className="text-lg sm:text-xl font-bold text-[#F0F6FF] mb-1 leading-tight break-words [text-wrap:balance]"
+            style={{ fontFamily: 'var(--font-space-mono), monospace', overflowWrap: 'anywhere' }}
           >
             {content.name}
           </h1>
@@ -186,22 +186,22 @@ export default function Bold({ content }: { content: PortfolioContent }) {
         <main className="flex-1 px-6 lg:px-16 xl:px-24 py-8 lg:py-16">
 
           {/* Hero */}
-          <div className="mb-16">
+          <div className="mb-12 lg:mb-16">
 
             <h1
-              className="lg:hidden text-2xl font-bold text-[#F0F6FF] mb-1 leading-tight break-words"
-              style={{ fontFamily: 'var(--font-space-mono), monospace' }}
+              className="lg:hidden text-xl sm:text-2xl font-bold text-[#F0F6FF] mb-1 leading-tight break-words [text-wrap:balance]"
+              style={{ fontFamily: 'var(--font-space-mono), monospace', overflowWrap: 'anywhere' }}
             >
               {content.name}
             </h1>
             <p
-              className="text-xs text-[#8B949E] mb-3 tracking-widest uppercase"
+              className="text-xs text-[#8B949E] mb-2 sm:mb-3 tracking-widest uppercase"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
               {typedRole}<span className="animate-pulse">|</span>
             </p>
             <h2
-              className="text-3xl sm:text-4xl font-bold mb-4 leading-tight bg-gradient-to-r from-[#F0F6FF] to-[#58A6FF] bg-clip-text text-transparent"
+              className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 leading-tight bg-gradient-to-r from-[#F0F6FF] to-[#58A6FF] bg-clip-text text-transparent"
               style={{ fontFamily: 'var(--font-space-mono), monospace' }}
             >
               {content.headline}

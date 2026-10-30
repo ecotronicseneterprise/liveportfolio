@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
     activePro,
     cancelledThisMonth,
     expiringIn30,
-    // Total portfolio_view count all-time
+    // Total view count all-time
     totalViewsResult,
     // Career scores this month
     careerScoresThisMonth,
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
     // Portfolios — health score and template distribution (view_count no longer maintained)
     db.from('portfolios').select('health_score, template'),
 
-    // Top 5 most viewed all time — all portfolio_view events, no date cap (all-time cumulative)
+    // Top 5 most viewed all time — count both confirmed and server fallback view events
     db.from('analytics_events')
       .select('portfolio_id')
       .eq('event_type', 'portfolio_view'),
@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
       .gt('expires_at', now.toISOString())
       .lt('expires_at', new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()),
 
-    // Total portfolio_view events all-time — single source of truth since view_count no longer increments
+    // Total view events all-time — confirmed preferred in dashboards, server fallback still counted here
     db.from('analytics_events')
       .select('*', { count: 'exact', head: true })
       .eq('event_type', 'portfolio_view'),

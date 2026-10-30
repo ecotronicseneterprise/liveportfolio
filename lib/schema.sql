@@ -75,8 +75,8 @@ CREATE TABLE IF NOT EXISTS email_subscribers (
 CREATE TABLE IF NOT EXISTS analytics_events (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   portfolio_id uuid NOT NULL REFERENCES portfolios(id) ON DELETE CASCADE,
-  event_type   text NOT NULL,                         -- 'portfolio_view' | 'click'
-  label        text,                                  -- for click events: button/link label
+  event_type   text NOT NULL,                         -- 'portfolio_view' | 'click' (one row per visit)
+  label        text,                                  -- click label, or 'confirmed' after browser confirmation
   referrer     text,
   ip_hash      text,                                  -- sha256 of real IP — never store raw IP
   company      text,                                  -- from IPinfo Lite as_name (filtered)

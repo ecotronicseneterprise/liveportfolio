@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
       return 'Other'
     }
 
-    // Isolate portfolio_view events — used for Views, Visitors, bar chart, and top sources
+    // One canonical row per visit, including historical portfolio_view records.
     const viewEvents = allEvents.filter((e) => e.event_type === 'portfolio_view')
 
     // FIX 1: totalViews from analytics_events, same window as Visitors
@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
       last7Days.push(d.toISOString().slice(0, 10)) // YYYY-MM-DD UTC
     }
 
-    // FIX 4: bar chart uses same viewEvents (portfolio_view only, last 30 days)
+    // FIX 4: bar chart uses canonical views only
     const viewsByDay = last7Days.map((dateStr) =>
       viewEvents.filter((e) => e.created_at.slice(0, 10) === dateStr).length
     )
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
       return DAY_NAMES[d.getUTCDay()]
     })
 
-    // Top referrer sources (portfolio_view events only, same viewEvents array)
+    // Top referrer sources from the selected viewEvents array
     const referrerCounts: Record<string, number> = {}
     for (const e of viewEvents) {
       const ref = e.referrer
@@ -120,7 +120,7 @@ export async function GET(req: NextRequest) {
         pct: Math.round((count / totalReferrerEvents) * 100),
       }))
 
-    // FIX 2: Unique visitors — distinct ip_hashes from portfolio_view events only
+    // FIX 2: Unique visitors — distinct ip_hashes from the selected viewEvents array
     const uniqueIpHashes = new Set(
       viewEvents.map((e) => (e as { ip_hash?: string }).ip_hash).filter(Boolean)
     )

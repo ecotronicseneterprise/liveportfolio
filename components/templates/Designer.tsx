@@ -55,7 +55,8 @@ const css = `
     letter-spacing: -0.03em;
     margin-bottom: 12px;
     word-break: break-word;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
     max-width: 100%;
     background: linear-gradient(135deg, #1E1B4B 0%, #6D28D9 100%);
     -webkit-background-clip: text;
@@ -71,6 +72,8 @@ const css = `
     font-size: 16px; line-height: 1.8;
     color: var(--muted); max-width: 560px;
     font-weight: 300; margin-bottom: 16px;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
   }
   .ds-hero-about {
     font-size: 16px; font-weight: 300;
@@ -231,6 +234,10 @@ const css = `
 
   @media (max-width: 700px) {
     .ds-nav-links { display: none; }
+    .ds-hero { padding: 56px 6vw 44px; }
+    .ds-hero-name { font-size: clamp(24px, 9vw, 38px); line-height: 1.02; }
+    .ds-hero-role { margin-bottom: 14px; }
+    .ds-hero-bio { font-size: 15px; line-height: 1.7; margin-bottom: 12px; }
     .ds-contact { padding: 48px 6vw; }
   }
 `

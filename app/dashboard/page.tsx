@@ -109,167 +109,233 @@ function ProBlurOverlay({ subtext, onUpgrade }: {
   )
 }
 
-// ── Career Score card — circular ring, Pro only ──────────────────────────────
-interface CareerScoreData {
-  score: number
-  breakdown: { presence: number; projects: number; experience: number; skills: number }
-  summary: string
-  scored_at: string
-  cached: boolean
+interface ProgressInsight {
+  id: string
+  title: string
+  detail: string
+  cta: string
+  severity: number
 }
 
-function CareerScoreCard({
-  isPro,
-  portfolioId,
-  userId,
-  token,
-  onUpgrade,
-}: {
-  isPro: boolean
-  portfolioId: string
-  userId: string
-  token: string
-  onUpgrade: () => void
-}) {
-  const [data, setData] = useState<CareerScoreData | null>(null)
-  const [loading, setLoading] = useState(false)
+interface PortfolioProgress {
+  score: number
+  summary: string
+  next: ProgressInsight
+  improvements: ProgressInsight[]
+}
 
-  useEffect(() => {
-    if (!isPro || !token) return
-    setLoading(true)
-    fetch(`/api/score?portfolioId=${portfolioId}&userId=${userId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((d) => { if (d.score !== undefined) setData(d) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [isPro, portfolioId, userId, token])
+interface DashboardNotification {
+  id: string
+  type: 'improvement' | 'announcement'
+  title: string
+  detail: string
+  cta?: string
+}
 
-  // Circular ring metrics
-  const RADIUS = 36
-  const CIRCUMFERENCE = 2 * Math.PI * RADIUS
-  const displayScore = isPro ? (data?.score ?? 0) : 72 // PLACEHOLDER for Basic
-  const strokeDashoffset = CIRCUMFERENCE - (displayScore / 100) * CIRCUMFERENCE
+const DASHBOARD_ANNOUNCEMENTS: DashboardNotification[] = []
+
+function hasMetric(text?: string | null) {
+  return !!text && /\d/.test(text)
+}
+
+function portfolioProgress(content: Partial<PortfolioContent>): PortfolioProgress {
+  let raw = 0
+  const improvements: ProgressInsight[] = []
+  const projects = Array.isArray(content.projects) ? content.projects : []
+  const experience = Array.isArray(content.experience) ? content.experience : []
+  const education = Array.isArray(content.education) ? content.education : []
+  const skills = Array.isArray(content.skills) ? content.skills : []
+  const groupedSkills = Array.isArray(content.skills_grouped) ? content.skills_grouped.filter((g) => Array.isArray(g.items) && g.items.length > 0) : []
+  const testimonials = Array.isArray(content.testimonials) ? content.testimonials : []
+  const certifications = Array.isArray(content.certifications) ? content.certifications : []
+  const projectOutcomes = projects.filter((p) => p?.outcome?.trim()).length
+  const quantifiedOutcomes = projects.filter((p) => hasMetric(p?.outcome)).length
+  const projectLinks = projects.filter((p) => p?.url || p?.github_url).length
+  const projectImages = projects.filter((p) => p?.image_url).length
+  const strongExperience = experience.filter((e) => Array.isArray(e?.bullets) && e.bullets.filter((b) => b?.trim()).length >= 2).length
+
+  if (content.role?.trim()) raw += 8
+  else improvements.push({ id: 'role', title: 'Add your role', detail: 'A clear role tells visitors what you do at a glance.', cta: 'Add your current role', severity: 88 })
+
+  if (content.headline?.trim()) raw += 10
+  else improvements.push({ id: 'headline', title: 'Write a headline', detail: 'Your headline is the fastest way to explain your value.', cta: 'Add a one-line headline', severity: 96 })
+
+  if (content.location?.trim()) raw += 5
+  else improvements.push({ id: 'location', title: 'Add your location', detail: 'Location helps recruiters understand your market and availability.', cta: 'Add your city or country', severity: 54 })
+
+  if (content.avatar_url?.trim()) raw += 10
+  else improvements.push({ id: 'avatar', title: 'Add a profile photo', detail: 'A strong photo makes the portfolio feel more credible and complete.', cta: 'Upload a profile photo', severity: 100 })
+
+  if (content.linkedin_url?.trim()) raw += 6
+  else improvements.push({ id: 'linkedin', title: 'Add LinkedIn', detail: 'A LinkedIn link gives visitors a second trust signal.', cta: 'Add your LinkedIn profile', severity: 74 })
+
+  if (content.github_url?.trim()) raw += 6
+  else improvements.push({ id: 'github', title: 'Add GitHub', detail: 'GitHub helps technical visitors verify your work quickly.', cta: 'Add your GitHub profile', severity: 68 })
+
+  if (projects.length >= 1) raw += 8
+  else improvements.push({ id: 'projects-start', title: 'Add your first project', detail: 'Projects are the strongest proof on a portfolio.', cta: 'Add a project', severity: 98 })
+
+  if (projects.length >= 2) raw += 6
+  else improvements.push({ id: 'projects-more', title: 'Add another project', detail: 'Two or more projects make your work feel more substantial.', cta: 'Add one more project', severity: 90 })
+
+  if (projects.length >= 3) raw += 8
+  else improvements.push({ id: 'projects-depth', title: 'Add a third project', detail: 'Three projects give your portfolio better depth and variety.', cta: 'Add a third project', severity: 76 })
+
+  if (projectOutcomes >= Math.min(projects.length, 2) && projectOutcomes > 0) raw += 8
+  else if (projects.length > 0) improvements.push({ id: 'project-outcomes', title: 'Add project outcomes', detail: 'Each project should show what changed because of your work.', cta: 'Write outcomes for your projects', severity: 94 })
+
+  if (quantifiedOutcomes >= Math.min(projects.length, 2) && quantifiedOutcomes > 0) raw += 10
+  else if (projects.length > 0) improvements.push({ id: 'project-metrics', title: 'Use numbers in project outcomes', detail: 'Metrics make your impact easier to trust and remember.', cta: 'Add numbers to your outcomes', severity: 92 })
+
+  if (projectLinks >= Math.min(projects.length, 2) && projectLinks > 0) raw += 5
+  else if (projects.length > 0) improvements.push({ id: 'project-links', title: 'Add project links', detail: 'Live links or repos let visitors verify your work instantly.', cta: 'Add live or GitHub links', severity: 64 })
+
+  if (projectImages >= 1) raw += 4
+  else if (projects.length > 0) improvements.push({ id: 'project-images', title: 'Add a project image', detail: 'A visual preview makes your work easier to scan on mobile.', cta: 'Upload a project image', severity: 52 })
+
+  if (experience.length >= 1) raw += 8
+  else improvements.push({ id: 'experience', title: 'Add experience', detail: 'Experience helps visitors understand your track record.', cta: 'Add a role to your experience', severity: 86 })
+
+  if (strongExperience >= 1) raw += 8
+  else if (experience.length > 0) improvements.push({ id: 'experience-bullets', title: 'Strengthen your experience bullets', detail: 'Your recent role needs clearer proof of what you did.', cta: 'Add at least two strong bullets', severity: 82 })
+
+  if (education.length >= 1) raw += 4
+
+  if (skills.length >= 5) raw += 5
+  else improvements.push({ id: 'skills', title: 'Add more skills', detail: 'A fuller skills section helps visitors understand your range.', cta: 'Add at least 5 skills', severity: 72 })
+
+  if (skills.length >= 8) raw += 4
+
+  if (groupedSkills.length >= 1) raw += 4
+  else if (skills.length >= 5) improvements.push({ id: 'skills-grouped', title: 'Group your skills', detail: 'Skill groups make the page easier to scan quickly.', cta: 'Organise skills into categories', severity: 48 })
+
+  if (content.skills_narrative?.trim()) raw += 4
+  else if (skills.length >= 5) improvements.push({ id: 'skills-narrative', title: 'Add a skills summary', detail: 'A short skills summary helps tie your strengths together.', cta: 'Write a one-line skills summary', severity: 44 })
+
+  if (testimonials.length > 0 || certifications.length > 0) raw += 4
+
+  const score = Math.min(92, raw)
+  const sorted = improvements.sort((a, b) => b.severity - a.severity)
+  const next = sorted[0] ?? { id: 'keep-going', title: 'Keep refining your portfolio', detail: 'Your portfolio is in strong shape. Keep sharpening outcomes and proof.', cta: 'Review your strongest sections', severity: 0 }
+  const summary = score >= 80
+    ? 'Strong foundation — keep sharpening proof and outcomes.'
+    : score >= 60
+    ? 'You are building momentum — a few key additions will make this feel much stronger.'
+    : 'Your portfolio has started well — complete the essentials to make it feel hireable.'
+
+  return { score, summary, next, improvements: sorted }
+}
+
+function buildDashboardNotifications(content: Partial<PortfolioContent>): DashboardNotification[] {
+  const progress = portfolioProgress(content)
+  const improvementNotifications = progress.improvements.slice(0, 3).map((item) => ({
+    id: item.id,
+    type: 'improvement' as const,
+    title: item.title,
+    detail: item.detail,
+    cta: item.cta,
+  }))
+  return [...improvementNotifications, ...DASHBOARD_ANNOUNCEMENTS]
+}
+
+function NotificationsMenu({ notifications }: { notifications: DashboardNotification[] }) {
+  const [open, setOpen] = useState(false)
+  const unread = notifications.length
 
   return (
-    <div
-      className="col-span-full bg-white rounded-2xl p-5"
-      style={{ position: 'relative', overflow: 'hidden', border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h3 style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>AI career score</h3>
-          <p className="text-xs text-gray-400 mt-0.5">
-            {isPro && data ? (data.cached ? 'Cached · refreshes weekly' : 'Just scored') : 'Scored weekly by AI'}
-          </p>
-        </div>
-        {isPro && data && (
-          <span className="text-xs bg-[#E8F0F9] text-[#0A66C2] px-2.5 py-1 rounded-full font-medium">
-            {new Date(data.scored_at).toLocaleDateString()}
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label="Open notifications"
+        className="relative rounded-full border border-gray-200 bg-white p-2 text-gray-500 hover:text-gray-700"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
+          <path d="M9 17a3 3 0 0 0 6 0" />
+        </svg>
+        {unread > 0 && (
+          <span className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-[#0A66C2] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+            {unread}
           </span>
         )}
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-center gap-6">
-        {/* Circular ring */}
-        <div className="flex-shrink-0 relative">
-          <svg width={96} height={96} style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx={48} cy={48} r={RADIUS} fill="none" stroke="#f3f4f6" strokeWidth={8} />
-            <circle
-              cx={48} cy={48} r={RADIUS}
-              fill="none"
-              stroke="#0A66C2"
-              strokeWidth={8}
-              strokeLinecap="round"
-              strokeDasharray={CIRCUMFERENCE}
-              strokeDashoffset={loading ? CIRCUMFERENCE : strokeDashoffset}
-              style={{ transition: 'stroke-dashoffset 1s ease' }}
-            />
-          </svg>
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <span className="text-xl font-bold text-gray-900">{loading ? '…' : displayScore}</span>
-            <span className="text-[10px] text-gray-400">/ 100</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 z-20 mt-2 w-[320px] rounded-2xl border border-gray-200 bg-white p-3 shadow-lg">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-semibold text-gray-900">Notifications</p>
+            <button type="button" onClick={() => setOpen(false)} className="text-xs text-gray-400 hover:text-gray-600">Close</button>
+          </div>
+          <div className="space-y-2">
+            {notifications.length === 0 ? (
+              <p className="rounded-xl bg-gray-50 px-3 py-4 text-sm text-gray-500">No notifications yet.</p>
+            ) : notifications.map((item) => (
+              <div key={item.id} className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-3">
+                <div className="mb-1 flex items-center gap-2">
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${item.type === 'announcement' ? 'bg-[#FEF3C7] text-[#92400E]' : 'bg-[#E8F0F9] text-[#0A66C2]'}`}>
+                    {item.type === 'announcement' ? 'Announcement' : 'Improve'}
+                  </span>
+                  <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                </div>
+                <p className="text-xs leading-5 text-gray-600">{item.detail}</p>
+                {item.cta && <p className="mt-2 text-xs font-medium text-[#0A66C2]">{item.cta}</p>}
+              </div>
+            ))}
           </div>
         </div>
-
-        {/* Breakdown bars */}
-        {isPro && data ? (
-          <div className="flex-1 w-full space-y-2">
-            {[
-              { label: 'Online presence', value: data.breakdown.presence, max: 25 },
-              { label: 'Project impact', value: data.breakdown.projects, max: 35 },
-              { label: 'Experience', value: data.breakdown.experience, max: 25 },
-              { label: 'Skills', value: data.breakdown.skills, max: 15 },
-            ].map(({ label, value, max }) => (
-              <div key={label}>
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-xs text-gray-600">{label}</span>
-                  <span className="text-xs text-gray-400">{value}/{max}</span>
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#0A66C2] rounded-full"
-                    style={{ width: `${Math.round((value / max) * 100)}%`, transition: 'width 0.8s ease' }}
-                  />
-                </div>
-              </div>
-            ))}
-            {data.summary && (
-              <p className="text-xs text-gray-500 pt-2 border-t border-gray-50 mt-2">{data.summary}</p>
-            )}
-          </div>
-        ) : (
-          /* PLACEHOLDER breakdown for Basic */
-          <div className="flex-1 w-full space-y-2">
-            {[
-              { label: 'Online presence', value: 18, max: 25 },
-              { label: 'Project impact', value: 28, max: 35 },
-              { label: 'Experience', value: 16, max: 25 },
-              { label: 'Skills', value: 10, max: 15 },
-            ].map(({ label, value, max }) => (
-              <div key={label}>
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-xs text-gray-600">{label}</span>
-                  <span className="text-xs text-gray-400">{value}/{max}</span>
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#0A66C2] rounded-full"
-                    style={{ width: `${Math.round((value / max) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-            <p className="text-xs text-gray-400 pt-2 border-t border-gray-50 mt-2">
-              Add quantified outcomes to your projects to push your score above 80.
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Blur overlay for Basic users */}
-      {!isPro && (
-        <ProBlurOverlay
-          headline="Your AI career score"
-          subtext="Scored weekly — see exactly where to improve"
-          onUpgrade={onUpgrade}
-        />
       )}
     </div>
   )
 }
 
-// ── Portfolio strength bar ───────────────────────────────────────────────────
+function CareerScoreCard({ content }: { content: Partial<PortfolioContent> }) {
+  const progress = portfolioProgress(content)
+  const buckets = [
+    { label: 'Identity', value: Math.min(100, Math.round(((content.avatar_url ? 10 : 0) + (content.headline ? 10 : 0) + (content.location ? 5 : 0) + (content.linkedin_url ? 6 : 0) + (content.github_url ? 6 : 0) + (content.role ? 8 : 0)) / 45 * 100)) },
+    { label: 'Projects', value: Math.min(100, Math.round((((content.projects?.length ?? 0) >= 1 ? 8 : 0) + ((content.projects?.length ?? 0) >= 2 ? 6 : 0) + ((content.projects?.length ?? 0) >= 3 ? 8 : 0) + ((content.projects ?? []).filter((p) => p?.outcome?.trim()).length > 0 ? 8 : 0) + ((content.projects ?? []).filter((p) => hasMetric(p?.outcome)).length > 0 ? 10 : 0)) / 40 * 100)) },
+    { label: 'Experience', value: Math.min(100, Math.round((((content.experience?.length ?? 0) > 0 ? 8 : 0) + ((content.experience ?? []).filter((e) => Array.isArray(e?.bullets) && e.bullets.filter((b) => b?.trim()).length >= 2).length > 0 ? 8 : 0) + ((content.education?.length ?? 0) > 0 ? 4 : 0)) / 20 * 100)) },
+    { label: 'Skills', value: Math.min(100, Math.round((((content.skills?.length ?? 0) >= 5 ? 5 : 0) + ((content.skills?.length ?? 0) >= 8 ? 4 : 0) + ((content.skills_grouped ?? []).filter((g) => g.items?.length > 0).length > 0 ? 4 : 0) + (content.skills_narrative ? 4 : 0)) / 17 * 100)) },
+  ]
+
+  return (
+    <div className="col-span-full bg-white rounded-2xl p-5" style={{ border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h3 style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Portfolio progress</h3>
+          <p className="mt-0.5 text-xs text-gray-500">{progress.summary}</p>
+        </div>
+        <span className="text-2xl font-bold text-[#0A66C2]">{progress.score}%</span>
+      </div>
+
+      <div className="mb-4 h-3 overflow-hidden rounded-full bg-gray-100">
+        <div className="h-full rounded-full bg-[#0A66C2] transition-all duration-700" style={{ width: `${progress.score}%` }} />
+      </div>
+
+      <div className="mb-4 rounded-2xl border border-[#E8F0F9] bg-[#F8FBFF] p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#0A66C2]">Next most urgent</p>
+        <p className="mt-1 text-sm font-semibold text-gray-900">{progress.next.title}</p>
+        <p className="mt-1 text-sm text-gray-600">{progress.next.detail}</p>
+        <p className="mt-2 text-sm font-medium text-[#0A66C2]">{progress.next.cta}</p>
+      </div>
+
+      <div className="space-y-2">
+        {buckets.map((bucket) => (
+          <div key={bucket.label}>
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-xs text-gray-600">{bucket.label}</span>
+              <span className="text-xs text-gray-400">{bucket.value}%</span>
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
+              <div className="h-full rounded-full bg-[#0A66C2]" style={{ width: `${bucket.value}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function HealthScore({ score }: { score: number }) {
   return (
     <div className="bg-white rounded-2xl p-5" style={{ border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
@@ -1042,6 +1108,7 @@ export default function DashboardPage() {
         <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
           <Link href="/"><Logo /></Link>
           <div className="flex items-center gap-4">
+            <NotificationsMenu notifications={buildDashboardNotifications(editContent)} />
             <span className="text-xs text-gray-400 hidden sm:block">{user.email}</span>
             <button onClick={handleSignOut} className="text-xs text-gray-400 hover:text-gray-600">
               Sign out
@@ -1309,7 +1376,7 @@ export default function DashboardPage() {
                 )}
                 <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4, display: 'block' }}>Unique Visitors (30d)</span>
               </div>
-              {/* Score */}
+              {/* Progress */}
               <div style={{
                 background: 'white',
                 border: '1px solid #E5E7EB',
@@ -1318,8 +1385,8 @@ export default function DashboardPage() {
                 textAlign: 'center',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
               }}>
-                <span style={{ fontSize: 28, fontWeight: 800, color: '#0A0A0A', display: 'block', lineHeight: 1 }}>{portfolio.health_score}</span>
-                <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4, display: 'block' }}>Score</span>
+                <span style={{ fontSize: 28, fontWeight: 800, color: '#0A0A0A', display: 'block', lineHeight: 1 }}>{portfolioProgress(editContent).score}%</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4, display: 'block' }}>Progress</span>
               </div>
             </div>
 
@@ -1444,15 +1511,9 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Career score — Pro: real AI score; Basic: blurred placeholder */}
+            {/* Portfolio progress */}
             {isPublished && (
-              <CareerScoreCard
-                isPro={isPro}
-                portfolioId={portfolio.id}
-                userId={user.id}
-                token={accessToken}
-                onUpgrade={() => setShowUpgradeModal(true)}
-              />
+              <CareerScoreCard content={editContent} />
             )}
 
             {/* Analytics — blurred preview for Basic, full data for Pro */}

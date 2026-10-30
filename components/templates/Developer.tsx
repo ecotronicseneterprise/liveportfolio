@@ -63,6 +63,8 @@ const css = `
     margin-bottom: 4px;
     line-height: 1.3;
     word-break: break-word;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
   }
   .dv-role {
     font-family: 'JetBrains Mono', monospace;
@@ -131,6 +133,8 @@ const css = `
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 12px;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
   }
   .dv-about { font-size: 15px; color: var(--muted); line-height: 1.7; }
   .dv-about p { margin-bottom: 12px; }
@@ -269,9 +273,10 @@ const css = `
     .dv-layout { grid-template-columns: 1fr; }
     .dv-sidebar { display: none; }
     .dv-mobile-nav { display: flex; }
-    .dv-main { padding: 24px 20px; }
+    .dv-main { padding: 20px 20px; }
+    .dv-headline { margin-bottom: 10px; }
     .dv-gh-card { flex-direction: column; align-items: flex-start; }
-    .dv-mobile-name-hero { display: block; font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .dv-mobile-name-hero { display: block; font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
   }
 `
 

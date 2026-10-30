@@ -24,7 +24,7 @@ const css = `
   }
   .cy-root section[id] { scroll-margin-top: 80px; }
   .cy-root a:focus-visible, .cy-root button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-  .cy-prose { white-space: pre-line; font-size: 14px; line-height: 1.7; margin-bottom: 16px; }
+  .cy-prose { white-space: pre-line; font-size: 14px; line-height: 1.7; margin-bottom: 16px; text-wrap: pretty; overflow-wrap: anywhere; }
   .cy-project-links { display: flex; flex-wrap: wrap; gap: 16px; }
 
   /* Scanline effect on nav */
@@ -60,6 +60,8 @@ const css = `
     font-size: clamp(22px, 3.5vw, 40px);
     font-weight: 700; color: var(--text);
     margin-bottom: 4px; line-height: 1.2;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
   }
   .cy-hero-role {
     font-family: 'Share Tech Mono', monospace;
@@ -254,7 +256,10 @@ const css = `
   .cy-edu-year { font-size: 11px; color: var(--muted); }
 
   @media (max-width: 700px) {
-    .cy-hero { grid-template-columns: 1fr; }
+    .cy-hero { grid-template-columns: 1fr; padding: 40px 0 28px; }
+    .cy-hero-name { font-size: clamp(20px, 8vw, 30px); line-height: 1.15; }
+    .cy-hero-role { margin-bottom: 8px; }
+    .cy-prose { font-size: 13px; line-height: 1.65; margin-bottom: 12px; }
     .cy-nav-links { display: none; }
     .cy-hamburger { display: block; }
     .cy-mobile-menu.open { display: flex; }

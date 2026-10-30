@@ -39,6 +39,8 @@ const css = `
     line-height: 1;
     letter-spacing: -0.02em;
     color: var(--ink);
+    text-wrap: balance;
+    overflow-wrap: anywhere;
   }
   .nt-name em { font-style: italic; color: var(--accent); }
   .nt-badge {
@@ -368,10 +370,16 @@ const css = `
   }
 
   /* Mobile */
+  .nt-name-mobile { display: none; }
+  .nt-name-desktop { display: block; }
+
   @media (max-width: 700px) {
     .nt-header { flex-direction: column; gap: 16px; padding: 20px 5vw 16px; }
     .nt-header-right { text-align: left; }
     .nt-nav { justify-content: flex-start; }
+    .nt-name { font-size: clamp(30px, 9vw, 42px); line-height: 0.98; }
+    .nt-name-mobile { display: block; }
+    .nt-name-desktop { display: none; }
     .nt-hero { grid-template-columns: 1fr; padding: 0 5vw; gap: 28px; margin-top: 36px; }
     .nt-meta-item { flex-direction: row; gap: 12px; align-items: flex-start; }
     .nt-meta-num { min-width: 0; width: auto; font-size: 22px; flex-shrink: 0; line-height: 1.1; }
@@ -420,9 +428,12 @@ export default function Creative({ content }: { content: PortfolioContent }) {
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
           <div style={{ flex: 1 }}>
             <h1 className="nt-name">
-              {content.name.trim().split(/\s+/).map((part, i) => (
-                <span key={i} style={{ display: 'block' }}>{part}</span>
-              ))}
+              <span className="nt-name-mobile">{content.name}</span>
+              <span className="nt-name-desktop">
+                {content.name.trim().split(/\s+/).map((part, i) => (
+                  <span key={i} style={{ display: 'block' }}>{part}</span>
+                ))}
+              </span>
             </h1>
             <div className="nt-badge">{content.role}</div>
           </div>

@@ -146,7 +146,7 @@ export default function LookPicker({
                 className={`${seg} ${template === id ? on : off} ${locked ? 'opacity-80' : ''}`}
                 onClick={() => (locked ? onLocked(name, id) : onChange({ template: id }))}
               >
-                {name}{locked ? <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-800">{t('lookPicker.pro')}</span> : null}
+                {name}
               </button>
             )
           })}

@@ -51,6 +51,8 @@ const css = `
   .fin-sidebar-name {
     font-family: 'Playfair Display', Georgia, serif;
     font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 4px;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
   }
   .fin-sidebar-role { font-size: 13px; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.02em; }
   .fin-sidebar-meta { font-size: 12px; color: var(--muted); line-height: 1.7; }
@@ -117,6 +119,8 @@ const css = `
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
   }
 
   /* Projects */
@@ -161,8 +165,10 @@ const css = `
 
   @media (max-width: 900px) {
     .fin-layout { grid-template-columns: 1fr; }
-    .fin-sidebar { border-right: none; border-bottom: 1px solid rgba(30,45,79,0.6); padding: 28px 6vw; position: static; height: auto; overflow-y: visible; }
-    .fin-main { padding: 28px 6vw; }
+    .fin-sidebar { border-right: none; border-bottom: 1px solid rgba(30,45,79,0.6); padding: 22px 6vw; position: static; height: auto; overflow-y: visible; gap: 24px; }
+    .fin-sidebar-name { font-size: 20px; line-height: 1.1; }
+    .fin-headline { font-size: 24px; line-height: 1.25; }
+    .fin-main { padding: 22px 6vw 28px; }
     .fin-nav-links { display: none; }
     .fin-mobile-footer { display: flex !important; }
   }
