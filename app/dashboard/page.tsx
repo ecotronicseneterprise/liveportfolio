@@ -11,7 +11,6 @@ import type { PortfolioContent } from '@/components/templates/Minimal'
 import Logo from '@/components/Logo'
 import UpgradeModal from '@/components/UpgradeModal'
 import ImageCropper from '@/components/ImageCropper'
-import LiveToast, { pushLiveToast } from '@/components/LiveToast'
 import Turnstile from '@/components/onboarding/Turnstile'
 import HistoryPanel from '@/components/dashboard/HistoryPanel'
 import PlanBillingPanel from '@/components/dashboard/PlanBillingPanel'
@@ -809,48 +808,6 @@ export default function DashboardPage() {
       .finally(() => { if (live) setWeeklyInsightLoading(false) })
     return () => { live = false }
   }, [portfolio?.id, user?.id, accessToken, userPlan])
-
-  // Supabase Realtime — live toast when a new portfolio_view arrives for the Pro user
-  // NOTE: Realtime must be enabled for the analytics_events table in the Supabase dashboard
-  // (Table Editor → analytics_events → Realtime toggle ON) for this to fire.
-  useEffect(() => {
-    if (!portfolio?.id || userPlan !== 'pro') return
-
-    const channel = supabase
-      .channel(`live-views-${portfolio.id}`)
-      .on(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        'postgres_changes' as any,
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'analytics_events',
-          filter: `portfolio_id=eq.${portfolio.id}`,
-        },
-        (payload: { new: Record<string, unknown> }) => {
-          const ev = payload.new
-          if (ev.event_type !== 'portfolio_view') return
-          const country = typeof ev.country === 'string' ? ev.country : null
-          const ref = typeof ev.referrer === 'string' ? ev.referrer : null
-          let via = ''
-          if (ref) {
-            if (ref.includes('linkedin')) via = ' · via LinkedIn'
-            else if (ref.includes('wa.me') || ref.includes('whatsapp')) via = ' · via WhatsApp'
-            else if (ref.includes('twitter') || ref.includes('x.com') || ref.includes('t.co')) via = ' · via Twitter/X'
-            else if (ref.includes('github')) via = ' · via GitHub'
-            else if (ref.includes('google')) via = ' · via Google'
-          }
-          const device = typeof ev.device_type === 'string' && (ev.device_type === 'mobile' || ev.device_type === 'tablet') ? ' 📱' : ''
-          const msg = country
-            ? `Someone from ${country} just viewed your portfolio${via}${device}`
-            : `Someone just viewed your portfolio${via}${device}`
-          pushLiveToast(msg)
-        }
-      )
-      .subscribe()
-
-    return () => { void supabase.removeChannel(channel) }
-  }, [portfolio?.id, userPlan]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Open cropper on file select
   const handleAvatarUpload = (file: File) => {
@@ -2562,7 +2519,6 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
-    <LiveToast />
     </>
   )
 }

@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import type { AnalyticsSummary } from '@/lib/analytics/summary'
 import { portfolioIntelligence, type WeeklyInsight } from '@/lib/dashboard/intelligence'
+import LatestPortfolioVisit from '@/components/dashboard/LatestPortfolioVisit'
 
 type Metric = 'views' | 'visitors'
 
@@ -104,7 +105,7 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">My portfolio</h2>
-          <p className="text-sm text-gray-600">Published · <span className="break-all">{portfolioUrl.replace(/^https?:\/\//, '')}</span></p>
+          <LatestPortfolioVisit portfolioId={portfolioId} userId={userId} token={token} />
         </div>
         <div className="flex gap-2">
           <a href={portfolioUrl} target="_blank" rel="noopener noreferrer" className={ghost}>View portfolio</a>
@@ -206,7 +207,7 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
                 <ol className="mt-3 space-y-2">
                   {data.topSources.map((s) => (
                     <li key={s.label} className="text-sm text-gray-800">
-                      <div className="flex justify-between"><span>{s.label}</span><span className="text-gray-600">{s.count} · {s.pct}%</span></div>
+                      <div className="flex justify-between"><span>{s.label}</span><span className="text-gray-600">{s.pct}%</span></div>
                       <div className="mt-1 h-1.5 rounded-full bg-gray-100"><div className="h-1.5 rounded-full bg-[#0A66C2]" style={{ width: `${s.pct}%` }} /></div>
                     </li>
                   ))}

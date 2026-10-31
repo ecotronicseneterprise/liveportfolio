@@ -33,6 +33,16 @@ describe('ProOverview', () => {
   })
 
   const source = fs.readFileSync(path.resolve(__dirname, '../components/dashboard/ProOverview.tsx'), 'utf8')
+  it('replaces the published-address subtitle with the latest-visit line and shows source percentages only', () => {
+    expect(html).not.toContain('Published ·')
+    expect(html).toContain('Latest portfolio visit')
+    expect(source).toContain('{s.pct}%')
+    expect(source).not.toContain('{s.count}')
+    const dashboard = fs.readFileSync(path.resolve(__dirname, '../app/dashboard/page.tsx'), 'utf8')
+    expect(dashboard).not.toContain('Published ·')
+    expect(dashboard).not.toContain('pushLiveToast')
+    expect(dashboard).toContain("activeTab === 'overview' && isPro && isPublished")
+  })
   it('opens on the last 30 days', () => {
     expect(html).toContain('<option value="30" selected="">Last 30 days</option>')
     expect(html).toContain('last 30 days')

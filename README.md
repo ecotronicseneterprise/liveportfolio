@@ -68,7 +68,8 @@ Turn your CV or raw experience into a live, professional portfolio in 5 minutes.
 - Pro editor on phones and tablets (below 1024px): one swipeable preview with small design cards. Swipe or use arrows to preview; tap a card to select and auto-save. The duplicate Preview tab, look customiser and original/redesigned preview controls are hidden there. Desktop controls and Free/Basic editors are unchanged.
 - Analytics overview with unique visitors, bar chart, source breakdown
 - Career score card
-- Recent visitor activity feed
+- Recent visitor activity feed; referral-source rows show percentages only.
+- Pro: a compact latest-visit line below My Portfolio replaces the published-address subtitle. It checks the authenticated, ownership/Pro-gated `/api/analytics/latest-visit` endpoint every 30 seconds while the tab is visible, pauses in the background and refreshes on return. Only the latest view's country and time are returned; clicks do not count as visits. This replaces dashboard Realtime pop-ups and does not require changing RLS or enabling browser access to analytics rows. Free/Basic do not receive visitor details.
 
 ### SEO
 - AI-generated `seo_title` and `seo_description` per portfolio
