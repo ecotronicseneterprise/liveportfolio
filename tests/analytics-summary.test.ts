@@ -111,6 +111,32 @@ describe('analytics aggregation', () => {
   })
 })
 
+describe('countries', () => {
+  const win = analyticsWindow(30, NOW)
+  const day = '2026-02-20T10:00:00Z'
+  const at = (country: string | null, ip_hash: string | null, over: Partial<AnalyticsEvent> = {}) => event(day, { country, ip_hash, ...over })
+  it('counts distinct visitors per country, only where the country is known, and says how many that is', () => {
+    const r = summarizeAnalytics([
+      at('Nigeria', 'a'), at('Nigeria', 'a'), at('Nigeria', 'b'), at('Ghana', 'c'), at(null, 'd'), at('', 'e'), at('Kenya', null),
+    ], win, OLD)
+    expect(r.topCountries).toEqual([
+      { label: 'Nigeria', count: 2, pct: 67 },
+      { label: 'Ghana', count: 1, pct: 33 },
+    ])
+    expect(r.countryKnownVisitors).toBe(3)
+    expect(r.totalUniqueVisitors).toBe(5) // a, b, c, d, e: visitors with an unknown country still count as visitors
+  })
+  it('ignores clicks and visits outside the period, and is empty when no country is known', () => {
+    const r = summarizeAnalytics([at('Nigeria', 'a', { event_type: 'click' }), event('2025-01-01T00:00:00Z', { country: 'Ghana', ip_hash: 'z' })], win, OLD)
+    expect(r.topCountries).toEqual([])
+    expect(r.countryKnownVisitors).toBe(0)
+  })
+  it('a visitor seen from two countries is counted in both, never lost', () => {
+    const r = summarizeAnalytics([at('Nigeria', 'a'), at('Germany', 'a')], win, OLD)
+    expect(r.topCountries.map((x) => x.label).sort()).toEqual(['Germany', 'Nigeria'])
+  })
+})
+
 describe('referrer host classification', () => {
   it.each([
     [null, 'Direct'], ['', 'Direct'], ['  ', 'Direct'],

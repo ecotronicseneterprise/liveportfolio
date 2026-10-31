@@ -55,6 +55,10 @@ export interface AnalyticsSummary extends AnalyticsTotals, AnalyticsWindow {
   dayLabels: string[]
   chartPeriod: 'last_7_days' | 'last_30_days'
   topSources: AnalyticsSource[]
+  /** Countries by distinct visitor, for the visits whose country is known (the lookup can fail or time out). Never guessed. */
+  topCountries: AnalyticsSource[]
+  /** Visitors whose country is known: the base for the percentages above, so the page can say how complete the picture is. */
+  countryKnownVisitors: number
   /** Latest five events, not deduplicated visitors. */
   recentActivity: AnalyticsActivity[]
   hasComparison: boolean
@@ -136,6 +140,18 @@ export function summarizeAnalytics(
     const source = classifyReferrer(event.referrer)
     sources.set(source, (sources.get(source) ?? 0) + 1)
   }
+  // Countries: distinct visitors per country, only where the country is actually known.
+  const countryVisitors = new Map<string, Set<string>>()
+  const knownVisitors = new Set<string>()
+  for (const event of views) {
+    const country = event.country?.trim()
+    const visitor = event.ip_hash?.trim()
+    if (!country || !visitor) continue
+    knownVisitors.add(visitor)
+    const set = countryVisitors.get(country) ?? new Set<string>()
+    set.add(visitor)
+    countryVisitors.set(country, set)
+  }
 
   return {
     ...window,
@@ -148,6 +164,10 @@ export function summarizeAnalytics(
     topSources: [...sources.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([label, count]) => ({ label, count, pct: Math.round(count / views.length * 100) })),
+    topCountries: [...countryVisitors.entries()]
+      .map(([label, visitors]) => ({ label, count: visitors.size, pct: Math.round(visitors.size / knownVisitors.size * 100) }))
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)),
+    countryKnownVisitors: knownVisitors.size,
     recentActivity: current.slice(0, 5).map(event => ({
       event_type: event.event_type,
       label: event.label ?? null,
