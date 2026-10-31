@@ -1363,6 +1363,7 @@ export default function DashboardPage() {
             content={editContent}
             insight={weeklyInsight}
             insightLoading={weeklyInsightLoading}
+            contentUpdatedAt={portfolio?.updated_at}
             onEdit={goEdit}
           />
         )}

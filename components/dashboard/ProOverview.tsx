@@ -19,6 +19,8 @@ export interface ProOverviewProps {
   content: Partial<PortfolioContent>
   insight: WeeklyInsight | null
   insightLoading: boolean
+  /** When the portfolio was last saved; a review older than this was written before the latest changes. */
+  contentUpdatedAt?: string | null
   onEdit: (targetId: string) => void
 }
 
@@ -39,8 +41,8 @@ function Stat({ label, value, note }: { label: string; value: number | null; not
   )
 }
 
-export default function ProOverview({ portfolioId, userId, token, slug, portfolioUrl, content, insight, insightLoading, onEdit }: ProOverviewProps) {
-  const [period, setPeriod] = useState<'7' | '30'>('7')
+export default function ProOverview({ portfolioId, userId, token, slug, portfolioUrl, content, insight, insightLoading, contentUpdatedAt, onEdit }: ProOverviewProps) {
+  const [period, setPeriod] = useState<'7' | '30'>('30')
   const [metric, setMetric] = useState<Metric>('views')
   const [data, setData] = useState<AnalyticsSummary | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'unavailable'>('loading')
@@ -67,6 +69,7 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
   const max = Math.max(1, ...series)
   const prev = data?.hasComparison ? data.previous : null
   const label = period === '7' ? 'last 7 days' : 'last 30 days'
+  const down = state === 'unavailable'
   const empty = state === 'ready' && data !== null && data.eventCount === 0
 
   const copy = () => {
@@ -79,6 +82,16 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
       const a = document.createElement('a')
       a.href = URL.createObjectURL(blob); a.download = `${slug}-portfolio-qr.png`; a.click(); URL.revokeObjectURL(a.href)
     } catch { /* offline */ }
+  }
+
+  // arrow keys (and Home/End) move between the bars; Tab also works
+  const moveBar = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    const bars = Array.from(e.currentTarget.parentElement?.children ?? []) as HTMLElement[]
+    const at = bars.indexOf(e.currentTarget)
+    const to = e.key === 'ArrowRight' ? at + 1 : e.key === 'ArrowLeft' ? at - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? bars.length - 1 : -1
+    if (to < 0 || to >= bars.length) return
+    e.preventDefault()
+    bars[to].focus()
   }
 
   const next = quality.next
@@ -128,19 +141,20 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
         </label>
       </div>
 
-      {state === 'unavailable' ? (
+      {down && (
         <div className={`${card} text-sm text-gray-700`} role="status">Visitor numbers are unavailable right now. Your portfolio is unaffected; try again in a moment.</div>
-      ) : (
+      )}
+      {(
         <>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-busy={state === 'loading'}>
+          {!down && <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-busy={state === 'loading'}>
             <Stat label="Views" value={data && state === 'ready' ? data.totalViews : null} note={state === 'loading' ? 'Loading…' : comparisonLabel(data?.totalViews ?? 0, prev ? prev.totalViews : null)} />
             <Stat label="Visitors" value={data && state === 'ready' ? data.totalUniqueVisitors : null} note={state === 'loading' ? 'Loading…' : `Approximate, by device · ${comparisonLabel(data?.totalUniqueVisitors ?? 0, prev ? prev.totalUniqueVisitors : null)}`} />
             <Stat label="Link clicks" value={data && state === 'ready' ? data.totalClicks : null} note={state === 'loading' ? 'Loading…' : `Clicks on your links · ${comparisonLabel(data?.totalClicks ?? 0, prev ? prev.totalClicks : null)}`} />
-          </div>
+          </div>}
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             {/* Chart */}
-            <section className={card} aria-label="Audience activity">
+            {!down && <section className={card} aria-label="Audience activity">
               <div className="flex items-center justify-between gap-2">
                 <h3 className={heading}>Audience activity</h3>
                 <div role="group" aria-label="Chart metric" className="flex rounded-full border border-gray-200 p-0.5">
@@ -156,7 +170,7 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
                 <>
                   <div className="mt-4 flex h-36 items-end gap-[3px]" role="list" aria-label={`${metric} per day, ${label}`}>
                     {series.map((v, i) => (
-                      <button key={i} type="button" role="listitem" onClick={() => setPicked(i)} onFocus={() => setPicked(i)} onMouseEnter={() => setPicked(i)}
+                      <button key={i} type="button" role="listitem" onClick={() => setPicked(i)} onFocus={() => setPicked(i)} onKeyDown={moveBar} onMouseEnter={() => setPicked(i)}
                         aria-label={`${data ? fmtDay(data.days[i]) : ''}: ${v} ${metric}`}
                         className="group relative flex h-full min-w-0 flex-1 items-end focus:outline-none">
                         <span className={`block w-full rounded-t ${picked === i ? 'bg-[#084D9A]' : 'bg-[#0A66C2]/70'} group-focus-visible:ring-2 group-focus-visible:ring-[#0A66C2]`} style={{ height: `${Math.max(v > 0 ? 6 : 2, (v / max) * 100)}%` }} />
@@ -168,7 +182,7 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
                   </p>
                 </>
               )}
-            </section>
+            </section>}
 
             {/* Next best action */}
             <section className={`${card} flex flex-col`} aria-label="Your next best action">
@@ -185,7 +199,7 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
             </section>
 
             {/* Sources */}
-            <section className={card} aria-label="Where attention comes from">
+            {!down && <section className={card} aria-label="Where attention comes from">
               <h3 className={heading}>Where attention comes from</h3>
               {data && data.topSources.length > 0 ? (
                 <ol className="mt-3 space-y-2">
@@ -199,7 +213,7 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
               ) : (
                 <p className="mt-3 text-sm text-gray-600">{state === 'loading' ? 'Loading…' : 'No visits to attribute in this period.'}</p>
               )}
-            </section>
+            </section>}
 
             {/* Quality */}
             <section className={card} aria-label="Portfolio quality">
@@ -249,6 +263,9 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
               <ul className="list-disc pl-5">{insight.portfolio_actions!.slice(0, 3).map((a, i) => <li key={i}>{a}</li>)}</ul>
             )}
             <p className="text-xs text-gray-500">AI review generated {new Date(insight.scored_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}. It refreshes weekly and is separate from the checklist above.</p>
+            {contentUpdatedAt && Date.parse(contentUpdatedAt) > Date.parse(insight.scored_at) + 60_000 && (
+              <p className="text-xs font-medium text-amber-800" role="note">You have changed your portfolio since this review, so some advice may already be done.</p>
+            )}
           </div>
         ) : (
           <p className="mt-3 text-sm text-gray-600">Your first weekly review will appear here.</p>
