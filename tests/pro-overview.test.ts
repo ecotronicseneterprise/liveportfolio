@@ -13,7 +13,8 @@ describe('ProOverview', () => {
   const html = renderToStaticMarkup(createElement(ProOverview, { ...base, content: { name: 'Ada', role: 'Engineer', projects: [{ title: 'X', problem: 'p', solution: 's', outcome: '', stack: [] }] } as never }))
   it('answers the three questions: attention, what works, what next', () => {
     for (const t of ['Attention', 'Audience activity', 'Where attention comes from', 'Your next best action', 'Portfolio quality', 'Weekly portfolio review', 'Recent activity']) expect(html).toContain(t)
-    expect(html).toContain('Link clicks')
+    expect(html).toContain('Visitors'); expect(html).toContain('Top source'); expect(html).toContain('Countries')
+    expect(html).not.toContain('Link clicks') // nothing on the portfolio pages reports clicks yet, so it would always read 0
     expect(html).toContain('Make it easy to contact you') // the highest-priority gap (no email) becomes the one action
   })
   it('shows no fabricated numbers while loading and no "Live" badge', () => {
