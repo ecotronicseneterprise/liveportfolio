@@ -13,7 +13,7 @@ describe('ProOverview', () => {
   const html = renderToStaticMarkup(createElement(ProOverview, { ...base, content: { name: 'Ada', role: 'Engineer', projects: [{ title: 'X', problem: 'p', solution: 's', outcome: '', stack: [] }] } as never }))
   it('answers the three questions: attention, what works, what next', () => {
     for (const t of ['Attention', 'Audience activity', 'Where attention comes from', 'Your next best action', 'Portfolio quality', 'Weekly portfolio review', 'Recent activity']) expect(html).toContain(t)
-    expect(html).toContain('Visitors'); expect(html).toContain('Top source'); expect(html).toContain('Countries')
+    expect(html).toContain('Visitors'); expect(html).toContain('Top source'); expect(html).toContain('Top countries')
     expect(html).not.toContain('Link clicks') // nothing on the portfolio pages reports clicks yet, so it would always read 0
     expect(html).toContain('Make it easy to contact you') // the highest-priority gap (no email) becomes the one action
   })
@@ -61,5 +61,12 @@ describe('ProOverview', () => {
     expect(QUALITY_CAP).toBe(95)
     expect(q.next?.id).toBe('keep-growing')
     expect(portfolioIntelligence({}).score).toBeLessThan(QUALITY_CAP)
+  })
+
+  it('the three cards carry no extra explanation: visitors and visits, the source, the top three countries', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '../components/dashboard/ProOverview.tsx'), 'utf8')
+    for (const gone of ['Not enough history', 'Approximate, by device', 'Includes WhatsApp', 'Known for', 'comparisonLabel', 'Country not known']) expect(src).not.toContain(gone)
+    expect(src).toContain("data.topCountries.slice(0, 3)")
+    expect(src).toMatch(/visit' : 'visits'/)
   })
 })

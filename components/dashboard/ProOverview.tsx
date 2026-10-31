@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import type { AnalyticsSummary } from '@/lib/analytics/summary'
-import { comparisonLabel, portfolioIntelligence, type WeeklyInsight } from '@/lib/dashboard/intelligence'
+import { portfolioIntelligence, type WeeklyInsight } from '@/lib/dashboard/intelligence'
 
 type Metric = 'views' | 'visitors'
 
@@ -31,12 +31,12 @@ const primary = 'min-h-[44px] px-5 rounded-full bg-[#0A66C2] text-sm font-semibo
 
 const fmtDay = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' })
 
-function Stat({ label, value, note }: { label: string; value: number | string | null; note: string }) {
+function Stat({ label, value, note }: { label: string; value: number | string | null; note?: string }) {
   return (
     <div className={card}>
       <p className={heading}>{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-gray-900">{value === null ? '–' : typeof value === 'number' ? value.toLocaleString() : value}</p>
-      <p className="mt-1 text-xs text-gray-500">{note}</p>
+      <p className={`mt-2 font-semibold text-gray-900 ${typeof value === 'string' && value.length > 12 ? 'text-xl leading-9' : 'text-3xl'}`}>{value === null ? '–' : typeof value === 'number' ? value.toLocaleString() : value}</p>
+      {note && <p className="mt-1 text-xs text-gray-500">{note}</p>}
     </div>
   )
 }
@@ -67,19 +67,10 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
   const quality = useMemo(() => portfolioIntelligence(content), [content])
   const series = data ? (metric === 'views' ? data.viewsByDay : data.visitorsByDay) : []
   const max = Math.max(1, ...series)
-  const prev = data?.hasComparison ? data.previous : null
   const label = period === '7' ? 'last 7 days' : 'last 30 days'
   const down = state === 'unavailable'
   const topSource = data && state === 'ready' && data.topSources.length > 0 ? data.topSources[0] : null
-  // "Direct" is every visit that did not say where it came from: a typed address, but also WhatsApp, Instagram, Telegram and e-mail, which hide it.
-  const sourceNote = topSource
-    ? topSource.label === 'Direct'
-      ? `${topSource.count} of ${data?.totalViews ?? 0} visits. Includes WhatsApp, Instagram and email, which hide where a click came from`
-      : `${topSource.count} of ${data?.totalViews ?? 0} visits (${topSource.pct}%)`
-    : ''
-  const countryNote = !data || state !== 'ready' ? '' : data.countryKnownVisitors === 0
-    ? 'Country not known for these visits yet'
-    : `${data.topCountries.slice(0, 2).map((c) => c.label).join(', ')}. Known for ${data.countryKnownVisitors} of ${data.totalUniqueVisitors} visitors`
+  const topCountries = data && state === 'ready' ? data.topCountries.slice(0, 3).map((c) => c.label).join(', ') : ''
   const empty = state === 'ready' && data !== null && data.eventCount === 0
 
   const copy = () => {
@@ -157,9 +148,9 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
       {(
         <>
           {!down && <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-busy={state === 'loading'}>
-            <Stat label="Visitors" value={data && state === 'ready' ? data.totalUniqueVisitors : null} note={state === 'loading' ? 'Loading…' : `${data?.totalViews ?? 0} visits · ${comparisonLabel(data?.totalUniqueVisitors ?? 0, prev ? prev.totalUniqueVisitors : null)}`} />
-            <Stat label="Top source" value={topSource ? topSource.label : null} note={state === 'loading' ? 'Loading…' : topSource ? sourceNote : 'No visits in this period'} />
-            <Stat label="Countries" value={data && state === 'ready' && data.countryKnownVisitors > 0 ? data.topCountries.length : null} note={state === 'loading' ? 'Loading…' : countryNote} />
+            <Stat label="Visitors" value={data && state === 'ready' ? data.totalUniqueVisitors : null} note={state === 'loading' ? 'Loading…' : `${data?.totalViews ?? 0} ${data?.totalViews === 1 ? 'visit' : 'visits'}`} />
+            <Stat label="Top source" value={topSource ? topSource.label : null} note={state === 'loading' ? 'Loading…' : undefined} />
+            <Stat label="Top countries" value={topCountries || null} note={state === 'loading' ? 'Loading…' : undefined} />
           </div>}
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
