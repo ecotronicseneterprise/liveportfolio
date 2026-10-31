@@ -31,4 +31,10 @@ describe('editor anchors', () => {
     expect(page).toContain("targetId.startsWith('editor-project-0')")
     expect(page).toContain("targetId.startsWith('editor-experience-0')")
   })
+  it('the notification menu buttons open the same editor targets', () => {
+    expect(page).toContain('portfolioIntelligence(content).improvements')
+    expect(page).toContain('targetId: item.action.targetId')
+    expect(page).toContain('onEdit(item.targetId!)')
+    expect(page).toContain('onEdit={goEdit}')
+  })
 })

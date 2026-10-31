@@ -22,6 +22,7 @@ import { removeSkill } from '@/lib/portfolio/editor'
 import FreeSplit from '@/components/dashboard/FreeSplit'
 import FreePreview from '@/components/dashboard/FreePreview'
 import ProOverview from '@/components/dashboard/ProOverview'
+import { portfolioIntelligence } from '@/lib/dashboard/intelligence'
 import CohortBanner from '@/components/dashboard/CohortBanner'
 import { storedLayout } from '@/lib/blocks/mode'
 import type { StoredContent } from '@/lib/blocks/mode'
@@ -131,6 +132,8 @@ interface DashboardNotification {
   title: string
   detail: string
   cta?: string
+  /** The editor field the call to action opens. */
+  targetId?: string
 }
 
 const DASHBOARD_ANNOUNCEMENTS: DashboardNotification[] = []
@@ -228,18 +231,19 @@ function portfolioProgress(content: Partial<PortfolioContent>): PortfolioProgres
 }
 
 function buildDashboardNotifications(content: Partial<PortfolioContent>): DashboardNotification[] {
-  const progress = portfolioProgress(content)
-  const improvementNotifications = progress.improvements.slice(0, 3).map((item) => ({
+  // the same checklist as My Portfolio, so a notification and the "next best action" never disagree
+  const improvementNotifications = portfolioIntelligence(content).improvements.slice(0, 3).map((item) => ({
     id: item.id,
     type: 'improvement' as const,
     title: item.title,
     detail: item.detail,
     cta: item.cta,
+    targetId: item.action.targetId,
   }))
   return [...improvementNotifications, ...DASHBOARD_ANNOUNCEMENTS]
 }
 
-function NotificationsMenu({ notifications }: { notifications: DashboardNotification[] }) {
+function NotificationsMenu({ notifications, onEdit }: { notifications: DashboardNotification[]; onEdit: (targetId: string) => void }) {
   const [open, setOpen] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const unread = dismissed ? 0 : notifications.length
@@ -284,7 +288,9 @@ function NotificationsMenu({ notifications }: { notifications: DashboardNotifica
                   <p className="text-sm font-semibold text-gray-900">{item.title}</p>
                 </div>
                 <p className="text-xs leading-5 text-gray-600">{item.detail}</p>
-                {item.cta && <p className="mt-2 text-xs font-medium text-[#0A66C2]">{item.cta}</p>}
+                {item.cta && item.targetId ? (
+                  <button type="button" onClick={() => { setOpen(false); onEdit(item.targetId!) }} className="mt-2 min-h-[44px] text-xs font-semibold text-[#0A66C2] underline">{item.cta}</button>
+                ) : item.cta ? <p className="mt-2 text-xs font-medium text-[#0A66C2]">{item.cta}</p> : null}
               </div>
             ))}
           </div>
@@ -1216,7 +1222,7 @@ export default function DashboardPage() {
         <div className="w-full px-5 md:px-8 xl:px-10 py-4 flex items-center justify-between">
           <Link href="/"><Logo /></Link>
           <div className="flex items-center gap-4">
-            <NotificationsMenu notifications={buildDashboardNotifications(editContent)} />
+            <NotificationsMenu notifications={buildDashboardNotifications(editContent)} onEdit={goEdit} />
             <span className="text-xs text-gray-400 hidden sm:block">{user.email}</span>
             <button onClick={handleSignOut} className="text-xs text-gray-400 hover:text-gray-600">
               Sign out
