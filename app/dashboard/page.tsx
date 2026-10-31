@@ -1044,10 +1044,20 @@ export default function DashboardPage() {
   // Jump from the My Portfolio panel to a field in the editor (falls back to the top of the editor when the field has no anchor).
   const goEdit = (targetId: string) => {
     setActiveTab('edit')
-    setTimeout(() => {
+    const land = () => {
       const el = document.getElementById(targetId) ?? document.getElementById('editor-name')
       el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
       ;(el as HTMLElement | null)?.focus?.({ preventScroll: true })
+    }
+    setTimeout(() => {
+      if (document.getElementById(targetId)) return land()
+      // nothing to point at yet: start the first empty project or position, then land on it
+      if (targetId.startsWith('editor-project-0') && !(editContent.projects?.length)) {
+        setEditContent((prev) => ({ ...prev, projects: [{ title: '', problem: '', solution: '', outcome: '', stack: [], url: '', github_url: '' }] }))
+      } else if (targetId.startsWith('editor-experience-0') && !(editContent.experience?.length)) {
+        setEditContent((prev) => ({ ...prev, experience: [{ company: '', role: '', period: '', bullets: [] }] }))
+      }
+      setTimeout(land, 150)
     }, 150)
   }
 
@@ -2108,14 +2118,14 @@ export default function DashboardPage() {
                         className="text-xs text-red-500 hover:text-red-700"
                       >Remove</button>
                     </div>
-                    <input type="text" placeholder="Company" value={exp.company || ''}
+                    <input id={`editor-experience-${i}-company`} type="text" placeholder="Company" value={exp.company || ''}
                       onChange={(e) => {
                         const updated = [...(editContent.experience || [])]
                         updated[i] = { ...updated[i], company: e.target.value }
                         setEditContent(prev => ({ ...prev, experience: updated }))
                       }}
                       className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
-                    <input type="text" placeholder="Role / Title" value={exp.role || ''}
+                    <input id={`editor-experience-${i}-role`} type="text" placeholder="Role / Title" value={exp.role || ''}
                       onChange={(e) => {
                         const updated = [...(editContent.experience || [])]
                         updated[i] = { ...updated[i], role: e.target.value }
@@ -2129,7 +2139,7 @@ export default function DashboardPage() {
                         setEditContent(prev => ({ ...prev, experience: updated }))
                       }}
                       className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
-                    <textarea placeholder={"- Led team of 5 engineers...\n- Built payment integration..."}
+                    <textarea id={`editor-experience-${i}-bullets`} placeholder={"- Led team of 5 engineers...\n- Built payment integration..."}
                       value={(exp.bullets || []).join('\n')}
                       onChange={(e) => {
                         const updated = [...(editContent.experience || [])]
@@ -2168,21 +2178,21 @@ export default function DashboardPage() {
                         className="text-xs text-red-500 hover:text-red-700"
                       >Remove</button>
                     </div>
-                    <input type="text" placeholder="Institution (e.g. Nnamdi Azikiwe University)" value={edu.institution || ''}
+                    <input id={`editor-education-${i}-institution`} type="text" placeholder="Institution (e.g. Nnamdi Azikiwe University)" value={edu.institution || ''}
                       onChange={(e) => {
                         const updated = [...(editContent.education || [])]
                         updated[i] = { ...updated[i], institution: e.target.value }
                         setEditContent(prev => ({ ...prev, education: updated }))
                       }}
                       className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
-                    <input type="text" placeholder="Degree / Qualification (e.g. B.Eng Electronics & Computer Engineering)" value={edu.degree || ''}
+                    <input id={`editor-education-${i}-degree`} type="text" placeholder="Degree / Qualification (e.g. B.Eng Electronics & Computer Engineering)" value={edu.degree || ''}
                       onChange={(e) => {
                         const updated = [...(editContent.education || [])]
                         updated[i] = { ...updated[i], degree: e.target.value }
                         setEditContent(prev => ({ ...prev, education: updated }))
                       }}
                       className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
-                    <input type="text" placeholder="Period (e.g. 2017 – 2022)" value={edu.year || ''}
+                    <input id={`editor-education-${i}-year`} type="text" placeholder="Period (e.g. 2017 – 2022)" value={edu.year || ''}
                       onChange={(e) => {
                         const updated = [...(editContent.education || [])]
                         updated[i] = { ...updated[i], year: e.target.value }
@@ -2229,7 +2239,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Project title</label>
-                      <input type="text" placeholder="e.g. Payment Gateway Integration" value={proj.title || ''}
+                      <input id={`editor-project-${i}-title`} type="text" placeholder="e.g. Payment Gateway Integration" value={proj.title || ''}
                         onChange={(e) => {
                           const updated = [...(editContent.projects || [])]
                           updated[i] = { ...updated[i], title: e.target.value }
@@ -2239,7 +2249,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Problem it solved</label>
-                      <textarea placeholder="What problem were you solving?" value={proj.problem || ''}
+                      <textarea id={`editor-project-${i}-problem`} placeholder="What problem were you solving?" value={proj.problem || ''}
                         onChange={(e) => {
                           const updated = [...(editContent.projects || [])]
                           updated[i] = { ...updated[i], problem: e.target.value }
@@ -2250,7 +2260,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">What you built</label>
-                      <textarea placeholder="What did you build and how?" value={proj.solution || ''}
+                      <textarea id={`editor-project-${i}-solution`} placeholder="What did you build and how?" value={proj.solution || ''}
                         onChange={(e) => {
                           const updated = [...(editContent.projects || [])]
                           updated[i] = { ...updated[i], solution: e.target.value }
@@ -2261,7 +2271,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Outcome / impact</label>
-                      <textarea placeholder="e.g. Reduced churn by 20%, 5,000 active users" value={proj.outcome || ''}
+                      <textarea id={`editor-project-${i}-outcome`} placeholder="e.g. Reduced churn by 20%, 5,000 active users" value={proj.outcome || ''}
                         onChange={(e) => {
                           const updated = [...(editContent.projects || [])]
                           updated[i] = { ...updated[i], outcome: e.target.value }
@@ -2282,7 +2292,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Live URL (optional)</label>
-                      <input type="url" placeholder="https://..." value={proj.url || ''}
+                      <input id={`editor-project-${i}-url`} type="url" placeholder="https://..." value={proj.url || ''}
                         onChange={(e) => {
                           const updated = [...(editContent.projects || [])]
                           updated[i] = { ...updated[i], url: e.target.value }
