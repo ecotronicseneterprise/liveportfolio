@@ -33,3 +33,6 @@ affiliate-commands.sh
 # Synthetic browser validation output
 /test-results/
 /playwright-report/
+
+# Brag-generated video assets (editable source backed up with marketing assets)
+/brag-output/
