@@ -1,5 +1,5 @@
 // Minimal in-memory stand-in for the parts of the Supabase query builder the routes use.
-// Supports: select (with {count:'exact', head:true}), insert, update, delete, eq, is, in, gt, gte, lt, order, limit, maybeSingle,
+// Supports: select (with {count:'exact', head:true}), insert, update, delete, eq, is, in, gt, gte, lt, order, limit, range, maybeSingle,
 // update(...).select() returning rows, unique violations on listed columns, and one-shot failure injection.
 type Row = Record<string, any>
 
@@ -28,6 +28,7 @@ export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 
     const filters: Array<(r: Row) => boolean> = []
     let orderCol: string | null = null
     let max: number | null = null
+    let offset = 0
 
     const run = (single: boolean) => {
       if (missing.has(table)) return { data: null, error: { message: `relation "${table}" does not exist`, code: '42P01' }, count: null }
@@ -64,7 +65,7 @@ export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 
       }
       let out = rows.filter(match)
       if (orderCol) out = [...out].sort((a, b) => String(b[orderCol!]).localeCompare(String(a[orderCol!])))
-      if (max !== null) out = out.slice(0, max)
+      if (max !== null) out = out.slice(offset, offset + max)
       const count = wantCount ? rows.filter(match).length : null
       if (head) return { data: null, error: null, count }
       return { data: single ? (out[0] ? { ...out[0] } : null) : out.map((r) => ({ ...r })), error: null, count }
@@ -91,6 +92,7 @@ export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 
       lt: (c: string, v: string) => { filters.push((r) => String(r[c]) < v); return q },
       order: (c: string) => { orderCol = c; return q },
       limit: (n: number) => { max = n; return q },
+      range: (from: number, to: number) => { offset = from; max = to - from + 1; return q },
       maybeSingle: async () => run(true),
       single: async () => run(true),
       then: (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => Promise.resolve(run(false)).then(res, rej),

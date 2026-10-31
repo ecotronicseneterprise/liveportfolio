@@ -35,7 +35,8 @@ beforeEach(() => {
   h.entitlements.mockResolvedValue({ analytics: true })
   h.ownership.mockResolvedValue({ data: { id: 'p1', created_at: OLD }, error: null })
   h.events.mockResolvedValue({ data: [], error: null, count: 0 })
-  const query = { select: h.select, eq: h.eq, gte: h.gte, lte: h.lte, maybeSingle: h.ownership, order: h.events }
+  const query: Record<string, unknown> = { select: h.select, eq: h.eq, gte: h.gte, lte: h.lte, maybeSingle: h.ownership, range: h.events }
+  query.order = () => query
   for (const fn of [h.from, h.select, h.eq, h.gte, h.lte]) fn.mockReturnValue(query)
 })
 afterEach(() => vi.useRealTimers())
@@ -180,15 +181,27 @@ describe('GET /api/analytics/summary', () => {
     h.ownership.mockResolvedValue({ data: { id: 'p1', created_at: NOW.toISOString() }, error: null })
     expect(await (await request()).json()).toMatchObject({ hasComparison: false, previous: null })
   })
-  it.each(['ownership', 'events', 'null-data', 'truncated', 'exception', 'entitlements'])('returns 503 instead of zeros on %s failure', async failure => {
+  it.each(['ownership', 'events', 'null-data', 'exception', 'entitlements'])('returns 503 instead of zeros on %s failure', async failure => {
     if (failure === 'ownership') h.ownership.mockResolvedValue({ data: null, error: { message: 'private database details' } })
     if (failure === 'events') h.events.mockResolvedValue({ data: [], error: { message: 'private database details' }, count: 0 })
     if (failure === 'null-data') h.events.mockResolvedValue({ data: null, error: null, count: 0 })
-    if (failure === 'truncated') h.events.mockResolvedValue({ data: [], error: null, count: 1001 })
     if (failure === 'exception') h.events.mockRejectedValue(new Error('private database details'))
     if (failure === 'entitlements') h.entitlements.mockRejectedValue(new Error('private database details'))
     const res = await request()
     expect(res.status).toBe(503)
     expect(await res.json()).toEqual({ error: 'analytics_unavailable' })
+  })
+  it('reads every page when there are more than 1,000 events, so a busy portfolio still gets its numbers', async () => {
+    const page = (n: number) => Array.from({ length: n }, (_, i) => event('2026-03-01T10:00:00Z', { ip_hash: `h${i % 50}` }))
+    h.events.mockResolvedValueOnce({ data: page(1000), error: null }).mockResolvedValueOnce({ data: page(1000), error: null }).mockResolvedValueOnce({ data: page(250), error: null })
+    const res = await request()
+    expect(res.status).toBe(200)
+    expect(h.events).toHaveBeenCalledTimes(3)
+    expect(await res.json()).toMatchObject({ totalViews: 2250, totalUniqueVisitors: 50 })
+  })
+  it('says unavailable, never a partial total, if the data is too large to read', async () => {
+    h.events.mockResolvedValue({ data: Array.from({ length: 1000 }, () => event('2026-03-01T10:00:00Z')), error: null })
+    const res = await request()
+    expect(res.status).toBe(503)
   })
 })

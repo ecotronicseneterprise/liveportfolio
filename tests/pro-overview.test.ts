@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import ProOverview from '../components/dashboard/ProOverview'
+import { portfolioIntelligence, QUALITY_CAP } from '../lib/dashboard/intelligence'
 
 const base = { portfolioId: 'p1', userId: 'u1', token: 't', slug: 'ada', portfolioUrl: 'https://liveportfolio.site/ada', onEdit: () => {}, insight: null, insightLoading: false }
 
@@ -44,5 +45,20 @@ describe('ProOverview', () => {
     expect(source).toContain('{!down && <section className={card} aria-label="Audience activity">')
     expect(source).toContain('{!down && <section className={card} aria-label="Where attention comes from">')
     expect(source).not.toMatch(/{!down && <section className={card} aria-label="(Your next best action|Portfolio quality)"/)
+  })
+
+  it('quality never reaches 100: a complete portfolio scores 95 and still has a next step', () => {
+    const everything = {
+      name: 'Ada', role: 'Engineer', headline: 'I build payment systems.', email: 'a@b.co', location: 'Lagos', about: 'Ten years.', avatar_url: 'u',
+      skills: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], certifications: ['AWS'],
+      projects: [1, 2, 3].map((n) => ({ title: 'P' + n, problem: 'p', solution: 's', outcome: 'Cut costs 20%', stack: [], url: 'https://x.co', image_url: 'https://x.co/i.png' })),
+      experience: [{ company: 'C', role: 'R', period: '2020', bullets: ['one', 'two'] }],
+    }
+    const q = portfolioIntelligence(everything as never)
+    expect(q.completed).toBe(q.total)
+    expect(q.score).toBe(QUALITY_CAP)
+    expect(QUALITY_CAP).toBe(95)
+    expect(q.next?.id).toBe('keep-growing')
+    expect(portfolioIntelligence({}).score).toBeLessThan(QUALITY_CAP)
   })
 })

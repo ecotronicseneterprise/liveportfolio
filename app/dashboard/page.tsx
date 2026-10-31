@@ -1927,7 +1927,7 @@ export default function DashboardPage() {
                   />
                 </div>
               ))}
-              <fieldset className="space-y-2">
+              <fieldset id="editor-certifications" tabIndex={-1} className="space-y-2">
                 <legend className="text-sm font-medium text-gray-700">Certifications (optional)</legend>
                 {(editContent.certifications ?? []).map((cert, i) => <div key={i} className="flex gap-2">
                   <input aria-label={`Certification ${i + 1}`} value={cert} maxLength={160} className="min-w-0 flex-1 rounded-xl border border-gray-200 px-4 py-2 text-base"
@@ -2321,6 +2321,7 @@ export default function DashboardPage() {
                 ))}
               </div>
               <button
+                id="editor-add-project"
                 type="button"
                 onClick={() => setEditContent(prev => ({
                   ...prev,

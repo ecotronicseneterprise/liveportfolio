@@ -194,7 +194,7 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
                   <button type="button" className={`${primary} mt-4 self-start`} onClick={() => onEdit(next.action.targetId)}>{next.cta}</button>
                 </>
               ) : (
-                <p className="mt-3 text-sm text-gray-700">Your portfolio checklist is complete. Keep it current as you finish new work.</p>
+                <p className="mt-3 text-sm text-gray-700">Nothing is missing.</p>
               )}
             </section>
 
@@ -219,12 +219,12 @@ export default function ProOverview({ portfolioId, userId, token, slug, portfoli
             <section className={card} aria-label="Portfolio quality">
               <div className="flex items-baseline justify-between">
                 <h3 className={heading}>Portfolio quality</h3>
-                <span className="text-sm font-semibold text-gray-900">{quality.completed} of {quality.total} complete</span>
+                <span className="text-sm font-semibold text-gray-900">{quality.score}%</span>
               </div>
               <div className="mt-2 h-2 rounded-full bg-gray-100" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={quality.score} aria-label="Content completeness">
                 <div className="h-2 rounded-full bg-[#1D9E75]" style={{ width: `${quality.score}%` }} />
               </div>
-              <p className="mt-1 text-xs text-gray-500">A checklist of what your portfolio contains. It is not a prediction of hiring success.</p>
+              <p className="mt-1 text-xs text-gray-500">A checklist of what your portfolio contains ({quality.completed} of {quality.total} done). It stops at 95%, because there is always more to show. It is not a prediction of hiring success.</p>
               <ul className="mt-3 divide-y divide-gray-100">
                 {quality.groups.map((g) => (
                   <li key={g.id}>

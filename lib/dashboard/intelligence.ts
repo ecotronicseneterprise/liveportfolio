@@ -27,6 +27,10 @@ export interface QualityGroup {
 
 const text = (value?: string | null) => !!value?.trim()
 
+/** A portfolio is never "finished": there is always more to show. The quality score tops out here, on purpose. */
+export const QUALITY_CAP = 95
+const hasFigure = (value?: string | null) => /[0-9]/.test(value ?? '')
+
 /** A content checklist, not an AI score or a prediction of hiring success. */
 export function portfolioIntelligence(content: Partial<PortfolioContent>) {
   const projects = content.projects ?? []
@@ -69,18 +73,33 @@ export function portfolioIntelligence(content: Partial<PortfolioContent>) {
     check('experience-proof', 'Background detail', experience.some(e => (e.bullets ?? []).filter(text).length >= 2) || education.some(e => text(e.institution) && text(e.degree) && text(e.year)), 70, 'Give your background more detail', 'Add two specific points about a role, or complete your education details.', 'Improve your background', experience.length ? { targetId: `editor-experience-${firstWeakRole}-bullets` } : education.length ? { targetId: 'editor-education-0-year' } : experienceAction),
   ]
   const skillChecks = [check('skills', 'At least five distinct skills', skills.size >= 5, 72, 'Show your skills clearly', 'List the skills you can demonstrate in your work.', 'Add your skills', { targetId: 'editor-skills' })]
+  // Growth: what a strong portfolio adds once the essentials are in. These keep the score honest and give a finished portfolio somewhere to go.
+  const growth = [
+    check('growth-projects', 'Three or more projects', projects.filter(p => text(p.title)).length >= 3, 55, 'Show more of what you can do', 'Three or more projects give a visitor a fuller picture.', 'Add a project', { targetId: 'editor-add-project' }),
+    check('growth-figures', 'Results with real figures', projects.some(p => hasFigure(p.outcome)), 52, 'Back a result with a figure', 'Where you can verify it, a number makes an outcome easier to believe.', 'Add a figure to an outcome', projectTarget('outcome', project(p => !hasFigure(p.outcome)))),
+    check('growth-images', 'A project with an image', projects.some(p => text(p.image_url)), 50, 'Let people see your work', 'A screenshot or photo makes a project far easier to take in.', 'Add a project image', projectTarget('title', 0)),
+    check('growth-skills', 'Eight or more skills', skills.size >= 8, 45, 'Round out your skills', 'A broader skills list helps more of the right people find you.', 'Add more skills', { targetId: 'editor-skills' }),
+    check('growth-proof', 'Certifications or testimonials', (content.certifications ?? []).some(text) || (content.testimonials ?? []).length > 0, 40, 'Add something others can vouch for', 'A certification or a kind word from someone you worked with builds trust.', 'Add a certification', { targetId: 'editor-certifications' }),
+  ]
   const groups: QualityGroup[] = [
     { id: 'identity', label: 'Identity', checks: identity, score: 0 },
     { id: 'projects', label: 'Projects', checks: projectChecks, score: 0 },
     { id: 'background', label: 'Background', checks: background, score: 0 },
     { id: 'skills', label: 'Skills', checks: skillChecks, score: 0 },
+    { id: 'growth', label: 'Growth', checks: growth, score: 0 },
   ].map(group => ({ ...group, score: Math.round(group.checks.filter(c => c.complete).length / group.checks.length * 100) }))
   const checks = groups.flatMap(group => group.checks)
   const completed = checks.filter(c => c.complete).length
   // A missing first project gets one actionable recommendation, not four copies of it.
   const improvements = checks.filter(c => !c.complete && (projects.length > 0 || !c.id.startsWith('project-')))
     .map(c => c.improvement).sort((a, b) => b.priority - a.priority)
-  return { score: Math.round(completed / checks.length * 100), completed, total: checks.length, groups, improvements, next: improvements[0] ?? null }
+  // Even when every check is ticked there is a next step: keep adding. The score never reaches 100.
+  const keepGrowing: Improvement = { id: 'keep-growing', title: 'Add your latest work', detail: 'A portfolio is never finished. Add what you have built or learned most recently.', cta: 'Add a project', priority: 1, action: { targetId: 'editor-add-project' } }
+  return {
+    score: Math.min(QUALITY_CAP, Math.round(completed / checks.length * 100)),
+    completed, total: checks.length, groups, improvements,
+    next: improvements[0] ?? keepGrowing,
+  }
 }
 
 export interface WeeklyInsight {

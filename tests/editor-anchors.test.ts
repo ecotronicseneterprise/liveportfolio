@@ -20,10 +20,16 @@ describe('editor anchors', () => {
     experience: [{ company: 'C', role: 'R', period: '', bullets: [] }],
     education: [{ institution: 'I', degree: 'D', year: '', grade: '' }],
   } as never).improvements
-  const targets = [...new Set([...empty, ...partial].map((i) => i.action.targetId))]
+  const growthOnly = portfolioIntelligence({
+    name: 'A', role: 'B', headline: 'C', email: 'a@b.co', location: 'L', about: 'x', avatar_url: 'u', skills: ['a', 'b', 'c', 'd', 'e'],
+    projects: [{ title: 'T', problem: 'p', solution: 's', outcome: 'did it', stack: [], url: 'https://x.co' }],
+    experience: [{ company: 'C', role: 'R', period: '', bullets: ['one', 'two'] }],
+  } as never).improvements
+  const targets = [...new Set([...empty, ...partial, ...growthOnly].map((i) => i.action.targetId))]
 
   it('collects a useful set of targets', () => expect(targets.length).toBeGreaterThan(8))
   for (const id of targets) {
+    if (['editor-add-project', 'editor-certifications'].includes(id)) { it(`${id} exists in the editor`, () => expect(page).toContain(`id="${id}"`)); continue }
     if (/^editor-(project|experience)-0-/.test(id) && empty.some((i) => i.action.targetId === id && i.action.create)) continue // created on demand
     it(`${id} exists in the editor`, () => expect(has(id), id).toBe(true))
   }
