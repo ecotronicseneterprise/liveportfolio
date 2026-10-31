@@ -22,6 +22,8 @@ import { removeSkill } from '@/lib/portfolio/editor'
 import FreeSplit from '@/components/dashboard/FreeSplit'
 import FreePreview from '@/components/dashboard/FreePreview'
 import ProOverview from '@/components/dashboard/ProOverview'
+import TemplateCarousel from '@/components/dashboard/TemplateCarousel'
+import StackInput from '@/components/dashboard/StackInput'
 import { portfolioIntelligence } from '@/lib/dashboard/intelligence'
 import CohortBanner from '@/components/dashboard/CohortBanner'
 import { storedLayout } from '@/lib/blocks/mode'
@@ -247,9 +249,20 @@ function NotificationsMenu({ notifications, onEdit }: { notifications: Dashboard
   const [open, setOpen] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const unread = dismissed ? 0 : notifications.length
+  const box = useRef<HTMLDivElement>(null)
+
+  // Tapping anywhere else, or pressing Escape, closes the menu.
+  useEffect(() => {
+    if (!open) return
+    const away = (e: Event) => { if (box.current && !box.current.contains(e.target as Node)) setOpen(false) }
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('pointerdown', away)
+    document.addEventListener('keydown', esc)
+    return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', esc) }
+  }, [open])
 
   return (
-    <div className="relative">
+    <div className="relative" ref={box}>
       <button
         type="button"
         onClick={() => {
@@ -271,7 +284,7 @@ function NotificationsMenu({ notifications, onEdit }: { notifications: Dashboard
         )}
       </button>
       {open && (
-        <div className="absolute right-0 z-20 mt-2 w-[320px] rounded-2xl border border-gray-200 bg-white p-3 shadow-lg">
+        <div role="dialog" aria-label="Notifications" className="fixed inset-x-3 top-16 z-50 max-h-[70vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-3 shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-[320px] sm:max-h-[28rem]">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-semibold text-gray-900">Notifications</p>
             <button type="button" onClick={() => setOpen(false)} className="text-xs text-gray-400 hover:text-gray-600">Close</button>
@@ -1262,7 +1275,7 @@ export default function DashboardPage() {
               {isPublished ? (
                 <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
                   className="text-sm text-[#0A66C2] font-medium px-3 py-1 bg-[#E8F0F9] rounded-full hover:bg-[#d4e4f7] transition-colors">
-                  liveportfolio.site/{user.slug} ↗
+                  liveportfolio.site/{user.slug}<span className="sr-only"> (opens in a new tab)</span>
                 </a>
               ) : (
                 <span className="text-sm text-gray-400 px-3 py-1 bg-gray-50 rounded-full">
@@ -1725,6 +1738,16 @@ export default function DashboardPage() {
               </p>
             )}
 
+            {isPro && (
+              <div className="lg:hidden">
+                <TemplateCarousel
+                  content={editContent as PortfolioContent}
+                  currentId={previewTemplate}
+                  onPick={(id: TemplateId) => { setTemplate(id); setPreviewTemplate(id); setLockedTemplateMsg(null); saveAfterPick.current = true }}
+                />
+              </div>
+            )}
+
             {/* The look: new block designs (every portfolio created since the redesign) get the look picker; older portfolios keep the classic template switcher below. */}
             {storedLayout(editContent as StoredContent, template) ? (
               <div>
@@ -1746,7 +1769,7 @@ export default function DashboardPage() {
                 )}
               </div>
             ) : (
-            <div>
+            <div className={isPro ? 'hidden lg:block' : undefined}>
               <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
               {/* Template preview card */}
               {(() => {
@@ -2289,13 +2312,16 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Tech stack (comma-separated)</label>
-                      <input type="text" placeholder="React, Node.js, PostgreSQL" value={(proj.stack || []).join(', ')}
-                        onChange={(e) => {
+                      <StackInput
+                        id={`editor-project-${i}-stack`}
+                        value={proj.stack || []}
+                        onChange={(stack) => {
                           const updated = [...(editContent.projects || [])]
-                          updated[i] = { ...updated[i], stack: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }
+                          updated[i] = { ...updated[i], stack }
                           setEditContent(prev => ({ ...prev, projects: updated }))
                         }}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }}
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Live URL (optional)</label>

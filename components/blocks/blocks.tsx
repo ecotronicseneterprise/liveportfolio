@@ -67,6 +67,12 @@ function HeroPortrait({ d }: { d: BlockData }) {
 
 type Render = (d: BlockData, c: BlockCtx) => ReactNode
 
+/** The longest word in the name, so the CSS can size the name to fit the width: a long first name must shrink, never break mid-word. */
+const nameFit = (name: string | undefined): React.CSSProperties => {
+  const longest = Math.max(6, ...String(name ?? '').split(/s+/).map((w) => [...w].length))
+  return { ['--nl' as string]: longest } as React.CSSProperties
+}
+
 // ── hero ─────────────────────────────────────────────────────────────────────────────────────────────────
 const hero: Record<string, Render> = {
   statement: (d, c) => (
@@ -74,7 +80,7 @@ const hero: Record<string, Render> = {
       <div className="wrap">
         <div className="hero-intro">
           <div className="hero-copy">
-            <h1 className="name">{d.name}</h1>
+            <h1 className="name" style={nameFit(d.name)}>{d.name}</h1>
             {d.role && <p className="role">{d.role}</p>}
             {d.location && <p className="hero-place">{d.location}</p>}
             {d.headline && <p className="headline">{d.headline}</p>}
@@ -90,7 +96,7 @@ const hero: Record<string, Render> = {
         <div className="split-id">
           <HeroPortrait d={d} />
           <div className="split-text">
-            <h1 className="name">{d.name}</h1>
+            <h1 className="name" style={nameFit(d.name)}>{d.name}</h1>
             {d.role && <p className="role">{d.role}</p>}
             {d.headline && <p className="headline">{d.headline}</p>}
           </div>
@@ -107,7 +113,7 @@ const hero: Record<string, Render> = {
     <section className="b b-hero b-hero--compact" id={id(c, 'top')}>
       <div className="wrap">
         <div className="row">
-          <h1 className="name">{d.name}</h1>
+          <h1 className="name" style={nameFit(d.name)}>{d.name}</h1>
           {(d.role || d.location) && <p className="role">{[d.role, d.location].filter(Boolean).join(' · ')}</p>}
         </div>
         {d.headline && <p className="headline">{d.headline}</p>}

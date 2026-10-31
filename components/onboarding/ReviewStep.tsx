@@ -1,5 +1,6 @@
 'use client'
 
+import StackInput from '@/components/dashboard/StackInput'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import TemplateGallery, { TemplateThumb, TEMPLATE_LABEL, useDebounced } from './TemplateGallery'
@@ -179,7 +180,10 @@ export default function ReviewStep() {
         {field(t('review.bio'), d.bio, (v) => set('bio', v), true)}
         {field(t('review.github'), d.github_url, (v) => set('github_url', v))}
         {field(t('review.linkedin'), d.linkedin_url, (v) => set('linkedin_url', v))}
-        {field(t('review.skills'), d.skills.join(', '), (v) => set('skills', v.split(',').map((x) => x.trim()).filter(Boolean)))}
+        <label className="lp-field">
+          <span className="lp-label">{t('review.skills')}</span>
+          <StackInput value={d.skills} onChange={(skills) => set('skills', skills)} className="lp-input" placeholder="Python, SQL, Figma" />
+        </label>
       </section>
 
       <section className="lp-section">

@@ -64,7 +64,7 @@
 /* hero */
 .lpb .b-hero { padding-top: clamp(56px, 8vw, 96px); padding-bottom: clamp(32px, 5vw, 56px); }
 .lpb .b-hero + .b { padding-top: clamp(28px, calc(var(--sec) * 0.55), 52px); }
-.lpb .b-hero .name { font-family: var(--display); font-size: var(--h1); line-height: 1.1; font-weight: 700; letter-spacing: var(--tracking); margin: 0 0 8px 0; overflow-wrap: anywhere; }
+.lpb .b-hero .name { font-family: var(--display); font-size: min(var(--h1), calc(85cqw / var(--nl, 8))); line-height: 1.1; font-weight: 700; letter-spacing: var(--tracking); margin: 0 0 8px 0; overflow-wrap: anywhere; }
 .lpb .b-hero .role { font-size: 20px; line-height: 1.4; color: var(--muted); margin: 0 0 32px 0; }
 .lpb .b-hero .headline { font-family: var(--display); font-size: var(--lead); line-height: 1.3; font-weight: 500; letter-spacing: var(--tracking); max-width: 26em; margin: 0; }
 .lpb .hero-intro { display: flex; align-items: center; justify-content: space-between; gap: 48px; }
@@ -105,7 +105,7 @@
 .lpb .facts dd { margin: 0; overflow-wrap: anywhere; }
 .lpb .b-hero--compact { padding-top: 56px; padding-bottom: 40px; }
 .lpb .b-hero--compact .row { display: flex; align-items: baseline; justify-content: space-between; column-gap: 32px; row-gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); padding-bottom: 16px; margin-bottom: 24px; }
-.lpb .b-hero--compact .name { font-size: 40px; margin: 0; }
+.lpb .b-hero--compact .name { font-size: min(40px, calc(85cqw / var(--nl, 8))); margin: 0; }
 .lpb .b-hero--compact .role { margin: 0; font-size: 17px; }
 .lpb .b-hero--compact .headline { font-size: 24px; font-weight: 500; }
 
@@ -219,17 +219,17 @@
   .lpb .b { padding-top: var(--sec-m); padding-bottom: var(--sec-m); }
   .lpb .b-hero { padding-top: 40px; padding-bottom: 32px; }
   .lpb[data-page] main > .b-hero { min-height: auto; }
-  .lpb .b-hero .name { font-size: 46px; }
+  .lpb .b-hero .name { font-size: min(46px, calc(120cqw / var(--nl, 8))); }
   .lpb .b-hero .headline { font-size: 25px; }
   .lpb .hero-intro { align-items: flex-start; gap: 20px; }
   .lpb .b-hero .photo, .lpb .photo-monogram { width: 108px; height: 108px; border-width: 4px; }
   .lpb .photo-monogram { font-size: 36px; }
   .lpb .hero-kicker { font-size: 12px; margin-bottom: 12px; }
-  .lpb .b-hero--compact .name { font-size: 32px; }
+  .lpb .b-hero--compact .name { font-size: min(32px, calc(110cqw / var(--nl, 8))); }
   .lpb .b-hero--compact .headline { font-size: 21px; }
   .lpb .two, .lpb .two2 { grid-template-columns: 1fr; row-gap: 16px; }
   .lpb .b-hero--statement .photo, .lpb .b-hero--statement .photo-monogram { width: 132px; height: 132px; }
-  .lpb .b-hero--statement .name { font-size: 34px; }
+  .lpb .b-hero--statement .name { font-size: min(34px, calc(110cqw / var(--nl, 8))); }
   .lpb .b-hero--statement .headline { font-size: 20px; }
   .lpb .b-hero--statement .photo-monogram { font-size: 54px; }
   .lpb .b-hero--statement .hero-intro { gap: 20px; }
