@@ -3,7 +3,14 @@
 Built from git and `vercel env ls` (names only; Vercel will not show Sensitive values), not from memory. **Update this file at every merge to `main`.**
 Refresh with: `git fetch && git log --oneline --first-parent -5 origin/main && git log --oneline origin/main..origin/dev` and `vercel env ls production --project liveportfolio --scope cliffords-projects-0027534f`, then check `https://liveportfolio.site/api/flags` (its `commit` must equal the merge commit).
 
-Last updated: 2026-10-25, at the release merge of `dev` into `main` (the one-time checkout release). Production serves the merge commit that `https://liveportfolio.site/api/flags` reports as `commit` (`git log --first-parent -1 origin/main` shows the same hash). `dev` and `main` are identical after this merge.
+Last updated: 2026-10-31, when `main` was fast-forwarded to `dev` (`5a3ff4d`, Pro mobile editor cleanup). Both branches are synchronized, including this release note. The production deployment is triggered by the push; completion has not yet been verified. Compare `/api/flags`'s `commit` with `origin/main` before calling the release live. The older inventory below has not been fully re-audited.
+
+## Latest merge: Pro mobile editor cleanup
+
+- Phones and tablets below 1024px: keep one carousel, swipe/arrows to preview, and tap a small design card to select through the existing auto-save flow.
+- Hide the duplicate mobile Preview tab, look-customiser preview and Pro-template buttons, and original/redesigned preview controls. Desktop and Free/Basic editors retain their existing controls.
+- Validation: type-check, 20 focused unit tests and 3 isolated Chromium browser tests passed. Browser tests use synthetic content and mocked preview drawings; a signed-in production check is still needed.
+- No migration, new environment variable or billing change. Rollback: revert the code change `5a3ff4d`.
 
 ## 1. What `main` (Production) contains today (everything below, including section 2 now merged)
 
