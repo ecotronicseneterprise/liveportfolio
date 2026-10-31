@@ -293,7 +293,18 @@ function NotificationsMenu({ notifications }: { notifications: DashboardNotifica
   )
 }
 
-function CareerScoreCard({ content }: { content: Partial<PortfolioContent> }) {
+interface WeeklyInsight {
+  score: number
+  summary: string
+  top_strength: string
+  top_gap: string
+  portfolio_actions: string[]
+  career_actions: string[]
+  scored_at: string
+  cached: boolean
+}
+
+function CareerScoreCard({ content, insight, insightLoading, insightLocked, onUpgrade }: { content: Partial<PortfolioContent>; insight: WeeklyInsight | null; insightLoading: boolean; insightLocked: boolean; onUpgrade: () => void }) {
   const progress = portfolioProgress(content)
   const buckets = [
     { label: 'Identity', value: Math.min(100, Math.round(((content.avatar_url ? 10 : 0) + (content.headline ? 10 : 0) + (content.location ? 5 : 0) + (content.linkedin_url ? 6 : 0) + (content.github_url ? 6 : 0) + (content.role ? 8 : 0)) / 45 * 100)) },
@@ -306,7 +317,7 @@ function CareerScoreCard({ content }: { content: Partial<PortfolioContent> }) {
     <div className="col-span-full bg-white rounded-2xl p-5" style={{ border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}>
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <h3 style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Portfolio progress</h3>
+          <h3 style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Profile completeness</h3>
           <p className="mt-0.5 text-xs text-gray-500">{progress.summary}</p>
         </div>
         <span className="text-2xl font-bold text-[#0A66C2]">{progress.score}%</span>
@@ -335,6 +346,59 @@ function CareerScoreCard({ content }: { content: Partial<PortfolioContent> }) {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4" style={{ position: 'relative' }}>
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#0A66C2]">Weekly personalized insight</p>
+            <p className="mt-1 text-xs text-gray-500">AI-generated, cached for 7 days, based on your current portfolio.</p>
+          </div>
+          {insight && <span className="text-sm font-semibold text-gray-700">{insight.score}/100</span>}
+        </div>
+
+        {insightLoading ? (
+          <p className="text-sm text-gray-500">Loading your latest insight…</p>
+        ) : insight ? (
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{insight.summary}</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl bg-white p-3 border border-gray-100">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#1D9E75]">Top strength</p>
+                <p className="mt-1 text-sm text-gray-700">{insight.top_strength}</p>
+              </div>
+              <div className="rounded-xl bg-white p-3 border border-gray-100">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#0A66C2]">Top gap</p>
+                <p className="mt-1 text-sm text-gray-700">{insight.top_gap}</p>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-500">Portfolio actions</p>
+                <ul className="mt-2 space-y-2 text-sm text-gray-700">
+                  {insight.portfolio_actions.map((item, index) => <li key={index}>• {item}</li>)}
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-500">Career actions</p>
+                <ul className="mt-2 space-y-2 text-sm text-gray-700">
+                  {insight.career_actions.map((item, index) => <li key={index}>• {item}</li>)}
+                </ul>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">No weekly insight yet.</p>
+        )}
+
+        {insightLocked && (
+          <ProBlurOverlay
+            subtext="Unlock weekly personalized career insights with Pro."
+            onUpgrade={onUpgrade}
+          />
+        )}
       </div>
     </div>
   )
@@ -636,6 +700,8 @@ export default function DashboardPage() {
   const [analyticsViews, setAnalyticsViews] = useState<number | null>(null)
   const [uniqueVisitors, setUniqueVisitors] = useState<number | null>(null)
   const [latestActivity, setLatestActivity] = useState<ActivityEvent[]>([])
+  const [weeklyInsight, setWeeklyInsight] = useState<WeeklyInsight | null>(null)
+  const [weeklyInsightLoading, setWeeklyInsightLoading] = useState(false)
   const [accessToken, setAccessToken] = useState<string>('')
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [avatarMsg, setAvatarMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
@@ -706,6 +772,23 @@ export default function DashboardPage() {
     window.addEventListener('focus', handleFocus)
     return () => { window.removeEventListener('focus', handleFocus) }
   }, [loadData, activeTab])
+
+  useEffect(() => {
+    if (!portfolio?.id || !user?.id || !accessToken || userPlan !== 'pro') return
+    let live = true
+    setWeeklyInsightLoading(true)
+    fetch(`/api/score?portfolioId=${portfolio.id}&userId=${user.id}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then((r) => r.json())
+      .then((data: WeeklyInsight | { error?: string }) => {
+        if (!live || 'error' in data) return
+        setWeeklyInsight(data as WeeklyInsight)
+      })
+      .catch(() => {})
+      .finally(() => { if (live) setWeeklyInsightLoading(false) })
+    return () => { live = false }
+  }, [portfolio?.id, user?.id, accessToken, userPlan])
 
   // Supabase Realtime — live toast when a new portfolio_view arrives for the Pro user
   // NOTE: Realtime must be enabled for the analytics_events table in the Supabase dashboard
@@ -1517,7 +1600,13 @@ export default function DashboardPage() {
 
             {/* Portfolio progress */}
             {isPublished && (
-              <CareerScoreCard content={editContent} />
+              <CareerScoreCard
+                content={editContent}
+                insight={weeklyInsight}
+                insightLoading={weeklyInsightLoading}
+                insightLocked={!isPro}
+                onUpgrade={() => setShowUpgradeModal(true)}
+              />
             )}
 
             {/* Analytics — blurred preview for Basic, full data for Pro */}

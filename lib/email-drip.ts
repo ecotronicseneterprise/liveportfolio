@@ -124,15 +124,15 @@ export async function sendWeeklyScore(
   summary: string,
 ): Promise<void> {
   const html = baseLayout(`
-    ${heading(`Your latest saved career assessment: ${score}/100`)}
+    ${heading(`Your weekly career insight: ${score}/100`)}
     ${para(escapeEmailText(summary || 'Choose one project and make its result clearer this week.'))}
-    ${para('This is your latest saved AI assessment, not a hiring prediction. Your dashboard now uses a separate portfolio progress checklist to help you choose what to improve next.')}
+    ${para('This is a weekly AI insight based on your current portfolio. Your dashboard also shows a separate profile completeness score that rises as you add stronger details.')}
     ${ctaButton('Improve my portfolio', DASHBOARD_URL)}
   `, email)
 
   await sendEmail({
     to: email,
-    subject: `Your career score this week: ${score}/100`,
+    subject: `Your weekly career insight: ${score}/100`,
     html,
   })
 }
@@ -200,7 +200,7 @@ export interface CohortCtx {
 const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string)
 
 function keepLine(): string {
-  return `Keep it live: <strong>Basic</strong> is ${formatNaira(PLANS.basic.priceNgn ?? 0)} for 12 months (your own address, your portfolio stays public). <strong>Pro</strong> is ${formatNaira(PLANS.pro.priceNgn ?? 0)} and adds all ${ALL_TEMPLATES.length} templates, who viewed your portfolio, a QR code and a weekly career score. ${BILLING_COPY.pricingNote}.`
+  return `Keep it live: <strong>Basic</strong> is ${formatNaira(PLANS.basic.priceNgn ?? 0)} for 12 months (your own address, your portfolio stays public). <strong>Pro</strong> is ${formatNaira(PLANS.pro.priceNgn ?? 0)} and adds all ${ALL_TEMPLATES.length} templates, who viewed your portfolio, a QR code and weekly personalized career insights. ${BILLING_COPY.pricingNote}.`
 }
 
 export function renderCohortEmail(step: CohortStep, c: CohortCtx): { subject: string; html: string } {

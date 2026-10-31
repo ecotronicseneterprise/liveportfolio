@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { callLLM, LlmError } from '@/lib/llm'
 import { entitlements } from '@/lib/entitlements'
@@ -7,6 +8,27 @@ import { entitlements } from '@/lib/entitlements'
 export const dynamic = 'force-dynamic'
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
+
+const insightSchema = z.object({
+  score: z.number().int().min(0).max(100),
+  breakdown: z.object({
+    presence: z.number().int().min(0).max(25),
+    projects: z.number().int().min(0).max(35),
+    experience: z.number().int().min(0).max(25),
+    skills: z.number().int().min(0).max(15),
+  }),
+  summary: z.string().min(1).max(220),
+  top_strength: z.string().min(1).max(160),
+  top_gap: z.string().min(1).max(160),
+  portfolio_actions: z.array(z.string().min(1).max(160)).length(3),
+  career_actions: z.array(z.string().min(1).max(160)).length(3),
+})
+
+type InsightResult = z.infer<typeof insightSchema>
+
+function hasMetric(text?: string | null) {
+  return !!text && /\d/.test(text)
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -61,10 +83,15 @@ export async function GET(req: NextRequest) {
       .single()
 
     if (cached && Date.now() - new Date(cached.scored_at).getTime() < SEVEN_DAYS_MS) {
+      const cachedBreakdown = (cached.breakdown ?? {}) as Record<string, unknown>
       return NextResponse.json({
         score: cached.score,
-        breakdown: cached.breakdown,
+        breakdown: cachedBreakdown,
         summary: cached.summary,
+        top_strength: typeof cachedBreakdown.top_strength === 'string' ? cachedBreakdown.top_strength : '',
+        top_gap: typeof cachedBreakdown.top_gap === 'string' ? cachedBreakdown.top_gap : '',
+        portfolio_actions: Array.isArray(cachedBreakdown.portfolio_actions) ? cachedBreakdown.portfolio_actions : [],
+        career_actions: Array.isArray(cachedBreakdown.career_actions) ? cachedBreakdown.career_actions : [],
         scored_at: cached.scored_at,
         cached: true,
       })
@@ -76,48 +103,77 @@ export async function GET(req: NextRequest) {
     }
 
     const c = portfolio.content as {
-      name?: string; role?: string; about?: string; skills?: string[];
-      projects?: { title: string; outcome?: string }[];
+      name?: string; role?: string; about?: string; skills?: string[]; skills_narrative?: string;
+      projects?: { title: string; outcome?: string; stack?: string[]; url?: string; github_url?: string; image_url?: string }[];
       experience?: { company: string; role: string; period: string; bullets?: string[] }[];
-      github_url?: string; linkedin_url?: string; avatar_url?: string;
+      education?: { degree?: string; institution?: string; year?: string }[];
+      certifications?: string[];
+      github_url?: string; linkedin_url?: string; avatar_url?: string; location?: string; headline?: string;
     }
 
-    const prompt = `Score this professional portfolio on a 0–100 scale across four dimensions.
+    const projects = Array.isArray(c.projects) ? c.projects : []
+    const experience = Array.isArray(c.experience) ? c.experience : []
+    const skills = Array.isArray(c.skills) ? c.skills : []
+    const education = Array.isArray(c.education) ? c.education : []
+    const certifications = Array.isArray(c.certifications) ? c.certifications : []
+    const missing: string[] = []
+    if (!c.avatar_url) missing.push('profile photo')
+    if (!c.headline) missing.push('headline')
+    if (!c.location) missing.push('location')
+    if (!c.linkedin_url) missing.push('LinkedIn link')
+    if (!c.github_url) missing.push('GitHub link')
+    if (projects.length < 3) missing.push('enough projects')
+    if (!projects.some((p) => p?.outcome?.trim())) missing.push('project outcomes')
+    if (!projects.some((p) => hasMetric(p?.outcome))) missing.push('quantified project outcomes')
+    if (experience.length === 0) missing.push('experience section')
+    if (skills.length < 5) missing.push('enough skills')
 
-Name: ${c.name || 'Unknown'}
-Role: ${c.role || 'Unknown'}
-About: ${c.about || ''}
-Skills: ${(c.skills || []).join(', ')}
-Projects: ${(c.projects || []).map((p) => `${p.title} — ${p.outcome || ''}`).join(' | ')}
-Experience: ${(c.experience || []).map((e) => `${e.role} at ${e.company} (${e.period})`).join(' | ')}
-Has GitHub: ${c.github_url ? 'yes' : 'no'}
-Has LinkedIn: ${c.linkedin_url ? 'yes' : 'no'}
-Has avatar: ${c.avatar_url ? 'yes' : 'no'}
+    const prompt = `You are generating a weekly personalized career insight for a professional portfolio.
 
-Return JSON with this exact shape:
-{
-  "score": <overall 0-100>,
-  "breakdown": {
-    "presence": <0-25, online presence completeness>,
-    "projects": <0-35, project quality, outcomes with numbers, impact>,
-    "experience": <0-25, relevance and progression>,
-    "skills": <0-15, breadth and relevance to role>
-  },
-  "summary": "<one sentence of the single most impactful improvement they could make>"
-}
+Your output must be stable, practical, and repeatable. Do not be poetic. Do not invent achievements. Base every recommendation only on the portfolio data below.
 
-Be honest and calibrated. A score of 72 is good. 90+ requires standout outcomes with real numbers.`
+Portfolio facts:
+- Role: ${c.role || 'Unknown'}
+- Headline present: ${c.headline ? 'yes' : 'no'}
+- Location present: ${c.location ? 'yes' : 'no'}
+- Avatar present: ${c.avatar_url ? 'yes' : 'no'}
+- LinkedIn present: ${c.linkedin_url ? 'yes' : 'no'}
+- GitHub present: ${c.github_url ? 'yes' : 'no'}
+- About length: ${(c.about || '').split(/\s+/).filter(Boolean).length} words
+- Skills count: ${skills.length}
+- Skills: ${skills.join(', ') || 'none'}
+- Skills summary present: ${c.skills_narrative ? 'yes' : 'no'}
+- Projects count: ${projects.length}
+- Projects with outcomes: ${projects.filter((p) => p?.outcome?.trim()).length}
+- Projects with quantified outcomes: ${projects.filter((p) => hasMetric(p?.outcome)).length}
+- Projects with links: ${projects.filter((p) => p?.url || p?.github_url).length}
+- Projects with images: ${projects.filter((p) => p?.image_url).length}
+- Experience count: ${experience.length}
+- Experience entries with at least 2 bullets: ${experience.filter((e) => Array.isArray(e?.bullets) && e.bullets.filter((b) => b?.trim()).length >= 2).length}
+- Education count: ${education.length}
+- Certifications count: ${certifications.length}
+- Missing elements: ${missing.join(', ') || 'none'}
 
-    let parsed: { score?: number; breakdown?: { presence: number; projects: number; experience: number; skills: number }; summary?: string }
+Project details:
+${projects.map((p, i) => `${i + 1}. ${p.title || 'Untitled'} | outcome: ${p.outcome || 'none'} | stack: ${(p.stack || []).join(', ') || 'none'} | link: ${p.url || p.github_url ? 'yes' : 'no'}`).join('\n') || 'none'}
+
+Experience details:
+${experience.map((e, i) => `${i + 1}. ${e.role || 'Unknown role'} at ${e.company || 'Unknown company'} (${e.period || 'no period'}) | bullets: ${(e.bullets || []).filter(Boolean).length}`).join('\n') || 'none'}
+
+Return structured JSON only. Keep every string concise and specific. Portfolio actions must be things the user can improve inside this portfolio. Career actions must be broader professional moves outside the portfolio. Prioritize the highest-leverage gaps first.`
+
+    let parsed: InsightResult
     try {
-      const result = await callLLM<typeof parsed>({
+      const result = await callLLM<InsightResult>({
         purpose: 'score.portfolio',
         pii: 'redact',
-        system: 'You are a career advisor scoring professional portfolios. Return only valid JSON.',
+        system: 'You are a precise career advisor for professional portfolios. Return only valid JSON that matches the schema exactly.',
         input: prompt,
+        schema: insightSchema,
+        schemaName: 'weekly_portfolio_insight',
         names: c.name ? [c.name] : undefined,
-        maxTokens: 300,
-        temperature: 0.3,
+        maxTokens: 500,
+        temperature: 0.2,
       })
       parsed = result.data
     } catch (err) {
@@ -130,16 +186,36 @@ Be honest and calibrated. A score of 72 is good. 90+ requires standout outcomes 
     const score = Math.min(100, Math.max(0, Math.round(parsed.score || 50)))
     const breakdown = parsed.breakdown || { presence: 0, projects: 0, experience: 0, skills: 0 }
     const summary = parsed.summary || 'Add quantified outcomes to your projects to stand out.'
+    const topStrength = parsed.top_strength || 'Your portfolio already shows a clear professional direction.'
+    const topGap = parsed.top_gap || 'Your strongest next step is to add clearer proof of impact.'
+    const portfolioActions = parsed.portfolio_actions || []
+    const careerActions = parsed.career_actions || []
+    const storedBreakdown = {
+      ...breakdown,
+      top_strength: topStrength,
+      top_gap: topGap,
+      portfolio_actions: portfolioActions,
+      career_actions: careerActions,
+    }
 
-    // Persist to career_scores
     await supabaseAdmin.from('career_scores').insert({
       portfolio_id: portfolioId,
       score,
-      breakdown,
+      breakdown: storedBreakdown,
       summary,
     })
 
-    return NextResponse.json({ score, breakdown, summary, scored_at: new Date().toISOString(), cached: false })
+    return NextResponse.json({
+      score,
+      breakdown: storedBreakdown,
+      summary,
+      top_strength: topStrength,
+      top_gap: topGap,
+      portfolio_actions: portfolioActions,
+      career_actions: careerActions,
+      scored_at: new Date().toISOString(),
+      cached: false,
+    })
   } catch {
     return NextResponse.json({ error: 'Internal error' }, { status: 200 })
   }
