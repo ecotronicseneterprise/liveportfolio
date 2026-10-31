@@ -21,13 +21,15 @@ const off = 'border-gray-300 bg-white text-gray-800 hover:bg-gray-50'
  * renderer drawing the person's own words.
  */
 export default function LookPicker({
-  content, template, isPro, onChange, onLocked,
+  content, template, isPro, onChange, onLocked, hideLooksOnPhone = false,
 }: {
   content: StoredContent
   template: string
   isPro: boolean
   onChange: (next: { template?: string; layout?: LayoutSettings }) => void
   onLocked: (name: string, id?: TemplateId) => void
+  /** A phone already has the swipeable design preview, which includes these three looks: hide the duplicate list there (desktop keeps it). */
+  hideLooksOnPhone?: boolean
 }) {
   const layout = (content.layout ?? { v: 1, arrangement: 'profile' }) as LayoutSettings
   const classicActive = !isLookTemplate(template)
@@ -47,7 +49,7 @@ export default function LookPicker({
         </p>
       )}
 
-      <fieldset>
+      <fieldset className={hideLooksOnPhone ? 'hidden lg:block' : undefined}>
         <legend className="mb-2 text-sm font-medium text-gray-900">{t('lookPicker.looks')}</legend>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {FREE_LOOKS.map((id) => {

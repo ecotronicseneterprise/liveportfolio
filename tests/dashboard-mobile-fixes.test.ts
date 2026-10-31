@@ -48,31 +48,44 @@ describe('notification menu', () => {
 
 describe('Pro design picker on a phone', () => {
   const render = (previewId: string, savedId: string) => renderToStaticMarkup(createElement(TemplateCarousel, { content: SAMPLE_PEOPLE.engineer as never, previewId, savedId, onPreview: () => {}, onUse: () => {} }))
-  it('shows one big preview, the design name, a tile for every design and a Use this design button', () => {
+  it('shows one big preview, the design name, arrows and a card for every design, with no Use this design button', () => {
     const html = render('developer', 'minimal')
-    expect(html).toContain('Swipe the preview to compare designs')
-    expect(html).toContain('Use this design')
+    expect(html).toContain('Swipe the preview to look around')
     expect(html).toContain('Previous design')
     expect(html).toContain('Next design')
     expect(html.match(/<li /g)).toHaveLength(ALL_TEMPLATES.length)
     expect(html).toContain('4 of 10')
     expect(html).toContain('>Pro<') // the previewed design is a Pro one
-    expect(html).toContain('Yours') // the saved design is marked
+    expect(html).not.toContain('Use this design')
+    expect(html).not.toContain('This is your design')
+    expect(html).not.toContain('Yours')
   })
-  it('a design that is already yours says so and cannot be re-applied', () => {
-    const html = render('minimal', 'minimal')
-    expect(html).toContain('This is your design')
-    expect(html).toContain('disabled=""')
-    expect(render('developer', 'minimal')).not.toContain('This is your design')
+  it('the current design has a green tick on its card, and only that card', () => {
+    const html = render('developer', 'minimal')
+    expect(html.split('bg-[#1D9E75]')).toHaveLength(2) // exactly one tick
+    expect(html).toContain('your current design')
+    expect(html.match(/aria-pressed="true"/g)).toHaveLength(1)
   })
-  it('comparing only previews: swiping or tapping calls onPreview, and only Use this design saves', () => {
+  it('says Previewing only when the preview is not the saved design, and Your current design when it is', () => {
+    expect(render('developer', 'minimal')).toContain('Previewing only. Tap its card below to use it.')
+    const same = render('minimal', 'minimal')
+    expect(same).toContain('Your current design')
+    expect(same).not.toContain('Previewing only')
+  })
+  it('swiping and the arrows only preview; tapping a card is what saves', () => {
     const page = read('../app/dashboard/page.tsx')
     expect(page).toContain('onPreview={(id: TemplateId) => setPreviewTemplate(id)}')
     expect(page).toContain('onUse={(id: TemplateId) => { setTemplate(id); setPreviewTemplate(id); setLockedTemplateMsg(null); saveAfterPick.current = true }}')
     const src = read('../components/dashboard/TemplateCarousel.tsx')
     expect(src).toContain('onPreview(stepTemplate(id, dx < 0 ? 1 : -1))') // the swipe
     expect(src.slice(src.indexOf('onPointerUp'), src.indexOf('onPointerCancel'))).not.toContain('onUse') // a swipe never saves
+    expect(src).toContain('onClick={() => onUse(tid)}') // a card tap does
   })
+  it('the three looks list is hidden on a phone for Pro (the swipe preview already has them) and kept on desktop', () => {
+    expect(read('../components/dashboard/LookPicker.tsx')).toContain("hideLooksOnPhone ? 'hidden lg:block' : undefined")
+    expect(read('../app/dashboard/page.tsx')).toContain('hideLooksOnPhone={isPro}')
+  })
+
   it('is shown to Pro accounts on a phone and tablet only, and the old small-button row is hidden for them there', () => {
     const page = read('../app/dashboard/page.tsx')
     expect(page).toMatch(/\{isPro && \(\s*<div className="lg:hidden">\s*<TemplateCarousel/)

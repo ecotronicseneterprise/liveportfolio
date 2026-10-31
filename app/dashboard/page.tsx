@@ -1757,6 +1757,7 @@ export default function DashboardPage() {
                   content={{ ...(editContent as StoredContent), layout: storedLayout(editContent as StoredContent, template) }}
                   template={template}
                   isPro={isPro}
+                  hideLooksOnPhone={isPro}
                   onChange={(next) => {
                     if (next.template) { setTemplate(next.template); setPreviewTemplate(next.template); setLockedTemplateMsg(null) }
                     if (next.layout) setEditContent((prev) => ({ ...prev, layout: next.layout }) as Partial<PortfolioContent>)
