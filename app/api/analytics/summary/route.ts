@@ -38,12 +38,13 @@ export async function GET(req: NextRequest) {
     // Ownership check — ensure the portfolio belongs to this user
     const { data: ownership, error: ownershipError } = await supabaseAdmin
       .from('portfolios')
-      .select('id, created_at')
+      .select('id')
       .eq('id', portfolioId)
       .eq('user_id', userId)
       .maybeSingle()
 
     if (ownershipError) {
+      console.error('[analytics/summary] ownership read failed', ownershipError.code ?? 'unknown') // never the message: it can carry details
       return NextResponse.json({ error: 'analytics_unavailable' }, { status: 503 })
     }
     if (!ownership) {
@@ -54,6 +55,11 @@ export async function GET(req: NextRequest) {
     if (!(await entitlements(userId)).analytics) {
       return NextResponse.json({ error: 'upgrade_required', feature: 'analytics' }, { status: 403 })
     }
+
+    // How long this account has had a published portfolio decides whether a previous period exists to compare with. (The portfolios table
+    // has no created_at column; asking for one made the whole read fail.) Not essential: if it cannot be read there is simply no comparison.
+    const { data: owner } = await supabaseAdmin.from('users').select('published_at').eq('id', userId).maybeSingle()
+    const historyStart = (owner as { published_at?: string | null } | null)?.published_at ?? null
 
     const window = analyticsWindow(period === '7' ? 7 : 30, new Date())
     // The database returns at most 1,000 rows per request, and two periods of traffic can exceed that: read page by page until
@@ -72,12 +78,15 @@ export async function GET(req: NextRequest) {
         .order('created_at', { ascending: false })
         .order('id', { ascending: false })
         .range(page * PAGE, page * PAGE + PAGE - 1)
-      if (error || !data) return NextResponse.json({ error: 'analytics_unavailable' }, { status: 503 })
+      if (error || !data) {
+        if (error) console.error('[analytics/summary] events read failed', error.code ?? 'unknown')
+        return NextResponse.json({ error: 'analytics_unavailable' }, { status: 503 })
+      }
       events.push(...(data as AnalyticsEvent[]))
       if (data.length < PAGE) break
     }
 
-    return NextResponse.json(summarizeAnalytics(events, window, ownership.created_at ?? null))
+    return NextResponse.json(summarizeAnalytics(events, window, historyStart))
   } catch {
     return NextResponse.json({ error: 'analytics_unavailable' }, { status: 503 })
   }

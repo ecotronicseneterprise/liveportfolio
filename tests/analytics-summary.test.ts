@@ -33,7 +33,7 @@ beforeEach(() => {
   vi.setSystemTime(NOW)
   h.getUser.mockResolvedValue({ data: { user: { id: 'u1' } }, error: null })
   h.entitlements.mockResolvedValue({ analytics: true })
-  h.ownership.mockResolvedValue({ data: { id: 'p1', created_at: OLD }, error: null })
+  h.ownership.mockResolvedValue({ data: { id: 'p1', published_at: OLD }, error: null })
   h.events.mockResolvedValue({ data: [], error: null, count: 0 })
   const query: Record<string, unknown> = { select: h.select, eq: h.eq, gte: h.gte, lte: h.lte, maybeSingle: h.ownership, range: h.events }
   query.order = () => query
@@ -132,8 +132,9 @@ describe('GET /api/analytics/summary', () => {
     expect(res.status).toBe(200)
     const body: AnalyticsSummary = await res.json()
     expect(body).toEqual(summarizeAnalytics([], analyticsWindow(period as 7 | 30, NOW), OLD))
-    expect(h.from.mock.calls).toEqual([['portfolios'], ['analytics_events']])
-    expect(h.select).toHaveBeenCalledWith('id, created_at')
+    expect(h.from.mock.calls).toEqual([['portfolios'], ['users'], ['analytics_events']])
+    expect(h.select).toHaveBeenCalledWith('id') // the portfolios table has no created_at column
+    expect(h.select).toHaveBeenCalledWith('published_at')
     expect(h.eq).toHaveBeenCalledWith('id', 'p1')
     expect(h.eq).toHaveBeenCalledWith('user_id', 'u1')
     expect(h.eq).toHaveBeenCalledWith('portfolio_id', 'p1')
@@ -177,8 +178,12 @@ describe('GET /api/analytics/summary', () => {
     expect(await res.json()).toEqual({ error: 'upgrade_required', feature: 'analytics' })
     expect(h.events).not.toHaveBeenCalled()
   })
-  it('uses portfolio creation time for comparison availability', async () => {
-    h.ownership.mockResolvedValue({ data: { id: 'p1', created_at: NOW.toISOString() }, error: null })
+  it('asks the portfolios table only for its id: it has no created_at column, and asking for one made every read fail', async () => {
+    expect((await request()).status).toBe(200)
+    expect(h.select.mock.calls[0]).toEqual(['id'])
+  })
+  it('uses how long the account has been published for comparison availability', async () => {
+    h.ownership.mockResolvedValue({ data: { id: 'p1', published_at: NOW.toISOString() }, error: null })
     expect(await (await request()).json()).toMatchObject({ hasComparison: false, previous: null })
   })
   it.each(['ownership', 'events', 'null-data', 'exception', 'entitlements'])('returns 503 instead of zeros on %s failure', async failure => {
