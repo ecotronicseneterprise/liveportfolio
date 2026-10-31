@@ -64,6 +64,8 @@ Turn your CV or raw experience into a live, professional portfolio in 5 minutes.
 - One-click unsubscribe via base64url token
 
 ### Dashboard
+- My Portfolio keeps only Refresh in the identity header's action row; the plan badge and duplicate View live/Publish controls remain available on the other tabs.
+- Account billing omits the generic e-mail refund notice. Eligibility-specific refund controls, deadlines and the refund policy are unchanged.
 - Edit all portfolio content (no AI call, direct DB update)
 - Pro editor on phones and tablets (below 1024px): one swipeable preview with small design cards. Swipe or use arrows to preview; tap a card to select and auto-save. The duplicate Preview tab, look customiser and original/redesigned preview controls are hidden there. Desktop controls and Free/Basic editors are unchanged.
 - Analytics overview with unique visitors, bar chart, source breakdown

@@ -46,6 +46,12 @@ describe('billing panel: cancel, refunds closed, upgrade', () => {
     plan: 'basic', expires_at: '2027-10-05T10:00:00.000Z', days_left: 300, one_time: true,
     payments: [{ date: '2026-10-22T10:00:00.000Z', plan: 'basic', amount_kobo: 1_500_000, refunded: false }], ...extra,
   })
+  it.each(['free', 'basic', 'pro'] as const)('omits the generic email-refund notice for %s accounts without refund details', (plan) => {
+    const t = text(createElement(PlanBillingView, { b: paid({ plan, refund: undefined }), onPay: noop }))
+    expect(t).not.toContain('7-day refund guarantee. To ask for a refund')
+    expect(t).not.toContain('within 7 days of paying.')
+    expect(t).toContain('Plan and billing')
+  })
   it('inside 7 days: the deadline, the latest-payment note and a Cancel and refund button', () => {
     const t = text(createElement(PlanBillingView, { b: paid({ refund: { eligible: true, deadline: '2026-10-29T10:00:00.000Z', tier: 'basic', amount_kobo: 1_500_000, one_time: true } }), onPay: noop, onRefund: async () => 'requested' as const }))
     expect(t).toContain('Request a refund'); expect(t).toContain('29 October 2026'); expect(t).toMatch(/latest payment only/)

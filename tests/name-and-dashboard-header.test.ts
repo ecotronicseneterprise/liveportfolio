@@ -66,6 +66,11 @@ describe('dashboard header', () => {
   it('an unpublished address says it is reserved, not live', () => {
     expect(src).toMatch(/Reserved for you, not live yet/)
   })
+  it('My Portfolio leaves only Refresh in the header action row; other tabs retain plan and live/publish controls', () => {
+    expect(src).toMatch(/activeTab !== 'overview' && \(\s*<span[^>]*\s*style=\{\{ background: planBadge\.bg, color: planBadge\.text \}\}>\s*\{planBadge\.label\}/)
+    expect(src).toContain("{activeTab !== 'overview' && (isPublished ? (")
+    expect(src).toMatch(/<button\s+onClick=\{\(\) => loadData\(\)\}\s+title="Reload your dashboard data"/)
+  })
   it('the reload control has a visible name instead of a bare arrow', () => {
     expect(src).not.toMatch(/^\s*↻\s*$/m)
     expect(src).toMatch(/title="Reload your dashboard data"/)

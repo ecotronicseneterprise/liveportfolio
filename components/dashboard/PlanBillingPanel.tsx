@@ -174,12 +174,6 @@ export function PlanBillingView({ b, onPay, onRefund, onUpgrade }: {
         <p className="mt-4 text-sm text-gray-600">{t('billing.refundClosed', { date: date(b.expires_at) })}</p>
       )}
 
-      {!cohort && (!paid || !b.refund) && !note && (
-        <p className="mt-4 text-sm text-gray-600">
-          7-day refund guarantee. To ask for a refund, e-mail{' '}
-          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-[#0A66C2] underline">{SUPPORT_EMAIL}</a> within 7 days of paying.
-        </p>
-      )}
     </section>
   )
 }

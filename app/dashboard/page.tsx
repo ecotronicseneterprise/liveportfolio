@@ -1241,10 +1241,12 @@ export default function DashboardPage() {
                 </span>
               )}
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                  style={{ background: planBadge.bg, color: planBadge.text }}>
-                  {planBadge.label}
-                </span>
+                {activeTab !== 'overview' && (
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                    style={{ background: planBadge.bg, color: planBadge.text }}>
+                    {planBadge.label}
+                  </span>
+                )}
                 <button
                   onClick={() => loadData()}
                   title="Reload your dashboard data"
@@ -1252,7 +1254,7 @@ export default function DashboardPage() {
                 >
                   Refresh
                 </button>
-                {isPublished ? (
+                {activeTab !== 'overview' && (isPublished ? (
                   <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
                     className="text-xs text-gray-600 border border-gray-200 px-3 py-1.5 rounded-full hover:border-gray-300 transition-colors">
                     View live →
@@ -1262,7 +1264,7 @@ export default function DashboardPage() {
                     className="px-4 py-2 bg-[#0A66C2] text-white text-sm font-semibold rounded-full hover:bg-[#084D9A] transition-colors">
                     Publish →
                   </button>
-                )}
+                ))}
               </div>
             </div>
           </div>

@@ -3,9 +3,15 @@
 Built from git and `vercel env ls` (names only; Vercel will not show Sensitive values), not from memory. **Update this file at every merge to `main`.**
 Refresh with: `git fetch && git log --oneline --first-parent -5 origin/main && git log --oneline origin/main..origin/dev` and `vercel env ls production --project liveportfolio --scope cliffords-projects-0027534f`, then check `https://liveportfolio.site/api/flags` (its `commit` must equal the merge commit).
 
-Last updated: 2026-10-31, for the latest-visit dashboard release on `main`. The production deployment is triggered by the push; completion has not yet been verified. Compare `/api/flags`'s `commit` with `origin/main` before calling the release live. The older inventory below has not been fully re-audited.
+Last updated: 2026-10-31, for the dashboard header and Account notice cleanup on `main`. The production deployment is triggered by the push; completion has not yet been verified. Compare `/api/flags`'s `commit` with `origin/main` before calling the release live. The older inventory below has not been fully re-audited.
 
-## Latest release: inline portfolio visits
+## Latest release: header and Account cleanup
+
+- My Portfolio's identity-header action row shows only Refresh. Other tabs retain the plan badge and View live/Publish controls.
+- Account omits the generic e-mail refund-guarantee notice. Refund policy, eligibility checks, deadlines, request controls and payment processing are unchanged.
+- Validation: type-check and 34 focused header/billing-view tests passed. No migration or environment change; production deployment and signed-in checks remain unverified.
+
+## Previous release: inline portfolio visits
 
 - Referral-source rows show percentages without raw counts. The published-address subtitle is removed from My Portfolio.
 - Pro users see a compact latest-visit line under the heading instead of dashboard Realtime pop-ups. The authenticated, ownership/Pro-gated `/api/analytics/latest-visit` endpoint returns only the latest view's country and time, independently of chart periods and intervening clicks.
