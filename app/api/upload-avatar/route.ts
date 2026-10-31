@@ -43,5 +43,7 @@ export async function POST(req: NextRequest) {
 
   const { data: publicData } = supabaseAdmin.storage.from('avatars').getPublicUrl(path)
 
-  return NextResponse.json({ url: publicData.publicUrl })
+  // The file keeps one name per person (so removing the account removes it), which means the address never changed and browsers and the
+  // image cache kept showing the old photo. A version in the address makes every new photo a new address.
+  return NextResponse.json({ url: `${publicData.publicUrl}?v=${Date.now()}` })
 }

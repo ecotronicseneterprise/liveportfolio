@@ -46,19 +46,37 @@ describe('notification menu', () => {
   })
 })
 
-describe('Pro design carousel', () => {
-  const html = renderToStaticMarkup(createElement(TemplateCarousel, { content: SAMPLE_PEOPLE.engineer as never, currentId: 'developer', onPick: () => {} }))
-  it('has a card for every design, with the Pro ones marked and the current one selected', () => {
+describe('Pro design picker on a phone', () => {
+  const render = (previewId: string, savedId: string) => renderToStaticMarkup(createElement(TemplateCarousel, { content: SAMPLE_PEOPLE.engineer as never, previewId, savedId, onPreview: () => {}, onUse: () => {} }))
+  it('shows one big preview, the design name, a tile for every design and a Use this design button', () => {
+    const html = render('developer', 'minimal')
+    expect(html).toContain('Swipe the preview to compare designs')
+    expect(html).toContain('Use this design')
+    expect(html).toContain('Previous design')
+    expect(html).toContain('Next design')
     expect(html.match(/<li /g)).toHaveLength(ALL_TEMPLATES.length)
-    expect(html.match(/>Pro</g)!.length).toBe(PRO_TEMPLATES.length)
-    expect(html).toContain('aria-pressed="true"')
-    expect(html).toContain('Swipe to browse')
-    expect(html).toContain('snap-x')
+    expect(html).toContain('4 of 10')
+    expect(html).toContain('>Pro<') // the previewed design is a Pro one
+    expect(html).toContain('Yours') // the saved design is marked
   })
-  it('is shown to Pro accounts on a phone only, and the small-button row is hidden for them there', () => {
+  it('a design that is already yours says so and cannot be re-applied', () => {
+    const html = render('minimal', 'minimal')
+    expect(html).toContain('This is your design')
+    expect(html).toContain('disabled=""')
+    expect(render('developer', 'minimal')).not.toContain('This is your design')
+  })
+  it('comparing only previews: swiping or tapping calls onPreview, and only Use this design saves', () => {
     const page = read('../app/dashboard/page.tsx')
-    expect(page).toContain('{isPro && (\n              <div className="lg:hidden">\n                <TemplateCarousel')
-    expect(page.replace(/\r\n/g, '\n')).toContain("<div className={isPro ? 'hidden lg:block' : undefined}>")
+    expect(page).toContain('onPreview={(id: TemplateId) => setPreviewTemplate(id)}')
+    expect(page).toContain('onUse={(id: TemplateId) => { setTemplate(id); setPreviewTemplate(id); setLockedTemplateMsg(null); saveAfterPick.current = true }}')
+    const src = read('../components/dashboard/TemplateCarousel.tsx')
+    expect(src).toContain('onPreview(stepTemplate(id, dx < 0 ? 1 : -1))') // the swipe
+    expect(src.slice(src.indexOf('onPointerUp'), src.indexOf('onPointerCancel'))).not.toContain('onUse') // a swipe never saves
+  })
+  it('is shown to Pro accounts on a phone and tablet only, and the old small-button row is hidden for them there', () => {
+    const page = read('../app/dashboard/page.tsx')
+    expect(page).toMatch(/\{isPro && \(\s*<div className="lg:hidden">\s*<TemplateCarousel/)
+    expect(page).toContain("<div className={isPro ? 'hidden lg:block' : undefined}>")
   })
 })
 

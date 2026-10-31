@@ -32,12 +32,15 @@ export async function POST(req: NextRequest) {
   if (file.size > 5 * 1024 * 1024) return NextResponse.json({ error: 'Image too large' }, { status: 413 })
   const idx = indexParam != null ? String(indexParam) : '0'
   if (!/^\d{1,2}$/.test(idx)) return NextResponse.json({ error: 'Bad index' }, { status: 400 })
-  const path = `${user.id}-${idx}.jpg`
+  // A new name for every upload. The old name was "<user>-<position>.jpg" and was overwritten: after a project was deleted or moved, an
+  // upload for one project could replace the picture another project still pointed at, and browsers kept showing the old picture.
+  // The name still starts with the user id, so removing an account still finds and removes every file.
+  const path = `${user.id}-${idx}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}.jpg`
   const supabaseAdmin = getSupabaseAdmin()
 
   const { error: uploadError } = await supabaseAdmin.storage
     .from('project-images')
-    .upload(path, file, { upsert: true, contentType: 'image/jpeg' })
+    .upload(path, file, { upsert: false, contentType: 'image/jpeg' })
 
   if (uploadError) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 })

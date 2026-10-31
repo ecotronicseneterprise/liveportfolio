@@ -1742,8 +1742,10 @@ export default function DashboardPage() {
               <div className="lg:hidden">
                 <TemplateCarousel
                   content={editContent as PortfolioContent}
-                  currentId={previewTemplate}
-                  onPick={(id: TemplateId) => { setTemplate(id); setPreviewTemplate(id); setLockedTemplateMsg(null); saveAfterPick.current = true }}
+                  previewId={previewTemplate}
+                  savedId={template}
+                  onPreview={(id: TemplateId) => setPreviewTemplate(id)}
+                  onUse={(id: TemplateId) => { setTemplate(id); setPreviewTemplate(id); setLockedTemplateMsg(null); saveAfterPick.current = true }}
                 />
               </div>
             )}
