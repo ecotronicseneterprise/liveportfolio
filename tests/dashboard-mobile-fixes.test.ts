@@ -81,6 +81,15 @@ describe('Pro design picker on a phone', () => {
     expect(src.slice(src.indexOf('onPointerUp'), src.indexOf('onPointerCancel'))).not.toContain('onUse') // a swipe never saves
     expect(src).toContain('onClick={() => onUse(tid)}') // a card tap does
   })
+  it('the second preview with the Previous/New design buttons is hidden on a phone for Pro, and kept on desktop and for other plans', () => {
+    const page = read('../app/dashboard/page.tsx')
+    expect(page).toMatch(/<div className=\{isPro \? 'hidden lg:block' : undefined\}>\s*<ProDesignPicker/)
+  })
+  it('Pro mobile uses only the carousel: no second Preview tab or look-customiser preview and Pro buttons', () => {
+    const page = read('../app/dashboard/page.tsx')
+    expect(page).toMatch(/<FreeSplit\s+enabled\s+mobilePreview=\{!isPro\}/)
+    expect(page).toMatch(/storedLayout\(editContent as StoredContent, template\) \? \(\s*<div className=\{isPro \? 'hidden lg:block' : undefined\}>\s*<LookPicker/)
+  })
   it('the three looks list is hidden on a phone for Pro (the swipe preview already has them) and kept on desktop', () => {
     expect(read('../components/dashboard/LookPicker.tsx')).toContain("hideLooksOnPhone ? 'hidden lg:block' : undefined")
     expect(read('../app/dashboard/page.tsx')).toContain('hideLooksOnPhone={isPro}')

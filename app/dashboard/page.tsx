@@ -1697,6 +1697,7 @@ export default function DashboardPage() {
         {activeTab === 'edit' && (
           <FreeSplit
             enabled
+            mobilePreview={!isPro}
             preview={
               <FreePreview
                 content={editContent as PortfolioContent}
@@ -1752,7 +1753,7 @@ export default function DashboardPage() {
 
             {/* The look: new block designs (every portfolio created since the redesign) get the look picker; older portfolios keep the classic template switcher below. */}
             {storedLayout(editContent as StoredContent, template) ? (
-              <div>
+              <div className={isPro ? 'hidden lg:block' : undefined}>
                 <LookPicker
                   content={{ ...(editContent as StoredContent), layout: storedLayout(editContent as StoredContent, template) }}
                   template={template}
@@ -1917,9 +1918,13 @@ export default function DashboardPage() {
             )}
 
             {isProTemplateId(previewTemplate) && (
-              <ProDesignPicker key={`${previewTemplate}:${historyTick}`} content={editContent as PortfolioContent}
-                template={previewTemplate} selectedTemplate={portfolio.template} isPro={isPro} busy={saving}
-                onSave={handleSaveDesign} onUpgrade={() => { setUpgradeProOnly(true); setShowUpgradeModal(true) }} />
+              // A Pro account on a phone already has the swipe preview and the design cards above, so this second preview (and its Previous/New
+              // buttons) is hidden there. Desktop keeps it: it is where a Pro design is switched between the original and the redesign.
+              <div className={isPro ? 'hidden lg:block' : undefined}>
+                <ProDesignPicker key={`${previewTemplate}:${historyTick}`} content={editContent as PortfolioContent}
+                  template={previewTemplate} selectedTemplate={portfolio.template} isPro={isPro} busy={saving}
+                  onSave={handleSaveDesign} onUpgrade={() => { setUpgradeProOnly(true); setShowUpgradeModal(true) }} />
+              </div>
             )}
 
             {/* Editable fields */}

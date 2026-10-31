@@ -24,6 +24,15 @@ describe('FreeSplit', () => {
     const t = text(createElement(FreeSplit, { enabled: false, preview: createElement('p', null, 'PREVIEW'), children: createElement('p', null, 'FORM') }))
     expect(t.trim()).toBe('FORM')
   })
+  it('Pro can suppress the extra mobile Preview tab without removing the desktop preview', () => {
+    const html = renderToStaticMarkup(createElement(FreeSplit, { enabled: true, mobilePreview: false, preview: createElement('p', null, 'PREVIEW'), children: createElement('p', null, 'FORM') }))
+    expect(html).not.toContain('role="tablist"')
+    expect(html).not.toContain('role="tabpanel"')
+    expect(html).toContain('id="fs-panel-edit" class="block"')
+    expect(html).toContain('id="fs-panel-preview" class="hidden lg:block')
+    expect(html).toContain('PREVIEW')
+    expect(html).toContain('lg:grid')
+  })
   it('free accounts get Edit and Preview tabs and both panels', () => {
     const html = renderToStaticMarkup(createElement(FreeSplit, { enabled: true, preview: createElement('p', null, 'PREVIEW'), children: createElement('p', null, 'FORM') }))
     expect(html).toContain('role="tablist"')

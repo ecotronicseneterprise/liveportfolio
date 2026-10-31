@@ -65,7 +65,7 @@ Turn your CV or raw experience into a live, professional portfolio in 5 minutes.
 
 ### Dashboard
 - Edit all portfolio content (no AI call, direct DB update)
-- Template switcher
+- Pro editor on phones and tablets (below 1024px): one swipeable preview with small design cards. Swipe or use arrows to preview; tap a card to select and auto-save. The duplicate Preview tab, look customiser and original/redesigned preview controls are hidden there. Desktop controls and Free/Basic editors are unchanged.
 - Analytics overview with unique visitors, bar chart, source breakdown
 - Career score card
 - Recent visitor activity feed
