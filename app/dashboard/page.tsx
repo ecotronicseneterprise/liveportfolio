@@ -21,6 +21,7 @@ import { isProTemplateId, withProDesign, type ProTemplateId } from '@/lib/portfo
 import { removeSkill } from '@/lib/portfolio/editor'
 import FreeSplit from '@/components/dashboard/FreeSplit'
 import FreePreview from '@/components/dashboard/FreePreview'
+import ProOverview from '@/components/dashboard/ProOverview'
 import CohortBanner from '@/components/dashboard/CohortBanner'
 import { storedLayout } from '@/lib/blocks/mode'
 import type { StoredContent } from '@/lib/blocks/mode'
@@ -1040,6 +1041,16 @@ export default function DashboardPage() {
     } finally { setSaving(false) }
   }
 
+  // Jump from the My Portfolio panel to a field in the editor (falls back to the top of the editor when the field has no anchor).
+  const goEdit = (targetId: string) => {
+    setActiveTab('edit')
+    setTimeout(() => {
+      const el = document.getElementById(targetId) ?? document.getElementById('editor-name')
+      el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      ;(el as HTMLElement | null)?.focus?.({ preventScroll: true })
+    }, 150)
+  }
+
   const copyLink = () => {
     if (!user) return
     navigator.clipboard.writeText(`https://liveportfolio.site/${user.slug}`)
@@ -1326,7 +1337,20 @@ export default function DashboardPage() {
         </div>
 
         {/* ── OVERVIEW TAB ── */}
-        {activeTab === 'overview' && (
+        {activeTab === 'overview' && isPro && isPublished && portfolio?.id && (
+          <ProOverview
+            portfolioId={portfolio.id}
+            userId={user.id}
+            token={accessToken}
+            slug={user.slug}
+            portfolioUrl={portfolioUrl}
+            content={editContent}
+            insight={weeklyInsight}
+            insightLoading={weeklyInsightLoading}
+            onEdit={goEdit}
+          />
+        )}
+        {activeTab === 'overview' && !(isPro && isPublished && portfolio?.id) && (
           <div className="flex flex-col gap-4">
 
             {/* CHANGE 1: Latest visitor hero card — Pro only */}
@@ -1877,6 +1901,7 @@ export default function DashboardPage() {
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
                   <input
+                    id={`editor-${key}`}
                     type={type}
                     placeholder={placeholder}
                     value={(editContent as Record<string, string>)[key] || ''}
@@ -1897,6 +1922,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">About / Bio</label>
                 <textarea
+                  id="editor-about"
                   value={editContent.about || ''}
                   onChange={(e) => setEditContent((prev) => ({ ...prev, about: e.target.value }))}
                   rows={5}
@@ -1916,7 +1942,7 @@ export default function DashboardPage() {
                 )}
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <label htmlFor="edit-avatar-upload" className={`cursor-pointer inline-flex items-center gap-2 px-4 py-2 border rounded-xl text-sm transition-colors ${avatarUploading ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+                    <label id="editor-photo" tabIndex={-1} htmlFor="edit-avatar-upload" className={`cursor-pointer inline-flex items-center gap-2 px-4 py-2 border rounded-xl text-sm transition-colors ${avatarUploading ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
                       {avatarUploading ? 'Working…' : 'Change photo'}
                     </label>
                     {(avatarPreview || editContent.avatar_url) && (
@@ -2018,7 +2044,7 @@ export default function DashboardPage() {
             )}
 
             {/* Skills */}
-            <div className="pt-2 border-t border-gray-100">
+            <div id="editor-skills" tabIndex={-1} className="pt-2 border-t border-gray-100">
               <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {Array.from(new Set([...(editContent.skills || []), ...(editContent.skills_grouped || []).flatMap((group) => group.items)])).map((skill, i) => (
