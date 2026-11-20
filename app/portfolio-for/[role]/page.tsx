@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import LandingNav from '@/components/LandingNav'
 import ContactLinks from '@/components/ContactLinks'
 import CookieSettingsLink from '@/components/CookieSettingsLink'
@@ -12,8 +12,7 @@ import { ROLE_PAGES, ROLE_SLUGS, roleBySlug } from '@/lib/seo/roles'
 
 const SITE = 'https://liveportfolio.site'
 
-// Only the listed roles exist; anything else is a 404 (and never reaches the portfolio renderer).
-export const dynamicParams = false
+// The listed roles are built ahead of time. Any other address under /portfolio-for is not an error page: it sends the visitor to the hub.
 export function generateStaticParams() {
   return ROLE_SLUGS.map((role) => ({ role }))
 }
@@ -34,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ role: str
 export default async function RolePortfolioPage({ params }: { params: Promise<{ role: string }> }) {
   const { role } = await params
   const page = roleBySlug(role)
-  if (!page) notFound()
+  if (!page) redirect('/portfolio-for')
 
   const cta = `${CREATE_HREF}?utm_source=seo&utm_medium=role-page&utm_campaign=${page.slug}`
   const related = ROLE_PAGES.filter((r) => r.slug !== page.slug && (r.kind === page.kind || r.slug === 'fresh-graduates')).slice(0, 4)

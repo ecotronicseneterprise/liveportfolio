@@ -57,11 +57,12 @@ describe('role pages: content', () => {
 })
 
 describe('role pages: wiring', () => {
-  it('only listed roles are built; anything else is a 404', () => {
+  it('only listed roles are built; any other address sends the visitor to the hub, never to an error page', () => {
     const page = read('../app/portfolio-for/[role]/page.tsx')
-    expect(page).toContain('export const dynamicParams = false')
+    expect(page).not.toContain('dynamicParams = false')
     expect(page).toContain('generateStaticParams')
-    expect(page).toContain('notFound()')
+    expect(page).toContain("redirect('/portfolio-for')")
+    expect(page).not.toContain('notFound')
   })
   it('each page has a canonical address, structured data and a tagged create link', () => {
     const page = read('../app/portfolio-for/[role]/page.tsx')
