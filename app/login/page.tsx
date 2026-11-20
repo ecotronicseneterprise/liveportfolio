@@ -203,7 +203,7 @@ export default function LoginPage() {
           </form>
         )}
 
-        {!resetMode && <SocialSignIn next="/dashboard" onSignedIn={() => router.push('/dashboard')} />}
+        {!resetMode && <SocialSignIn appearance="plain" next="/dashboard" onSignedIn={() => router.push('/dashboard')} />}
 
         <p className="mt-6 text-center text-sm text-gray-400">
           Don&apos;t have a portfolio yet?{' '}

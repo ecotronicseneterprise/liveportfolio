@@ -23,7 +23,7 @@ that way. Never enable a provider while Confirm email is OFF.
 Authentication → URL Configuration:
 - **Site URL:** `https://liveportfolio.site`
 - **Redirect URLs (allow-list):** `https://liveportfolio.site/**` (this covers `/auth/return` and `/auth/confirm`) and
-  `http://localhost:3001/**` for local dev. Add a Vercel preview pattern only if you test sign-in on previews, and then a
+  `http://localhost:3101/**` for local dev (this project uses port 3101). Add a Vercel preview pattern only if you test sign-in on previews, and then a
   specific one, not `*`.
 
 The **callback URL every provider needs** is shown on each provider's page in Supabase and has this shape:

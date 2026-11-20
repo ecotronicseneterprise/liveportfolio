@@ -180,7 +180,7 @@ describe('the return page', () => {
 describe('wiring', () => {
   const read = (p: string) => fs.readFileSync(path.join(ROOT, p), 'utf8')
   it('/login and the account step include the buttons; the return page is not behind the onboarding flag', () => {
-    expect(read('app/login/page.tsx')).toMatch(/<SocialSignIn next="\/dashboard"/)
+    expect(read('app/login/page.tsx')).toMatch(/<SocialSignIn appearance="plain" next="\/dashboard"/) // the plain look: that page has no onboarding stylesheet
     expect(read('components/onboarding/AccountStep.tsx')).toMatch(/<SocialSignIn next="\/create\/account"/)
     expect(read('app/auth/return/page.tsx')).not.toMatch(/onboardingEnabled/)
   })
