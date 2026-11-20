@@ -336,6 +336,7 @@ export default function LandingPage() {
           <ContactLinks />
 
           <nav aria-label="Footer" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+            <a href="/portfolio-for" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">By profession</a>
             <a href="/blog" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">Blog</a>
             <a href="/terms" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">Terms</a>
             <a href="/privacy" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">Privacy</a>

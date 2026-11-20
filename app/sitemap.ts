@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { ROLE_PAGES } from '@/lib/seo/roles'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
@@ -142,6 +143,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
+    {
+      url: `${appUrl}/portfolio-for`,
+      lastModified: new Date('2026-11-20'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    ...ROLE_PAGES.map((r) => ({
+      url: `${appUrl}/portfolio-for/${r.slug}`,
+      lastModified: new Date('2026-11-20'),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
   ]
 
   try {

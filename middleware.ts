@@ -72,6 +72,7 @@ export function middleware(req: NextRequest) {
         'sitemap.xml',
         // Next's generated social image has no file extension; it is not a portfolio slug.
         'opengraph-image',
+        'portfolio-for',
         'twitter-image',
       ])
 
