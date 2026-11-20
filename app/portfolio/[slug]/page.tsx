@@ -21,7 +21,7 @@ import Cybersecurity from '@/components/templates/Cybersecurity'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import AcquisitionBar from './AcquisitionBar'
 import ViewTracker from './ViewTracker'
-import { canUseTemplate } from '@/lib/plans'
+import { canUseTemplate, entitlementsFor } from '@/lib/plans'
 import { planFromUserColumn } from '@/lib/getUserPlan'
 import { safeContent } from '@/lib/portfolio/render-safe'
 import Look from '@/components/blocks/Look'
@@ -128,7 +128,9 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
     })
   }
 
-  const TEMPLATE_MAP: Record<string, React.ComponentType<{ content: PortfolioContent }>> = {
+  // the templates that draw their own "Built with" line (the others have none); they take credit/creditHref
+  const BADGE_TEMPLATES = new Set(['minimal', 'bold', 'developer', 'finance'])
+  const TEMPLATE_MAP: Record<string, React.ComponentType<{ content: PortfolioContent; credit?: boolean; creditHref?: string }>> = {
     minimal: Minimal,
     bold: Bold,
     creative: Creative,
@@ -150,6 +152,10 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
   const mode = portfolioRenderMode(safe, effectiveTemplate)
   const layout = mode.kind === 'blocks' ? mode.layout : null
   const paid = (data as { plan?: string }).plan === 'basic' || (data as { plan?: string }).plan === 'pro'
+  // The "Built with LivePortfolio" badge: every page carries it unless the plan removes it (Pro). The link is tagged so Google Analytics can
+  // show which published portfolios send visitors, and which of them go on to sign up.
+  const badge = !entitlementsFor(planFromUserColumn((data as { plan?: string }).plan)).noBadge
+  const creditHref = `https://liveportfolio.site/?utm_source=portfolio&utm_medium=badge&utm_campaign=${encodeURIComponent(slug)}`
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site'
   const c = safe
 
@@ -174,8 +180,8 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
       />
       {receipt && <ViewTracker portfolioId={portfolio.id} receipt={receipt} />}
       {mode.kind === 'pro' ? <ProDesign content={safe} template={mode.template} /> : layout
-        ? <Look template={effectiveTemplate} content={safe} layout={layout} page credit={!paid} />
-        : <Template content={safe} />}
+        ? <Look template={effectiveTemplate} content={safe} layout={layout} page credit={badge} creditHref={creditHref} />
+        : <Template content={safe} {...(BADGE_TEMPLATES.has(effectiveTemplate) ? { credit: badge, creditHref } : {})} />}
       {(data as { plan?: string }).plan !== 'basic' && (data as { plan?: string }).plan !== 'pro' && (
         <AcquisitionBar />
       )}

@@ -37,7 +37,7 @@ function useTypewriter(text: string, speed = 60) {
   return displayed
 }
 
-export default function Bold({ content }: { content: PortfolioContent }) {
+export default function Bold({ content, credit = true, creditHref = 'https://liveportfolio.site' }: { content: PortfolioContent; /** The "Built with" line: shown unless the plan removes it. */ credit?: boolean; creditHref?: string }) {
   const [activeSection, setActiveSection] = useState('about')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [visible, setVisible] = useState<Set<string>>(new Set())
@@ -171,14 +171,11 @@ export default function Bold({ content }: { content: PortfolioContent }) {
           </div>
 
           <div className="mt-6 pt-6 border-t border-[#1C2128]">
-            <a
-              href="https://liveportfolio.site"
+            {credit && <a href={creditHref}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-[#30363D] hover:text-[#58A6FF] transition-colors"
-            >
-              Built with liveportfolio.site
-            </a>
+            >Built with liveportfolio.site</a>}
           </div>
         </aside>
 
@@ -507,14 +504,11 @@ export default function Bold({ content }: { content: PortfolioContent }) {
 
           {/* Mobile footer */}
           <footer className="lg:hidden pt-8 border-t border-[#1C2128] text-center">
-            <a
-              href="https://liveportfolio.site"
+            {credit && <a href={creditHref}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-[#30363D] hover:text-[#58A6FF] transition-colors"
-            >
-              Built with liveportfolio.site
-            </a>
+            >Built with liveportfolio.site</a>}
           </footer>
         </main>
       </div>

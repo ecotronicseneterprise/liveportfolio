@@ -42,9 +42,9 @@ const PLANS: PlanId[] = ['free', 'basic', 'pro']
 
 describe('the plan matrix (lib/plans.ts)', () => {
   it('Free / Basic / Pro entitlements', () => {
-    expect(entitlementsFor('free')).toEqual({ plan: 'free', canEdit: true, canPublish: false, templates: 'free', analytics: false, qr: false, weeklyScore: false })
-    expect(entitlementsFor('basic')).toEqual({ plan: 'basic', canEdit: true, canPublish: true, templates: 'free', analytics: false, qr: false, weeklyScore: false })
-    expect(entitlementsFor('pro')).toEqual({ plan: 'pro', canEdit: true, canPublish: true, templates: 'all', analytics: true, qr: true, weeklyScore: true })
+    expect(entitlementsFor('free')).toEqual({ plan: 'free', canEdit: true, canPublish: false, templates: 'free', analytics: false, qr: false, weeklyScore: false, noBadge: false })
+    expect(entitlementsFor('basic')).toEqual({ plan: 'basic', canEdit: true, canPublish: true, templates: 'free', analytics: false, qr: false, weeklyScore: false, noBadge: false })
+    expect(entitlementsFor('pro')).toEqual({ plan: 'pro', canEdit: true, canPublish: true, templates: 'all', analytics: true, qr: true, weeklyScore: true, noBadge: true })
   })
   it('three free templates, seven Pro, ten in total (the number the code actually has)', () => {
     expect(FREE_TEMPLATES).toHaveLength(3)
@@ -60,7 +60,7 @@ describe('the plan matrix (lib/plans.ts)', () => {
   })
   it('Pricing lists: Basic adds only publishing; Pro adds the extras; nothing "soon" is included anywhere', () => {
     expect(newFeatures('basic').map((f) => f.id)).toEqual(['publish'])
-    expect(newFeatures('pro').map((f) => f.id)).toEqual(['pro_templates', 'analytics', 'qr', 'weekly_score'])
+    expect(newFeatures('pro').map((f) => f.id)).toEqual(['no_badge', 'pro_templates', 'analytics', 'qr', 'weekly_score'])
     for (const p of PLANS) for (const f of includedFeatures(p)) expect(f.status).toBe('available')
     expect(comingSoon().map((f) => f.id).sort()).toEqual(['ai_assistant', 'github_sync', 'mcp'])
   })
@@ -77,6 +77,7 @@ describe('copy rules', () => {
     analytics: { file: 'app/api/analytics/summary/route.ts', needle: /\.analytics/ },
     qr: { file: 'app/dashboard/page.tsx', needle: /qrserver|isPro/ }, // client-only: there is no server resource to protect
     weekly_score: { file: 'app/api/score/route.ts', needle: /\.weeklyScore/ },
+    no_badge: { file: 'app/portfolio/[slug]/page.tsx', needle: /\.noBadge/ }, // the public page decides whether the badge is drawn
   }
   it('every available feature has an implementing entitlement; no soon feature has one', () => {
     for (const f of features('available')) {

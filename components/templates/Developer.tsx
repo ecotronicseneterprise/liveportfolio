@@ -280,7 +280,7 @@ const css = `
   }
 `
 
-export default function Developer({ content }: { content: PortfolioContent }) {
+export default function Developer({ content, credit = true, creditHref = 'https://liveportfolio.site' }: { content: PortfolioContent; /** The "Built with" line: shown unless the plan removes it. */ credit?: boolean; creditHref?: string }) {
   const [activeSection, setActiveSection] = useState('about')
   const [mobileOpen, setMobileOpen] = useState(false)
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
@@ -381,9 +381,7 @@ export default function Developer({ content }: { content: PortfolioContent }) {
           <div className="dv-links">
             <ContactIcons className="lpc--stack" content={content as unknown as Record<string, unknown>} />
           </div>
-          <a href="https://liveportfolio.site" target="_blank" rel="noopener noreferrer" className="dv-footer-link">
-            Built with liveportfolio.site
-          </a>
+          {credit && <a href={creditHref} target="_blank" rel="noopener noreferrer" className="dv-footer-link">Built with liveportfolio.site</a>}
         </aside>
 
         {/* Main */}

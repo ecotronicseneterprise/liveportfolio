@@ -72,7 +72,7 @@ export interface PortfolioContent {
   }[]
 }
 
-export default function Minimal({ content }: { content: PortfolioContent }) {
+export default function Minimal({ content, credit = true, creditHref = 'https://liveportfolio.site' }: { content: PortfolioContent; /** The "Built with" line: shown unless the plan removes it. */ credit?: boolean; creditHref?: string }) {
   const [expandedProject, setExpandedProject] = useState<number | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
@@ -346,9 +346,7 @@ export default function Minimal({ content }: { content: PortfolioContent }) {
         {/* Footer */}
         <footer className="w-full border-t border-gray-100 px-6 sm:px-10 lg:px-16 py-6 flex items-center justify-between">
           <span className="text-xs text-gray-300">{content.name}</span>
-          <a href="https://liveportfolio.site" className="text-xs text-gray-300 hover:text-[#0A66C2] transition-colors" target="_blank" rel="noopener noreferrer">
-            Built with liveportfolio.site
-          </a>
+          {credit && <a href={creditHref} className="text-xs text-gray-300 hover:text-[#0A66C2] transition-colors" target="_blank" rel="noopener noreferrer">Built with liveportfolio.site</a>}
         </footer>
       </main>
     </div>

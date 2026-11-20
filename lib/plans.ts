@@ -19,7 +19,7 @@ export const isProTemplate = (v: string): boolean => (PRO_TEMPLATES as readonly 
 
 export type FeatureStatus = 'available' | 'soon'
 export type FeatureId =
-  | 'build_preview' | 'free_templates' | 'preview_all' | 'publish' | 'pro_templates'
+  | 'build_preview' | 'free_templates' | 'preview_all' | 'publish' | 'no_badge' | 'pro_templates'
   | 'analytics' | 'qr' | 'weekly_score' | 'ai_assistant' | 'mcp' | 'github_sync'
 
 export interface Feature {
@@ -35,6 +35,7 @@ export const FEATURES: readonly Feature[] = [
   { id: 'free_templates', label: `Switch between ${FREE_TEMPLATES.length} templates`, status: 'available', plans: ['free', 'basic', 'pro'] },
   { id: 'preview_all', label: 'Preview every template with your own details', status: 'available', plans: ['free', 'basic', 'pro'] },
   { id: 'publish', label: 'Publish at your own address (liveportfolio.site/yourname)', status: 'available', plans: ['basic', 'pro'] },
+  { id: 'no_badge', label: 'No LivePortfolio badge on your page', status: 'available', plans: ['pro'] },
   { id: 'pro_templates', label: `${PRO_TEMPLATES.length} more role-specific templates (${ALL_TEMPLATES.length} in total)`, status: 'available', plans: ['pro'] },
   { id: 'analytics', label: 'See who views your portfolio: country, source and timing', status: 'available', plans: ['pro'] },
   { id: 'qr', label: 'QR code for your portfolio', status: 'available', plans: ['pro'] },
@@ -82,6 +83,8 @@ export interface Entitlements {
   analytics: boolean
   qr: boolean
   weeklyScore: boolean
+  /** A published page carries a small "Built with LivePortfolio" badge unless the plan removes it. */
+  noBadge: boolean
 }
 
 const has = (plan: PlanId, id: FeatureId) => FEATURES.some((f) => f.id === id && f.status === 'available' && f.plans.includes(plan))
@@ -95,6 +98,7 @@ export function entitlementsFor(plan: PlanId): Entitlements {
     analytics: has(plan, 'analytics'),
     qr: has(plan, 'qr'),
     weeklyScore: has(plan, 'weekly_score'),
+    noBadge: has(plan, 'no_badge'),
   }
 }
 

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 const FAQ_ITEMS = [
   {
     q: 'Is there a catch to the free plan?',
-    a: 'No watermark tricks, no feature-gutted demo. The free tier is the real product for building and previewing. Publishing live is the only thing behind a plan.',
+    a: 'No feature-gutted demo. The free tier is the real product for building and previewing. Publishing live is the only thing behind a plan.',
   },
   {
     q: 'What happens to my portfolio if I don\'t pay?',

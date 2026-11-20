@@ -188,7 +188,7 @@ function groupFinanceSkills(skills: string[]) {
   return Object.entries(groups).filter(([, items]) => items.length > 0)
 }
 
-export default function Finance({ content }: { content: PortfolioContent }) {
+export default function Finance({ content, credit = true, creditHref = 'https://liveportfolio.site' }: { content: PortfolioContent; /** The "Built with" line: shown unless the plan removes it. */ credit?: boolean; creditHref?: string }) {
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const skillGroups: [string, string[]][] = content.skills_grouped?.length > 0
     ? content.skills_grouped.filter(g => g.items?.length > 0).map(g => [g.category, g.items])
@@ -285,9 +285,7 @@ export default function Finance({ content }: { content: PortfolioContent }) {
             </div>
           </section>}
 
-          <a href="https://liveportfolio.site" target="_blank" rel="noopener noreferrer" className="fin-footer-link">
-            Built with liveportfolio.site
-          </a>
+          {credit && <a href={creditHref} target="_blank" rel="noopener noreferrer" className="fin-footer-link">Built with liveportfolio.site</a>}
         </aside>
 
         {/* Main */}

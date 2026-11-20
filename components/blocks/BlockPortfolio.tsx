@@ -23,12 +23,14 @@ export interface BlockPortfolioProps {
   sections?: SectionSpec[]
   /** Show the "Built with liveportfolio.site" footer (free and unpublished portfolios). Default true. */
   credit?: boolean
+  /** Where the "Built with" line leads (the page adds source tracking). Without it the line is plain text. */
+  creditHref?: string
 }
 
 const BASE_SECTION_PX: Record<Theme, number> = { studio: 88, journal: 104, ledger: 64 }
 const BASE_SECTION_PX_MOBILE: Record<Theme, number> = { studio: 56, journal: 64, ledger: 44 }
 
-export default function BlockPortfolio({ content, layout, theme, fontClass = '', page = false, idPrefix = 'lpb', sections, credit = true }: BlockPortfolioProps) {
+export default function BlockPortfolio({ content, layout, theme, fontClass = '', page = false, idPrefix = 'lpb', sections, credit = true, creditHref }: BlockPortfolioProps) {
   const d = toBlockData(content)
   const ctx: BlockCtx = { idp: idPrefix, bioShort: layout.bio === 'short', projectLimit: Number.POSITIVE_INFINITY }
   const specs = sections ?? ARRANGEMENT_SECTIONS[layout.arrangement]
@@ -65,7 +67,7 @@ export default function BlockPortfolio({ content, layout, theme, fontClass = '',
       <main id={`${idPrefix}-main`}>{specs.map((s, i) => <FragmentKey key={`${s.block}-${i}`}>{renderSection(s, d, ctx)}</FragmentKey>)}</main>
       {credit && (
         <footer className="foot">
-          <div className="wrap"><span>{t('portfolio.builtWith')}</span></div>
+          <div className="wrap">{creditHref ? <a href={creditHref} target="_blank" rel="noopener noreferrer">{t('portfolio.builtWith')}</a> : <span>{t('portfolio.builtWith')}</span>}</div>
         </footer>
       )}
     </div>
