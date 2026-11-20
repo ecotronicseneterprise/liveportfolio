@@ -6,14 +6,9 @@
 .lpc-a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .lpc-i { flex: none; display: block; }
 .lpc-t { display: none; min-width: 0; overflow-wrap: anywhere; }
-@media (min-width: 720px) {
-  .lpc-a { padding: 0 18px 0 13px; }
-  .lpc-t { display: inline; }
-}
+/* Icons only, on every screen size: a long name or address never has to fit beside an icon, so the row looks the same on a phone and a laptop.
+   The address is still there for screen readers (aria-label), on hover (title) and on paper (print). */
 @media print { .lpc-t { display: inline; } }
 
-/* a sidebar: the links stack, one per row (the column is narrow) */
-.lpc--stack { flex-direction: column; align-items: stretch; gap: 6px; }
-.lpc--stack .lpc-a { justify-content: flex-start; border-radius: 12px; width: 100%; font-size: 14px; }
-.lpc--stack .lpc-a { min-width: 0; }
-.lpc--stack .lpc-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+/* a sidebar: the same row of icons, kept compact because the column is narrow */
+.lpc--stack { gap: 6px; }

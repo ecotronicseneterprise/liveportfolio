@@ -1,4 +1,6 @@
 // Contact icons: which contacts a portfolio shows, how they are made safe, and that every template draws them.
+import fs from 'node:fs'
+import path from 'node:path'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
@@ -72,6 +74,18 @@ describe('ContactIcons', () => {
     expect(html).toContain('aria-label="Phone: +234 801 234 5678"')
     expect(html.match(/class="lpc-t"/g)).toHaveLength(11)
     expect(html.match(/aria-hidden="true"/g)!.length).toBeGreaterThanOrEqual(11) // the icons themselves are decoration
+  })
+  it('is icons only at every screen size: the address text is hidden by default, with no wide-screen rule that shows it', () => {
+    const css = fs.readFileSync(path.resolve(__dirname, '../components/contact/contact.css'), 'utf8')
+    expect(css).toMatch(/\.lpc-t \{ display: none;/)
+    expect(css).not.toMatch(/min-width:\s*720px/) // the old rule that showed the text from 720px up
+    expect(css).not.toMatch(/\.lpc--stack \.lpc-a/) // sidebars no longer stack full-width rows of text
+    expect(css).toMatch(/@media print \{ \.lpc-t \{ display: inline; \} \}/) // on paper the address is still printed
+  })
+  it('each icon still names its address: on hover (title) and for screen readers (aria-label)', () => {
+    expect(html).toContain('title="Email: chef@example.com"')
+    expect(html).toContain('title="Phone: +234 801 234 5678"')
+    expect(html.match(/ title="/g)).toHaveLength(11)
   })
   it('outside links open safely in a new tab; mail and phone do not', () => {
     expect(html.match(/rel="noopener noreferrer"/g)).toHaveLength(9)

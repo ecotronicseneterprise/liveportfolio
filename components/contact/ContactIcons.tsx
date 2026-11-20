@@ -32,7 +32,7 @@ export default function ContactIcons({ content, items, className, label = 'Conta
     <ul className={`lpc${className ? ` ${className}` : ''}`} aria-label={label}>
       {list.map((it) => (
         <li key={`${it.kind}-${it.href}`}>
-          <a className="lpc-a" href={it.href} aria-label={`${it.label}: ${it.text}`} {...(it.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+          <a className="lpc-a" href={it.href} aria-label={`${it.label}: ${it.text}`} title={`${it.label}: ${it.text}`} {...(it.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
             <ContactIcon kind={it.kind} />
             <span className="lpc-t">{it.text}</span>
           </a>
