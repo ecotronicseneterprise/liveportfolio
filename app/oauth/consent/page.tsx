@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getSupabaseClient } from '@/lib/supabase'
+import { appTrust } from '@/lib/mcp/verify'
 
 // The sign-in step for an AI assistant app (ChatGPT, Claude...). Supabase sends the person here with ?authorization_id=.
 // We show who is asking, let them choose what it may do, record the connection on OUR side (Supabase has no custom scopes), then approve.
@@ -57,6 +58,7 @@ export default function ConsentPage() {
     window.location.href = r.data.redirect_url
   }
 
+  const trust = d ? appTrust(d.redirect_uri, d.client.name ?? '') : null
   let host = ''
   try { host = d ? new URL(d.redirect_uri).host : '' } catch { /* shown blank */ }
 
@@ -69,6 +71,8 @@ export default function ConsentPage() {
         {(state === 'ready' || state === 'working') && d && (
           <>
             <h1 className="mt-2 text-2xl font-semibold">Connect {d.client.name || 'this app'} to your portfolio?</h1>
+            {trust && trust.level !== 'unverified' && <p className="mt-2 inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">{trust.label}</p>}
+            {trust && trust.level === 'unverified' && <p role="alert" className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"><strong>{trust.label}.</strong> {trust.warning}</p>}
             <p className="mt-3 text-neutral-600">
               {d.client.name || 'This app'} ({host}) is asking to read and edit the portfolio on <strong>{d.user.email}</strong>. Your portfolio text will be sent to that app.
             </p>

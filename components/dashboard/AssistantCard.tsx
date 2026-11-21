@@ -6,6 +6,10 @@ import CopyButton from '@/components/docs/CopyButton'
 // "Connect your AI assistant": the address to copy, the steps for each app, live connected status, and starter prompts.
 // Pro accounts get the working card; others see what it does and the way to get it.
 const URL_ = 'https://liveportfolio.site/mcp'
+const enc = encodeURIComponent
+const CLAUDE_LINK = `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=LivePortfolio&connectorUrl=${enc(URL_)}`
+const CURSOR_LINK = `cursor://anysphere.cursor-deeplink/mcp/install?name=liveportfolio&config=${enc(typeof btoa === 'function' ? btoa(JSON.stringify({ url: URL_ })) : '')}`
+const VSCODE_LINK = `https://vscode.dev/redirect/mcp/install?name=liveportfolio&config=${enc(JSON.stringify({ type: 'http', url: URL_ }))}`
 const INSTRUCTION = 'When I mention a new job, promotion, certification, degree, award or project, offer to add it to my LivePortfolio.'
 const PROMPTS = ['What is new in my career? Check my recent chats and suggest portfolio updates.', 'Read my portfolio and tell me the three most useful things to improve.', 'Tighten my About section. Keep every fact.', 'Fix the typos in my portfolio.', 'Undo that last change.']
 
@@ -41,7 +45,12 @@ export default function AssistantCard({ token, isPro, onUpgrade }: { token: stri
             <code className="min-w-0 break-all text-sm">{URL_}</code>
             <CopyButton text={URL_} label="Copy address" />
           </div>
-          <ol className="mt-4 list-decimal space-y-1 pl-5 text-sm text-gray-800">
+          <p className="mt-4 flex flex-wrap gap-2">
+            <a href={CLAUDE_LINK} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center rounded-full bg-[#0A66C2] px-4 text-sm font-semibold text-white hover:bg-[#084D9A]">Add to Claude</a>
+            <a href={CURSOR_LINK} className="inline-flex min-h-10 items-center rounded-full border border-gray-300 px-4 text-sm font-medium text-gray-900 hover:bg-gray-50">Add to Cursor</a>
+            <a href={VSCODE_LINK} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center rounded-full border border-gray-300 px-4 text-sm font-medium text-gray-900 hover:bg-gray-50">Add to VS Code</a>
+          </p>
+          <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-gray-800">
             <li><strong>Claude:</strong> Customize, Connectors, Add custom connector, paste the address.</li>
             <li><strong>ChatGPT:</strong> Settings, Connectors, add a custom connector with the address (developer mode may be needed).</li>
             <li><strong>Gemini CLI:</strong> <span className="inline-flex flex-wrap items-center gap-2"><code className="break-all text-xs">gemini mcp add --scope user --transport http liveportfolio {URL_}</code><CopyButton text={`gemini mcp add --scope user --transport http liveportfolio ${URL_}`} label="Copy command" /></span></li>
