@@ -5,7 +5,7 @@ import { CLAUDE_ADD_LINK, type ConnectClient, type GuideImage } from '@/lib/docs
 import FirstMessage from '@/components/docs/FirstMessage'
 
 // One guide component for every assistant, so Claude and ChatGPT cannot drift apart. Screenshots come from public/connect/;
-// until a file exists the step shows a labelled placeholder (nothing breaks).
+// until a file exists nothing is shown (no placeholder).
 const hasImage = (file: string) => fs.existsSync(path.join(process.cwd(), 'public', 'connect', file))
 
 function Shot({ image }: { image: GuideImage }) {
@@ -13,7 +13,7 @@ function Shot({ image }: { image: GuideImage }) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={`/connect/${image.file}`} alt={image.alt} loading="lazy" className="mt-3 w-full rounded-2xl border border-neutral-200" />
   }
-  return <div role="img" aria-label={image.alt} className="mt-3 flex aspect-video w-full items-center justify-center rounded-2xl border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 text-center text-sm text-neutral-500">Screenshot: {image.alt}</div>
+  return null // no screenshot yet: show nothing (it appears automatically once the file is in public/connect/)
 }
 
 export default function ConnectGuide({ client: c }: { client: ConnectClient }) {
