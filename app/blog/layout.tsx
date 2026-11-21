@@ -1,9 +1,11 @@
 import { CREATE_HREF } from '@/lib/onboarding/entry'
 import CookieSettingsLink from '@/components/CookieSettingsLink'
 import Link from 'next/link'
+import SansScope from '@/components/landing/SansScope'
 
 export default function BlogLayout({ children }: { children: React.ReactNode }) {
   return (
+    <SansScope>
     <div className="min-h-screen bg-white text-[#0A0A0A]">
       <nav className="border-b border-gray-100 sticky top-0 z-50 bg-white/95 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
@@ -39,5 +41,6 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
         </div>
       </footer>
     </div>
+    </SansScope>
   )
 }
