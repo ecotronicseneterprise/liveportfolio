@@ -462,7 +462,7 @@ export const TOOLS: ToolDef[] = [
   {
     name: 'portfolio_add_achievement', title: 'Add an achievement to a role or project', kind: 'direct', annotations: ADD,
     input: z.object({ target: z.enum(['experience', 'project']), index: pos.describe('Position of the role or project, starting at 0, as in portfolio_get'), text: text(400).describe('One factual line. Include a number only if the person gave it.'), expected_version: expected }).strict(),
-    description: 'Use this when the person mentions an award, a result or something they delivered that belongs under an existing role or project (for example "add this to my Wema role"). Adds a line to a role\'s highlights, or a sentence to a project\'s outcome; nothing existing is changed, duplicates are refused.',
+    description: 'Use this when the person mentions an award, a result or something they delivered that belongs under an existing role or project (for example "add this to my role at Acme"). Adds a line to a role\'s highlights, or a sentence to a project\'s outcome; nothing existing is changed, duplicates are refused.',
     async run(ctx, a) {
       mustWrite(ctx)
       const pf = await ownPortfolio(ctx.userId)
