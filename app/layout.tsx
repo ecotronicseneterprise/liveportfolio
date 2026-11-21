@@ -5,7 +5,7 @@ import ConsentBanner from '@/components/ConsentBanner'
 
 export const metadata: Metadata = {
   title: 'LivePortfolio — Build a professional portfolio in minutes',
-  description: 'Upload your CV and we turn it into a professional portfolio website. Build your online presence and know when someone views your profile.',
+  description: 'Upload your CV and we turn it into a professional portfolio website. Know when someone views it, and update it by chatting with Claude or ChatGPT (Pro).',
   keywords: [
     'portfolio website',
     'professional portfolio',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'LivePortfolio — Build a professional portfolio in minutes',
-    description: 'Upload your CV and we turn it into a professional portfolio website. Build your online presence and know when someone views your profile.',
+    description: 'Upload your CV and we turn it into a professional portfolio website. Know when someone views it, and update it by chatting with Claude or ChatGPT (Pro).',
     url: 'https://liveportfolio.site',
     siteName: 'LivePortfolio',
     type: 'website',

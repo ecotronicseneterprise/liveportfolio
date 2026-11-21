@@ -74,7 +74,7 @@ export default function AssistantCard({ token, isPro, onUpgrade, userId, initial
           <h2 id="assistant-card-title" className="text-base font-semibold text-gray-900">Connect your AI assistant</h2>
           <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-[#0A66C2]">Pro</span>
         </div>
-        <p className="mt-1 text-sm text-gray-600">Tell ChatGPT or Claude your wins. Your portfolio updates itself.</p>
+        <p className="mt-1 text-sm text-gray-600">Tell ChatGPT or Claude your wins. They go on your portfolio.</p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           <button type="button" onClick={onUpgrade} className={btnPrimary}>Get Pro</button>
           <a href="/connect" className={btnGhost}>How it works</a>
@@ -89,7 +89,7 @@ export default function AssistantCard({ token, isPro, onUpgrade, userId, initial
     return (
       <section aria-labelledby="assistant-card-title" className={shell}>
         <h2 id="assistant-card-title" className="text-base font-semibold text-gray-900">Connect your AI assistant</h2>
-        <p className="mt-1 text-sm text-gray-600">Tell ChatGPT or Claude your wins. Your portfolio updates itself.</p>
+        <p className="mt-1 text-sm text-gray-600">Tell ChatGPT or Claude your wins. They go on your portfolio.</p>
         <div className="mt-3"><Buttons /></div>
         <AddressRow />
         <p className="mt-2 text-xs text-gray-500">Every change can be undone.</p>

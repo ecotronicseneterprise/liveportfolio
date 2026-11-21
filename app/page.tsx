@@ -50,6 +50,14 @@ const faqJsonLd = {
     },
     {
       '@type': 'Question',
+      name: 'Can I update my portfolio from ChatGPT or Claude?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes, on the Pro plan. Connect your assistant once, then tell it about a new job, certification or project and it adds it to your portfolio. Every change can be undone, and removals and new links need your approval. It cannot publish your portfolio or change your address.',
+      },
+    },
+    {
+      '@type': 'Question',
       name: 'Can I use my own domain name with LivePortfolio?',
       acceptedAnswer: {
         '@type': 'Answer',
@@ -156,6 +164,10 @@ const FAQ_ITEMS: { q: string; a: ReactNode }[] = [
   {
     q: 'Is LivePortfolio free?',
     a: <>Building and previewing your portfolio is completely free — no credit card required. You only pay when you are ready to publish. Plans start from <LocalisedPrice ngn="₦15,000 for 12 months" usd="$10" />.</>,
+  },
+  {
+    q: 'Can I update my portfolio from ChatGPT or Claude?',
+    a: 'Yes, on the Pro plan. Connect your assistant once, then tell it about a new job, certification or project and it adds it to your portfolio. Every change can be undone, and removals and new links need your approval. It cannot publish your portfolio or change your address.',
   },
   {
     q: 'Can I use my own domain name with LivePortfolio?',
@@ -297,7 +309,7 @@ export default function LandingPage() {
       <section id="assistant" className="w-full bg-gray-50 border-t border-gray-100">
         <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-20 lg:flex lg:flex-col lg:items-center lg:text-center">
           <p className="text-sm font-semibold text-[#0A66C2] mb-2">New for Pro</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] leading-tight mb-3">Tell your AI you got certified.<br />Your portfolio updates itself.</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] leading-tight mb-3">Tell your AI you got certified.<br />It&apos;s on your portfolio.</h2>
           <p className="text-lg text-gray-600 max-w-2xl mb-8">Connect Claude or ChatGPT once, then just chat. New job, new certification, new project: say it, and it is on your portfolio.</p>
 
           <div className="w-full max-w-md rounded-2xl bg-white border border-gray-200 p-4 text-left shadow-sm mb-8">
