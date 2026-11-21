@@ -104,6 +104,7 @@ const FLOW_B: Record<number, { subject: string; html: (email: string) => string 
       ${heading('One scan can open your work.')}
       ${para('Pro includes a QR code for your portfolio. Put it on a printed CV or bring it to an event so someone can open your work on their phone.')}
       ${para(`Pro is <strong>${formatNaira(PLANS.pro.priceNgn ?? 0)} for 12 months</strong> and also includes visitor analytics and all ${ALL_TEMPLATES.length} templates. ${BILLING_COPY.pricingNote}.`)}
+      ${para('Pro also lets you update your portfolio by chatting with Claude or ChatGPT.')}
       ${para('Basic still keeps your portfolio public while your plan is active. Upgrade only if these extras are useful to you.')}
       ${ctaButton('Compare my options', DASHBOARD_URL)}
     `, email),
