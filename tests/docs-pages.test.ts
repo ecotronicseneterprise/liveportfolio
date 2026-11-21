@@ -21,9 +21,15 @@ describe('user docs', () => {
 
 import { CONNECT_CLIENTS } from '@/lib/docs/connect'
 describe('per-assistant connect pages', () => {
-  it('has two steps and a screenshot slot for each assistant', () => {
+  it('Claude and ChatGPT share the same three-step structure; every step has an image slot with alt text', () => {
     expect(CONNECT_CLIENTS.map((c) => c.slug)).toEqual(['claude', 'chatgpt', 'other'])
-    for (const c of CONNECT_CLIENTS) { expect(c.steps).toHaveLength(2); for (const s of c.steps) expect(s.alt.length).toBeGreaterThan(10) }
+    const by = (n: string) => CONNECT_CLIENTS.find((c) => c.slug === n)!
+    expect(by('claude').steps).toHaveLength(3)
+    expect(by('chatgpt').steps).toHaveLength(3)
+    expect(by('claude').steps.map((x) => x.title.split(' ')[0])).toEqual(['Open', 'Paste', 'Approve'])
+    for (const c of CONNECT_CLIENTS) for (const x of c.steps) { expect(x.image.alt.length).toBeGreaterThan(10); expect(x.image.file).toMatch(/^[a-z0-9-]+.png$/) }
+    expect(by('chatgpt').steps[1].fields?.map((f) => f.label)).toEqual(['Name', 'Description', 'Server URL', 'Authentication'])
+    expect(by('claude').steps[1].fields?.map((f) => f.value)).toContain('LivePortfolio')
   })
   it('lists them in llms.txt', async () => {
     const txt = await GET().text()
@@ -42,7 +48,7 @@ describe('the "use LivePortfolio" instruction comes first', () => {
     expect(fs.readFileSync('app/connect/page.tsx', 'utf8')).toContain('FIRST_CHAT_MESSAGE')
     expect(card).toContain('FIRST_CHAT_MESSAGE')
     expect(FIRST_CHAT_MESSAGE).toMatch(/^Use LivePortfolio/)
-    expect(fs.readFileSync('app/docs/connect/[client]/page.tsx', 'utf8')).toContain('FIRST_CHAT_MESSAGE')
+    expect(fs.readFileSync('components/docs/ConnectGuide.tsx', 'utf8')).toContain('FIRST_CHAT_MESSAGE')
     expect(JSON.stringify(DOC_PAGES.find((p) => p.slug === 'connect'))).toContain(SYNC_INSTRUCTION)
   })
 })
