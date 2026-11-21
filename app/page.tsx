@@ -319,7 +319,7 @@ export default function LandingPage() {
 
           <ol className="grid w-full max-w-3xl gap-4 text-left sm:grid-cols-3 mb-8">
             <li className="rounded-2xl bg-white border border-gray-200 p-4"><span className="text-sm font-bold text-[#0A66C2]">1</span><p className="mt-1 font-semibold text-[#0A0A0A]">Copy your address</p><p className="text-sm text-gray-600">One line, shown on the connect page.</p></li>
-            <li className="rounded-2xl bg-white border border-gray-200 p-4"><span className="text-sm font-bold text-[#0A66C2]">2</span><p className="mt-1 font-semibold text-[#0A0A0A]">Add it to Claude or ChatGPT</p><p className="text-sm text-gray-600">Claude has a one-click button.</p></li>
+            <li className="rounded-2xl bg-white border border-gray-200 p-4"><span className="text-sm font-bold text-[#0A66C2]">2</span><p className="mt-1 font-semibold text-[#0A0A0A]">Add it to Claude or ChatGPT</p><p className="text-sm text-gray-600">The connect page has the steps for each.</p></li>
             <li className="rounded-2xl bg-white border border-gray-200 p-4"><span className="text-sm font-bold text-[#0A66C2]">3</span><p className="mt-1 font-semibold text-[#0A0A0A]">Just chat</p><p className="text-sm text-gray-600">Every change can be undone.</p></li>
           </ol>
 

@@ -47,7 +47,7 @@ export default function ConnectPage() {
           <div id="claude" className="rounded-xl bg-neutral-50 p-4">
             <p className="font-semibold">Claude</p>
             <a href={CLAUDE_LINK} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-12 items-center rounded-full bg-[#0A66C2] px-6 text-base font-semibold text-white hover:bg-[#084D9A]">Add to Claude</a>
-            <p className="mt-2 text-sm text-neutral-600">It opens Claude with everything filled in. Press Add, then Connect, sign in to LivePortfolio and approve.</p>
+            <p className="mt-2 text-sm text-neutral-600">Opens Claude&apos;s add-connector dialog. Press Add, then Connect, sign in to LivePortfolio and approve.</p>
             <p className="mt-1 text-sm text-neutral-600">Button not working? In Claude open Customize, then Connectors, then Add custom connector, and paste the address.</p>
           </div>
           <div id="chatgpt" className="rounded-xl bg-neutral-50 p-4">

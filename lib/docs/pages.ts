@@ -35,10 +35,10 @@ export const DOC_PAGES: DocPage[] = [
       { t: 'code', text: FIRST_CHAT_MESSAGE },
       { t: 'note', text: FIRST_CHAT_NOTE },
       { t: 'p', text: 'The assistant connection is included with the Pro plan. You add LivePortfolio to your assistant once; after that you can ask for changes in plain words.' },
-      { t: 'p', text: 'Fastest route: open liveportfolio.site/connect for the one-click Claude button and the three simple steps.' },
+      { t: 'p', text: 'Easiest route: open liveportfolio.site/connect for the steps for Claude and ChatGPT.' },
       { t: 'p', text: 'The address to add:' },
       { t: 'code', text: MCP_URL },
-      { t: 'h', text: 'Claude (web, desktop, phone)' }, { t: 'ol', items: CONNECT_STEPS.claude },
+      { t: 'h', text: 'Claude (web and desktop)' }, { t: 'ol', items: CONNECT_STEPS.claude },
       { t: 'h', text: 'ChatGPT' }, { t: 'ol', items: CONNECT_STEPS.chatgpt },
       { t: 'note', text: 'ChatGPT may only offer custom connectors on some of its plans or in developer mode. If you do not see the option, see Troubleshooting.' },
       { t: 'h', text: 'Claude Code' },
@@ -58,7 +58,9 @@ export const DOC_PAGES: DocPage[] = [
         'Add a project or a job from text you paste, such as a README or a CV line. New jobs go in date order.',
         'Add to a field without rewriting it, change one phrase, or add, reword and reorder the highlight lines of a role.',
         'Check your portfolio for gaps: a short About, no education, projects with no outcome or picture.',
-        'Reorder projects and jobs.',
+        'Reorder projects, jobs, education, certifications, testimonials and skill groups.',
+        'Fix one education entry or one certification, add, fix or remove a testimonial, and add, rename or remove a skill group, without touching the rest.',
+        'Add an interactive Power BI dashboard to a project (see Editing).',
         'Switch your design and its look (arrangement, accent, density). Designs your plan does not include are refused.',
         'Add or replace your profile photo and project pictures, with a private upload link or from a public https address.',
         'Undo the last change, or go back to an earlier version.',
@@ -93,6 +95,7 @@ export const DOC_PAGES: DocPage[] = [
         'Removing things, replacing whole lists, links, large cuts, batches and restoring old versions need you to approve on liveportfolio.site. The assistant only gets a link; it cannot approve for you. A request expires after 30 minutes and is refused if your portfolio changed in the meantime.',
         'Your email, phone and WhatsApp are hidden from the assistant unless you allow them.',
         'You can connect read-only.',
+        'Limits: 30 skills, 1500 characters per project text, 60 changes in one batch. Some things are saved but not shown on the page (the first 5 stack items of a project, the first testimonial, and skills that are not in a group when you have groups); your assistant tells you when that happens.',
         'Disconnect at any time (see Manage and disconnect). The next request from that app is refused.',
         'Pictures are checked and re-encoded. Upload links work once, for 10 minutes, and only while you are signed in.',
       ] },
@@ -127,7 +130,7 @@ export const DOC_PAGES: DocPage[] = [
   {
     slug: 'editing', group: 'Portfolio', title: 'Editing', description: 'Change your portfolio any time, with history.',
     blocks: [
-      { t: 'ul', items: ['Edit every section in your dashboard: introduction, projects, experience, education, certifications, skills and links.', 'Changes need no AI and no waiting.', 'History keeps your recent versions so you can undo.', 'The completeness checklist shows what to add next.'] },
+      { t: 'ul', items: ['Edit every section in your dashboard: introduction, projects, experience, education, certifications, skills and links.', 'Changes need no AI and no waiting.', 'Add an interactive Power BI dashboard under a project picture: in Power BI choose File, Embed report, Publish to web, and paste the link in the project\'s dashboard field. Visitors can hover and click it. Anyone with the link can see the data, so only use data you are happy to share. It is shown on the free designs; the Pro designs show your picture.', 'History keeps your recent versions so you can undo.', 'The completeness checklist shows what to add next.'] },
     ],
   },
   {
@@ -146,7 +149,7 @@ export const DOC_PAGES: DocPage[] = [
   {
     slug: 'your-data', group: 'Account', title: 'Your data', description: 'What we keep and how to delete it.',
     blocks: [
-      { t: 'ul', items: ['You can delete your account from your dashboard settings. This removes your portfolio and account.', 'The assistant cannot delete anything about your account.', 'Read the privacy policy for what we collect and why.'] },
+      { t: 'ul', items: ['You can delete your account from your dashboard settings. This removes your portfolio and account.', 'The assistant cannot delete anything about your account. Disconnect any assistant at liveportfolio.site/oauth/connections.', 'Read the privacy policy for what we collect and why.'] },
       { t: 'p', text: 'Privacy policy: liveportfolio.site/privacy. Terms: liveportfolio.site/terms.' },
     ],
   },
@@ -158,7 +161,7 @@ export const DOC_PAGES: DocPage[] = [
     slug: 'changelog', group: 'Help', title: 'Changelog', description: 'What changed and when.',
     blocks: [
       { t: 'h', text: '21 November 2026' },
-      { t: 'ul', items: ['AI assistant connection for Pro: edit your portfolio from Claude, ChatGPT or Claude Code.', 'Sign in with Google.', 'Documentation site.'] },
+      { t: 'ul', items: ['AI assistant connection for Pro: edit your portfolio from Claude, ChatGPT or Claude Code.', 'Sign in with Google.', 'Documentation site.', 'Power BI dashboards on projects (free designs).', 'The assistant can fix one education entry or certification, manage testimonials and skill groups, and reorder lists.', 'The approval page shows a before and after, and tells you to go back to your chat.', 'Easier connect pages for Claude and ChatGPT.', 'The privacy policy covers connected assistants.'] },
       { t: 'h', text: '20 November 2026' },
       { t: 'ul', items: ['Portfolio guides for twelve professions.', 'Basic portfolios show a small badge; Pro removes it.', 'Contact links shown as icons on every screen size.'] },
     ],

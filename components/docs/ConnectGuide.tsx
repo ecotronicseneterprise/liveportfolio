@@ -22,6 +22,7 @@ export default function ConnectGuide({ client: c }: { client: ConnectClient }) {
       <p className="text-sm font-semibold text-neutral-500"><a href="/docs/connect">Connect your AI assistant</a></p>
       <h1 className="mt-1 text-3xl font-semibold">Connect {c.name}</h1>
       <p className="mt-2 text-lg text-neutral-700">{c.blurb}</p>
+      <p className="mt-2 text-sm text-neutral-600">The assistant connection is included with the Pro plan.</p>
 
       {c.oneClick && (
         <a href={CLAUDE_ADD_LINK} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[#0A66C2] px-6 text-base font-semibold text-white hover:bg-[#084D9A] sm:w-auto">Add to Claude</a>

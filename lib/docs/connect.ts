@@ -10,7 +10,7 @@ export interface ConnectClient {
   name: string
   blurb: string
   steps: GuideStep[]
-  /** shown as one-click button above the steps */
+  /** shows the "Add to Claude" button above the steps (opens Claude's add-connector dialog; the steps below always work) */
   oneClick?: boolean
   commands?: { label: string; text: string }[]
   note?: string
@@ -24,7 +24,7 @@ const APPROVE = 'Sign in to LivePortfolio, then press Connect. Keep Allow edits 
 export const CONNECT_CLIENTS: ConnectClient[] = [
   {
     slug: 'claude', name: 'Claude', oneClick: true,
-    blurb: 'Three short steps, or press the button for a head start.',
+    blurb: 'Three short steps. The button opens Claude\'s add-connector dialog.',
     steps: [
       {
         title: 'Open Plugins',
@@ -48,7 +48,7 @@ export const CONNECT_CLIENTS: ConnectClient[] = [
   },
   {
     slug: 'chatgpt', name: 'ChatGPT',
-    blurb: 'ChatGPT has no one-click button yet. It takes three short steps.',
+    blurb: 'Three short steps.',
     steps: [
       {
         title: 'Open Plugins',
@@ -77,16 +77,16 @@ export const CONNECT_CLIENTS: ConnectClient[] = [
   },
   {
     slug: 'other', name: 'Other assistants',
-    blurb: 'Claude Code, Gemini CLI, Cursor and VS Code.',
+    blurb: 'Claude Code, Gemini CLI, Cursor and VS Code. Only the Claude Code command has been confirmed to work; the others may need manual setup in the tool\'s MCP settings.',
     commands: [
       { label: 'Claude Code', text: `claude mcp add --transport http liveportfolio ${MCP_URL}` },
-      { label: 'Gemini CLI', text: `gemini mcp add --scope user --transport http liveportfolio ${MCP_URL}` },
+      { label: 'Gemini CLI (may need manual setup)', text: `gemini mcp add --scope user --transport http liveportfolio ${MCP_URL}` },
     ],
     steps: [
       { title: 'Add the address', paragraphs: ['Run the command for your tool, or paste the address into its MCP settings (type: HTTP).'], fields: [{ label: 'Address', value: MCP_URL, copy: true }], image: { file: 'other-add.png', alt: 'Terminal with the add command' } },
       { title: 'Sign in and approve', paragraphs: ['Your tool opens a browser window.', APPROVE], image: { file: 'other-approve.png', alt: 'LivePortfolio consent screen' } },
     ],
-    note: 'The Gemini app itself is not supported yet.',
+    note: 'Gemini CLI, Cursor and VS Code may need manual setup: if a command does not work, paste the address into the tool\'s MCP settings (type: HTTP). The Gemini app itself is not supported yet.',
   },
 ]
 
