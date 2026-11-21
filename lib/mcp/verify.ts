@@ -25,3 +25,12 @@ export function appTrust(redirectUri: string, clientName: string): AppTrust {
       : `We could not verify this app${host ? ` (it returns to ${host})` : ''}. Only continue if you started this connection yourself and trust it.`,
   }
 }
+
+/** Where the "Open Claude" / "Open ChatGPT" button goes, decided ONLY from the verified redirect host (never the app's self-reported name).
+ *  It lands on the site's home page: no link to a specific conversation exists. Any other host gets no button. */
+export function vendorHome(redirectHost: string | null | undefined): { label: string; url: string } | null {
+  const h = (redirectHost ?? '').toLowerCase()
+  if (h === 'claude.ai') return { label: 'Open Claude', url: 'https://claude.ai' }
+  if (h === 'chatgpt.com') return { label: 'Open ChatGPT', url: 'https://chatgpt.com' }
+  return null
+}

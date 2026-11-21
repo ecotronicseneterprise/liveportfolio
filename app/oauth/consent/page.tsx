@@ -44,7 +44,7 @@ export default function ConsentPage() {
       const res = await fetch('/api/mcp/connections', {
         method: 'POST',
         headers: { 'content-type': 'application/json', authorization: `Bearer ${s.session?.access_token}` },
-        body: JSON.stringify({ client_id: d.client.id ?? d.client.client_id, client_name: d.client.name ?? '', allow_edits: edits, share_contact: contact }),
+        body: JSON.stringify({ client_id: d.client.id ?? d.client.client_id, client_name: d.client.name ?? '', allow_edits: edits, share_contact: contact, redirect_host: (() => { try { const u = new URL(d.redirect_uri); return u.protocol === 'https:' ? u.hostname : '' } catch { return '' } })() }),
       })
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))

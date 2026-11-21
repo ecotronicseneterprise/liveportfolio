@@ -34,7 +34,21 @@ interface Rpc { jsonrpc?: string; id?: string | number | null; method?: string; 
 const ok = (id: Rpc['id'], result: unknown) => ({ jsonrpc: '2.0', id: id ?? null, result })
 const err = (id: Rpc['id'], code: number, message: string) => ({ jsonrpc: '2.0', id: id ?? null, error: { code, message } })
 
+// Research only (names, never content): which capabilities do real clients declare, and is URL-mode elicitation on offer? The 2026 spec sends
+// them on EVERY request in _meta, the earlier ones only at initialize, so both places are read.
+function logClientCapabilities(msg: Rpc) {
+  try {
+    const p = (msg.params ?? {}) as Record<string, unknown>
+    const meta = (p._meta ?? {}) as Record<string, unknown>
+    const caps = ((meta['io.modelcontextprotocol/clientCapabilities'] ?? p.capabilities ?? {}) as Record<string, unknown>)
+    const el = caps.elicitation && typeof caps.elicitation === 'object' ? Object.keys(caps.elicitation as object) : []
+    const info = (p.clientInfo ?? meta['io.modelcontextprotocol/clientInfo'] ?? {}) as { name?: unknown; version?: unknown }
+    if (msg.method === 'initialize' || Object.keys(caps).length) console.log('[mcp] client', JSON.stringify({ method: String(msg.method).slice(0, 30), client: String(info.name ?? '').slice(0, 40), version: String(info.version ?? '').slice(0, 20), capabilities: Object.keys(caps), elicitation: el }))
+  } catch { /* logging only */ }
+}
+
 export async function handleMessage(msg: Rpc, ctx: McpCtx): Promise<unknown | null> {
+  logClientCapabilities(msg)
   const isNotification = msg.id === undefined || msg.id === null
   const method = msg.method ?? ''
   if (isNotification && method.startsWith('notifications/')) return null
@@ -44,12 +58,6 @@ export async function handleMessage(msg: Rpc, ctx: McpCtx): Promise<unknown | nu
     case 'initialize': {
       const asked = String(msg.params?.protocolVersion ?? '')
       const version = (SUPPORTED_VERSIONS as readonly string[]).includes(asked) ? asked : SUPPORTED_VERSIONS[0]
-      // research only: which capabilities do real clients declare (names only, never content)? Is URL-mode elicitation on offer?
-      try {
-        const caps = (msg.params?.capabilities ?? {}) as Record<string, unknown>
-        const elicitation = caps.elicitation && typeof caps.elicitation === 'object' ? Object.keys(caps.elicitation as object) : []
-        console.log('[mcp] initialize', JSON.stringify({ client: String((msg.params?.clientInfo as { name?: unknown } | undefined)?.name ?? '').slice(0, 40), protocol: asked, capabilities: Object.keys(caps), elicitation }))
-      } catch { /* logging only */ }
       return ok(msg.id, {
         protocolVersion: version,
         capabilities: { tools: { listChanged: false }, prompts: { listChanged: false } },

@@ -27,16 +27,16 @@ export async function POST(req: NextRequest) {
   const access = mcpAccess(process.env, user.email, await getUserPlan(user.id))
   if (access !== 'ok') return NextResponse.json({ error: access, message: ACCESS_MESSAGE[access] }, { status: 403 })
 
-  let b: { client_id?: unknown; client_name?: unknown; allow_edits?: unknown; share_contact?: unknown } = {}
+  let b: { client_id?: unknown; client_name?: unknown; allow_edits?: unknown; share_contact?: unknown; redirect_host?: unknown } = {}
   try { b = await req.json() } catch { /* below */ }
   if (typeof b.client_id !== 'string' || !b.client_id || b.client_id.length > 200) return NextResponse.json({ error: 'invalid_request' }, { status: 400 })
   const name = typeof b.client_name === 'string' ? b.client_name.slice(0, 100) : ''
-  const { error } = await getSupabaseAdmin()
-    .from('mcp_connections')
-    .upsert(
-      { user_id: user.id, client_id: b.client_id, client_name: name, allow_edits: b.allow_edits !== false, share_contact: b.share_contact === true, revoked_at: null },
-      { onConflict: 'user_id,client_id' },
-    )
+  const row: Record<string, unknown> = { user_id: user.id, client_id: b.client_id, client_name: name, allow_edits: b.allow_edits !== false, share_contact: b.share_contact === true, revoked_at: null }
+  const host = typeof b.redirect_host === 'string' && /^[a-z0-9.-]{1,100}$/i.test(b.redirect_host) ? b.redirect_host.toLowerCase() : null
+  const admin = getSupabaseAdmin()
+  let { error } = await admin.from('mcp_connections').upsert(host ? { ...row, redirect_host: host } : row, { onConflict: 'user_id,client_id' })
+  // the optional redirect_host column may not exist yet (migration not run): connect anyway, without the Return button
+  if (error && host && /redirect_host/.test(error.message ?? '')) ({ error } = await admin.from('mcp_connections').upsert(row, { onConflict: 'user_id,client_id' }))
   if (error) return NextResponse.json({ error: 'unavailable', message: 'Could not save the connection yet.' }, { status: 503 })
   return NextResponse.json({ ok: true })
 }

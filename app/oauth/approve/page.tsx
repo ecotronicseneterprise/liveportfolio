@@ -34,6 +34,7 @@ export default function ApprovePage() {
   const [message, setMessage] = useState('')
   const [id, setId] = useState('')
   const [closeFailed, setCloseFailed] = useState(false)
+  const [returnTo, setReturnTo] = useState<{ label: string; url: string } | null>(null)
 
   const token = async () => (await getSupabaseClient().auth.getSession()).data.session?.access_token
 
@@ -49,6 +50,7 @@ export default function ApprovePage() {
       if (j.status !== 'pending') { setMessage(j.status === 'applied' ? 'This change was already applied.' : j.status === 'rejected' ? 'This change was declined.' : 'This request expired. Ask your assistant to make it again.'); setState('error'); return }
       setSummary(j.summary ?? [])
       setChanges(j.changes ?? [])
+      setReturnTo(j.return_to ?? null)
       setState('ready')
     })()
   }, [])
@@ -58,7 +60,7 @@ export default function ApprovePage() {
     const res = await fetch('/api/mcp/proposals', { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${await token()}` }, body: JSON.stringify({ id, decision }) })
     const j = await res.json().catch(() => ({}))
     if (!res.ok) { setMessage(j.message || 'That did not work.'); setState('error'); return }
-    if (decision === 'approve') { setSummary(j.summary ?? summary); setChanges(j.changes ?? changes); setState('done') } else setState('declined')
+    if (decision === 'approve') { setSummary(j.summary ?? summary); setChanges(j.changes ?? changes); setReturnTo(j.return_to ?? returnTo); setState('done') } else setState('declined')
   }
 
   const closeTab = () => { window.close(); setTimeout(() => setCloseFailed(true), 300) }
@@ -92,7 +94,8 @@ export default function ApprovePage() {
             </div>
             <Changes changes={changes} summary={summary} />
             <p className="mt-4 text-sm text-neutral-600">You can undo it from History in your dashboard.</p>
-            <button onClick={closeTab} className="mt-5 min-h-[48px] w-full rounded-full border border-neutral-300 px-5 font-medium">Close this tab</button>
+            {returnTo && <a href={returnTo.url} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-neutral-900 px-5 font-medium text-white">{returnTo.label}</a>}
+            <button onClick={closeTab} className="mt-3 min-h-[48px] w-full rounded-full border border-neutral-300 px-5 font-medium">Close this tab</button>
             {closeFailed && <p className="mt-2 text-sm text-neutral-600">You can close this tab.</p>}
           </>
         )}

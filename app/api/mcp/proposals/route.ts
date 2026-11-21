@@ -4,16 +4,24 @@ import { getUserFromRequest } from '@/lib/server-auth'
 import { applyForUser, restoreForUser, ownPortfolio } from '@/lib/mcp/apply'
 import { applyOps } from '@/lib/portfolio/ops'
 import { describeChanges, type Change } from '@/lib/mcp/diff'
+import { vendorHome } from '@/lib/mcp/verify'
 
 // The person approves or declines a change the assistant proposed. Browser sign-in tokens only; the assistant cannot call this.
 // GET ?id=   what is being proposed. POST {id, decision: 'approve' | 'reject'} decides it.
 export const dynamic = 'force-dynamic'
 
-type Row = { id: string; user_id: string; ops: { kind: 'ops'; ops: unknown[] } | { kind: 'restore'; revision_id: string | null }; summary: string[]; base_edit_count: number | null; status: string; expires_at: string }
+type Row = { id: string; user_id: string; connection_id?: string | null; ops: { kind: 'ops'; ops: unknown[] } | { kind: 'restore'; revision_id: string | null }; summary: string[]; base_edit_count: number | null; status: string; expires_at: string }
 
 async function load(id: string, userId: string): Promise<Row | null> {
   const { data } = await getSupabaseAdmin().from('mcp_proposals').select('*').eq('id', id).eq('user_id', userId).maybeSingle()
   return (data as Row | null) ?? null
+}
+/** The "Open Claude / Open ChatGPT" button for the app that proposed this change (verified redirect host only; null when unknown). */
+async function returnTo(row: Row) {
+  if (!row.connection_id) return null
+  const { data, error } = await getSupabaseAdmin().from('mcp_connections').select('redirect_host').eq('id', row.connection_id).maybeSingle()
+  if (error) return null // column not migrated yet
+  return vendorHome((data as { redirect_host?: string | null } | null)?.redirect_host)
 }
 const expired = (r: Row) => new Date(r.expires_at).getTime() < Date.now()
 
@@ -43,7 +51,7 @@ export async function GET(req: NextRequest) {
   const row = await load(id, user.id)
   if (!row) return NextResponse.json({ error: 'not_found' }, { status: 404 })
   const status = row.status === 'pending' && expired(row) ? 'expired' : row.status
-  return NextResponse.json({ id: row.id, summary: row.summary, status, expires_at: row.expires_at, changes: status === 'pending' ? await changesFor(row, user.id) : [] })
+  return NextResponse.json({ id: row.id, summary: row.summary, status, expires_at: row.expires_at, changes: status === 'pending' ? await changesFor(row, user.id) : [], return_to: await returnTo(row) })
 }
 
 export async function POST(req: NextRequest) {
@@ -80,5 +88,5 @@ export async function POST(req: NextRequest) {
     await admin.from('mcp_proposals').update({ status: 'rejected' }).eq('id', row.id)
     return NextResponse.json({ error: result.code, message: result.message }, { status: 409 })
   }
-  return NextResponse.json({ ok: true, status: 'applied', summary: result.summary, changes })
+  return NextResponse.json({ ok: true, status: 'applied', summary: result.summary, changes, return_to: await returnTo(row) })
 }
