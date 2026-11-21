@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import CopyButton from '@/components/docs/CopyButton'
+import SansShell from '@/components/landing/SansShell'
 
 export const metadata: Metadata = {
   title: 'Connect Claude or ChatGPT to your portfolio',
@@ -23,6 +24,7 @@ const Step = ({ n, title, children }: { n: number; title: string; children: Reac
 
 export default function ConnectPage() {
   return (
+    <SansShell>
     <main className="mx-auto max-w-2xl px-4 py-10 text-neutral-900">
       <a href="/" className="text-sm font-semibold text-neutral-500">LivePortfolio</a>
       <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Update your portfolio by chatting</h1>
@@ -80,5 +82,6 @@ export default function ConnectPage() {
 
       <p className="mt-8 text-center"><a href="/dashboard" className="inline-flex min-h-12 items-center rounded-full border border-neutral-300 px-6 font-semibold hover:bg-neutral-50">Go to my dashboard</a></p>
     </main>
+    </SansShell>
   )
 }

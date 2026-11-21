@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react'
 import { DOC_GROUPS, DOC_PAGES } from '@/lib/docs/pages'
+import SansShell from '@/components/landing/SansShell'
 
 // Docs shell: a sidebar on wide screens, a plain list on top on phones. Every page also points agents to /llms.txt.
 export default function DocsLayout({ children }: { children: ReactNode }) {
   return (
+    <SansShell>
     <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 text-neutral-900 lg:flex-row lg:gap-10">
       <nav aria-label="Documentation" className="lg:sticky lg:top-6 lg:h-fit lg:w-60 lg:shrink-0">
         <a href="/" className="text-sm font-semibold text-neutral-500">LivePortfolio</a>
@@ -27,5 +29,6 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
         {children}
       </div>
     </div>
+    </SansShell>
   )
 }
