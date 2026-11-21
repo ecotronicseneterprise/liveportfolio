@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import CopyButton from '@/components/docs/CopyButton'
-import { SYNC_INSTRUCTION } from '@/lib/docs/sync'
+import { FIRST_CHAT_MESSAGE, FIRST_CHAT_NOTE, SYNC_INSTRUCTION, SYNC_NOTE } from '@/lib/docs/sync'
 import '@/components/landing/landing.css'
 import { studioFonts } from '@/components/blocks/looks/fonts-studio'
 
@@ -108,9 +108,12 @@ export default function AssistantCard({ token, isPro, onUpgrade, userId, initial
       {open && (
         <div className="mt-3 space-y-4 border-t border-gray-100 pt-4">
           <div className="rounded-xl border border-blue-200 bg-blue-50 p-3">
-            <p className="text-sm font-semibold text-gray-900">Start here: tell your assistant to use LivePortfolio</p>
-            <div className="mt-2 flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"><span>{INSTRUCTION}</span><CopyButton text={INSTRUCTION} label="Copy" /></div>
-            <p className="mt-2 text-xs text-gray-600">Paste into your custom instructions in Claude or ChatGPT. Without it, a new chat can give a generic answer. You can also begin a chat with &quot;Use LivePortfolio: ...&quot;.</p>
+            <p className="text-sm font-semibold text-gray-900">Start here: your first message to a new chat</p>
+            <div className="mt-2 flex items-start justify-between gap-3 rounded-lg bg-white p-3 text-sm"><span className="whitespace-pre-line">{FIRST_CHAT_MESSAGE}</span><CopyButton text={FIRST_CHAT_MESSAGE} label="Copy" /></div>
+            <p className="mt-2 text-xs text-gray-600">{FIRST_CHAT_NOTE}</p>
+            <p className="mt-3 text-xs font-medium text-gray-900">Make it permanent (optional)</p>
+            <div className="mt-1 flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-xs"><span>{INSTRUCTION}</span><CopyButton text={INSTRUCTION} label="Copy" /></div>
+            <p className="mt-1 text-xs text-gray-600">{SYNC_NOTE}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-gray-900">Try asking</p>

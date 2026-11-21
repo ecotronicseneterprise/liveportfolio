@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import CopyButton from '@/components/docs/CopyButton'
-import { CLAUDE_ADD_LINK, CONNECT_CLIENTS, SYNC_INSTRUCTION, SYNC_NOTE, clientBySlug } from '@/lib/docs/connect'
+import { CLAUDE_ADD_LINK, CONNECT_CLIENTS, clientBySlug } from '@/lib/docs/connect'
+import { FIRST_CHAT_MESSAGE, FIRST_CHAT_NOTE, SYNC_INSTRUCTION, SYNC_NOTE } from '@/lib/docs/sync'
 import { MCP_URL } from '@/lib/mcp/docs'
 
 export const dynamicParams = false
@@ -23,10 +24,13 @@ export default async function ConnectClientPage({ params }: { params: Promise<{ 
       <p className="mt-2 text-lg text-neutral-700">{c.blurb}</p>
 
       <div className="mt-5 rounded-2xl border-2 border-[#0A66C2] bg-blue-50 p-4">
-        <p className="text-sm font-bold text-[#0A66C2]">Do this first</p>
-        <p className="mt-1 font-semibold">Tell your assistant to use LivePortfolio</p>
-        <div className="mt-2 flex items-center justify-between gap-3 rounded-xl bg-white p-3"><span className="text-sm">{SYNC_INSTRUCTION}</span><CopyButton text={SYNC_INSTRUCTION} label="Copy" /></div>
-        <p className="mt-2 text-sm text-neutral-700">{SYNC_NOTE}</p>
+        <p className="text-sm font-bold text-[#0A66C2]">After connecting: your first message</p>
+        <p className="mt-1 font-semibold">Start a new chat with this</p>
+        <div className="mt-2 flex items-start justify-between gap-3 rounded-xl bg-white p-3"><span className="whitespace-pre-line text-sm">{FIRST_CHAT_MESSAGE}</span><CopyButton text={FIRST_CHAT_MESSAGE} label="Copy" /></div>
+        <p className="mt-2 text-sm text-neutral-700">{FIRST_CHAT_NOTE}</p>
+        <p className="mt-3 text-sm font-semibold">Make it permanent (optional)</p>
+        <div className="mt-1 flex items-center justify-between gap-3 rounded-xl bg-white p-3"><span className="text-sm">{SYNC_INSTRUCTION}</span><CopyButton text={SYNC_INSTRUCTION} label="Copy" /></div>
+        <p className="mt-1 text-sm text-neutral-700">{SYNC_NOTE}</p>
       </div>
 
       <div className="mt-5 flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">

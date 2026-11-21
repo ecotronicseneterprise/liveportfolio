@@ -13,7 +13,7 @@ export const CONNECT_CLIENTS: ConnectClient[] = [
     slug: 'claude', name: 'Claude', blurb: 'The quickest route: one button opens Claude with everything filled in.',
     steps: [
       { title: 'Add the connector', body: 'Press "Add to Claude" below. Claude opens with the name and address already filled in. Press Add.', image: 'claude-add.png', alt: 'Claude add custom connector dialog with LivePortfolio filled in' },
-      { title: 'Connect and approve', body: 'Press Connect, sign in to LivePortfolio, choose what Claude may do, and approve. Then add the instruction at the top of this page to your custom instructions, so a new chat knows to use LivePortfolio.', image: 'claude-approve.png', alt: 'LivePortfolio consent screen' },
+      { title: 'Connect and approve', body: 'Press Connect, sign in to LivePortfolio, choose what Claude may do, and approve. Then open a new chat and paste the first message from the top of this page.', image: 'claude-approve.png', alt: 'LivePortfolio consent screen' },
     ],
     note: 'Button not working? In Claude open Customize, then Connectors, then Add custom connector, and paste the address.',
   },
@@ -21,7 +21,7 @@ export const CONNECT_CLIENTS: ConnectClient[] = [
     slug: 'chatgpt', name: 'ChatGPT', blurb: 'ChatGPT has no one-click button yet, so it takes two short steps.',
     steps: [
       { title: 'Add a custom connector', body: 'Open ChatGPT Settings, then Connectors (or Plugins). Choose Add custom connector, paste the address, and choose OAuth if asked.', image: 'chatgpt-add.png', alt: 'ChatGPT settings with the add custom connector option' },
-      { title: 'Connect and approve', body: 'Press Connect, sign in to LivePortfolio, choose what ChatGPT may do, and approve. Then add the instruction at the top of this page to your custom instructions, so a new chat knows to use LivePortfolio.', image: 'chatgpt-approve.png', alt: 'LivePortfolio consent screen' },
+      { title: 'Connect and approve', body: 'Press Connect, sign in to LivePortfolio, choose what ChatGPT may do, and approve. Then open a new chat and paste the first message from the top of this page.', image: 'chatgpt-approve.png', alt: 'LivePortfolio consent screen' },
     ],
     note: 'If you do not see the option, your ChatGPT plan or workspace may not allow custom connectors yet. Claude works on more plans.',
   },

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import CopyButton from '@/components/docs/CopyButton'
 import SansShell from '@/components/landing/SansShell'
-import { SYNC_INSTRUCTION, SYNC_NOTE } from '@/lib/docs/sync'
+import { FIRST_CHAT_MESSAGE, FIRST_CHAT_NOTE, SYNC_INSTRUCTION, SYNC_NOTE } from '@/lib/docs/sync'
 
 export const metadata: Metadata = {
   title: 'Connect Claude or ChatGPT to your portfolio',
@@ -34,13 +34,16 @@ export default function ConnectPage() {
       <p className="mt-2 text-sm text-neutral-600">Included with Pro. You need a Claude or ChatGPT account.</p>
 
       <div className="mt-6 rounded-2xl border-2 border-[#0A66C2] bg-blue-50 p-5">
-        <p className="text-sm font-bold text-[#0A66C2]">Do this first</p>
-        <p className="mt-1 text-lg font-semibold">Tell your assistant to use LivePortfolio</p>
-        <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-white p-3">
-          <span className="text-base">{SYNC_INSTRUCTION}</span>
-          <CopyButton text={SYNC_INSTRUCTION} label="Copy" />
+        <p className="text-sm font-bold text-[#0A66C2]">After connecting: your first message</p>
+        <p className="mt-1 text-lg font-semibold">Start a new chat with this</p>
+        <div className="mt-3 flex items-start justify-between gap-3 rounded-xl bg-white p-3">
+          <span className="whitespace-pre-line text-base">{FIRST_CHAT_MESSAGE}</span>
+          <CopyButton text={FIRST_CHAT_MESSAGE} label="Copy" />
         </div>
-        <p className="mt-2 text-sm text-neutral-700">{SYNC_NOTE}</p>
+        <p className="mt-2 text-sm text-neutral-700">{FIRST_CHAT_NOTE}</p>
+        <p className="mt-4 text-sm font-semibold">Make it permanent (optional)</p>
+        <div className="mt-1 flex items-center justify-between gap-3 rounded-xl bg-white p-3"><span className="text-sm">{SYNC_INSTRUCTION}</span><CopyButton text={SYNC_INSTRUCTION} label="Copy" /></div>
+        <p className="mt-1 text-sm text-neutral-700">{SYNC_NOTE}</p>
       </div>
 
       <div className="mt-8 space-y-5">
@@ -70,7 +73,7 @@ export default function ConnectPage() {
         </Step>
 
         <Step n={3} title="Start chatting">
-          <p>Paste the instruction above into your custom instructions in Claude or ChatGPT (Claude: a Project&apos;s instructions; ChatGPT: Settings, Personalization). Then tell your assistant what happened in your career, in your own words.</p>
+          <p>Open a new chat and paste the first message from the box above. Then tell your assistant what happened in your career, in your own words.</p>
           <p className="text-sm text-neutral-600">It adds only what you tell it and asks if something is missing. Say &quot;undo that&quot; any time.</p>
         </Step>
       </div>

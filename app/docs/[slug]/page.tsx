@@ -33,7 +33,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
             case 'note': return <p key={k} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">{b.text}</p>
             case 'code': return (
               <div key={k} className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                <code className="min-w-0 break-all text-sm">{b.text}</code>
+                <code className="min-w-0 whitespace-pre-line break-words text-sm">{b.text}</code>
                 <CopyButton text={b.text} />
               </div>
             )
