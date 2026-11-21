@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import CopyButton from '@/components/docs/CopyButton'
 import { CLAUDE_ADD_LINK, type ConnectClient, type GuideImage } from '@/lib/docs/connect'
-import { FIRST_CHAT_MESSAGE, FIRST_CHAT_NOTE, SYNC_INSTRUCTION, SYNC_NOTE } from '@/lib/docs/sync'
+import FirstMessage from '@/components/docs/FirstMessage'
 
 // One guide component for every assistant, so Claude and ChatGPT cannot drift apart. Screenshots come from public/connect/;
 // until a file exists the step shows a labelled placeholder (nothing breaks).
@@ -66,11 +66,7 @@ export default function ConnectGuide({ client: c }: { client: ConnectClient }) {
         <li>
           <h2 className="flex items-center gap-3 text-xl font-semibold"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-600 text-sm font-bold text-white">&#10003;</span>Done: start your first chat</h2>
           <p className="mt-2 text-neutral-800">Open a new chat and paste this as your first message.</p>
-          <div className="mt-2 flex items-start justify-between gap-3 rounded-xl border-2 border-[#0A66C2] bg-blue-50 p-3"><span className="whitespace-pre-line text-sm">{FIRST_CHAT_MESSAGE}</span><CopyButton text={FIRST_CHAT_MESSAGE} label="Copy" /></div>
-          <p className="mt-2 text-sm text-neutral-600">{FIRST_CHAT_NOTE}</p>
-          <p className="mt-4 text-sm font-semibold">Make it permanent (optional)</p>
-          <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3"><span className="text-sm">{SYNC_INSTRUCTION}</span><CopyButton text={SYNC_INSTRUCTION} label="Copy" /></div>
-          <p className="mt-1 text-sm text-neutral-600">{SYNC_NOTE}</p>
+          <div className="mt-2"><FirstMessage /></div>
         </li>
       </ol>
 

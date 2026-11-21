@@ -38,17 +38,17 @@ describe('per-assistant connect pages', () => {
 })
 
 import fs from 'node:fs'
-import { FIRST_CHAT_MESSAGE, SYNC_INSTRUCTION } from '@/lib/docs/sync'
+import { FIRST_CHAT_MESSAGE } from '@/lib/docs/sync'
 describe('the "use LivePortfolio" instruction comes first', () => {
   it('is the same text on the card, /connect and the guides, and the card keeps server code out of the browser bundle', () => {
     const card = fs.readFileSync('components/dashboard/AssistantCard.tsx', 'utf8')
-    expect(card).toContain("@/lib/docs/sync")
+    expect(card).toContain('components/docs/FirstMessage')
     expect(card).not.toContain("@/lib/docs/connect")
     expect(card).not.toContain('just got certified in')
-    expect(fs.readFileSync('app/connect/page.tsx', 'utf8')).toContain('FIRST_CHAT_MESSAGE')
-    expect(card).toContain('FIRST_CHAT_MESSAGE')
-    expect(FIRST_CHAT_MESSAGE).toMatch(/^Use LivePortfolio/)
-    expect(fs.readFileSync('components/docs/ConnectGuide.tsx', 'utf8')).toContain('FIRST_CHAT_MESSAGE')
-    expect(JSON.stringify(DOC_PAGES.find((p) => p.slug === 'connect'))).toContain(SYNC_INSTRUCTION)
+    expect(fs.readFileSync('app/connect/page.tsx', 'utf8')).toContain('FirstMessage')
+    expect(card).toContain('FirstMessage')
+    expect(FIRST_CHAT_MESSAGE).toMatch(/^Use the LivePortfolio MCP/)
+    expect(FIRST_CHAT_MESSAGE.length).toBeLessThan(500)
+    expect(fs.readFileSync('components/docs/ConnectGuide.tsx', 'utf8')).toContain('FirstMessage')
   })
 })
