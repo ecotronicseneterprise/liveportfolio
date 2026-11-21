@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/server-auth'
 import { applyForUser, restoreForUser, ownPortfolio } from '@/lib/mcp/apply'
+import { applyOps } from '@/lib/portfolio/ops'
+import { describeChanges, type Change } from '@/lib/mcp/diff'
 
 // The person approves or declines a change the assistant proposed. Browser sign-in tokens only; the assistant cannot call this.
 // GET ?id=   what is being proposed. POST {id, decision: 'approve' | 'reject'} decides it.
@@ -15,13 +17,33 @@ async function load(id: string, userId: string): Promise<Row | null> {
 }
 const expired = (r: Row) => new Date(r.expires_at).getTime() < Date.now()
 
+/** What would change, field by field (before and after), computed against the portfolio as it is now. Never includes contact details. */
+async function changesFor(row: Row, userId: string): Promise<Change[]> {
+  try {
+    const pf = await ownPortfolio(userId)
+    if (!pf) return []
+    if (row.ops.kind === 'restore') {
+      let q = getSupabaseAdmin().from('portfolio_revisions').select('content, template').eq('portfolio_id', pf.id).eq('user_id', userId)
+      q = row.ops.revision_id ? q.eq('id', row.ops.revision_id) : q.order('created_at', { ascending: false }).limit(1)
+      const { data } = await q
+      const rev = ((data as Array<{ content: Record<string, unknown>; template: string | null }> | null) ?? [])[0]
+      return rev ? describeChanges(pf.content ?? {}, rev.content ?? {}, pf.template, rev.template ?? pf.template) : []
+    }
+    const next = applyOps({ content: pf.content ?? {}, template: pf.template ?? 'minimal' }, row.ops.ops).state
+    return describeChanges(pf.content ?? {}, next.content, pf.template, next.template)
+  } catch {
+    return []
+  }
+}
+
 export async function GET(req: NextRequest) {
   const user = await getUserFromRequest(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const id = new URL(req.url).searchParams.get('id') ?? ''
   const row = await load(id, user.id)
   if (!row) return NextResponse.json({ error: 'not_found' }, { status: 404 })
-  return NextResponse.json({ id: row.id, summary: row.summary, status: row.status === 'pending' && expired(row) ? 'expired' : row.status, expires_at: row.expires_at })
+  const status = row.status === 'pending' && expired(row) ? 'expired' : row.status
+  return NextResponse.json({ id: row.id, summary: row.summary, status, expires_at: row.expires_at, changes: status === 'pending' ? await changesFor(row, user.id) : [] })
 }
 
 export async function POST(req: NextRequest) {
@@ -41,6 +63,7 @@ export async function POST(req: NextRequest) {
   }
   if (expired(row)) return NextResponse.json({ error: 'expired', message: 'This request expired. Ask your assistant to make it again.' }, { status: 410 })
 
+  const changes = await changesFor(row, user.id) // computed BEFORE applying, so it shows what actually changed
   // Claim it first (single use), so a double click cannot apply twice.
   const claim = await admin.from('mcp_proposals').update({ status: 'applied' }).eq('id', row.id).eq('user_id', user.id).eq('status', 'pending').select('id')
   if (claim.error || !(claim.data as unknown[] | null)?.length) return NextResponse.json({ error: 'already_decided' }, { status: 409 })
@@ -57,5 +80,5 @@ export async function POST(req: NextRequest) {
     await admin.from('mcp_proposals').update({ status: 'rejected' }).eq('id', row.id)
     return NextResponse.json({ error: result.code, message: result.message }, { status: 409 })
   }
-  return NextResponse.json({ ok: true, status: 'applied', summary: result.summary })
+  return NextResponse.json({ ok: true, status: 'applied', summary: result.summary, changes })
 }

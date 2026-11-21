@@ -1,3 +1,4 @@
+import { deriveSeo } from '@/lib/portfolio/derive'
 import React from 'react'
 import { safeJsonLd } from '@/lib/json-ld'
 import { notFound } from 'next/navigation'
@@ -42,17 +43,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { data } = await supabaseAdmin
     .from('users')
-    .select('portfolios(seo_title, seo_description, og_image_url)')
+    .select('portfolios(seo_title, seo_description, og_image_url, content)')
     .eq('slug', slug)
     .neq('plan', 'unpublished')
     .single()
 
   const rawPortfolio = data?.portfolios
   const portfolio = (Array.isArray(rawPortfolio)
-    ? (rawPortfolio as unknown as { seo_title: string; seo_description: string; og_image_url: string }[])[0]
-    : rawPortfolio as unknown as { seo_title: string; seo_description: string; og_image_url: string } | null) ?? null
+    ? (rawPortfolio as unknown as { seo_title: string; seo_description: string; og_image_url: string; content?: Record<string, unknown> }[])[0]
+    : rawPortfolio as unknown as { seo_title: string; seo_description: string; og_image_url: string; content?: Record<string, unknown> } | null) ?? null
 
   if (!portfolio) return {}
+  // Always derived from the current content (role, location, headline), so a description saved long ago is never shown cut mid-word.
+  if (portfolio.content && typeof portfolio.content === 'object') Object.assign(portfolio, deriveSeo(portfolio.content))
 
   const canonicalUrl = `${appUrl}/${slug}`
   return {

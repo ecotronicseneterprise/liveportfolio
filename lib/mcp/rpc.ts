@@ -44,6 +44,12 @@ export async function handleMessage(msg: Rpc, ctx: McpCtx): Promise<unknown | nu
     case 'initialize': {
       const asked = String(msg.params?.protocolVersion ?? '')
       const version = (SUPPORTED_VERSIONS as readonly string[]).includes(asked) ? asked : SUPPORTED_VERSIONS[0]
+      // research only: which capabilities do real clients declare (names only, never content)? Is URL-mode elicitation on offer?
+      try {
+        const caps = (msg.params?.capabilities ?? {}) as Record<string, unknown>
+        const elicitation = caps.elicitation && typeof caps.elicitation === 'object' ? Object.keys(caps.elicitation as object) : []
+        console.log('[mcp] initialize', JSON.stringify({ client: String((msg.params?.clientInfo as { name?: unknown } | undefined)?.name ?? '').slice(0, 40), protocol: asked, capabilities: Object.keys(caps), elicitation }))
+      } catch { /* logging only */ }
       return ok(msg.id, {
         protocolVersion: version,
         capabilities: { tools: { listChanged: false }, prompts: { listChanged: false } },

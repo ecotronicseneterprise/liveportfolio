@@ -51,9 +51,9 @@ const optionalLink = z.string().max(500)
 const ProjectInput = z
   .object({
     title: str(120),
-    problem: str(600).default(''),
-    solution: str(600).default(''),
-    outcome: str(600).default(''),
+    problem: str(1500).default(''),
+    solution: str(1500).default(''),
+    outcome: str(1500).default(''),
     stack: z.array(str(40)).max(12).default([]),
     url: optionalLink.optional(),
     github_url: optionalLink.optional(),
@@ -65,9 +65,9 @@ const ProjectInput = z
 const ProjectPatch = z
   .object({
     title: str(120).optional(),
-    problem: str(600).optional(),
-    solution: str(600).optional(),
-    outcome: str(600).optional(),
+    problem: str(1500).optional(),
+    solution: str(1500).optional(),
+    outcome: str(1500).optional(),
     stack: z.array(str(40)).max(12).optional(),
     url: optionalLink.optional(),
     github_url: optionalLink.optional(),
@@ -89,7 +89,7 @@ const idx = z.number().int().min(0).max(99)
 export const Op = z.discriminatedUnion('op', [
   z.object({ op: z.literal('set_field'), field: z.enum(TEXT_FIELDS), value: z.string() }).strict(),
   z.object({ op: z.literal('set_link'), field: z.enum(LINK_FIELDS), value: z.string().max(500) }).strict(),
-  z.object({ op: z.literal('set_skills'), skills: z.array(str(60)).max(15) }).strict(),
+  z.object({ op: z.literal('set_skills'), skills: z.array(str(60)).max(30) }).strict(),
   z.object({ op: z.literal('set_skills_grouped'), groups: z.array(Group).max(8) }).strict(),
   z.object({ op: z.literal('add_project'), project: ProjectInput, index: idx.optional() }).strict(),
   z.object({ op: z.literal('update_project'), index: idx, patch: ProjectPatch }).strict(),

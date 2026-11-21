@@ -20,12 +20,26 @@ export function calculateHealthScore(content: Record<string, unknown>): number {
   return Math.min(score, 100)
 }
 
+/** Cut at a word boundary, with an ellipsis, never mid-word. */
+export function cutAtWord(text: string, max: number): string {
+  const t = text.replace(/\s+/g, ' ').trim()
+  if (t.length <= max) return t
+  const room = t.slice(0, max - 1)
+  const at = room.lastIndexOf(' ')
+  return `${(at > 40 ? room.slice(0, at) : room).replace(/[\s.,;:\-]+$/, '')}…`
+}
+
 export function deriveSeo(content: Record<string, unknown>): { seo_title: string; seo_description: string } {
   const name = (content.name as string) || ''
   const role = (content.role as string) || ''
+  const location = (content.location as string) || ''
+  const headline = (content.headline as string) || ''
   const about = (content.about as string) || ''
+  const lead = role ? `${role}${location ? ` in ${location}` : ''}.` : ''
+  const body = headline || about
+  const description = (lead && body ? `${lead} ${body}` : lead || body) || `${name}'s professional portfolio, built with LivePortfolio.`
   return {
     seo_title: role ? `${name} | ${role}` : `${name} | Portfolio`,
-    seo_description: about ? about.slice(0, 155).replace(/\n/g, ' ').trim() : `${name}'s professional portfolio — built with LivePortfolio.`,
+    seo_description: cutAtWord(description, 155),
   }
 }

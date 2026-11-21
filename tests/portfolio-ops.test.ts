@@ -75,8 +75,8 @@ describe('applyOps: fields and links', () => {
     expect(r.state.content.github_url).toBeUndefined()
     expect(r.changes).toEqual(['Removed github link'])
   })
-  it('skills are capped at 15', () => {
-    fails([{ op: 'set_skills', skills: Array.from({ length: 16 }, (_, i) => `s${i}`) }])
+  it('skills are capped at 30 (portfolios already hold 17)', () => {
+    fails([{ op: 'set_skills', skills: Array.from({ length: 31 }, (_, i) => `s${i}`) }])
     expect(run([{ op: 'set_skills', skills: [' Go ', '', 'Rust'] }]).state.content.skills).toEqual(['Go', 'Rust'])
   })
 })
