@@ -30,6 +30,7 @@ export const DOC_PAGES: DocPage[] = [
     slug: 'connect', group: 'AI assistant', title: 'Connect your AI assistant', description: 'Connect Claude, ChatGPT or Claude Code to your portfolio in a few steps.',
     blocks: [
       { t: 'p', text: 'The assistant connection is included with the Pro plan. You add LivePortfolio to your assistant once; after that you can ask for changes in plain words.' },
+      { t: 'p', text: 'Fastest route: open liveportfolio.site/connect for the one-click Claude button and the three simple steps.' },
       { t: 'p', text: 'The address to add:' },
       { t: 'code', text: MCP_URL },
       { t: 'h', text: 'Claude (web, desktop, phone)' }, { t: 'ol', items: CONNECT_STEPS.claude },

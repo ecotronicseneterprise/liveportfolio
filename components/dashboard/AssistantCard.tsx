@@ -41,7 +41,10 @@ export default function AssistantCard({ token, isPro, onUpgrade }: { token: stri
 
       {isPro ? (
         <>
-          <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+          <p className="mt-4 text-sm font-medium text-gray-900">Say this to your assistant</p>
+          <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm"><span>I just got certified in ___. Add it to my LivePortfolio.</span><CopyButton text="I just got certified in ___. Add it to my LivePortfolio." label="Copy" /></div>
+          <p className="mt-4 text-sm font-medium text-gray-900">Connection address</p>
+          <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
             <code className="min-w-0 break-all text-sm">{URL_}</code>
             <CopyButton text={URL_} label="Copy address" />
           </div>
@@ -67,6 +70,7 @@ export default function AssistantCard({ token, isPro, onUpgrade }: { token: stri
           <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm"><span>{INSTRUCTION}</span><CopyButton text={INSTRUCTION} label="Copy" /></div>
           <p className="mt-1 text-xs text-gray-600">Paste it into your custom instructions in Claude or ChatGPT. It works in chats where the connector is available.</p>
           <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+            <a className="inline-flex min-h-9 items-center underline" href="/connect">Easy setup page</a>
             <a className="inline-flex min-h-9 items-center underline" href="/docs/connect">Full guide</a>
             <a className="inline-flex min-h-9 items-center underline" href="/docs/safety">Safety</a>
             <a className="inline-flex min-h-9 items-center underline" href="/oauth/connections">Connected apps</a>

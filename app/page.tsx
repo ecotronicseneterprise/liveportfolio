@@ -294,14 +294,28 @@ export default function LandingPage() {
       </section>
 
       {/* ── Assistant connection ── */}
-      <section className="w-full bg-gray-50 border-t border-gray-100">
-        <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-20 lg:text-center lg:flex lg:flex-col lg:items-center">
+      <section id="assistant" className="w-full bg-gray-50 border-t border-gray-100">
+        <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-20 lg:flex lg:flex-col lg:items-center lg:text-center">
           <p className="text-sm font-semibold text-[#0A66C2] mb-2">New for Pro</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] leading-tight mb-4">Your portfolio, powered by your AI assistant</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mb-6">
-            Connect Claude or ChatGPT once, then just ask: &ldquo;tighten my About&rdquo;, &ldquo;add my new job&rdquo;, &ldquo;use this screenshot for project 2&rdquo;, &ldquo;undo that&rdquo;. Every change is saved as a version you can undo, and nothing is removed without your approval.
-          </p>
-          <a href="/docs/connect" className="inline-flex min-h-11 items-center gap-2 px-6 py-3 border border-gray-300 bg-white text-[#0A0A0A] text-base font-semibold rounded-full hover:bg-gray-100 transition-colors">See how it works →</a>
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] leading-tight mb-3">Tell your AI you got certified.<br />Your portfolio updates itself.</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mb-8">Connect Claude or ChatGPT once, then just chat. New job, new certification, new project: say it, and it is on your portfolio.</p>
+
+          <div className="w-full max-w-md rounded-2xl bg-white border border-gray-200 p-4 text-left shadow-sm mb-8">
+            <p className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-sm bg-[#0A66C2] px-4 py-2 text-sm text-white">I just passed the Azure AI-102 exam.</p>
+            <p className="mt-3 w-fit max-w-[90%] rounded-2xl rounded-bl-sm bg-gray-100 px-4 py-2 text-sm text-gray-800">Congratulations! I added &ldquo;Azure AI Engineer Associate (AI-102)&rdquo; to your LivePortfolio. Say &ldquo;undo&rdquo; if you want it removed.</p>
+          </div>
+
+          <ol className="grid w-full max-w-3xl gap-4 text-left sm:grid-cols-3 mb-8">
+            <li className="rounded-2xl bg-white border border-gray-200 p-4"><span className="text-sm font-bold text-[#0A66C2]">1</span><p className="mt-1 font-semibold text-[#0A0A0A]">Copy your address</p><p className="text-sm text-gray-600">One line, shown on the connect page.</p></li>
+            <li className="rounded-2xl bg-white border border-gray-200 p-4"><span className="text-sm font-bold text-[#0A66C2]">2</span><p className="mt-1 font-semibold text-[#0A0A0A]">Add it to Claude or ChatGPT</p><p className="text-sm text-gray-600">Claude has a one-click button.</p></li>
+            <li className="rounded-2xl bg-white border border-gray-200 p-4"><span className="text-sm font-bold text-[#0A66C2]">3</span><p className="mt-1 font-semibold text-[#0A0A0A]">Just chat</p><p className="text-sm text-gray-600">Every change can be undone.</p></li>
+          </ol>
+
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <a href="/connect#claude" className="inline-flex min-h-12 items-center px-6 py-3 bg-[#0A66C2] text-white text-base font-bold rounded-full hover:bg-[#084D9A] transition-colors">Connect Claude</a>
+            <a href="/connect#chatgpt" className="inline-flex min-h-12 items-center px-6 py-3 border border-gray-300 bg-white text-[#0A0A0A] text-base font-bold rounded-full hover:bg-gray-100 transition-colors">Connect ChatGPT</a>
+          </div>
+          <p className="text-sm text-gray-500 mt-4">Nothing is removed without your approval. It can never publish or touch billing.</p>
         </div>
       </section>
 

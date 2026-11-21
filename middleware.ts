@@ -80,6 +80,7 @@ export function middleware(req: NextRequest) {
         'opengraph-image',
         'portfolio-for',
         'mcp',
+        'connect',
         '.well-known',
         'oauth',
         'docs',
