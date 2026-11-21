@@ -18,3 +18,15 @@ describe('user docs', () => {
     for (const s of ['connect', 'what-it-can-do', 'example-prompts', 'safety', 'revoke', 'troubleshooting']) expect(DOC_PAGES.map((p) => p.slug)).toContain(s)
   })
 })
+
+import { CONNECT_CLIENTS } from '@/lib/docs/connect'
+describe('per-assistant connect pages', () => {
+  it('has two steps and a screenshot slot for each assistant', () => {
+    expect(CONNECT_CLIENTS.map((c) => c.slug)).toEqual(['claude', 'chatgpt', 'other'])
+    for (const c of CONNECT_CLIENTS) { expect(c.steps).toHaveLength(2); for (const s of c.steps) expect(s.alt.length).toBeGreaterThan(10) }
+  })
+  it('lists them in llms.txt', async () => {
+    const txt = await GET().text()
+    for (const c of CONNECT_CLIENTS) expect(txt).toContain(`/docs/connect/${c.slug}`)
+  })
+})

@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { DOC_PAGES } from '@/lib/docs/pages'
+import { CONNECT_CLIENTS } from '@/lib/docs/connect'
 import { ROLE_PAGES } from '@/lib/seo/roles'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -147,6 +148,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${appUrl}/connect`, lastModified: new Date('2026-11-21'), changeFrequency: 'monthly' as const, priority: 0.8 },
     { url: `${appUrl}/docs`, lastModified: new Date('2026-11-21'), changeFrequency: 'monthly', priority: 0.6 },
     ...DOC_PAGES.map((p) => ({ url: `${appUrl}/docs/${p.slug}`, lastModified: new Date('2026-11-21'), changeFrequency: 'monthly' as const, priority: 0.5 })),
+    ...CONNECT_CLIENTS.map((k) => ({ url: `${appUrl}/docs/connect/${k.slug}`, lastModified: new Date('2026-11-21'), changeFrequency: 'monthly' as const, priority: 0.6 })),
     { url: `${appUrl}/docs/mcp`, lastModified: new Date('2026-11-21'), changeFrequency: 'monthly', priority: 0.7 },
     {
       url: `${appUrl}/portfolio-for`,

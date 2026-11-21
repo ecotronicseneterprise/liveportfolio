@@ -1328,7 +1328,7 @@ export default function DashboardPage() {
         {/* ── OVERVIEW TAB ── */}
         {activeTab === 'overview' && accessToken && (
           <div className="mb-4">
-            <AssistantCard token={accessToken} isPro={isPro} onUpgrade={() => { setUpgradeProOnly(true); setShowUpgradeModal(true) }} />
+            <AssistantCard token={accessToken} isPro={isPro} userId={user?.id} onUpgrade={() => { setUpgradeProOnly(true); setShowUpgradeModal(true) }} />
           </div>
         )}
         {activeTab === 'overview' && isPro && isPublished && portfolio?.id && (

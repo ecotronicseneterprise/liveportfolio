@@ -2,87 +2,132 @@
 
 import { useEffect, useState } from 'react'
 import CopyButton from '@/components/docs/CopyButton'
+import '@/components/landing/landing.css'
+import { studioFonts } from '@/components/blocks/looks/fonts-studio'
 
-// "Connect your AI assistant": the address to copy, the steps for each app, live connected status, and starter prompts.
-// Pro accounts get the working card; others see what it does and the way to get it.
-const URL_ = 'https://liveportfolio.site/mcp'
-const enc = encodeURIComponent
-const CLAUDE_LINK = `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=LivePortfolio&connectorUrl=${enc(URL_)}`
-const CURSOR_LINK = `cursor://anysphere.cursor-deeplink/mcp/install?name=liveportfolio&config=${enc(typeof btoa === 'function' ? btoa(JSON.stringify({ url: URL_ })) : '')}`
-const VSCODE_LINK = `https://vscode.dev/redirect/mcp/install?name=liveportfolio&config=${enc(JSON.stringify({ type: 'http', url: URL_ }))}`
+// "Connect your AI assistant". One thing per state:
+//  - not connected: one line, three buttons, the address. Always open.
+//  - connected: one collapsed row; expanded shows what to say, a few prompts, the sync line, add another, manage.
+//  - free: a short locked preview.
+// Setup steps live on /docs/connect/*, not here.
+export const MCP_ADDRESS = 'https://liveportfolio.site/mcp'
+const SHORT_ADDRESS = 'liveportfolio.site/mcp'
+const CLAUDE_LINK = `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=LivePortfolio&connectorUrl=${encodeURIComponent(MCP_ADDRESS)}`
+const FIRST = 'I just got certified in ___. Add it to my LivePortfolio.'
 const INSTRUCTION = 'When I mention a new job, promotion, certification, degree, award or project, offer to add it to my LivePortfolio.'
-const PROMPTS = ['What is new in my career? Check my recent chats and suggest portfolio updates.', 'Read my portfolio and tell me the three most useful things to improve.', 'Tighten my About section. Keep every fact.', 'Fix the typos in my portfolio.', 'Undo that last change.']
+const PROMPTS = ['What is new in my career? Check my recent chats and suggest portfolio updates.', 'Tighten my About section. Keep every fact.', 'Undo that last change.']
 
-export default function AssistantCard({ token, isPro, onUpgrade }: { token: string; isPro: boolean; onUpgrade: () => void }) {
-  const [apps, setApps] = useState<Array<{ id: string; client_name: string; last_used_at: string | null }> | null>(null)
+export interface ConnectedApp { id: string; client_name: string; last_used_at: string | null }
+
+const btnPrimary = 'inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[#0A66C2] px-5 text-sm font-semibold text-white hover:bg-[#084D9A] sm:w-auto'
+const btnGhost = 'inline-flex min-h-11 w-full items-center justify-center rounded-full border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-900 hover:bg-gray-50 sm:w-auto'
+
+function Buttons() {
+  return (
+    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+      <a href={CLAUDE_LINK} target="_blank" rel="noopener noreferrer" className={btnPrimary}>Add to Claude</a>
+      <a href="/docs/connect/chatgpt" className={btnGhost}>Add to ChatGPT</a>
+      <a href="/docs/connect/other" className={btnGhost}>Other assistants</a>
+    </div>
+  )
+}
+
+function AddressRow() {
+  return (
+    <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+      <span className="min-w-0 truncate text-sm text-gray-700"><span className="text-gray-500">Address: </span>{SHORT_ADDRESS}</span>
+      <CopyButton text={MCP_ADDRESS} label="Copy" />
+    </div>
+  )
+}
+
+export default function AssistantCard({ token, isPro, onUpgrade, userId, initialApps }: { token: string; isPro: boolean; onUpgrade: () => void; userId?: string; initialApps?: ConnectedApp[] }) {
+  const [apps, setApps] = useState<ConnectedApp[] | null>(initialApps ?? null)
+  const [open, setOpen] = useState(false)
+  const storeKey = `lp_assistant_card_open:${userId ?? 'me'}`
 
   useEffect(() => {
-    if (!isPro || !token) return
+    try { setOpen(localStorage.getItem(storeKey) === '1') } catch { /* private window: stays collapsed */ }
+  }, [storeKey])
+
+  useEffect(() => {
+    if (initialApps || !isPro || !token) return
     let live = true
     fetch('/api/mcp/connections', { headers: { authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((j) => { if (live) setApps(j.connections ?? []) })
       .catch(() => { if (live) setApps([]) })
     return () => { live = false }
-  }, [isPro, token])
+  }, [isPro, token, initialApps])
 
-  return (
-    <section aria-labelledby="assistant-card-title" className="rounded-2xl border border-gray-200 bg-white p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+  const toggle = () => {
+    const next = !open
+    setOpen(next)
+    try { localStorage.setItem(storeKey, next ? '1' : '0') } catch { /* not saved */ }
+  }
+
+  const shell = `lpl ${studioFonts} rounded-2xl border border-gray-200 bg-white p-4 sm:p-5`
+
+  if (!isPro) {
+    return (
+      <section aria-labelledby="assistant-card-title" className={shell}>
+        <div className="flex items-center justify-between gap-2">
+          <h2 id="assistant-card-title" className="text-base font-semibold text-gray-900">Connect your AI assistant</h2>
+          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-[#0A66C2]">Pro</span>
+        </div>
+        <p className="mt-1 text-sm text-gray-600">Tell ChatGPT or Claude your wins. Your portfolio updates itself.</p>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <button type="button" onClick={onUpgrade} className={btnPrimary}>Get Pro</button>
+          <a href="/connect" className={btnGhost}>How it works</a>
+        </div>
+      </section>
+    )
+  }
+
+  if (apps === null) return <section aria-busy="true" className={shell}><p className="text-sm text-gray-500">AI assistant</p></section>
+
+  if (apps.length === 0) {
+    return (
+      <section aria-labelledby="assistant-card-title" className={shell}>
         <h2 id="assistant-card-title" className="text-base font-semibold text-gray-900">Connect your AI assistant</h2>
-        {isPro && apps !== null && (
-          <span className={`rounded-full px-3 py-1 text-xs font-medium ${apps.length ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
-            {apps.length ? `Connected: ${apps.map((a) => a.client_name || 'App').join(', ')}` : 'Not connected yet'}
-          </span>
-        )}
-        {!isPro && <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-[#0A66C2]">Pro</span>}
-      </div>
-      <p className="mt-1 text-sm text-gray-600">Edit your portfolio from Claude or ChatGPT: &ldquo;tighten my About&rdquo;, &ldquo;add my new job&rdquo;, &ldquo;undo that&rdquo;. Every change is saved as a version you can undo, and nothing is removed without your approval.</p>
+        <p className="mt-1 text-sm text-gray-600">Tell ChatGPT or Claude your wins. Your portfolio updates itself.</p>
+        <div className="mt-3"><Buttons /></div>
+        <AddressRow />
+        <p className="mt-2 text-xs text-gray-500">Every change can be undone.</p>
+      </section>
+    )
+  }
 
-      {isPro ? (
-        <>
-          <p className="mt-4 text-sm font-medium text-gray-900">Say this to your assistant</p>
-          <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm"><span>I just got certified in ___. Add it to my LivePortfolio.</span><CopyButton text="I just got certified in ___. Add it to my LivePortfolio." label="Copy" /></div>
-          <p className="mt-4 text-sm font-medium text-gray-900">Connection address</p>
-          <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <code className="min-w-0 break-all text-sm">{URL_}</code>
-            <CopyButton text={URL_} label="Copy address" />
+  const names = apps.map((a) => a.client_name || 'App').join(', ')
+  return (
+    <section aria-label="AI assistant" className={shell}>
+      <button type="button" onClick={toggle} aria-expanded={open} className="flex min-h-11 w-full items-center justify-between gap-3 text-left">
+        <span className="min-w-0 text-sm"><span className="font-semibold text-gray-900">AI assistant</span> <span className="text-gray-500">· Connected: {names}</span></span>
+        <span className="shrink-0 text-xs font-medium text-[#0A66C2]">{open ? 'Hide ▴' : 'Tap to show ▾'}</span>
+      </button>
+      {open && (
+        <div className="mt-3 space-y-4 border-t border-gray-100 pt-4">
+          <div>
+            <p className="text-sm font-medium text-gray-900">Say this to your assistant</p>
+            <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm"><span>{FIRST}</span><CopyButton text={FIRST} label="Copy" /></div>
           </div>
-          <p className="mt-4 flex flex-wrap gap-2">
-            <a href={CLAUDE_LINK} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center rounded-full bg-[#0A66C2] px-4 text-sm font-semibold text-white hover:bg-[#084D9A]">Add to Claude</a>
-            <a href={CURSOR_LINK} className="inline-flex min-h-10 items-center rounded-full border border-gray-300 px-4 text-sm font-medium text-gray-900 hover:bg-gray-50">Add to Cursor</a>
-            <a href={VSCODE_LINK} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center rounded-full border border-gray-300 px-4 text-sm font-medium text-gray-900 hover:bg-gray-50">Add to VS Code</a>
-          </p>
-          <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-gray-800">
-            <li><strong>Claude:</strong> Customize, Connectors, Add custom connector, paste the address.</li>
-            <li><strong>ChatGPT:</strong> Settings, Connectors, add a custom connector with the address (developer mode may be needed).</li>
-            <li><strong>Gemini CLI:</strong> <span className="inline-flex flex-wrap items-center gap-2"><code className="break-all text-xs">gemini mcp add --scope user --transport http liveportfolio {URL_}</code><CopyButton text={`gemini mcp add --scope user --transport http liveportfolio ${URL_}`} label="Copy command" /></span></li>
-            <li><strong>Claude Code:</strong> <span className="inline-flex flex-wrap items-center gap-2"><code className="break-all text-xs">claude mcp add --transport http liveportfolio {URL_}</code><CopyButton text={`claude mcp add --transport http liveportfolio ${URL_}`} label="Copy command" /></span></li>
-          </ol>
-          <p className="mt-2 text-sm text-gray-600">Then choose Connect, sign in, and approve. You choose whether it may edit and whether it sees your contact details.</p>
-          <p className="mt-4 text-sm font-medium text-gray-900">Try asking</p>
-          <ul className="mt-1 space-y-2">
-            {PROMPTS.map((p) => (
-              <li key={p} className="flex items-center justify-between gap-3 text-sm text-gray-800"><span>{p}</span><CopyButton text={p} /></li>
-            ))}
-          </ul>
-          <p className="mt-4 text-sm font-medium text-gray-900">Keep it in sync</p>
-          <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm"><span>{INSTRUCTION}</span><CopyButton text={INSTRUCTION} label="Copy" /></div>
-          <p className="mt-1 text-xs text-gray-600">Paste it into your custom instructions in Claude or ChatGPT. It works in chats where the connector is available.</p>
-          <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm">
-            <a className="inline-flex min-h-9 items-center underline" href="/connect">Easy setup page</a>
-            <a className="inline-flex min-h-9 items-center underline" href="/docs/connect">Full guide</a>
-            <a className="inline-flex min-h-9 items-center underline" href="/docs/safety">Safety</a>
-            <a className="inline-flex min-h-9 items-center underline" href="/oauth/connections">Connected apps</a>
-          </p>
-        </>
-      ) : (
-        <div className="mt-4">
-          <p className="text-sm text-gray-700">The assistant connection is included with the Pro plan. It can read your portfolio, edit text, add projects and jobs, change designs and add pictures. It can never publish, delete or touch billing.</p>
-          <div className="mt-3 flex flex-wrap gap-3">
-            <button type="button" onClick={onUpgrade} className="min-h-11 rounded-full bg-[#0A66C2] px-5 text-sm font-semibold text-white hover:bg-[#084D9A]">Get Pro</button>
-            <a className="inline-flex min-h-11 items-center text-sm underline" href="/docs/connect">How it works</a>
+          <div>
+            <p className="text-sm font-medium text-gray-900">Try asking</p>
+            <ul className="mt-1 space-y-2">
+              {PROMPTS.map((p) => <li key={p} className="flex items-center justify-between gap-3 text-sm text-gray-800"><span>{p}</span><CopyButton text={p} label="Copy" /></li>)}
+            </ul>
           </div>
+          <div>
+            <p className="text-sm font-medium text-gray-900">Keep it in sync</p>
+            <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm"><span>{INSTRUCTION}</span><CopyButton text={INSTRUCTION} label="Copy" /></div>
+            <p className="mt-1 text-xs text-gray-500">Paste into your custom instructions in Claude or ChatGPT.</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-900">Connect another assistant</p>
+            <div className="mt-2"><Buttons /></div>
+            <AddressRow />
+          </div>
+          <a className="inline-flex min-h-11 items-center text-sm underline" href="/oauth/connections">Manage connected apps</a>
         </div>
       )}
     </section>

@@ -4,7 +4,8 @@ import CopyButton from '@/components/docs/CopyButton'
 import { DOC_PAGES, docBySlug } from '@/lib/docs/pages'
 
 export const dynamicParams = false
-export const generateStaticParams = () => DOC_PAGES.map((p) => ({ slug: p.slug }))
+// /docs/connect has its own page (app/docs/connect) with the per-assistant pages beneath it
+export const generateStaticParams = () => DOC_PAGES.filter((p) => p.slug !== 'connect').map((p) => ({ slug: p.slug }))
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const p = docBySlug((await params).slug)
