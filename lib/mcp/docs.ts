@@ -90,7 +90,7 @@ export function serverCard() {
   return {
     name: 'liveportfolio',
     title: 'LivePortfolio',
-    description: 'Read and edit your LivePortfolio portfolio from your AI assistant. Edits are saved as undoable versions; removals and whole-list replacements need your approval on the website.',
+    description: 'Read and edit your LivePortfolio portfolio from your AI assistant. Edits are saved as undoable versions; removals, new links and whole-list replacements need your approval on the website. Requires a Pro account.',
     url: MCP_URL,
     transport: 'streamable-http',
     protocolVersions: ['2025-11-25', '2025-06-18', '2025-03-26'],
