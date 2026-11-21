@@ -84,12 +84,15 @@ export async function commitState(
 
 async function prune(admin: SupabaseClient, portfolioId: string) {
   try {
-    const { data } = await admin.from('portfolio_revisions').select('id, created_at').eq('portfolio_id', portfolioId).limit(500)
-    const rows = ((data as Array<{ id: string; created_at?: string; at?: string }> | null) ?? []).slice()
+    const { data } = await admin.from('portfolio_revisions').select('id, created_at, source').eq('portfolio_id', portfolioId).limit(500)
+    const rows = ((data as Array<{ id: string; created_at?: string; at?: string; source?: string }> | null) ?? []).slice()
     const when = (r: { created_at?: string; at?: string }) => String(r.created_at ?? r.at ?? '')
     rows.sort((a, b) => when(a).localeCompare(when(b))) // oldest first
-    const ids = rows.map((r) => r.id)
-    const surplus = ids.length - KEEP_REVISIONS
+    // The oldest assistant revision holds the portfolio as it was BEFORE the assistant first touched it: the person's own baseline.
+    // It is never evicted, however chatty the assistant is.
+    const baseline = rows.find((r) => r.source === 'assistant')?.id
+    const ids = rows.map((r) => r.id).filter((id) => id !== baseline)
+    const surplus = ids.length + (baseline ? 1 : 0) - KEEP_REVISIONS
     if (surplus > 0) await admin.from('portfolio_revisions').delete().in('id', ids.slice(0, surplus))
   } catch {
     // retention is best effort

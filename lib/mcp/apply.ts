@@ -63,18 +63,19 @@ export async function applyForUser(userId: string, ops: unknown, opts: { expecte
 }
 
 /** Restore the version from before a revision (default: the latest change). Recorded as a revision itself, so it can be undone. */
-export async function restoreForUser(userId: string, revisionId: string | null): Promise<Applied> {
+export async function restoreForUser(userId: string, revisionId: string | null, opts: { onlyIfLatestIsAssistant?: boolean } = {}): Promise<Applied> {
   const ent = await entitlements(userId)
   if (!ent.canEdit) return { ok: false, code: 'not_allowed', message: 'Editing is not available on this plan.' }
   const pf = await ownPortfolio(userId)
   if (!pf) return { ok: false, code: 'not_found', message: 'No portfolio found for this account.' }
   const admin = getSupabaseAdmin()
-  type Rev = { id: string; content: Record<string, unknown>; template: string | null; created_at: string }
-  let q = admin.from('portfolio_revisions').select('id, content, template, created_at').eq('portfolio_id', pf.id).eq('user_id', userId)
+  type Rev = { id: string; content: Record<string, unknown>; template: string | null; created_at: string; source?: string }
+  let q = admin.from('portfolio_revisions').select('id, content, template, created_at, source').eq('portfolio_id', pf.id).eq('user_id', userId)
   q = revisionId ? q.eq('id', revisionId) : q.order('created_at', { ascending: false }).limit(1)
   const { data } = await q
   const rev = ((data as Rev[] | null) ?? [])[0]
   if (!rev) return { ok: false, code: 'not_found', message: 'There is nothing to restore.' }
+  if (opts.onlyIfLatestIsAssistant && rev.source !== 'assistant') return { ok: false, code: 'not_assistant_change', message: 'The most recent change was made in your dashboard, not by an assistant, so undoing it here could remove your own edit. Use History in your dashboard, or portfolio_list_history and portfolio_restore_revision (which needs your approval).' }
   const wanted = typeof rev.template === 'string' && isTemplateId(rev.template) ? rev.template : pf.template
   const template = wanted === pf.template || canUseTemplate(ent.plan, wanted) ? wanted : pf.template
   if (!canTransitionProDesigns(ent.plan, pf.content?.pro_designs, rev.content?.pro_designs)) return { ok: false, code: 'pro_design_locked', message: 'That version uses a design not available on this account.' }

@@ -16,6 +16,7 @@ import { checkAndRecordUsage } from '@/lib/usage'
 import type { McpCtx } from './auth'
 import { applyForUser, dryRun, ownPortfolio, restoreForUser, type Applied } from './apply'
 import { attachImage, detachImage } from './attach'
+import { appendText, approvalReason, auditHealth, bulletsOf, chronologicalIndex, dropBullet, insertBullet, moveBullet, norm, replaceSnippet, setBullet, staleCurrentRole, withCertification, withEducation } from './edit-helpers'
 import { ImageError, fetchPublicImage, hashToken, newUploadToken, normalizeImage, storeImage, targetToString, type ImageTarget } from './images'
 
 export const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://liveportfolio.site').replace(/\/$/, '')
@@ -68,19 +69,29 @@ function fromApplied(a: Applied, slugInfo: { slug?: string | null; published_at?
   }
 }
 
+function mustWrite(ctx: McpCtx) {
+  if (!ctx.connection.allow_edits) throw new ToolError('read_only', 'This connection is read-only. The person can allow edits when connecting the app again.')
+}
+
 async function guardWrite(ctx: McpCtx) {
   if (!ctx.connection.allow_edits) throw new ToolError('read_only', 'This connection is read-only. The person can allow edits when connecting the app again.')
   if ((await checkAndRecordUsage(ctx.userId, 'mcp_write', 60, 60 * 60 * 1000)) === 'limited') throw new ToolError('rate_limited', 'Too many edits this hour. Try again later.')
 }
 
-async function direct(ctx: McpCtx, ops: unknown[], expectedVersion?: number) {
+async function direct(ctx: McpCtx, ops: unknown[], expectedVersion?: number, extra: Record<string, unknown> = {}) {
   await guardWrite(ctx)
+  const pf = await ownPortfolio(ctx.userId)
+  if (pf) {
+    // Links, and edits that sharply shrink existing content, are never saved by the assistant alone.
+    const why = approvalReason(pf.content ?? {}, pf.template ?? 'minimal', ops)
+    if (why) return propose(ctx, { kind: 'ops', ops }, expectedVersion, why, true)
+  }
   const a = await applyForUser(ctx.userId, ops, { expectedVersion })
-  return fromApplied(a, await userRow(ctx.userId))
+  return { ...fromApplied(a, await userRow(ctx.userId)), ...extra }
 }
 
-async function propose(ctx: McpCtx, payload: { kind: 'ops'; ops: unknown[] } | { kind: 'restore'; revision_id: string | null }, expectedVersion?: number) {
-  await guardWrite(ctx)
+async function propose(ctx: McpCtx, payload: { kind: 'ops'; ops: unknown[] } | { kind: 'restore'; revision_id: string | null }, expectedVersion?: number, why?: string, guarded = false) {
+  if (!guarded) await guardWrite(ctx)
   const pf = await ownPortfolio(ctx.userId)
   if (!pf) throw new ToolError('not_found', 'No portfolio found for this account.')
   if (expectedVersion !== undefined && expectedVersion !== (pf.edit_count ?? 0)) throw new ToolError('conflict', 'The portfolio changed since it was last read. Call portfolio_get again and retry.')
@@ -107,6 +118,7 @@ async function propose(ctx: McpCtx, payload: { kind: 'ops'; ops: unknown[] } | {
     proposal_id: row.id,
     approval_url: `${APP_URL}/oauth/approve?id=${row.id}`,
     summary,
+    ...(why ? { why_approval_is_needed: why } : {}),
     expires_at: row.expires_at,
     note: 'NOTHING HAS CHANGED YET. This kind of change must be approved by the person on liveportfolio.site. Give them the approval_url, then call portfolio_check_proposal to see the result. Do not claim it is done until the status is applied.',
   }
@@ -240,7 +252,7 @@ export const TOOLS: ToolDef[] = [
       instagram_url: text(500).optional(), facebook_url: text(500).optional(), youtube_url: text(500).optional(), tiktok_url: text(500).optional(),
       expected_version: expected,
     }).strict().describe('Send only the fields to change. An empty string removes that link.'),
-    description: 'Use this to change how people can contact the person: contact email, phone, WhatsApp and social links (https only; empty string removes a link). Overwrites those fields (undoable). Not for the sign-in email of the account, which cannot be changed here.',
+    description: 'Use this to change how people can contact the person: contact email, phone, WhatsApp and social links (https only; empty string removes a link). Overwrites those fields (undoable). Adding or changing a link needs the person\'s approval first (you get an approval_url); email, phone and WhatsApp save at once. Not for the sign-in email of the account, which cannot be changed here.',
     run: (ctx, a) => direct(ctx, Object.entries(a).filter(([k, v]) => k !== 'expected_version' && v !== undefined).map(([field, value]) => (['email', 'phone', 'whatsapp'].includes(field) ? { op: 'set_field', field, value } : { op: 'set_link', field, value })), a.expected_version as number | undefined),
   },
   {
@@ -252,8 +264,14 @@ export const TOOLS: ToolDef[] = [
   {
     name: 'portfolio_add_project', title: 'Add a project', kind: 'direct', annotations: ADD,
     input: z.object({ ...ProjectFields, index: pos.optional().describe('Position to insert at (0 = first). Default: the end.'), expected_version: expected }).strict(),
-    description: 'Use this to add a new project. Describe problem, solution and outcome using only facts the person provided. Adds one project; existing ones are untouched. Do not use to edit an existing project (portfolio_update_project).',
-    run: (ctx, a) => direct(ctx, [{ op: 'add_project', project: clean({ ...a, index: undefined, expected_version: undefined }), index: a.index }], a.expected_version as number | undefined),
+    description: 'Use this to add a new project. Describe problem, solution and outcome using only facts the person provided. Adds one project; existing ones are untouched. A project with a link needs the person\'s approval first (you get an approval_url). Do not use to edit an existing project (portfolio_update_project).',
+    async run(ctx, a) {
+      mustWrite(ctx)
+      const pf = await ownPortfolio(ctx.userId)
+      const have = (Array.isArray(pf?.content?.projects) ? pf!.content.projects : []) as Array<{ title?: string }>
+      if (have.some((p) => norm(p.title) === norm(a.title))) throw new ToolError('duplicate', `A project called "${a.title}" already exists. Use portfolio_update_project to change it.`)
+      return direct(ctx, [{ op: 'add_project', project: clean({ ...a, index: undefined, expected_version: undefined }), index: a.index }], a.expected_version as number | undefined)
+    },
   },
   {
     name: 'portfolio_update_project', title: 'Edit a project', kind: 'direct', annotations: EDIT,
@@ -270,8 +288,16 @@ export const TOOLS: ToolDef[] = [
   {
     name: 'portfolio_add_experience', title: 'Add a job', kind: 'direct', annotations: ADD,
     input: z.object({ ...ExperienceFields, index: pos.optional().describe('Position to insert at (0 = first, newest first is usual). Default: the end.'), expected_version: expected }).strict(),
-    description: 'Use this to add one role to the experience section. Use only facts the person gave you. Existing roles are untouched.',
-    run: (ctx, a) => direct(ctx, [{ op: 'add_experience', experience: clean({ ...a, index: undefined, expected_version: undefined }), index: a.index }], a.expected_version as number | undefined),
+    description: 'Use this when the person mentions a new job or promotion. Adds one role in date order (newest first); existing roles are untouched, duplicates are refused, and if an older role still says it is current you are told to ask about its end date. Use only facts the person gave you; ask for anything missing.',
+    async run(ctx, a) {
+      mustWrite(ctx)
+      const pf = await ownPortfolio(ctx.userId)
+      const have = (Array.isArray(pf?.content?.experience) ? pf!.content.experience : []) as Array<Record<string, unknown>>
+      if (have.some((e) => norm(e.company) === norm(a.company) && norm(e.role) === norm(a.role) && norm(e.period) === norm(a.period))) throw new ToolError('duplicate', 'That role is already on the portfolio.')
+      const at = a.index !== undefined ? (a.index as number) : chronologicalIndex(have, String(a.period ?? ''))
+      const stale = staleCurrentRole(have, String(a.period ?? ''))
+      return direct(ctx, [{ op: 'add_experience', experience: clean({ ...a, index: undefined, expected_version: undefined }), index: at }], a.expected_version as number | undefined, stale ? { ask_the_person: `${stale} still says it is current. Ask whether to set its end date (portfolio_update_experience).` } : {})
+    },
   },
   {
     name: 'portfolio_update_experience', title: 'Edit a job', kind: 'direct', annotations: EDIT,
@@ -305,10 +331,10 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: 'portfolio_undo', title: 'Undo the last change', kind: 'direct', annotations: EDIT, input: empty,
-    description: 'Use this when the person says undo, revert or "go back". Restores the portfolio to how it was before the most recent change. The undo is itself recorded, so it can be undone too. To go back further use portfolio_list_history and portfolio_restore_revision.',
+    description: 'Use this when the person says undo, revert or "go back". Restores the portfolio to how it was before the most recent change. The undo is itself recorded, so it can be undone too. It only undoes a change an assistant made; if the latest change was made in the dashboard it refuses, so dashboard edits are never reversed by accident. To go back further use portfolio_list_history and portfolio_restore_revision.',
     async run(ctx) {
       await guardWrite(ctx)
-      return fromApplied(await restoreForUser(ctx.userId, null), await userRow(ctx.userId))
+      return fromApplied(await restoreForUser(ctx.userId, null, { onlyIfLatestIsAssistant: true }), await userRow(ctx.userId))
     },
   },
 
@@ -360,6 +386,151 @@ export const TOOLS: ToolDef[] = [
     input: z.object({ revision_id: z.string().uuid().describe('An id from portfolio_list_history') }).strict(),
     description: 'Use this to go back further than the last change. It needs the person\'s approval via the returned approval_url. For just the last change use portfolio_undo.',
     run: (ctx, a) => propose(ctx, { kind: 'restore', revision_id: a.revision_id as string }),
+  },
+
+  // ── "tell your assistant and it updates": additive, duplicate-safe, undoable ─────────────────────────────────
+  {
+    name: 'portfolio_add_certification', title: 'Add a certification', kind: 'direct', annotations: ADD,
+    input: z.object({ name: text(160).describe('Exactly as the person said it, for example "Microsoft Azure AI Engineer Associate (AI-102)". Do not invent an issuer or year.'), expected_version: expected }).strict(),
+    description: 'Use this when the person says they passed an exam, earned a certification or completed a course certificate. OFFER to add it if they mention one without asking. Adds one entry and keeps the rest; a duplicate is refused. Use only what the person said; ask if the exact name is unclear.',
+    async run(ctx, a) {
+      mustWrite(ctx)
+      const pf = await ownPortfolio(ctx.userId)
+      if (!pf) throw new ToolError('not_found', 'No portfolio found for this account.')
+      const r = withCertification(pf.content?.certifications, a.name as string)
+      if (!r.ok) throw new ToolError(r.code, r.message)
+      return direct(ctx, [{ op: 'set_certifications', certifications: r.value }], (a.expected_version as number | undefined) ?? (pf.edit_count ?? 0))
+    },
+  },
+  {
+    name: 'portfolio_add_education', title: 'Add a degree or qualification', kind: 'direct', annotations: ADD,
+    input: z.object({ degree: text(160).describe('For example "BSc Computer Science"'), institution: text(160), year: text(20).optional().describe('Only if the person said it'), grade: text(60).optional(), expected_version: expected }).strict(),
+    description: 'Use this when the person mentions a degree, diploma or other qualification. OFFER to add it if they mention one without asking. Adds one entry and keeps the rest; duplicates are refused. Never invent a year or grade.',
+    async run(ctx, a) {
+      mustWrite(ctx)
+      const pf = await ownPortfolio(ctx.userId)
+      if (!pf) throw new ToolError('not_found', 'No portfolio found for this account.')
+      const r = withEducation(pf.content?.education, { degree: a.degree as string, institution: a.institution as string, year: a.year as string | undefined, grade: a.grade as string | undefined })
+      if (!r.ok) throw new ToolError(r.code, r.message)
+      return direct(ctx, [{ op: 'set_education', education: r.value }], (a.expected_version as number | undefined) ?? (pf.edit_count ?? 0))
+    },
+  },
+  {
+    name: 'portfolio_add_achievement', title: 'Add an achievement to a role or project', kind: 'direct', annotations: ADD,
+    input: z.object({ target: z.enum(['experience', 'project']), index: pos.describe('Position of the role or project, starting at 0, as in portfolio_get'), text: text(400).describe('One factual line. Include a number only if the person gave it.'), expected_version: expected }).strict(),
+    description: 'Use this when the person mentions an award, a result or something they delivered that belongs under an existing role or project (for example "add this to my Wema role"). Adds a line to a role\'s highlights, or a sentence to a project\'s outcome; nothing existing is changed, duplicates are refused.',
+    async run(ctx, a) {
+      mustWrite(ctx)
+      const pf = await ownPortfolio(ctx.userId)
+      if (!pf) throw new ToolError('not_found', 'No portfolio found for this account.')
+      const v = (a.expected_version as number | undefined) ?? (pf.edit_count ?? 0)
+      if (a.target === 'experience') {
+        const b = bulletsOf(pf.content, 'experience', a.index as number)
+        if (!b.ok) throw new ToolError(b.code, b.message)
+        const r = insertBullet(b.value, a.text as string)
+        if (!r.ok) throw new ToolError(r.code, r.message)
+        return direct(ctx, [{ op: 'update_experience', index: a.index, patch: { bullets: r.value } }], v)
+      }
+      const p = ((pf.content?.projects as Array<Record<string, unknown>> | undefined) ?? [])[a.index as number]
+      if (!p) throw new ToolError('out_of_range', `Project ${(a.index as number) + 1} does not exist.`)
+      if (norm(p.outcome).includes(norm(a.text))) throw new ToolError('duplicate', 'That is already in the outcome.')
+      return direct(ctx, [{ op: 'update_project', index: a.index, patch: { outcome: appendText(p.outcome, a.text as string, 'end', ' ') } }], v)
+    },
+  },
+  {
+    name: 'portfolio_append_text', title: 'Add text to the start or end of a field', kind: 'direct', annotations: ADD,
+    input: z.object({ field: z.enum(['about', 'headline', 'skills_narrative']), text: text(2000), position: z.enum(['start', 'end']).default('end'), expected_version: expected }).strict(),
+    description: 'Use this to ADD to an existing text field without rewriting it (for example a new paragraph at the end of About). Everything already there is kept exactly.',
+    async run(ctx, a) {
+      mustWrite(ctx)
+      const pf = await ownPortfolio(ctx.userId)
+      if (!pf) throw new ToolError('not_found', 'No portfolio found for this account.')
+      const value = appendText(pf.content?.[a.field as string], a.text as string, a.position as 'start' | 'end', a.field === 'about' ? '\n\n' : ' ')
+      return direct(ctx, [{ op: 'set_field', field: a.field, value }], (a.expected_version as number | undefined) ?? (pf.edit_count ?? 0))
+    },
+  },
+  {
+    name: 'portfolio_replace_snippet', title: 'Replace one piece of text', kind: 'direct', annotations: EDIT,
+    input: z.object({ field: z.enum(['about', 'headline', 'skills_narrative', 'role', 'location']), old_text: text(2000).describe('Exact text to replace, copied from portfolio_get'), new_text: text(2000), expected_version: expected }).strict(),
+    description: 'Use this to change a specific phrase or sentence inside a field (for example fix one typo) while keeping the rest untouched. It fails if the old text is not found or appears more than once, so it cannot change the wrong place. Undoable.',
+    async run(ctx, a) {
+      mustWrite(ctx)
+      const pf = await ownPortfolio(ctx.userId)
+      if (!pf) throw new ToolError('not_found', 'No portfolio found for this account.')
+      const r = replaceSnippet(pf.content?.[a.field as string], a.old_text as string, a.new_text as string)
+      if (!r.ok) throw new ToolError(r.code, r.message)
+      return direct(ctx, [{ op: 'set_field', field: a.field, value: r.value }], (a.expected_version as number | undefined) ?? (pf.edit_count ?? 0))
+    },
+  },
+  {
+    name: 'portfolio_add_bullet', title: 'Add a highlight line to a role', kind: 'direct', annotations: ADD,
+    input: z.object({ role_index: pos, text: text(400), position: pos.optional().describe('Where to insert (0 = first). Default: the end.'), expected_version: expected }).strict(),
+    description: 'Use this to add one highlight line to an existing role, keeping the others. Duplicates are refused; at most 12 lines per role.',
+    async run(ctx, a) {
+      mustWrite(ctx)
+      const pf = await ownPortfolio(ctx.userId)
+      if (!pf) throw new ToolError('not_found', 'No portfolio found for this account.')
+      const b = bulletsOf(pf.content, 'experience', a.role_index as number)
+      if (!b.ok) throw new ToolError(b.code, b.message)
+      const r = insertBullet(b.value, a.text as string, a.position as number | undefined)
+      if (!r.ok) throw new ToolError(r.code, r.message)
+      return direct(ctx, [{ op: 'update_experience', index: a.role_index, patch: { bullets: r.value } }], (a.expected_version as number | undefined) ?? (pf.edit_count ?? 0))
+    },
+  },
+  {
+    name: 'portfolio_update_bullet', title: 'Edit one highlight line', kind: 'direct', annotations: EDIT,
+    input: z.object({ role_index: pos, bullet_index: pos, text: text(400), expected_version: expected }).strict(),
+    description: 'Use this to reword one highlight line of a role; the other lines are untouched. To delete a line use portfolio_remove_bullet.',
+    async run(ctx, a) {
+      mustWrite(ctx)
+      const pf = await ownPortfolio(ctx.userId)
+      if (!pf) throw new ToolError('not_found', 'No portfolio found for this account.')
+      const b = bulletsOf(pf.content, 'experience', a.role_index as number)
+      if (!b.ok) throw new ToolError(b.code, b.message)
+      const r = setBullet(b.value, a.bullet_index as number, a.text as string)
+      if (!r.ok) throw new ToolError(r.code, r.message)
+      return direct(ctx, [{ op: 'update_experience', index: a.role_index, patch: { bullets: r.value } }], (a.expected_version as number | undefined) ?? (pf.edit_count ?? 0))
+    },
+  },
+  {
+    name: 'portfolio_move_bullet', title: 'Reorder highlight lines', kind: 'direct', annotations: EDIT,
+    input: z.object({ role_index: pos, from: pos, to: pos, expected_version: expected }).strict(),
+    description: 'Use this to move one highlight line of a role to another position. Only the order changes.',
+    async run(ctx, a) {
+      mustWrite(ctx)
+      const pf = await ownPortfolio(ctx.userId)
+      if (!pf) throw new ToolError('not_found', 'No portfolio found for this account.')
+      const b = bulletsOf(pf.content, 'experience', a.role_index as number)
+      if (!b.ok) throw new ToolError(b.code, b.message)
+      const r = moveBullet(b.value, a.from as number, a.to as number)
+      if (!r.ok) throw new ToolError(r.code, r.message)
+      return direct(ctx, [{ op: 'update_experience', index: a.role_index, patch: { bullets: r.value } }], (a.expected_version as number | undefined) ?? (pf.edit_count ?? 0))
+    },
+  },
+  {
+    name: 'portfolio_remove_bullet', title: 'Remove a highlight line (needs approval)', kind: 'approval', annotations: EDIT,
+    input: z.object({ role_index: pos, bullet_index: pos, expected_version: expected }).strict(),
+    description: 'Use this to delete one highlight line of a role. It does NOT delete yet: it returns an approval_url the person must open on liveportfolio.site.',
+    async run(ctx, a) {
+      mustWrite(ctx)
+      const pf = await ownPortfolio(ctx.userId)
+      if (!pf) throw new ToolError('not_found', 'No portfolio found for this account.')
+      const b = bulletsOf(pf.content, 'experience', a.role_index as number)
+      if (!b.ok) throw new ToolError(b.code, b.message)
+      const r = dropBullet(b.value, a.bullet_index as number)
+      if (!r.ok) throw new ToolError(r.code, r.message)
+      return propose(ctx, { kind: 'ops', ops: [{ op: 'update_experience', index: a.role_index, patch: { bullets: r.value } }] }, (a.expected_version as number | undefined) ?? (pf.edit_count ?? 0))
+    },
+  },
+  {
+    name: 'portfolio_health_check', title: 'Check the portfolio for gaps', kind: 'read', annotations: READ, input: empty,
+    description: 'Use this after a round of edits, or when the person asks "is my portfolio good?". Lists concrete gaps: empty or short sections, roles without highlights, projects without outcomes or pictures, missing education. Suggest fixes using only facts the person can give you.',
+    async run(ctx) {
+      const pf = await ownPortfolio(ctx.userId)
+      if (!pf) throw new ToolError('not_found', 'No portfolio found for this account.')
+      const issues = auditHealth(pf.content ?? {})
+      return { issues, count: issues.length, next: issues.length ? 'Offer to fix the first one or two; ask the person for any missing facts.' : 'Nothing obvious is missing.' }
+    },
   },
 
   // ── pictures ───────────────────────────────────────────────────────────────────────────────────────────────

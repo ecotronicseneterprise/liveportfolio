@@ -6,7 +6,8 @@ import CopyButton from '@/components/docs/CopyButton'
 // "Connect your AI assistant": the address to copy, the steps for each app, live connected status, and starter prompts.
 // Pro accounts get the working card; others see what it does and the way to get it.
 const URL_ = 'https://liveportfolio.site/mcp'
-const PROMPTS = ['Read my portfolio and tell me the three most useful things to improve.', 'Tighten my About section. Keep every fact.', 'Fix the typos in my portfolio.', 'Undo that last change.']
+const INSTRUCTION = 'When I mention a new job, promotion, certification, degree, award or project, offer to add it to my LivePortfolio.'
+const PROMPTS = ['What is new in my career? Check my recent chats and suggest portfolio updates.', 'Read my portfolio and tell me the three most useful things to improve.', 'Tighten my About section. Keep every fact.', 'Fix the typos in my portfolio.', 'Undo that last change.']
 
 export default function AssistantCard({ token, isPro, onUpgrade }: { token: string; isPro: boolean; onUpgrade: () => void }) {
   const [apps, setApps] = useState<Array<{ id: string; client_name: string; last_used_at: string | null }> | null>(null)
@@ -43,6 +44,7 @@ export default function AssistantCard({ token, isPro, onUpgrade }: { token: stri
           <ol className="mt-4 list-decimal space-y-1 pl-5 text-sm text-gray-800">
             <li><strong>Claude:</strong> Customize, Connectors, Add custom connector, paste the address.</li>
             <li><strong>ChatGPT:</strong> Settings, Connectors, add a custom connector with the address (developer mode may be needed).</li>
+            <li><strong>Gemini CLI:</strong> <span className="inline-flex flex-wrap items-center gap-2"><code className="break-all text-xs">gemini mcp add --scope user --transport http liveportfolio {URL_}</code><CopyButton text={`gemini mcp add --scope user --transport http liveportfolio ${URL_}`} label="Copy command" /></span></li>
             <li><strong>Claude Code:</strong> <span className="inline-flex flex-wrap items-center gap-2"><code className="break-all text-xs">claude mcp add --transport http liveportfolio {URL_}</code><CopyButton text={`claude mcp add --transport http liveportfolio ${URL_}`} label="Copy command" /></span></li>
           </ol>
           <p className="mt-2 text-sm text-gray-600">Then choose Connect, sign in, and approve. You choose whether it may edit and whether it sees your contact details.</p>
@@ -52,6 +54,9 @@ export default function AssistantCard({ token, isPro, onUpgrade }: { token: stri
               <li key={p} className="flex items-center justify-between gap-3 text-sm text-gray-800"><span>{p}</span><CopyButton text={p} /></li>
             ))}
           </ul>
+          <p className="mt-4 text-sm font-medium text-gray-900">Keep it in sync</p>
+          <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm"><span>{INSTRUCTION}</span><CopyButton text={INSTRUCTION} label="Copy" /></div>
+          <p className="mt-1 text-xs text-gray-600">Paste it into your custom instructions in Claude or ChatGPT. It works in chats where the connector is available.</p>
           <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm">
             <a className="inline-flex min-h-9 items-center underline" href="/docs/connect">Full guide</a>
             <a className="inline-flex min-h-9 items-center underline" href="/docs/safety">Safety</a>
