@@ -22,6 +22,7 @@ import FreeSplit from '@/components/dashboard/FreeSplit'
 import FreePreview from '@/components/dashboard/FreePreview'
 import ProOverview from '@/components/dashboard/ProOverview'
 import AssistantCard from '@/components/dashboard/AssistantCard'
+import { powerBiEmbedUrl } from '@/lib/connectors/safe-url'
 import TemplateCarousel from '@/components/dashboard/TemplateCarousel'
 import StackInput from '@/components/dashboard/StackInput'
 import { portfolioIntelligence } from '@/lib/dashboard/intelligence'
@@ -2305,6 +2306,19 @@ export default function DashboardPage() {
                           setEditContent(prev => ({ ...prev, projects: updated }))
                         }}
                         className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Interactive Power BI dashboard (optional)</label>
+                      <input id={`editor-project-${i}-embed`} type="text" placeholder="Paste the Power BI Publish to web link or embed code" value={proj.embed_url || ''}
+                        onChange={(e) => {
+                          const updated = [...(editContent.projects || [])]
+                          updated[i] = { ...updated[i], embed_url: e.target.value }
+                          setEditContent(prev => ({ ...prev, projects: updated }))
+                        }}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent" style={{ fontSize: '16px' }} />
+                      {proj.embed_url && !powerBiEmbedUrl(proj.embed_url)
+                        ? <p className="mt-1 text-xs text-red-600" role="alert">Only a Power BI &quot;Publish to web&quot; link works here (it starts with https://app.powerbi.com/view).</p>
+                        : <p className="mt-1 text-xs text-gray-500">Lets visitors hover and click your dashboard, under your screenshot. In Power BI: File, Embed report, Publish to web, then paste the link. Anyone with the link can see the data, so only use data you are happy to share. This is not the Live URL above. Shown on the free designs.</p>}
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">GitHub repo URL (optional)</label>

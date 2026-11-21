@@ -1,6 +1,8 @@
 // Human-readable before/after for the approval page, and warnings when a saved change will not be fully visible on the public page.
 // Pure: no I/O. Never includes contact details (email, phone, WhatsApp).
+import { PRO_TEMPLATES } from '@/lib/plans'
 type Json = Record<string, unknown>
+const PRO_IDS = new Set<string>(PRO_TEMPLATES)
 
 const LABELS: Record<string, string> = {
   name: 'Name', role: 'Role', headline: 'Headline', about: 'About', location: 'Location', skills: 'Skills', skills_grouped: 'Skill groups',
@@ -45,13 +47,15 @@ export const DISPLAY_LIMITS = {
   project_stack_items_shown: 5,
   role_bullets_shown: 'all, except the "index" arrangement which shows the first bullet only',
   testimonials_shown: 1,
+  project_dashboard_embed: 'an interactive Power BI report is shown under the project picture on the free designs only; the Pro designs show the picture',
   skills_shown: 'the skill groups when there are any; otherwise the flat skills list',
 } as const
 
-export function displayWarnings(content: Json): string[] {
+export function displayWarnings(content: Json, template?: string): string[] {
   const out: string[] = []
   const projects = Array.isArray(content.projects) ? (content.projects as Json[]) : []
   projects.forEach((p, i) => {
+    if (template && PRO_IDS.has(template) && typeof p.embed_url === 'string' && p.embed_url) out.push(`Project ${i + 1} "${String(p.title ?? '')}": the interactive dashboard is saved but this Pro design shows the picture only. The free designs show it.`)
     const stack = Array.isArray(p.stack) ? p.stack : []
     if (stack.length > DISPLAY_LIMITS.project_stack_items_shown) out.push(`Project ${i + 1} "${String(p.title ?? '')}": only the first ${DISPLAY_LIMITS.project_stack_items_shown} of its ${stack.length} stack items are shown on the public page (the rest are saved). Put the most important ones first.`)
     if (typeof p.outcome === 'string' && p.outcome.trim() && p.outcome.trim() === String(p.solution ?? '').trim()) out.push(`Project ${i + 1} "${String(p.title ?? '')}": the outcome is identical to the solution, so the page repeats the same text. Ask the person for a real result, or shorten it.`)

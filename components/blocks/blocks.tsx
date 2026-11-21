@@ -45,15 +45,30 @@ function ProjectStack({ p }: { p: BlockProject }) {
 }
 
 /** User-uploaded project media wins. Without it, render an abstract title/stack graphic, never a fake screenshot. */
+/** An optional interactive Power BI report. No client script: a native <details> keeps the (lazy) iframe from loading until a visitor opens it. */
+function LiveDashboard({ p }: { p: BlockProject }) {
+  if (!p.embedUrl) return null
+  return (
+    <details className="pembed">
+      <summary>{t('portfolio.liveDashboard')}</summary>
+      <iframe src={p.embedUrl} title={t('portfolio.liveDashboardTitle', { title: p.title })} loading="lazy" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" referrerPolicy="no-referrer" allowFullScreen />
+      <a href={p.embedUrl} target="_blank" rel="noopener noreferrer">{t('portfolio.openFullScreen')}</a>
+    </details>
+  )
+}
+
 function Picture({ p }: { p: BlockProject }) {
   // eslint-disable-next-line @next/next/no-img-element
-  if (p.imageUrl) return <img className="pimg" src={p.imageUrl} alt={p.title} width={1280} height={800} loading="lazy" decoding="async" />
+  if (p.imageUrl) return <><img className="pimg" src={p.imageUrl} alt={p.title} width={1280} height={800} loading="lazy" decoding="async" /><LiveDashboard p={p} /></>
   const monogram = p.title.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join('').toUpperCase()
   return (
-    <div className="pvisual" aria-hidden="true">
-      <span className="pvisual-mark">{monogram}</span>
-      <span className="pvisual-lines"><i /><i /><i /></span>
-    </div>
+    <>
+      <div className="pvisual" aria-hidden="true">
+        <span className="pvisual-mark">{monogram}</span>
+        <span className="pvisual-lines"><i /><i /><i /></span>
+      </div>
+      <LiveDashboard p={p} />
+    </>
   )
 }
 

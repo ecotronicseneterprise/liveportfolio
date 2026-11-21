@@ -103,7 +103,7 @@ const TEXT_GUARD = ['about', 'headline', 'skills_narrative'] as const
 const urlSet = (c: Json): Set<string> => {
   const out = new Set<string>()
   for (const k of ['github_url', 'linkedin_url', 'twitter_url', 'instagram_url', 'facebook_url', 'youtube_url', 'tiktok_url', 'website_url']) if (typeof c[k] === 'string' && c[k]) out.add(String(c[k]))
-  for (const p of list(c, 'projects')) for (const k of ['url', 'github_url']) if (typeof p[k] === 'string' && p[k]) out.add(String(p[k]))
+  for (const p of list(c, 'projects')) for (const k of ['url', 'github_url', 'embed_url']) if (typeof p[k] === 'string' && p[k]) out.add(String(p[k]))
   return out
 }
 

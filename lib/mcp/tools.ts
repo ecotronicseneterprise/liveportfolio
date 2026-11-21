@@ -104,7 +104,7 @@ async function direct(ctx: McpCtx, ops: unknown[], expectedVersion?: number, ext
   }
   const a = await applyForUser(ctx.userId, ops, { expectedVersion })
   let warnings: string[] = []
-  try { if (pf) warnings = displayWarnings(applyOps({ content: pf.content ?? {}, template: pf.template ?? 'minimal' }, ops).state.content) } catch { /* the edit result already reports problems */ }
+  try { if (pf) warnings = displayWarnings(applyOps({ content: pf.content ?? {}, template: pf.template ?? 'minimal' }, ops).state.content, pf.template) } catch { /* the edit result already reports problems */ }
   return { ...fromApplied(a, await userRow(ctx.userId)), ...(warnings.length ? { warnings } : {}), ...extra }
 }
 
@@ -156,6 +156,7 @@ const ProjectFields = {
   stack: z.array(text(40)).max(12).optional().describe('Tools and technologies used'),
   url: text(500).optional().describe('Link to the live project (https)'),
   github_url: text(500).optional().describe('Link to the code (https)'),
+  embed_url: text(2500).optional().describe('Optional, Power BI only: the "Publish to web" link (https://app.powerbi.com/view?r=...) or its embed code. It shows an INTERACTIVE dashboard under the project picture on the free designs. This is different from `url` (the live site). Anyone with the link can see the data, so only use data the person is happy to make public. An empty string removes it.'),
 }
 const ExperienceFields = {
   company: text(120).describe('Employer or organisation'),

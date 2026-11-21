@@ -6,7 +6,7 @@
 //
 // Deliberately NOT here: publishing, plans, the slug, the email address of the account. Those are not "content".
 import { z } from 'zod'
-import { httpUrl, isGithubAvatarUrl, projectImageUrl } from '@/lib/connectors/safe-url'
+import { httpUrl, isGithubAvatarUrl, powerBiEmbedUrl, projectImageUrl } from '@/lib/connectors/safe-url'
 import { LayoutSettings, parseLayout } from '@/lib/blocks/settings'
 import { PRO_TEMPLATES } from '@/lib/plans'
 import { ProDesignsSchema, withProDesign } from '@/lib/portfolio/presentation'
@@ -58,6 +58,7 @@ const ProjectInput = z
     url: optionalLink.optional(),
     github_url: optionalLink.optional(),
     image_url: optionalLink.optional(),
+    embed_url: z.string().max(2500).optional(),
   })
   .strict()
 // Patches are written out WITHOUT defaults on purpose. Building them with .partial() from the schemas above would fill every field a
@@ -72,6 +73,7 @@ const ProjectPatch = z
     url: optionalLink.optional(),
     github_url: optionalLink.optional(),
     image_url: optionalLink.optional(),
+    embed_url: z.string().max(2500).optional(),
   })
   .strict()
 const ExperienceInput = z
@@ -120,7 +122,7 @@ const cleanBullets = (b: string[]) => b.map(stripBulletMarker).filter((x) => x.l
 const trim = (s: string) => s.trim()
 
 /** A link a person may SET. The value already stored is always accepted unchanged, so saving other edits never fails on old data. */
-function checkLink(field: (typeof LINK_FIELDS)[number] | 'url' | 'image_url', value: string, current: unknown, i: number): string {
+function checkLink(field: (typeof LINK_FIELDS)[number] | 'url' | 'image_url' | 'embed_url', value: string, current: unknown, i: number): string {
   const v = value.trim()
   if (v === '') return ''
   if (typeof current === 'string' && v === current) return v
@@ -128,6 +130,11 @@ function checkLink(field: (typeof LINK_FIELDS)[number] | 'url' | 'image_url', va
   if (field === 'avatar_url') {
     const out = projectImageUrl(v, undefined, 'avatars') || (isGithubAvatarUrl(v) ? v : '')
     if (!out) throw bad()
+    return out
+  }
+  if (field === 'embed_url') {
+    const out = powerBiEmbedUrl(v)
+    if (!out) throw new OpError('invalid_op', 'embed_url must be a Power BI "Publish to web" link (https://app.powerbi.com/view?r=...) or its embed code', i)
     return out
   }
   if (field === 'image_url') {
@@ -142,7 +149,7 @@ function checkLink(field: (typeof LINK_FIELDS)[number] | 'url' | 'image_url', va
 
 function checkProjectLinks<T extends Json>(p: T, current: Json | undefined, i: number): T {
   const out: Json = { ...p }
-  for (const k of ['url', 'github_url', 'image_url'] as const) {
+  for (const k of ['url', 'github_url', 'image_url', 'embed_url'] as const) {
     if (typeof out[k] === 'string') {
       const v = checkLink(k, out[k] as string, current?.[k], i)
       if (v) out[k] = v
@@ -263,7 +270,7 @@ export function applyOps(input: PortfolioState, rawOps: unknown): ApplyResult {
         const patch = checkProjectLinks(op.patch as Json, cur, i)
         const next = { ...cur, ...patch }
         // Link validation drops empty values; an explicit clear must also remove the stored value after merging.
-        for (const key of ['url', 'github_url', 'image_url'] as const) {
+        for (const key of ['url', 'github_url', 'image_url', 'embed_url'] as const) {
           if (op.patch[key]?.trim() === '') delete next[key]
         }
         if (typeof next.title === 'string' && !next.title.trim()) throw new OpError('invalid_op', 'a project needs a title', i)
@@ -333,8 +340,15 @@ export function applyOps(input: PortfolioState, rawOps: unknown): ApplyResult {
         if (Array.isArray(patch.projects)) {
           // a project image is rendered as an <img>: it must be one of our own uploads, or already stored on this portfolio
           const stored = new Set(list(c, 'projects').map((p) => p.image_url).filter((u): u is string => typeof u === 'string'))
-          patch.projects = (patch.projects as Json[]).map((p) => {
+          patch.projects = (patch.projects as Json[]).map((p0) => {
+            let p = p0
             if (!p || typeof p !== 'object') throw new OpError('invalid_op', 'each project must be an object', i)
+            // an interactive dashboard is rendered in an iframe: only a Power BI "Publish to web" link is accepted (normalised), the rest is refused
+            if (typeof p.embed_url === 'string' && p.embed_url.trim() !== '') {
+              const clean = powerBiEmbedUrl(p.embed_url)
+              if (!clean) throw new OpError('invalid_op', 'The dashboard link must be a Power BI "Publish to web" link (https://app.powerbi.com/view?r=...) or its embed code', i)
+              p = { ...p, embed_url: clean }
+            } else if ('embed_url' in p) { const { embed_url: _e, ...rest } = p; p = rest }
             const img = p.image_url
             if (typeof img !== 'string' || img === '') { const { image_url: _drop, ...rest } = p; return rest }
             if (stored.has(img) || projectImageUrl(img)) return p

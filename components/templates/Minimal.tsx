@@ -49,6 +49,8 @@ export interface PortfolioContent {
     url?: string
     github_url?: string
     image_url?: string
+    /** An interactive Power BI report ("Publish to web"), shown under the picture on the free designs. */
+    embed_url?: string
   }[]
   experience: {
     company: string

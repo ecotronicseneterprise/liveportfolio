@@ -103,3 +103,29 @@ export function projectImageUrl(
     return ''
   }
 }
+
+/**
+ * An interactive Power BI report ("Publish to web"). The ONLY embed we accept. Takes the plain link or the whole embed code
+ * (<iframe src="...">) and returns the clean https://app.powerbi.com/view?r=... address, or '' for anything else: another host,
+ * another path, http, credentials, a different port, or an address without the report token. Host and path are compared EXACTLY.
+ */
+export function powerBiEmbedUrl(raw: unknown): string {
+  if (typeof raw !== 'string') return ''
+  let v = raw.trim()
+  if (!v || v.length > 2500) return ''
+  const fromIframe = /<iframe[^>]*\ssrc\s*=\s*["']([^"']+)["']/i.exec(v)
+  if (fromIframe) v = fromIframe[1].trim()
+  v = v.replace(/&amp;/g, '&')
+  try {
+    const u = new URL(v)
+    if (u.protocol !== 'https:' || u.hostname !== 'app.powerbi.com' || u.port !== '' || u.username || u.password) return ''
+    if (u.pathname !== '/view') return ''
+    const r = u.searchParams.get('r')
+    if (!r || r.length < 20 || r.length > 2000 || !/^[A-Za-z0-9_=.%-]+$/.test(r)) return ''
+    // r and pageName were just checked against strict character sets, so building the string by hand is safe and keeps the token exactly as given
+    const pg = u.searchParams.get('pageName')
+    return `https://app.powerbi.com/view?r=${r}${pg && /^[A-Za-z0-9_-]{1,60}$/.test(pg) ? `&pageName=${pg}` : ''}`
+  } catch {
+    return ''
+  }
+}

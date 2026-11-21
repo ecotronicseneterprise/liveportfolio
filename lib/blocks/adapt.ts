@@ -3,8 +3,9 @@
 import { contactItems, type ContactItem } from '@/lib/contact/items'
 import type { PortfolioContent } from '@/components/templates/Minimal'
 import { t } from '@/lib/onboarding/t'
+import { powerBiEmbedUrl } from '@/lib/connectors/safe-url'
 
-export interface BlockProject { title: string; problem: string; solution: string; outcome: string; stack: string[]; url?: string; sourceUrl?: string; imageUrl?: string }
+export interface BlockProject { title: string; problem: string; solution: string; outcome: string; stack: string[]; url?: string; sourceUrl?: string; imageUrl?: string; embedUrl?: string }
 export interface BlockRole { company: string; role: string; period: string; bullets: string[] }
 export interface BlockData {
   name: string
@@ -60,6 +61,7 @@ export function toBlockData(c: Partial<PortfolioContent> | null | undefined): Bl
       stack: strs(p?.stack, 40, 12),
       url: safeUrl(p?.url),
       sourceUrl: safeUrl(p?.github_url),
+      embedUrl: powerBiEmbedUrl(p?.embed_url) || undefined,
       imageUrl: localAsset(p?.image_url) ?? ((): string | undefined => { const u = safeUrl(p?.image_url); return u && u.startsWith('https://') ? u : undefined })(),
     }))
     .filter((p) => p.title)
