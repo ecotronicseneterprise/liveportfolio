@@ -30,3 +30,16 @@ describe('per-assistant connect pages', () => {
     for (const c of CONNECT_CLIENTS) expect(txt).toContain(`/docs/connect/${c.slug}`)
   })
 })
+
+import fs from 'node:fs'
+import { SYNC_INSTRUCTION } from '@/lib/docs/sync'
+describe('the "use LivePortfolio" instruction comes first', () => {
+  it('is the same text on the card, /connect and the guides, and the card keeps server code out of the browser bundle', () => {
+    const card = fs.readFileSync('components/dashboard/AssistantCard.tsx', 'utf8')
+    expect(card).toContain("@/lib/docs/sync")
+    expect(card).not.toContain("@/lib/docs/connect")
+    expect(card).not.toContain('just got certified in')
+    expect(fs.readFileSync('app/connect/page.tsx', 'utf8')).toContain('SYNC_INSTRUCTION')
+    expect(JSON.stringify(DOC_PAGES.find((p) => p.slug === 'connect'))).toContain(SYNC_INSTRUCTION)
+  })
+})

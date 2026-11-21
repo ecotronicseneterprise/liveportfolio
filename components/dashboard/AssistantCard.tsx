@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import CopyButton from '@/components/docs/CopyButton'
+import { SYNC_INSTRUCTION } from '@/lib/docs/sync'
 import '@/components/landing/landing.css'
 import { studioFonts } from '@/components/blocks/looks/fonts-studio'
 
@@ -13,8 +14,7 @@ import { studioFonts } from '@/components/blocks/looks/fonts-studio'
 export const MCP_ADDRESS = 'https://liveportfolio.site/mcp'
 const SHORT_ADDRESS = 'liveportfolio.site/mcp'
 const CLAUDE_LINK = `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=LivePortfolio&connectorUrl=${encodeURIComponent(MCP_ADDRESS)}`
-const FIRST = 'I just got certified in ___. Add it to my LivePortfolio.'
-const INSTRUCTION = 'When I mention a new job, promotion, certification, degree, award or project, offer to add it to my LivePortfolio.'
+const INSTRUCTION = SYNC_INSTRUCTION
 const PROMPTS = ['What is new in my career? Check my recent chats and suggest portfolio updates.', 'Tighten my About section. Keep every fact.', 'Undo that last change.']
 
 export interface ConnectedApp { id: string; client_name: string; last_used_at: string | null }
@@ -107,20 +107,16 @@ export default function AssistantCard({ token, isPro, onUpgrade, userId, initial
       </button>
       {open && (
         <div className="mt-3 space-y-4 border-t border-gray-100 pt-4">
-          <div>
-            <p className="text-sm font-medium text-gray-900">Say this to your assistant</p>
-            <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm"><span>{FIRST}</span><CopyButton text={FIRST} label="Copy" /></div>
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-3">
+            <p className="text-sm font-semibold text-gray-900">Start here: tell your assistant to use LivePortfolio</p>
+            <div className="mt-2 flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"><span>{INSTRUCTION}</span><CopyButton text={INSTRUCTION} label="Copy" /></div>
+            <p className="mt-2 text-xs text-gray-600">Paste into your custom instructions in Claude or ChatGPT. Without it, a new chat can give a generic answer. You can also begin a chat with &quot;Use LivePortfolio: ...&quot;.</p>
           </div>
           <div>
             <p className="text-sm font-medium text-gray-900">Try asking</p>
             <ul className="mt-1 space-y-2">
               {PROMPTS.map((p) => <li key={p} className="flex items-center justify-between gap-3 text-sm text-gray-800"><span>{p}</span><CopyButton text={p} label="Copy" /></li>)}
             </ul>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-900">Keep it in sync</p>
-            <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm"><span>{INSTRUCTION}</span><CopyButton text={INSTRUCTION} label="Copy" /></div>
-            <p className="mt-1 text-xs text-gray-500">Paste into your custom instructions in Claude or ChatGPT.</p>
           </div>
           <div>
             <p className="text-sm font-medium text-gray-900">Connect another assistant</p>

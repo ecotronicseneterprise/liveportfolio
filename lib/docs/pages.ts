@@ -2,6 +2,7 @@
 // app (plans in lib/plans.ts, the assistant in lib/mcp). Do not add a claim the product does not back. No prices here: pricing lives on the home page.
 import { SUPPORT_EMAIL } from '@/lib/brand'
 import { CANNOT, CONNECT_STEPS, EXAMPLES, MCP_URL } from '@/lib/mcp/docs'
+import { SYNC_INSTRUCTION, SYNC_NOTE } from '@/lib/docs/sync'
 
 export type Block =
   | { t: 'p'; text: string }
@@ -29,6 +30,10 @@ export const DOC_PAGES: DocPage[] = [
   {
     slug: 'connect', group: 'AI assistant', title: 'Connect your AI assistant', description: 'Connect Claude, ChatGPT or Claude Code to your portfolio in a few steps.',
     blocks: [
+      { t: 'h', text: 'Do this first' },
+      { t: 'p', text: 'Tell your assistant to use LivePortfolio. Add this line to your custom instructions in Claude or ChatGPT:' },
+      { t: 'code', text: SYNC_INSTRUCTION },
+      { t: 'note', text: SYNC_NOTE },
       { t: 'p', text: 'The assistant connection is included with the Pro plan. You add LivePortfolio to your assistant once; after that you can ask for changes in plain words.' },
       { t: 'p', text: 'Fastest route: open liveportfolio.site/connect for the one-click Claude button and the three simple steps.' },
       { t: 'p', text: 'The address to add:' },
