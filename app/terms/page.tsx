@@ -68,6 +68,10 @@ export default function TermsPage() {
               liveportfolio.site a non-exclusive licence to display it on your published portfolio page.
             </p>
             <p className="mt-3">
+              If you connect an AI assistant, changes it makes are made on your instruction and are your responsibility. Removing content and adding
+              links need your approval, and you can undo changes from History.
+            </p>
+            <p className="mt-3">
               AI-generated content (rewritten bios, project descriptions, and headlines) produced using your
               input belongs to you once generated. We do not claim any rights over it.
             </p>

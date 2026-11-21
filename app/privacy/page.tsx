@@ -108,6 +108,14 @@ export default function PrivacyPage() {
                 <em>Career score (paid plans):</em> your portfolio text, with your name replaced by a placeholder.{' '}
                 OpenAI does not use data sent through its API to train its models, according to OpenAI&apos;s API data policy.
               </li>
+              <li>
+                <strong>AI assistants you connect (ChatGPT, Claude and others; Pro)</strong>: if you connect an assistant, it can read your portfolio
+                text and, only if you allow it, your email address, phone number and WhatsApp number. That text is sent to the assistant&apos;s provider,
+                which may process it outside Nigeria, under that provider&apos;s own terms and privacy policy; we do not control what the provider does
+                with it. We do not store your chat messages. What we store: which app you connected, your choices (allow edits, share contact details),
+                when it was last used, records of changes it proposed, the versions saved by its edits (shown in History), and counts of tool calls used
+                for rate limits and safety. You can disconnect an app at any time at liveportfolio.site/oauth/connections; its next request is refused.
+              </li>
               <li><strong>IPinfo</strong>: when someone views a published portfolio, the visitor&apos;s IP address is sent to IPinfo to find the country and organisation. We keep the result and a hash of the address, not the address.</li>
               <li><strong>api.qrserver.com</strong>: draws the QR code on your dashboard and preview. It receives your portfolio address and the IP address of the browser that loads the image.</li>
               <li><strong>Cloudflare Turnstile</strong>: a bot check that may appear on sign-up and sign-in. It receives your IP address and browser signals.</li>
@@ -133,7 +141,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className={H2}>7. Data Retention</h2>
             <p>
-              We keep your data while your account is active. If you delete your account we delete your profile, portfolio content and analytics
+              We keep your data while your account is active. If you delete your account we delete your profile, portfolio content, analytics and assistant connection records
               within 14 days. Payment records are kept for 7 years for legal and accounting reasons.
             </p>
           </section>
