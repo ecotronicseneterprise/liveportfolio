@@ -48,3 +48,10 @@ describe('no unverified claims, and the feature is labelled Pro', () => {
     expect(read('lib/plans.ts')).not.toContain("label: 'AI assistant'")
   })
 })
+
+describe('pricing in emails comes from the single source', () => {
+  it('no hard-coded dollar or per-year prices in email templates', () => {
+    for (const f of ['lib/email.ts', 'lib/email-drip.ts']) expect(read(f), f).not.toMatch(/\$\d+\s*\/\s*year|starting at \$/i)
+    expect(read('lib/email.ts')).toContain('formatNaira(PLANS.basic.priceNgn')
+  })
+})
