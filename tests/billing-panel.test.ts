@@ -18,7 +18,6 @@ vi.mock('@/lib/supabase', async () => {
 import { NextRequest } from 'next/server'
 import { GET } from '../app/api/billing/route'
 import { PlanBillingView, type Billing } from '../components/dashboard/PlanBillingPanel'
-import { SUPPORT_EMAIL } from '../lib/brand'
 
 const DAY = 24 * 60 * 60 * 1000
 const U1 = '11111111-1111-4111-8111-111111111111'
@@ -83,10 +82,9 @@ describe('GET /api/billing', () => {
 describe('the Plan and billing panel', () => {
   const base: Billing = { plan: 'free', expires_at: null, days_left: null, one_time: null, payments: [] }
   const on = () => {}
-  it('free: says private, offers Publish, and gives the refund guarantee with the support address', () => {
+  it('free: says private and offers Publish (the refund policy lives on the terms page only)', () => {
     const t = text(createElement(PlanBillingView, { b: base, onPay: on }))
     expect(t).toMatch(/Free plan/); expect(t).toMatch(/private/i); expect(t).toContain('Publish my portfolio')
-    expect(t).toMatch(/7-day refund guarantee/); expect(t).toContain(SUPPORT_EMAIL)
     expect(t).not.toContain('Payments')
   })
   it('one-time Basic: the end date, days left, "does not renew automatically", a renew button, and the payment list in Naira', () => {
