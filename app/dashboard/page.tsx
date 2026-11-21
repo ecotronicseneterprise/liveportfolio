@@ -21,6 +21,7 @@ import { removeSkill } from '@/lib/portfolio/editor'
 import FreeSplit from '@/components/dashboard/FreeSplit'
 import FreePreview from '@/components/dashboard/FreePreview'
 import ProOverview from '@/components/dashboard/ProOverview'
+import AssistantCard from '@/components/dashboard/AssistantCard'
 import TemplateCarousel from '@/components/dashboard/TemplateCarousel'
 import StackInput from '@/components/dashboard/StackInput'
 import { portfolioIntelligence } from '@/lib/dashboard/intelligence'
@@ -1325,6 +1326,11 @@ export default function DashboardPage() {
         </div>
 
         {/* ── OVERVIEW TAB ── */}
+        {activeTab === 'overview' && accessToken && (
+          <div className="mb-4">
+            <AssistantCard token={accessToken} isPro={isPro} onUpgrade={() => { setUpgradeProOnly(true); setShowUpgradeModal(true) }} />
+          </div>
+        )}
         {activeTab === 'overview' && isPro && isPublished && portfolio?.id && (
           <ProOverview
             portfolioId={portfolio.id}

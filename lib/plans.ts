@@ -41,7 +41,7 @@ export const FEATURES: readonly Feature[] = [
   { id: 'qr', label: 'QR code for your portfolio', status: 'available', plans: ['pro'] },
   { id: 'weekly_score', label: 'Weekly personalized career insights', status: 'available', plans: ['pro'] },
   { id: 'ai_assistant', label: 'AI assistant', status: 'soon', plans: ['pro'] },
-  { id: 'mcp', label: 'Connect your own AI tools (MCP)', status: 'soon', plans: ['pro'] },
+  { id: 'mcp', label: 'Edit your portfolio from Claude or ChatGPT', status: 'available', plans: ['pro'] },
   { id: 'github_sync', label: 'GitHub sync', status: 'soon', plans: ['pro'] },
 ]
 

@@ -14,7 +14,7 @@ const Steps = ({ items }: { items: string[] }) => (
 export default function McpDocs() {
   const tools = toolsReference()
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 text-neutral-900">
+    <main>
       <p className="text-sm font-semibold tracking-wide text-neutral-500"><a href="/docs">Docs</a> / Assistant connection</p>
       <h1 className="mt-2 text-3xl font-semibold">Your portfolio, powered by your AI assistant</h1>
       <p className="mt-4 text-lg text-neutral-700">

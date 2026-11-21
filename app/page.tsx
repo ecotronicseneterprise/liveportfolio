@@ -293,6 +293,18 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Assistant connection ── */}
+      <section className="w-full bg-gray-50 border-t border-gray-100">
+        <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-20 lg:text-center lg:flex lg:flex-col lg:items-center">
+          <p className="text-sm font-semibold text-[#0A66C2] mb-2">New for Pro</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] leading-tight mb-4">Your portfolio, powered by your AI assistant</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mb-6">
+            Connect Claude or ChatGPT once, then just ask: &ldquo;tighten my About&rdquo;, &ldquo;add my new job&rdquo;, &ldquo;use this screenshot for project 2&rdquo;, &ldquo;undo that&rdquo;. Every change is saved as a version you can undo, and nothing is removed without your approval.
+          </p>
+          <a href="/docs/connect" className="inline-flex min-h-11 items-center gap-2 px-6 py-3 border border-gray-300 bg-white text-[#0A0A0A] text-base font-semibold rounded-full hover:bg-gray-100 transition-colors">See how it works →</a>
+        </div>
+      </section>
+
       {/* ── Final CTA ── */}
       <section className="w-full">
         <div className="w-full px-6 sm:px-10 lg:px-16 py-16 sm:py-24 lg:text-center lg:flex lg:flex-col lg:items-center">
@@ -336,6 +348,7 @@ export default function LandingPage() {
           <ContactLinks />
 
           <nav aria-label="Footer" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+            <a href="/docs" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">Docs</a>
             <a href="/portfolio-for" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">By profession</a>
             <a href="/blog" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">Blog</a>
             <a href="/terms" className="inline-flex min-h-11 items-center whitespace-nowrap hover:text-gray-900 transition-colors">Terms</a>
