@@ -81,7 +81,7 @@ const ExperiencePatch = z
   .object({ company: str(120).optional(), role: str(120).optional(), period: str(60).optional(), bullets: z.array(str(400)).max(12).optional() })
   .strict()
 const EducationInput = z.object({ degree: str(160), institution: str(160), year: str(20).default(''), period: str(60).optional(), grade: str(60).optional() }).strict()
-const TestimonialInput = z.object({ text: str(600), author: str(100), role: str(160).default('') }).strict()
+const TestimonialInput = z.object({ text: str(600), author: str(100), role: str(160).default(''), company: str(120).default('') }).strict()
 const Group = z.object({ category: str(60), items: z.array(str(60)).max(20) }).strict()
 
 const idx = z.number().int().min(0).max(99)
@@ -324,7 +324,7 @@ export function applyOps(input: PortfolioState, rawOps: unknown): ApplyResult {
         break
       }
       case 'set_testimonials': {
-        const v = op.testimonials.map((t) => ({ text: trim(t.text), author: trim(t.author), role: trim(t.role) })).filter((t) => t.text && t.author)
+        const v = op.testimonials.map((t) => ({ text: trim(t.text), author: trim(t.author), role: trim(t.role), ...(trim(t.company) ? { company: trim(t.company) } : {}) })).filter((t) => t.text && t.author)
         if (!same(c.testimonials, v)) { c.testimonials = v; note('Changed testimonials') }
         break
       }

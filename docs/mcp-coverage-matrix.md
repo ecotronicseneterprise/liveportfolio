@@ -1,4 +1,33 @@
-# MCP coverage matrix (Phase 1, read-only). 2026-11-21
+# MCP coverage matrix. 2026-11-21
+
+**Status after the build and Phase 2:** every GAP below is closed (new tools, listed in the next section) or marked a product decision. 56 tools. The 89 cells and checks in `tests/mcp-matrix.test.ts` pass against the in-memory database with throwaway users. The sections below keep the original Phase 1 wording; the "Closed" list says what changed.
+
+## Closed since Phase 1
+
+| Original gap | Now |
+|---|---|
+| Edit ONE education entry | `portfolio_update_education` (D) |
+| Edit ONE certification | `portfolio_update_certification` (D) |
+| Testimonials add / edit / remove one, and `company` | `portfolio_add_testimonial`, `portfolio_update_testimonial` (D), `portfolio_remove_testimonial` (A); `company` added to the operation and tool |
+| Skill groups: remove one skill, rename, remove a group | `portfolio_remove_skill_from_group`, `portfolio_rename_skill_group` (D), `portfolio_remove_skill_group` (A) |
+| Flat skills: remove one | `portfolio_remove_skill` (D) |
+| Reorder education, certifications, testimonials, skill groups | ONE tool: `portfolio_reorder(section, from, to)` (D) |
+| Analytics read tool | **Product decision: deferred** (not an edit; no field is blocked by it) |
+| Section order and visibility, languages, volunteering, publications, awards, availability | **Product decision: no field exists** in the data model or the dashboard |
+
+Every new tool requires `expected_version` and echoes the entry it changed (`changed`), so a stale position can never edit the wrong item.
+
+## Findings from Phase 2 (real behaviour the tests exposed)
+
+1. **Saved but not shown:** the public page shows skill GROUPS when any exist (a skill only in the flat list is saved but hidden) and shows only the FIRST testimonial. Both now come back as warnings in the tool result and in `display_limits`; `portfolio_add_skill` and `portfolio_add_testimonial` say so in their descriptions.
+2. `portfolio_remove_education` did not require `expected_version` while being index-addressed. Now required.
+3. Clearing or sharply shortening a long field becomes an approval request (the shrink guard), as designed. The tests assert it so it cannot regress silently.
+4. **Passed only because of the test setup, not the product:** the in-memory database applies no column defaults, so the test setup adds the defaults the real tables have (proposal status and expiry, upload status and expiry, revision timestamps, UUID ids). Real-database behaviour of those defaults is covered by the SQL migration, not by these tests.
+5. **Not covered by automation** (needs a real browser or the real vendors): the approval page visuals, ChatGPT and Claude tool selection, the OAuth sign-in itself, real image upload and fetch over the network. These are the Phase 3 checklist.
+
+---
+
+# Original Phase 1 matrix (read-only, 2026-11-21)
 
 Derived from the DATA MODEL (`PortfolioContent` in `components/templates/Minimal.tsx`, `CONTENT_KEYS` in `lib/portfolio/ops.ts`) and the dashboard editor (`app/dashboard/page.tsx` editor anchors), NOT from the tool list. Then each field is checked against the tools in `lib/mcp/tools.ts`.
 

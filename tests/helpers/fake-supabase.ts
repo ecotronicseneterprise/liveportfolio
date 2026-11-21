@@ -3,7 +3,7 @@
 // update(...).select() returning rows, unique violations on listed columns, and one-shot failure injection.
 type Row = Record<string, any>
 
-export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 'slug', 'email'], payments: ['ls_order_id'] }) {
+export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 'slug', 'email'], payments: ['ls_order_id'] }, opts: { uuid?: boolean } = {}) {
   const db: Record<string, Row[]> = {}
   const failures: Array<{ table: string; op: string; sticky?: boolean; code?: string }> = []
   const missing = new Set<string>() // tables that "do not exist" (every call errors)
@@ -42,7 +42,7 @@ export function createFakeDb(unique: Record<string, string[]> = { users: ['id', 
             return { data: null, error: { code: '23505', message: `duplicate key value violates unique constraint "${table}_${col}_key"` }, count: null }
           }
         }
-        const row = { id: payload.id ?? `id-${++seq}`, at: new Date().toISOString(), ...payload }
+        const row = { id: payload.id ?? (opts.uuid ? crypto.randomUUID() : `id-${++seq}`), at: new Date().toISOString(), ...payload }
         rows.push(row)
         // insert(...).select().single() returns the inserted row, like PostgREST
         return { data: returning ? (single ? { ...row } : [{ ...row }]) : null, error: null, count: null }

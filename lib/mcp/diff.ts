@@ -41,7 +41,12 @@ export function describeChanges(before: Json, after: Json, templateBefore?: stri
 }
 
 /** What the public page shows today. Verified in components/blocks/blocks.tsx: project stack shows the first 5 items; in the "index" arrangement a role shows its first bullet only. */
-export const DISPLAY_LIMITS = { project_stack_items_shown: 5, role_bullets_shown: 'all, except the "index" arrangement which shows the first bullet only' } as const
+export const DISPLAY_LIMITS = {
+  project_stack_items_shown: 5,
+  role_bullets_shown: 'all, except the "index" arrangement which shows the first bullet only',
+  testimonials_shown: 1,
+  skills_shown: 'the skill groups when there are any; otherwise the flat skills list',
+} as const
 
 export function displayWarnings(content: Json): string[] {
   const out: string[] = []
@@ -51,10 +56,19 @@ export function displayWarnings(content: Json): string[] {
     if (stack.length > DISPLAY_LIMITS.project_stack_items_shown) out.push(`Project ${i + 1} "${String(p.title ?? '')}": only the first ${DISPLAY_LIMITS.project_stack_items_shown} of its ${stack.length} stack items are shown on the public page (the rest are saved). Put the most important ones first.`)
     if (typeof p.outcome === 'string' && p.outcome.trim() && p.outcome.trim() === String(p.solution ?? '').trim()) out.push(`Project ${i + 1} "${String(p.title ?? '')}": the outcome is identical to the solution, so the page repeats the same text. Ask the person for a real result, or shorten it.`)
   })
+  const testimonials = Array.isArray(content.testimonials) ? content.testimonials : []
+  if (testimonials.length > DISPLAY_LIMITS.testimonials_shown) out.push(`There are ${testimonials.length} testimonials saved, but the public page shows only the first one. Put the best one first with portfolio_reorder.`)
+  const groups = Array.isArray(content.skills_grouped) ? (content.skills_grouped as Json[]) : []
+  const flat = Array.isArray(content.skills) ? (content.skills as unknown[]).filter((x): x is string => typeof x === 'string') : []
+  if (groups.length) {
+    const inGroups = new Set(groups.flatMap((g) => (Array.isArray(g.items) ? g.items : []).map((x) => String(x).toLowerCase().trim())))
+    const hidden = flat.filter((x) => !inGroups.has(x.toLowerCase().trim()))
+    if (hidden.length) out.push(`The public page shows skill groups, so ${hidden.length} skill(s) that are only in the flat list are not shown: ${hidden.slice(0, 5).join(', ')}. Add them to a group with portfolio_add_skill_to_group.`)
+  }
   const arrangement = (content.layout as Json | undefined)?.arrangement
   if (arrangement === 'index') {
     const roles = Array.isArray(content.experience) ? (content.experience as Json[]) : []
     roles.forEach((r, i) => { const b = Array.isArray(r.bullets) ? r.bullets : []; if (b.length > 1) out.push(`Role ${i + 1} (${String(r.company ?? '')}): this layout shows only the first of its ${b.length} highlight lines. Put the strongest one first, or switch the layout.`) })
   }
-  return out.slice(0, 4)
+  return out.slice(0, 5)
 }

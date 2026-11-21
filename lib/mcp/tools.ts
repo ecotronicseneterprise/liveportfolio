@@ -171,6 +171,29 @@ const ADD: Annotations = { readOnlyHint: false, destructiveHint: false, idempote
 const EDIT: Annotations = { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false }
 const empty = z.object({}).strict()
 
+// ── single-entry edit helpers ─────────────────────────────────────────────────────────────────────────────────
+const version = z.number().int().min(0).describe('REQUIRED. The `version` from your last portfolio_get. If the portfolio changed since, the edit is refused, so the wrong entry can never be changed.')
+type Edu = { degree: string; institution: string; year?: string; period?: string; grade?: string }
+type Testimonial = { text: string; author: string; role?: string; company?: string }
+type Group = { category: string; items: string[] }
+const eduList = (c: Record<string, unknown>): Edu[] => (Array.isArray(c?.education) ? (c.education as Array<Record<string, unknown>>) : []).map((e) => ({ degree: String(e.degree ?? ''), institution: String(e.institution ?? ''), year: String(e.year ?? ''), ...(e.period ? { period: String(e.period) } : {}), ...(e.grade ? { grade: String(e.grade) } : {}) }))
+const certList = (c: Record<string, unknown>): string[] => (Array.isArray(c?.certifications) ? (c.certifications as unknown[]) : []).filter((x): x is string => typeof x === 'string')
+const testimonialList = (c: Record<string, unknown>): Testimonial[] => (Array.isArray(c?.testimonials) ? (c.testimonials as Array<Record<string, unknown>>) : []).map((t) => ({ text: String(t.text ?? ''), author: String(t.author ?? ''), ...(t.role ? { role: String(t.role) } : {}), ...(t.company ? { company: String(t.company) } : {}) }))
+const groupList = (c: Record<string, unknown>): Group[] => (Array.isArray(c?.skills_grouped) ? (c.skills_grouped as Array<Record<string, unknown>>) : []).map((g) => ({ category: String(g.category ?? ''), items: (Array.isArray(g.items) ? g.items : []).map(String) }))
+const eduLabel = (e: Edu) => [e.degree, e.institution, e.year || e.period].filter(Boolean).join(', ')
+const testimonialLabel = (t: Testimonial) => `${t.author}${t.role || t.company ? ` (${[t.role, t.company].filter(Boolean).join(', ')})` : ''}: "${t.text.slice(0, 80)}${t.text.length > 80 ? '…' : ''}"`
+
+/** One edit to one list entry. The version must match (so a stale index can never hit the wrong entry); the reply echoes what changed. */
+async function listEdit(ctx: McpCtx, a: Record<string, unknown>, build: (pf: NonNullable<Awaited<ReturnType<typeof ownPortfolio>>>) => { ops: unknown[]; changed: unknown }, approval = false) {
+  mustWrite(ctx)
+  const pf = await ownPortfolio(ctx.userId)
+  if (!pf) throw noPortfolio()
+  const v = a.expected_version as number
+  if (v !== (pf.edit_count ?? 0)) throw new ToolError('conflict', 'The portfolio changed since it was last read. Call portfolio_get again, check the position of the entry, and retry.')
+  const { ops, changed } = build(pf)
+  return approval ? { ...(await propose(ctx, { kind: 'ops', ops }, v)), changed } : direct(ctx, ops, v, { changed })
+}
+
 export const TOOLS: ToolDef[] = [
   // ── read ───────────────────────────────────────────────────────────────────────────────────────────────────
   {
@@ -385,7 +408,7 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: 'portfolio_set_testimonials', title: 'Replace testimonials (needs approval)', kind: 'approval', annotations: EDIT,
-    input: z.object({ testimonials: z.array(z.object({ text: text(600), author: text(100), role: text(160).optional() }).strict()).max(10).describe('The complete list. Only real quotes the person provided.'), expected_version: expected }).strict(),
+    input: z.object({ testimonials: z.array(z.object({ text: text(600), author: text(100), role: text(160).optional(), company: text(120).optional() }).strict()).max(10).describe('The complete list. Only real quotes the person provided.'), expected_version: expected }).strict(),
     description: 'Use this to set the testimonials. Never invent a quote or an author. Replaces the list, so it needs the person\'s approval via the returned approval_url.',
     run: (ctx, a) => propose(ctx, { kind: 'ops', ops: [{ op: 'set_testimonials', testimonials: a.testimonials }] }, a.expected_version as number | undefined),
   },
@@ -557,7 +580,7 @@ export const TOOLS: ToolDef[] = [
   {
     name: 'portfolio_add_skill', title: 'Add a skill', kind: 'direct', annotations: ADD,
     input: z.object({ skill: text(60), expected_version: expected }).strict(),
-    description: 'Use this to add ONE skill to the flat skills list, keeping the rest. A duplicate is refused. For a skill inside a group use portfolio_add_skill_to_group.',
+    description: 'Use this to add ONE skill to the flat skills list, keeping the rest. A duplicate is refused. NOTE: when the portfolio has skill groups, the public page shows the groups, not the flat list, so use portfolio_add_skill_to_group instead and the result warns if a skill would be hidden.',
     async run(ctx, a) {
       mustWrite(ctx)
       const pf = await ownPortfolio(ctx.userId)
@@ -610,7 +633,7 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: 'portfolio_remove_education', title: 'Remove an education entry (needs approval)', kind: 'approval', annotations: EDIT,
-    input: z.object({ index: pos.describe('Position of the entry, starting at 0, as in portfolio_get'), expected_version: expected }).strict(),
+    input: z.object({ index: pos.describe('Position of the entry, starting at 0, as in portfolio_get'), expected_version: version }).strict(),
     description: 'Use this to delete ONE education entry, keeping the others. It does NOT delete yet: it returns an approval_url the person must open.',
     async run(ctx, a) {
       mustWrite(ctx)
@@ -620,6 +643,137 @@ export const TOOLS: ToolDef[] = [
       if (!cur[a.index as number]) throw new ToolError('out_of_range', `Education entry ${(a.index as number) + 1} does not exist.`)
       return propose(ctx, { kind: 'ops', ops: [{ op: 'set_education', education: cur.filter((_, k) => k !== a.index) }] }, (a.expected_version as number | undefined) ?? (pf.edit_count ?? 0))
     },
+  },
+
+  // ── single-entry edits: fix ONE item without replacing a whole list ────────────────────────────────────────
+  {
+    name: 'portfolio_update_education', title: 'Fix one education entry', kind: 'direct', annotations: EDIT,
+    input: z.object({ index: pos.describe('Position of the entry, starting at 0, as in portfolio_get'), patch: z.object({ degree: text(160).optional(), institution: text(160).optional(), year: text(20).optional(), period: text(60).optional(), grade: text(60).optional() }).strict().describe('Only the fields to change'), expected_version: version }).strict(),
+    description: 'Use this to correct ONE education entry (a typo in the degree, the institution, the year, the period or the grade) without touching the others. Saved at once and undoable. Check the returned "changed" entry to confirm the right one was edited. expected_version is required.',
+    run: (ctx, a) => listEdit(ctx, a, (pf) => {
+      const cur = eduList(pf.content)
+      const e = cur[a.index as number]
+      if (!e) throw new ToolError('out_of_range', `Education entry ${(a.index as number) + 1} does not exist.`)
+      const next = { ...e, ...clean(a.patch as Record<string, unknown>) }
+      return { ops: [{ op: 'set_education', education: cur.map((x, k) => (k === a.index ? next : x)) }], changed: { index: a.index, before: eduLabel(e), after: eduLabel(next) } }
+    }),
+  },
+  {
+    name: 'portfolio_update_certification', title: 'Fix one certification', kind: 'direct', annotations: EDIT,
+    input: z.object({ index: pos.describe('Position of the certification, starting at 0'), text: text(160).describe('The corrected text'), expected_version: version }).strict(),
+    description: 'Use this to correct ONE certification (a name or exam code) without touching the others. Saved at once and undoable. Use the person\'s exact words; do not invent an issuer or year. Check the returned "changed" entry. expected_version is required.',
+    run: (ctx, a) => listEdit(ctx, a, (pf) => {
+      const cur = certList(pf.content)
+      if (cur[a.index as number] === undefined) throw new ToolError('out_of_range', `Certification ${(a.index as number) + 1} does not exist.`)
+      const t = (a.text as string).trim()
+      if (!t) throw new ToolError('invalid_input', 'The certification text is empty. To delete it use portfolio_remove_certification.')
+      if (cur.some((c, k) => k !== a.index && norm(c) === norm(t))) throw new ToolError('duplicate', `"${t}" is already on the portfolio.`)
+      return { ops: [{ op: 'set_certifications', certifications: cur.map((c, k) => (k === a.index ? t : c)) }], changed: { index: a.index, before: cur[a.index as number], after: t } }
+    }),
+  },
+  {
+    name: 'portfolio_add_testimonial', title: 'Add a testimonial', kind: 'direct', annotations: ADD,
+    input: z.object({ text: text(600).describe('The quote, exactly as the person gave it. Never invent a quote.'), author: text(100), role: text(160).optional(), company: text(120).optional(), expected_version: version }).strict(),
+    description: 'Use this when the person gives you a real quote from someone (a manager, client, lecturer). Adds one testimonial and keeps the others; a duplicate is refused. The public page shows only the FIRST testimonial, so the result warns when more are saved; use portfolio_reorder to choose which comes first. Never invent a quote or an author. expected_version is required.',
+    run: (ctx, a) => listEdit(ctx, a, (pf) => {
+      const cur = testimonialList(pf.content)
+      if (cur.some((t) => norm(t.text) === norm(a.text))) throw new ToolError('duplicate', 'That testimonial is already on the portfolio.')
+      if (cur.length >= 10) throw new ToolError('limit', 'At most 10 testimonials.')
+      const t = clean({ text: a.text, author: a.author, role: a.role, company: a.company }) as Testimonial
+      return { ops: [{ op: 'set_testimonials', testimonials: [...cur, t] }], changed: { index: cur.length, after: testimonialLabel(t) } }
+    }),
+  },
+  {
+    name: 'portfolio_update_testimonial', title: 'Fix one testimonial', kind: 'direct', annotations: EDIT,
+    input: z.object({ index: pos, patch: z.object({ text: text(600).optional(), author: text(100).optional(), role: text(160).optional(), company: text(120).optional() }).strict().describe('Only the fields to change'), expected_version: version }).strict(),
+    description: 'Use this to correct ONE testimonial (a typo in the quote, the author, role or company) without touching the others. Saved at once and undoable. Check the returned "changed" entry. expected_version is required.',
+    run: (ctx, a) => listEdit(ctx, a, (pf) => {
+      const cur = testimonialList(pf.content)
+      const t = cur[a.index as number]
+      if (!t) throw new ToolError('out_of_range', `Testimonial ${(a.index as number) + 1} does not exist.`)
+      const next = { ...t, ...clean(a.patch as Record<string, unknown>) } as Testimonial
+      return { ops: [{ op: 'set_testimonials', testimonials: cur.map((x, k) => (k === a.index ? next : x)) }], changed: { index: a.index, before: testimonialLabel(t), after: testimonialLabel(next) } }
+    }),
+  },
+  {
+    name: 'portfolio_remove_testimonial', title: 'Remove a testimonial (needs approval)', kind: 'approval', annotations: EDIT,
+    input: z.object({ index: pos, expected_version: version }).strict(),
+    description: 'Use this to delete ONE testimonial. It does NOT delete yet: it returns an approval_url the person must open on liveportfolio.site. Tell them: open the link, approve, then reply approved. expected_version is required.',
+    run: (ctx, a) => listEdit(ctx, a, (pf) => {
+      const cur = testimonialList(pf.content)
+      const t = cur[a.index as number]
+      if (!t) throw new ToolError('out_of_range', `Testimonial ${(a.index as number) + 1} does not exist.`)
+      return { ops: [{ op: 'set_testimonials', testimonials: cur.filter((_, k) => k !== a.index) }], changed: { index: a.index, removed: testimonialLabel(t) } }
+    }, true),
+  },
+  {
+    name: 'portfolio_remove_skill', title: 'Remove one skill', kind: 'direct', annotations: EDIT,
+    input: z.object({ skill: text(60), expected_version: version }).strict(),
+    description: 'Use this to remove ONE skill from the flat skills list, keeping the rest. Saved at once and undoable (a sharp cut may turn into an approval request). For a skill inside a group use portfolio_remove_skill_from_group. expected_version is required.',
+    run: (ctx, a) => listEdit(ctx, a, (pf) => {
+      const cur = ((pf.content?.skills as string[] | undefined) ?? []).filter((x) => typeof x === 'string')
+      const i = cur.findIndex((x) => norm(x) === norm(a.skill as string))
+      if (i < 0) throw new ToolError('not_found', 'That skill is not in the flat skills list. Copy the exact text from portfolio_get.')
+      return { ops: [{ op: 'set_skills', skills: cur.filter((_, k) => k !== i) }], changed: { index: i, removed: cur[i] } }
+    }),
+  },
+  {
+    name: 'portfolio_remove_skill_from_group', title: 'Remove one skill from a group', kind: 'direct', annotations: EDIT,
+    input: z.object({ group: text(60), skill: text(60), expected_version: version }).strict(),
+    description: 'Use this to remove ONE skill from a skill group, keeping everything else (a group left empty disappears). Saved at once and undoable. expected_version is required.',
+    run: (ctx, a) => listEdit(ctx, a, (pf) => {
+      const groups = groupList(pf.content)
+      const g = groups.find((x) => norm(x.category) === norm(a.group as string))
+      if (!g) throw new ToolError('not_found', 'That group was not found. Copy the exact name from portfolio_get.')
+      const i = g.items.findIndex((x) => norm(x) === norm(a.skill as string))
+      if (i < 0) throw new ToolError('not_found', `"${a.skill}" is not in ${g.category}.`)
+      const removed = g.items[i]
+      return { ops: [{ op: 'set_skills_grouped', groups: groups.map((x) => (x === g ? { ...x, items: x.items.filter((_, k) => k !== i) } : x)) }], changed: { group: g.category, removed } }
+    }),
+  },
+  {
+    name: 'portfolio_rename_skill_group', title: 'Rename a skill group', kind: 'direct', annotations: EDIT,
+    input: z.object({ group: text(60), new_name: text(60), expected_version: version }).strict(),
+    description: 'Use this to rename ONE skill group (for example "Cloud" to "Cloud & Data"); the skills inside are kept. Saved at once and undoable. expected_version is required.',
+    run: (ctx, a) => listEdit(ctx, a, (pf) => {
+      const groups = groupList(pf.content)
+      const g = groups.find((x) => norm(x.category) === norm(a.group as string))
+      if (!g) throw new ToolError('not_found', 'That group was not found. Copy the exact name from portfolio_get.')
+      const n = (a.new_name as string).trim()
+      if (!n) throw new ToolError('invalid_input', 'The new name is empty.')
+      if (groups.some((x) => x !== g && norm(x.category) === norm(n))) throw new ToolError('duplicate', `A group called "${n}" already exists.`)
+      return { ops: [{ op: 'set_skills_grouped', groups: groups.map((x) => (x === g ? { ...x, category: n } : x)) }], changed: { before: g.category, after: n } }
+    }),
+  },
+  {
+    name: 'portfolio_remove_skill_group', title: 'Remove a whole skill group (needs approval)', kind: 'approval', annotations: EDIT,
+    input: z.object({ group: text(60), expected_version: version }).strict(),
+    description: 'Use this to delete a whole skill group with all its skills. It does NOT delete yet: it returns an approval_url the person must open. Tell them: open the link, approve, then reply approved. expected_version is required.',
+    run: (ctx, a) => listEdit(ctx, a, (pf) => {
+      const groups = groupList(pf.content)
+      const g = groups.find((x) => norm(x.category) === norm(a.group as string))
+      if (!g) throw new ToolError('not_found', 'That group was not found. Copy the exact name from portfolio_get.')
+      return { ops: [{ op: 'set_skills_grouped', groups: groups.filter((x) => x !== g) }], changed: { removed: `${g.category} (${g.items.length} skills)` } }
+    }, true),
+  },
+  {
+    name: 'portfolio_reorder', title: 'Reorder education, certifications, testimonials or skill groups', kind: 'direct', annotations: EDIT,
+    input: z.object({ section: z.enum(['education', 'certifications', 'testimonials', 'skill_groups']), from: pos, to: pos, expected_version: version }).strict(),
+    description: 'Use this to move ONE item to another position within education, certifications, testimonials or skill groups (positions start at 0, as in portfolio_get). Only the order changes. For projects use portfolio_move_project, for jobs portfolio_move_experience, for highlight lines portfolio_move_bullet. expected_version is required.',
+    run: (ctx, a) => listEdit(ctx, a, (pf) => {
+      const move = <T,>(arr: T[]) => {
+        const f = a.from as number, t = a.to as number
+        if (f >= arr.length || t >= arr.length) throw new ToolError('out_of_range', `That position does not exist (there are ${arr.length} items).`)
+        const x = [...arr]; const [m] = x.splice(f, 1); x.splice(t, 0, m)
+        return { list: x, moved: m }
+      }
+      switch (a.section) {
+        case 'education': { const r = move(eduList(pf.content)); return { ops: [{ op: 'set_education', education: r.list }], changed: { from: a.from, to: a.to, moved: eduLabel(r.moved) } } }
+        case 'certifications': { const r = move(certList(pf.content)); return { ops: [{ op: 'set_certifications', certifications: r.list }], changed: { from: a.from, to: a.to, moved: r.moved } } }
+        case 'testimonials': { const r = move(testimonialList(pf.content)); return { ops: [{ op: 'set_testimonials', testimonials: r.list }], changed: { from: a.from, to: a.to, moved: testimonialLabel(r.moved) } } }
+        default: { const r = move(groupList(pf.content)); return { ops: [{ op: 'set_skills_grouped', groups: r.list }], changed: { from: a.from, to: a.to, moved: r.moved.category } } }
+      }
+    }),
   },
 
   // ── pictures ───────────────────────────────────────────────────────────────────────────────────────────────
