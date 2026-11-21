@@ -7,7 +7,7 @@
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { allow } from '@/lib/connectors/limits'
 
-export type UsageKind = 'parse_cv' | 'import' | 'score'
+export type UsageKind = 'parse_cv' | 'import' | 'score' | 'mcp_call' | 'mcp_write' | 'mcp_image'
 type Admin = ReturnType<typeof getSupabaseAdmin>
 
 const RETENTION_MS = 7 * 24 * 60 * 60 * 1000

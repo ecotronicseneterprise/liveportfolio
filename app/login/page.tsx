@@ -7,6 +7,14 @@ import { getSupabaseClient } from '@/lib/supabase'
 import Turnstile from '@/components/onboarding/Turnstile'
 import SocialSignIn from '@/components/onboarding/SocialSignIn'
 import { captchaOptions } from '@/lib/onboarding/captcha'
+import { safeNext } from '@/lib/onboarding/safe-next'
+
+// An assistant app that is being connected sends the person here and wants them back on its consent page afterwards.
+function oauthReturn(): string | null {
+  if (typeof window === 'undefined') return null
+  const n = safeNext(new URLSearchParams(window.location.search).get('next'), '')
+  return n.startsWith('/oauth/') ? n : null
+}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -45,6 +53,8 @@ export default function LoginPage() {
         setChecking(false)
         return
       }
+      const back = oauthReturn()
+      if (back) { router.replace(back); return }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: portfolio } = await (supabase as any)
         .from('portfolios')
@@ -77,7 +87,7 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/dashboard')
+    router.push(oauthReturn() ?? '/dashboard')
   }
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -203,7 +213,7 @@ export default function LoginPage() {
           </form>
         )}
 
-        {!resetMode && <SocialSignIn appearance="plain" next="/dashboard" onSignedIn={() => router.push('/dashboard')} />}
+        {!resetMode && <SocialSignIn appearance="plain" next={oauthReturn() ?? '/dashboard'} onSignedIn={() => router.push(oauthReturn() ?? '/dashboard')} />}
 
         <p className="mt-6 text-center text-sm text-gray-400">
           Don&apos;t have a portfolio yet?{' '}

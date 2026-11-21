@@ -2,6 +2,7 @@
 // clifford.liveportfolio.site → rewrites to /portfolio/clifford
 // liveportfolio.site → main app routes normally
 import { NextRequest, NextResponse } from 'next/server'
+import { bearerToken, isAssistantToken } from '@/lib/mcp/token'
 
 const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'liveportfolio.site'
 
@@ -14,6 +15,11 @@ const ONBOARDING_V2 = process.env.NEXT_PUBLIC_ONBOARDING_V2 === 'true'
 export function middleware(req: NextRequest) {
   const host = req.headers.get('host') || ''
   const { pathname } = req.nextUrl
+
+  // Token isolation: a token issued to an AI assistant (OAuth client) is refused on EVERY /api route. Only /mcp accepts it.
+  if (pathname.startsWith('/api/') && isAssistantToken(bearerToken(req.headers.get('authorization')))) {
+    return NextResponse.json({ error: 'assistant_token_not_allowed' }, { status: 401 })
+  }
 
   // Strip port for local dev
   const hostname = host.split(':')[0]
@@ -73,6 +79,14 @@ export function middleware(req: NextRequest) {
         // Next's generated social image has no file extension; it is not a portfolio slug.
         'opengraph-image',
         'portfolio-for',
+        'mcp',
+        '.well-known',
+        'oauth',
+        'docs',
+        'schema',
+        'skills',
+        'openapi.json',
+        'llms.txt',
         'twitter-image',
       ])
 

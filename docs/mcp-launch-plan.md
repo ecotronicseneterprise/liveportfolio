@@ -4,6 +4,28 @@ Status: **plan for approval. Nothing in sections 3 to 10 is built.** Written 202
 assumptions in `mcp-and-roadmap-plan.md` (2026-10-24), which stays as history. Vendor facts below were read from the vendors' own pages
 on 2026-11-21 and are marked with the page. Where a page did not say something, this plan says so instead of guessing.
 
+## Build status (updated as each step lands; owner approved building end to end in one deployment, 2026-11-21)
+
+| Step | What | State |
+|---|---|---|
+| 1 Token isolation | `lib/mcp/token.ts`; middleware refuses any token with a `client_id` claim on every `/api` route; `getUserFromRequest` refuses them too; `tests/mcp-token-isolation.test.ts` enumerates every API route (87 tests) | **Done** |
+| 2 Migration | `supabase/manual/20261121100000_mcp.sql` (+ rollback): `mcp_connections` (unique per user and app), `mcp_proposals`, `mcp_uploads`, usage kinds | **Written. You run it.** |
+| 3 Read-only MCP | `/mcp` (stateless Streamable HTTP, own JSON-RPC), `lib/mcp/auth.ts` (verified token + `client_id` + live connection row + access policy + rate limit on every call), protected-resource metadata at `/.well-known/oauth-protected-resource` (+ `/mcp` suffix), 7 read tools | **Done** |
+| 4 Consent and connections | `/oauth/consent` (we record the connection; Supabase has no custom scopes), `/oauth/connections` (disconnect), `/api/mcp/connections`; login honours `?next=/oauth/...` | **Done** |
+| 5 Edit tools | 16 direct tools plus 7 approval tools, all through `applyForUser` (existing `applyOps` and `commitState`), new `set_testimonials` op, undo, restore | **Done** |
+| 6 Server-enforced approval | Removing, whole-list replacement, batches and restore create `mcp_proposals`; only the person can approve at `/oauth/approve` (browser sign-in only, single use, 30 minutes, fails if the portfolio changed) | **Done** |
+| 7 Pictures | Upload link (hashed single-use 10-minute token, `/oauth/upload`), URL fetch (https only, DNS check on every hop, pinned connection, 8 MB, 8 s, JPEG/PNG/WebP sniffed, SVG refused, `sharp` re-encode, 40 MP cap, metadata stripped), remove image | **Done** |
+| 8 Docs and discoverability | `/docs`, `/docs/mcp` (tools reference generated from the registry), `/llms.txt`, `/.well-known/mcp/server-card.json`, sitemap; parity tests | **Done** (OpenAPI, JSON Schema file, skills, `/<slug>.json` later) |
+| 9 Switch on | Owner steps in `docs/mcp-setup-guide.md`; feature stays off until `MCP_ENABLED=true` | **Waiting on you** |
+| 10 Directories | OpenAI organisation verification and plugin submission, Claude directory, registries | **After real use** |
+
+Decisions taken while building (differences from the plan below):
+- **No Custom Access Token Hook.** It sits in every login and cannot be tested on a staging project here. Isolation rests on the `client_id` claim guard (middleware plus helper) and the per-call connection check. Audience (`aud`) binding to `/mcp` is therefore NOT enforced yet; ChatGPT's audience requirement is the first thing to test in step 9, and the hook is added only if it is needed, behind the rollback in the guide.
+- **Our own JSON-RPC** instead of the MCP SDK (it is not installed; the protocol surface used is `initialize`, `ping`, `tools/*`, `prompts/*`).
+- **Approval is out of band** (reviewer feedback): the assistant cannot approve its own proposal.
+- **Rate limits** use `usage_events` (120 calls per 10 minutes, 60 edits per hour, 30 pictures per day).
+- Known gaps: analytics tool, OpenAPI/JSON Schema files, skills, agent-readable `/<slug>.json`, `iss`/`resource` checks beyond Supabase's own token verification.
+
 ## 1. Goal
 
 A paying user connects LivePortfolio once to ChatGPT or Claude (web, desktop, phone, Claude Code). From then on they can say

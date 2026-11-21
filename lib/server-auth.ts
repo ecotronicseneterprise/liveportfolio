@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { getSupabaseClient } from '@/lib/supabase'
+import { isAssistantToken } from '@/lib/mcp/token'
 
 export interface AuthedUser {
   id: string
@@ -10,7 +11,7 @@ export interface AuthedUser {
 /** Verifies the Bearer token with Supabase. Returns null for a missing/invalid token. Never trusts cookies. */
 export async function getUserFromRequest(req: NextRequest): Promise<AuthedUser | null> {
   const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
-  if (!token) return null
+  if (!token || isAssistantToken(token)) return null // assistant tokens only work on /mcp
   try {
     const { data, error } = await getSupabaseClient().auth.getUser(token)
     const u = data?.user
