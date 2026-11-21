@@ -1,36 +1,42 @@
 # LivePortfolio
 
-Turn your CV into a professional portfolio website, publish it at `yourname.liveportfolio.site`, and keep it up to date by chatting with Claude or ChatGPT.
+Turn your CV into a professional portfolio website, publish it at `yourname.liveportfolio.site`, and (on Pro) keep it up to date by chatting with Claude or ChatGPT.
 
 Live: [liveportfolio.site](https://liveportfolio.site) · Docs: [liveportfolio.site/docs](https://liveportfolio.site/docs) · Connect your AI: [liveportfolio.site/connect](https://liveportfolio.site/connect)
 
 ---
 
-## Tell your AI you got certified. Your portfolio updates itself.
+## Update your portfolio from your AI assistant (Pro)
 
-Pro accounts can connect their own AI assistant. After a one-time setup, you can say things like:
+Tell your assistant "I just passed the Azure AI-102 exam" and it can add that to your portfolio. Every change is saved as a version you can undo.
 
-- "I just passed the Azure AI-102 exam."
-- "Add this job to my experience: ..."
-- "Turn this README into a project."
-- "Tighten my About section. Keep every fact."
-- "Undo that."
+<!-- DEMO VIDEO: 30 to 45 seconds. Link or embed it here once it is posted. -->
 
-**Connect in three steps** (the easy page is [liveportfolio.site/connect](https://liveportfolio.site/connect)):
+**Assistants:** Claude (web and desktop), ChatGPT and Claude Code have been tested. Gemini CLI, Cursor and VS Code may work (any client that speaks MCP over HTTP with OAuth) but may need manual setup.
 
-1. Copy the address `https://liveportfolio.site/mcp`.
-2. Add it to your assistant. Claude has a one-click button on the connect page; in ChatGPT add a custom connector with that address. Claude Code: `claude mcp add --transport http liveportfolio https://liveportfolio.site/mcp`.
-3. Sign in to LivePortfolio, choose what the assistant may do, approve, and start chatting.
+**Connect**
+1. Add `https://liveportfolio.site/mcp` as a custom connector. Steps with screenshots: [Claude](https://liveportfolio.site/docs/connect/claude), [ChatGPT](https://liveportfolio.site/docs/connect/chatgpt), [others](https://liveportfolio.site/docs/connect/other).
+2. Sign in, choose what the assistant may do, and approve. Then start a new chat with the first message shown on the connect page.
 
-**You stay in control**
+**What it can edit (56 tools)**
+- Read: portfolio (by section), editing rules, designs, completeness checklist, history, a preview of a change, a health check.
+- Profile and contact: name, role, headline, About, location, email, phone, WhatsApp, social links; add to a field or replace one phrase.
+- Skills (flat list and groups), experience and highlight lines, projects (stack, links, pictures, optional Power BI dashboard).
+- Education, certifications, testimonials: add, fix one, remove one, reorder, replace.
+- Photos (upload link or a public https picture), design (template, look, Pro design version).
+- Undo, restore an earlier version, and one batch of up to 60 operations for a whole-CV update.
 
-- Every change is saved as a version and can be undone. Your portfolio from before an assistant first touched it is kept permanently.
-- Removing things, adding or changing links, large cuts, whole-list replacements, batches and restoring old versions need your approval on liveportfolio.site. The assistant only gets a link and cannot approve for itself.
+**Security model**
+- OAuth 2.1 with PKCE. Assistant tokens work only on `/mcp`; browser tokens do not work there, and assistant tokens are refused on every `/api` route.
+- Access is per person and checked on every call. Disconnect at `/oauth/connections`: the next call fails.
+- Direct edits are undoable. Removals, whole-list replacements, batches, new links and large cuts need your approval on liveportfolio.site; the assistant cannot approve for itself.
 - Your email, phone and WhatsApp are hidden from the assistant unless you allow them. You can connect read-only.
-- It can never publish, change your address, touch billing, change your sign-in or delete anything. Those are not tools, so no instruction can make an assistant do them.
-- Disconnect any time at `/oauth/connections`; the next request from that app is refused.
 
-Under the hood this is a Model Context Protocol (MCP) server: Streamable HTTP, OAuth 2.1 with PKCE, over 40 documented tools. Developer docs and the generated tools reference: [liveportfolio.site/docs/mcp](https://liveportfolio.site/docs/mcp). Agent index: [liveportfolio.site/llms.txt](https://liveportfolio.site/llms.txt).
+**Limits:** 60 operations per batch, 30 flat skills, 1500 characters per project text field, 120 calls per 10 minutes, 60 edits per hour. The public page shows the first 5 stack items, the first testimonial and, when you have skill groups, the groups rather than the flat list; the assistant is warned when something is saved but not shown.
+
+**It cannot:** publish, change your address or domain, touch billing, change your sign-in, delete anything, or create your first portfolio.
+
+Developer docs and the generated tool reference: https://liveportfolio.site/docs/mcp. Agent index: https://liveportfolio.site/llms.txt
 
 ---
 
