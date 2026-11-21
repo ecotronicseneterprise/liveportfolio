@@ -69,3 +69,32 @@ describe('approval before/after and display warnings', () => {
     expect(w.join(' ')).toMatch(/outcome is identical/)
   })
 })
+
+import { MAX_OPS } from '@/lib/portfolio/ops'
+import { NO_PORTFOLIO_MESSAGE, DASHBOARD_NOTE, noPortfolio } from '@/lib/mcp/tools'
+describe('whole-CV batch', () => {
+  const ops = (n: number) => Array.from({ length: n }, (_, i) => (i % 2 ? { op: 'add_project', project: { title: `Project ${i}`, solution: 'S'.repeat(300) } } : { op: 'add_experience', experience: { company: `Co ${i}`, role: 'Engineer', period: '2020 - 2021', bullets: ['Did a thing'] } }))
+  it('accepts 60 operations in one batch and rejects 61', () => {
+    expect(MAX_OPS).toBe(60)
+    const r = applyOps({ content: { name: 'Ada' }, template: 'minimal' }, ops(60))
+    expect(r.changes.length).toBeGreaterThan(30)
+    expect(() => applyOps({ content: { name: 'Ada' }, template: 'minimal' }, ops(61))).toThrow()
+  })
+  it('the approval page stays readable: one entry per changed section, each clipped, never a wall of text', () => {
+    const before = { name: 'Ada' }
+    const after = applyOps({ content: before, template: 'minimal' }, ops(60)).state.content
+    const c = describeChanges(before, after)
+    expect(c.length).toBeLessThanOrEqual(12)
+    expect(c.map((x) => x.label).sort()).toEqual(['Experience', 'Projects'])
+    for (const x of c) expect(x.after.length).toBeLessThanOrEqual(221)
+  })
+})
+
+describe('no portfolio yet and what to say at the end', () => {
+  it('tells the person to finish setup on the website, with no pricing wording', () => {
+    expect(noPortfolio().message).toBe(NO_PORTFOLIO_MESSAGE)
+    expect(NO_PORTFOLIO_MESSAGE).toContain('liveportfolio.site/create')
+    expect(`${NO_PORTFOLIO_MESSAGE} ${DASHBOARD_NOTE}`).not.toMatch(/price|pricing|upgrade|subscribe|checkout|plan\b|pro plan|₦|\$\d/i)
+    expect(DASHBOARD_NOTE).toContain('dashboard')
+  })
+})

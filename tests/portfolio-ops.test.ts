@@ -156,11 +156,11 @@ describe('applyOps: the dashboard save (replace_content) and the guard rails', (
     const s = base()
     expect(run([{ op: 'replace_content', content: { name: 'Ada', skills: ['Go'] } }], s).changes).toEqual([])
   })
-  it('unknown ops, extra keys, raw html in nothing, and more than 20 ops are rejected', () => {
+  it('unknown ops, extra keys, raw html in nothing, and more than 60 ops are rejected', () => {
     fails([{ op: 'delete_everything' }])
     fails([{ op: 'set_field', field: 'role', value: 'x', extra: 1 }])
     fails([{ op: 'set_field', field: 'plan', value: 'pro' }])
-    fails(Array.from({ length: 21 }, () => ({ op: 'set_field', field: 'role', value: 'x' })))
+    fails(Array.from({ length: 61 }, () => ({ op: 'set_field', field: 'role', value: 'x' })))
     fails([])
   })
   it('set_template changes only the template, and says so', () => {

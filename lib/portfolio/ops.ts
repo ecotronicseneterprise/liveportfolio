@@ -42,7 +42,7 @@ const MAX_ITEMS = 50
 
 export const MAX_PROJECTS_ADD = MAX_ITEMS // the same bound as every other list: nobody should be stopped at 6 projects
 export const MAX_EXPERIENCE_ADD = MAX_ITEMS
-export const MAX_OPS = 20
+export const MAX_OPS = 60 // a full CV update is one batch: one approval, one revision, all or nothing
 
 // ── validators for single values ─────────────────────────────────────────────────────────────────────────────
 const str = (max: number) => z.string().max(max)

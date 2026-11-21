@@ -33,7 +33,7 @@ export async function applyForUser(userId: string, ops: unknown, opts: { expecte
   const ent = await entitlements(userId)
   if (!ent.canEdit) return { ok: false, code: 'not_allowed', message: 'Editing is not available on this plan.' }
   const pf = await ownPortfolio(userId)
-  if (!pf) return { ok: false, code: 'not_found', message: 'No portfolio found for this account.' }
+  if (!pf) return { ok: false, code: 'not_found', message: 'There is no portfolio on this account yet. The person needs to finish setup at https://liveportfolio.site/create first, then try again.' }
   if (opts.expectedVersion !== undefined && opts.expectedVersion !== null && opts.expectedVersion !== (pf.edit_count ?? 0)) return CONFLICT
 
   if (Array.isArray(ops)) {
@@ -67,7 +67,7 @@ export async function restoreForUser(userId: string, revisionId: string | null, 
   const ent = await entitlements(userId)
   if (!ent.canEdit) return { ok: false, code: 'not_allowed', message: 'Editing is not available on this plan.' }
   const pf = await ownPortfolio(userId)
-  if (!pf) return { ok: false, code: 'not_found', message: 'No portfolio found for this account.' }
+  if (!pf) return { ok: false, code: 'not_found', message: 'There is no portfolio on this account yet. The person needs to finish setup at https://liveportfolio.site/create first, then try again.' }
   const admin = getSupabaseAdmin()
   type Rev = { id: string; content: Record<string, unknown>; template: string | null; created_at: string; source?: string }
   let q = admin.from('portfolio_revisions').select('id, content, template, created_at, source').eq('portfolio_id', pf.id).eq('user_id', userId)
