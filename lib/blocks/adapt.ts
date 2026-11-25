@@ -6,6 +6,7 @@ import { t } from '@/lib/onboarding/t'
 import { powerBiEmbedUrl } from '@/lib/connectors/safe-url'
 
 export interface BlockProject { title: string; problem: string; solution: string; outcome: string; stack: string[]; url?: string; sourceUrl?: string; imageUrl?: string; embedUrl?: string }
+export interface BlockAward { title: string; issuer: string; year: string; description: string; url?: string }
 export interface BlockQuote { text: string; author: string; role: string }
 export interface BlockRole { company: string; role: string; period: string; bullets: string[] }
 export interface BlockData {
@@ -21,6 +22,8 @@ export interface BlockData {
   skillGroups: Array<{ category: string; items: string[] }>
   education: string[]
   certifications: string[]
+  /** Prizes and placings, in the person's order. */
+  awards: BlockAward[]
   /** Every testimonial that has text and an author, in the person's order. */
   quotes: BlockQuote[]
   links: Array<{ label: string; url: string }>
@@ -33,7 +36,7 @@ export const PROJECT_TEXT_MAX = 1500
 export const TESTIMONIAL_TEXT_MAX = 600
 
 /** How many of a long list a phone shows before a labelled "Show N more" control. Desktop, tablets and print always show everything. */
-export const PHONE_KEEP = { bullets: 3, quotes: 3, stack: 5, about: 1 } as const
+export const PHONE_KEEP = { bullets: 3, quotes: 3, stack: 5, about: 1, awards: 5 } as const
 
 const str = (v: unknown, max = 2000): string => (typeof v === 'string' ? v.trim().slice(0, max) : '')
 const strs = (v: unknown, max = 200, cap = 50): string[] => (Array.isArray(v) ? v.map((x) => str(x, max)).filter(Boolean).slice(0, cap) : [])
@@ -100,6 +103,11 @@ export function toBlockData(c: Partial<PortfolioContent> | null | undefined): Bl
     })
     .filter(Boolean)
 
+  const awards: BlockAward[] = (Array.isArray((content as { awards?: unknown }).awards) ? ((content as { awards?: unknown[] }).awards as Array<Record<string, unknown>>) : [])
+    .map((a) => ({ title: str(a?.title, 160), issuer: str(a?.issuer, 160), year: str(a?.year, 20), description: str(a?.description, 400), url: ((): string | undefined => { const u = safeUrl(a?.url); return u && u.startsWith('https://') ? u : undefined })() }))
+    .filter((a) => a.title && a.issuer)
+    .slice(0, 20)
+
   const quotes: BlockQuote[] = (Array.isArray(content.testimonials) ? content.testimonials : [])
     .filter((x) => str(x?.text) && str(x?.author))
     .map((q) => ({ text: str(q.text, TESTIMONIAL_TEXT_MAX), author: str(q.author, 100), role: [str(q.role, 160), str(q.company, 120)].filter(Boolean).join(', ') }))
@@ -125,6 +133,7 @@ export function toBlockData(c: Partial<PortfolioContent> | null | undefined): Bl
     skillGroups,
     education,
     certifications: strs(content.certifications, 160, 12),
+    awards,
     quotes,
     links,
     contact: contactItems(content as Record<string, unknown>),

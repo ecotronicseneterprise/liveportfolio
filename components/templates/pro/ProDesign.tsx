@@ -4,6 +4,8 @@ import { contactItems } from '@/lib/contact/items'
 import type { PortfolioContent } from '../Minimal'
 import type { ProTemplateId } from '@/lib/portfolio/presentation'
 import { completeSkillGroups, proContent } from '@/lib/portfolio/pro-content'
+
+const awardsOf = (c: PortfolioContent) => c.awards ?? []
 import { Picture, PortfolioNav } from './ProInteractions'
 import '../template-fonts.css'
 import './pro-designs.css'
@@ -56,7 +58,7 @@ export default function ProDesign({ content, template, idPrefix }: { content: Po
   const groups = completeSkillGroups(c)
   const hasContact = contactItems(c as unknown as Record<string, unknown>).length > 0
   const has = { about: !!c.about, projects: !!c.projects.length, experience: !!c.experience.length, skills: !!(groups.length || c.skills_narrative),
-    credentials: !!(c.education?.length || c.certifications?.length), references: !!c.testimonials?.length }
+    credentials: !!(c.education?.length || c.certifications?.length || awardsOf(c).length), references: !!c.testimonials?.length }
   const sections = design.order.filter((s) => has[s])
   const nav = [has.projects && ['projects', 'Work'], has.experience && ['experience', 'Experience'], hasContact && ['contact', 'Contact']].filter((x): x is string[] => !!x)
 
@@ -68,6 +70,7 @@ export default function ProDesign({ content, template, idPrefix }: { content: Po
     credentials: <div className="pro-credentials">
       {!!c.education?.length && <div><h3 className="pro-eyebrow">Education</h3><ul>{c.education.map((e, i) => <li key={i}><h4>{e.degree}</h4><p>{e.institution}</p><p className="pro-period">{[e.year, e.period !== e.year ? e.period : '', e.grade].filter(Boolean).join(' · ')}</p></li>)}</ul></div>}
       {!!c.certifications?.length && <div><h3 className="pro-eyebrow">Certifications</h3><ul>{c.certifications.map((cert, i) => <li key={i}>{cert}</li>)}</ul></div>}
+      {!!awardsOf(c).length && <div><h3 className="pro-eyebrow">Awards</h3><ul>{awardsOf(c).map((a, i) => <li key={i}><h4>{a.title}</h4><p>{[a.issuer, a.year].filter(Boolean).join(' · ')}</p>{a.description && <p>{a.description}</p>}{a.url && <p><a href={a.url} rel="noopener noreferrer" target="_blank">Link<span className="sr-only"> to {a.title}</span></a></p>}</li>)}</ul></div>}
     </div>,
     references: <div className="pro-quotes">{c.testimonials?.map((q, i) => <figure key={i}><blockquote>{q.text}</blockquote><figcaption><strong>{q.author}</strong><span>{[q.role, q.company].filter(Boolean).join(' · ')}</span></figcaption></figure>)}</div>,
   }

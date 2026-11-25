@@ -48,6 +48,7 @@ const BASE = () => ({
   testimonials: [{ text: 'Ada is brilliant.', author: 'Tunde', role: 'CTO' }, { text: 'A joy to work with.', author: 'Ngozi', role: 'PM', company: 'Acme' }],
 })
 
+const AWARDS2 = () => [{ title: '1st Place (Regional)', issuer: 'CODET National Engineering Competition' }, { title: '3rd Place', issuer: 'SPE Undergraduate Engineering Project', year: '2021' }]
 let n = 0
 const DAY = 86400000
 function seed(plan: 'free' | 'pro' = 'pro', content: Record<string, unknown> = BASE()) {
@@ -162,7 +163,12 @@ const CELLS: Cell[] = [
   { id: 'quote.remove', tool: 'portfolio_remove_testimonial', mode: 'approval', args: (v) => ({ index: 0, ...v1(v) }), keys: ['testimonials'], check: (c) => expect(c.testimonials).toHaveLength(1) },
   { id: 'quote.replace-all', tool: 'portfolio_set_testimonials', mode: 'approval', args: (v) => ({ testimonials: [{ text: 'Great.', author: 'Z', company: 'Acme' }], ...v1(v) }), keys: ['testimonials'], check: (c) => expect(c.testimonials).toEqual([{ text: 'Great.', author: 'Z', role: '', company: 'Acme' }]) },
   { id: 'quote.reorder', tool: 'portfolio_reorder', mode: 'direct', args: (v) => ({ section: 'testimonials', from: 1, to: 0, ...v1(v) }), keys: ['testimonials'], check: (c) => expect(c.testimonials[0].author).toBe('Ngozi'), show: 'Ngozi' },
-  // look and design
+  // awards
+  { id: 'award.add', tool: 'portfolio_add_award', mode: 'direct', args: (v) => ({ title: '2nd Place (National)', issuer: 'CODET National Engineering Competition', year: '2022', ...v1(v) }), keys: ['awards'], check: (c) => expect(c.awards).toEqual([{ title: '2nd Place (National)', issuer: 'CODET National Engineering Competition', year: '2022' }]), show: '2nd Place (National)' },
+  { id: 'award.update', tool: 'portfolio_update_award', mode: 'direct', args: (v) => ({ index: 1, patch: { year: '2021', description: 'STEM and AI fair' }, ...v1(v) }), keys: ['awards'], setup: (c: any) => ({ ...c, awards: AWARDS2() }), check: (c) => { expect(c.awards[1]).toEqual({ title: '3rd Place', issuer: 'SPE Undergraduate Engineering Project', year: '2021', description: 'STEM and AI fair' }); expect(c.awards[0].title).toBe('1st Place (Regional)') }, show: 'STEM and AI fair' },
+  { id: 'award.remove', tool: 'portfolio_remove_award', mode: 'approval', args: (v) => ({ index: 0, ...v1(v) }), keys: ['awards'], setup: (c: any) => ({ ...c, awards: AWARDS2() }), check: (c) => expect(c.awards.map((a: any) => a.title)).toEqual(['3rd Place']) },
+  { id: 'award.reorder', tool: 'portfolio_reorder', mode: 'direct', args: (v) => ({ section: 'awards', from: 1, to: 0, ...v1(v) }), keys: ['awards'], setup: (c: any) => ({ ...c, awards: AWARDS2() }), check: (c) => expect(c.awards[0].title).toBe('3rd Place') },
+  { id: 'award.batch-set', tool: 'portfolio_apply_changes', mode: 'approval', args: (v) => ({ operations: [{ op: 'set_awards', awards: [{ title: 'Winner', issuer: 'Hack Night', year: '2024' }] }], ...v1(v) }), keys: ['awards'], check: (c) => expect(c.awards).toEqual([{ title: 'Winner', issuer: 'Hack Night', year: '2024' }]) },  // look and design
   { id: 'design.template', tool: 'portfolio_set_template', mode: 'direct', args: (v) => ({ template: 'bold', ...v1(v) }), keys: [], template: 'bold', check: () => {} },
   { id: 'design.look', tool: 'portfolio_set_look', mode: 'direct', args: (v) => ({ layout: { v: 1, arrangement: 'index' }, ...v1(v) }), keys: ['layout'], check: (c) => expect(c.layout.arrangement).toBe('index') },
   { id: 'design.pro-design', tool: 'portfolio_set_pro_design', mode: 'direct', args: (v) => ({ template: 'developer', version: 2, ...v1(v) }), keys: ['pro_designs'], check: (c) => expect(c.pro_designs.developer).toBe(2) },
@@ -351,7 +357,7 @@ describe('boundaries per field type', () => {
 })
 
 describe('every single-entry tool: version required, stale version rejected, no lost update, idempotent', () => {
-  const NEW_TOOLS = CELLS.filter((c) => ['edu.update', 'cert.update', 'quote.add', 'quote.update', 'quote.remove', 'skills.remove', 'groups.remove-skill', 'groups.rename', 'groups.remove-group', 'edu.reorder', 'cert.reorder', 'quote.reorder', 'groups.reorder', 'edu.remove'].includes(c.id))
+  const NEW_TOOLS = CELLS.filter((c) => ['edu.update', 'cert.update', 'quote.add', 'quote.update', 'quote.remove', 'award.add', 'award.update', 'award.remove', 'award.reorder', 'skills.remove', 'groups.remove-skill', 'groups.rename', 'groups.remove-group', 'edu.reorder', 'cert.reorder', 'quote.reorder', 'groups.reorder', 'edu.remove'].includes(c.id))
   it.each(NEW_TOOLS.map((c) => [c.id, c] as const))('%s: missing version is invalid, a stale version is refused and changes nothing', async (_id, cell) => {
     const u = seed()
     const before = contentOf(u.id)

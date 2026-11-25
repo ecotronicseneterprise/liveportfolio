@@ -14,15 +14,15 @@ export const isLookTemplate = (v: unknown): v is LookTemplate => v === 'creative
 export const themeForTemplate = (template: string): Theme | null => (isLookTemplate(template) ? THEME_BY_TEMPLATE[template] : null)
 
 // ── arrangements ─────────────────────────────────────────────────────────────────────────────────────────
-export type BlockName = 'hero' | 'about' | 'projects' | 'experience' | 'skills' | 'credentials' | 'quote' | 'social-links' | 'contact'
+export type BlockName = 'hero' | 'about' | 'projects' | 'experience' | 'skills' | 'credentials' | 'awards' | 'quote' | 'social-links' | 'contact'
 export interface SectionSpec { block: BlockName; variant: string }
 const s = (block: BlockName, variant: string): SectionSpec => ({ block, variant })
 
 export const ARRANGEMENT_SECTIONS: Record<Arrangement, SectionSpec[]> = {
-  proof: [s('hero', 'statement'), s('projects', 'proof'), s('about', 'short'), s('experience', 'timeline'), s('skills', 'groups'), s('credentials', 'inline'), s('quote', 'pull'), s('social-links', 'inline'), s('contact', 'band')],
-  profile: [s('hero', 'split'), s('about', 'prose'), s('projects', 'rows'), s('experience', 'timeline'), s('skills', 'groups'), s('credentials', 'list'), s('quote', 'pull'), s('contact', 'plain')],
-  index: [s('hero', 'compact'), s('projects', 'index'), s('experience', 'table'), s('about', 'columns'), s('skills', 'inline'), s('credentials', 'inline'), s('quote', 'pull'), s('social-links', 'inline'), s('contact', 'plain')],
-  showcase: [s('hero', 'statement'), s('projects', 'grid'), s('about', 'columns'), s('skills', 'inline'), s('experience', 'timeline'), s('credentials', 'inline'), s('quote', 'band'), s('social-links', 'stacked'), s('contact', 'band')],
+  proof: [s('hero', 'statement'), s('projects', 'proof'), s('about', 'short'), s('experience', 'timeline'), s('skills', 'groups'), s('credentials', 'inline'), s('awards', 'list'), s('quote', 'pull'), s('social-links', 'inline'), s('contact', 'band')],
+  profile: [s('hero', 'split'), s('about', 'prose'), s('projects', 'rows'), s('experience', 'timeline'), s('skills', 'groups'), s('credentials', 'list'), s('awards', 'list'), s('quote', 'pull'), s('contact', 'plain')],
+  index: [s('hero', 'compact'), s('projects', 'index'), s('experience', 'table'), s('about', 'columns'), s('skills', 'inline'), s('credentials', 'inline'), s('awards', 'list'), s('quote', 'pull'), s('social-links', 'inline'), s('contact', 'plain')],
+  showcase: [s('hero', 'statement'), s('projects', 'grid'), s('about', 'columns'), s('skills', 'inline'), s('experience', 'timeline'), s('credentials', 'inline'), s('awards', 'list'), s('quote', 'band'), s('social-links', 'stacked'), s('contact', 'band')],
 }
 
 // ── who is this person? (from the role text; deliberately coarse) ────────────────────────────────────────

@@ -5,6 +5,7 @@ import { contactItems } from '@/lib/contact/items'
 import Image from 'next/image'
 import { useId, useState } from 'react'
 import type { PortfolioContent } from './Minimal'
+import AwardsSection from './AwardsSection'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
 const css = `
@@ -391,6 +392,7 @@ export default function Graduate({ content }: { content: PortfolioContent }) {
           </div>
         </section>
       )}
+      <AwardsSection awards={content.awards} sectionClass="gr-section" headingClass="gr-section-title" />
 
       {content.testimonials && content.testimonials.length > 0 && (
         <section id="testimonials" className="gr-section">

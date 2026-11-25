@@ -5,6 +5,7 @@ import { Space_Mono, Sora } from 'next/font/google'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
+import AwardsSection from './AwardsSection'
 
 const spaceMono = Space_Mono({
   subsets: ['latin'],
@@ -474,6 +475,8 @@ export default function Bold({ content, credit = true, creditHref = 'https://liv
               </div>
             </section>
           )}
+
+          <AwardsSection awards={content.awards} sectionClass="mb-16 text-[#8B949E]" headingClass="text-xs text-[#58A6FF] font-bold uppercase tracking-widest mb-5" />
 
           {/* Contact */}
           <section

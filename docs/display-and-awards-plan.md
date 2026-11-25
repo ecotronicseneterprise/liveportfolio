@@ -1,6 +1,6 @@
 # Plan: show everything the user wrote, and add an Awards section
 
-Status: PLAN ONLY. Nothing here is built. Wait for the owner's go-ahead on each phase.
+Status: BUILT on `dev` (not pushed, not deployed). Phase 1 and 2a: b9d695e. Phase 2b: c729633. Phase 3: 636c5c3. Phase 4 (Awards): see the next commit on `dev`. Original plan below.
 Branch: work on `dev`, one phase per commit group, merge to `main` only when told. No Claude attribution in commit messages. No SQL run by the assistant. No live data touched.
 
 ## Why

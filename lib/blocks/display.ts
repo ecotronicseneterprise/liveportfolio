@@ -68,6 +68,13 @@ export function displayReport(content: Partial<PortfolioContent> | Json | null |
   const certs = Array.isArray(c.certifications) ? (c.certifications as unknown[]).filter((x) => text(x)) : []
   if (certs.length) rows.push({ section: 'certifications', shown: d.certifications.length, total: certs.length, truncated: d.certifications.length < certs.length })
 
+  const awardsStored = arr(c.awards)
+  if (awardsStored.length) rows.push({
+    section: 'awards', shown: d.awards.length, total: awardsStored.length, truncated: d.awards.length < awardsStored.length,
+    ...(phone(d.awards.length, PHONE_KEEP.awards) ? { folded_on_phone: phone(d.awards.length, PHONE_KEEP.awards) } : {}),
+    ...(d.awards.length < awardsStored.length ? { note: 'An award needs a title and an issuer to be shown.' } : {}),
+  })
+
   // skills: the page draws the groups when there are any, so a skill that is only in the flat list is saved but not drawn
   const groups = arr(c.skills_grouped)
   const flat = (Array.isArray(c.skills) ? (c.skills as unknown[]) : []).map(text).filter(Boolean)

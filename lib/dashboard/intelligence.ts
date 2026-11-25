@@ -79,7 +79,7 @@ export function portfolioIntelligence(content: Partial<PortfolioContent>) {
     check('growth-figures', 'Results with real figures', projects.some(p => hasFigure(p.outcome)), 52, 'Back a result with a figure', 'Where you can verify it, a number makes an outcome easier to believe.', 'Add a figure to an outcome', projectTarget('outcome', project(p => !hasFigure(p.outcome)))),
     check('growth-images', 'A project with an image', projects.some(p => text(p.image_url)), 50, 'Let people see your work', 'A screenshot or photo makes a project far easier to take in.', 'Add a project image', projectTarget('title', 0)),
     check('growth-skills', 'Eight or more skills', skills.size >= 8, 45, 'Round out your skills', 'A broader skills list helps more of the right people find you.', 'Add more skills', { targetId: 'editor-skills' }),
-    check('growth-proof', 'Certifications or testimonials', (content.certifications ?? []).some(text) || (content.testimonials ?? []).length > 0, 40, 'Add something others can vouch for', 'A certification or a kind word from someone you worked with builds trust.', 'Add a certification', { targetId: 'editor-certifications' }),
+    check('growth-proof', 'Certifications, awards or testimonials', (content.certifications ?? []).some(text) || (content.awards ?? []).length > 0 || (content.testimonials ?? []).length > 0, 40, 'Add something others can vouch for', 'A certification, an award or a kind word from someone you worked with builds trust.', 'Add a certification or award', { targetId: 'editor-certifications' }),
   ]
   const groups: QualityGroup[] = [
     { id: 'identity', label: 'Identity', checks: identity, score: 0 },

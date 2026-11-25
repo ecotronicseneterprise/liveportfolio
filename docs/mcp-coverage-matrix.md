@@ -113,3 +113,13 @@ Everything else on a portfolio can be created, read, updated, deleted and (where
 - **Tests:** a throwaway test user and portfolio created in the test setup (the repo's fake database helper, no production data, never your account), torn down after. One round-trip, public-render, undo and approval check per matrix cell; boundary and abuse cases per field type; concurrency, isolation, revocation and rate-limit checks. Report: pass or fail per cell, plus anything that passed by accident.
 - **Phase 3:** a copy-paste checklist of about 15 natural-language prompts for ChatGPT and Claude, with expected tool, approval, live-page result and a pass/fail column per client.
 - Nothing is pushed until you have seen the results.
+
+## Awards (added with the display work, see display-and-awards-plan.md)
+
+| Field | Add one | Edit one | Remove one | Replace all | Reorder |
+|---|---|---|---|---|---|
+| awards (title, issuer, year, description, link) | `portfolio_add_award` **D** (duplicate refused; a link needs approval) | `portfolio_update_award` **D** | `portfolio_remove_award` **A** | `set_awards` operation in `portfolio_apply_changes` **A** | `portfolio_reorder(section: "awards")` **D** |
+
+Covered by `tests/mcp-matrix.test.ts` (cells `award.*`) and `tests/awards.test.ts`.
+
+Note on "Saved but not shown": since phase 2 of the display work the free designs draw every testimonial, stack item and highlight line on a computer, so the old "only the first testimonial" and "first 5 stack items" warnings are gone. What is still saved but not drawn: skills that are only in the flat list when skill groups exist.

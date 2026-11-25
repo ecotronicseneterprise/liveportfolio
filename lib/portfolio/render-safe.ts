@@ -21,7 +21,7 @@ function cleanLinks<T extends Json>(o: T): T {
 
 export function safeContent<T extends Json>(content: T): T {
   const out: Json = cleanLinks(content)
-  for (const key of ['projects', 'experience', 'education'] as const) {
+  for (const key of ['projects', 'experience', 'education', 'awards'] as const) {
     if (Array.isArray(out[key])) out[key] = (out[key] as unknown[]).map((x) => (x && typeof x === 'object' && !Array.isArray(x) ? cleanLinks(x as Json) : x))
   }
   return out as T

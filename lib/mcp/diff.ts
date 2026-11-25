@@ -6,7 +6,7 @@ const PRO_IDS = new Set<string>(PRO_TEMPLATES)
 
 const LABELS: Record<string, string> = {
   name: 'Name', role: 'Role', headline: 'Headline', about: 'About', location: 'Location', skills: 'Skills', skills_grouped: 'Skill groups',
-  skills_narrative: 'Skills sentence', projects: 'Projects', experience: 'Experience', education: 'Education', certifications: 'Certifications',
+  skills_narrative: 'Skills sentence', projects: 'Projects', experience: 'Experience', education: 'Education', certifications: 'Certifications', awards: 'Awards',
   testimonials: 'Testimonials', layout: 'Look', pro_designs: 'Pro designs', github_url: 'GitHub link', linkedin_url: 'LinkedIn link',
   twitter_url: 'X link', instagram_url: 'Instagram link', facebook_url: 'Facebook link', youtube_url: 'YouTube link', tiktok_url: 'TikTok link',
   website_url: 'Website link', avatar_url: 'Profile photo',

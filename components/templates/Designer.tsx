@@ -5,6 +5,7 @@ import { contactItems } from '@/lib/contact/items'
 import Image from 'next/image'
 import { useState } from 'react'
 import type { PortfolioContent } from './Minimal'
+import AwardsSection from './AwardsSection'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
 const css = `
@@ -401,6 +402,7 @@ export default function Designer({ content }: { content: PortfolioContent }) {
           <div className="ds-skills-list">{content.certifications.map(cert => <span key={cert} className="ds-skill">{cert}</span>)}</div>
         </section>
       )}
+      <AwardsSection awards={content.awards} sectionClass="ds-section" headingClass="ds-section-title" />
       {!!content.testimonials?.length && (
         <section id="testimonials" className="ds-section">
           <h2 className="ds-section-title">Testimonials</h2>

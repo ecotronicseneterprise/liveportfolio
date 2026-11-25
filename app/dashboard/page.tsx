@@ -20,6 +20,7 @@ import { isProTemplateId, withProDesign, type ProTemplateId } from '@/lib/portfo
 import { removeSkill } from '@/lib/portfolio/editor'
 import FreeSplit from '@/components/dashboard/FreeSplit'
 import { BulletCount, DisplayNotice, FieldCount } from '@/components/dashboard/FieldCount'
+import AwardsEditor from '@/components/dashboard/AwardsEditor'
 import { PROJECT_TEXT_MAX } from '@/lib/blocks/adapt'
 import FreePreview from '@/components/dashboard/FreePreview'
 import ProOverview from '@/components/dashboard/ProOverview'
@@ -953,7 +954,7 @@ export default function DashboardPage() {
   }, [projectImageCropperIndex, editContent, portfolio, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const contentForSave = (content: Partial<PortfolioContent>, nextTemplate: string) => {
-    const cleaned = { ...content, certifications: content.certifications?.filter((c) => c.trim()) }
+    const cleaned = { ...content, certifications: content.certifications?.filter((c) => c.trim()), ...(content.awards ? { awards: content.awards.filter((a) => a.title?.trim() && a.issuer?.trim()) } : {}) }
     const layout = storedLayout(cleaned as StoredContent, nextTemplate)
     return layout ? { ...cleaned, layout } : cleaned
   }
@@ -1935,6 +1936,7 @@ export default function DashboardPage() {
                 </div>)}
                 <button type="button" disabled={(editContent.certifications?.length ?? 0) >= 50} className="min-h-[44px] text-sm font-medium text-blue-700" onClick={() => setEditContent((prev) => ({ ...prev, certifications: [...(prev.certifications ?? []), ''] }))}>Add certification</button>
               </fieldset>
+              <AwardsEditor awards={editContent.awards} onChange={(next) => setEditContent((prev) => ({ ...prev, awards: next }))} />
               <DisplayNotice content={editContent} template={portfolio.template} />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">About / Bio</label>

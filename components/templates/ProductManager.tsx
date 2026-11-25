@@ -5,6 +5,7 @@ import { contactItems } from '@/lib/contact/items'
 import Image from 'next/image'
 import { useState } from 'react'
 import type { PortfolioContent } from './Minimal'
+import AwardsSection from './AwardsSection'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
 const css = `
@@ -404,6 +405,7 @@ export default function ProductManager({ content }: { content: PortfolioContent 
           </div>
         </section>
       )}
+      <AwardsSection awards={content.awards} sectionClass="pm-section" headingClass="pm-section-title" />
 
       {/* Contact */}
       {!!content.testimonials?.length && (

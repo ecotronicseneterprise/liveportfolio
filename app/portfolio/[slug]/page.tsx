@@ -173,6 +173,8 @@ export default async function PortfolioPage({ params, searchParams }: Props) {
     ...(c.location && { address: { '@type': 'PostalAddress', addressLocality: c.location } }),
     ...(c.github_url && { sameAs: [c.github_url, c.linkedin_url].filter(Boolean) }),
     ...(c.avatar_url && { image: c.avatar_url }),
+    // prizes and placings, as plain text: schema.org Person.award
+    ...((c.awards ?? []).length > 0 && { award: (c.awards ?? []).filter((a) => a?.title && a?.issuer).map((a) => `${a.title}, ${a.issuer}${a.year ? ` (${a.year})` : ''}`) }),
   }
 
   return (

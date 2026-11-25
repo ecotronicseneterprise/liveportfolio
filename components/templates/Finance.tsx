@@ -4,6 +4,7 @@ import ContactIcons from '@/components/contact/ContactIcons'
 import { contactItems } from '@/lib/contact/items'
 import { useState } from 'react'
 import type { PortfolioContent } from './Minimal'
+import AwardsSection from './AwardsSection'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
 const css = `
@@ -277,6 +278,8 @@ export default function Finance({ content, credit = true, creditHref = 'https://
               </div>
             </section>
           )}
+
+          <AwardsSection awards={content.awards} sectionClass="fin-sidebar-block" headingClass="fin-block-title" />
 
           {hasContact && <section className="fin-sidebar-block" id="contact">
             <h2 className="fin-block-title">Contact</h2>

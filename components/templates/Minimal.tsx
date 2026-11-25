@@ -4,6 +4,7 @@ import ContactIcons from '@/components/contact/ContactIcons'
 import { Playfair_Display, DM_Sans } from 'next/font/google'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
+import AwardsSection from './AwardsSection'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -16,6 +17,8 @@ const dmSans = DM_Sans({
   variable: '--font-dm-sans',
   display: 'swap',
 })
+
+export interface PortfolioAward { title: string; issuer: string; year?: string; description?: string; url?: string }
 
 export interface PortfolioContent {
   /** Explicit per-template opt-in; missing or unknown versions render the original design. */
@@ -66,6 +69,8 @@ export interface PortfolioContent {
     grade?: string
   }[]
   certifications?: string[]
+  /** Prizes and placings (for example "2nd Place (National)"). Hidden when empty. */
+  awards?: PortfolioAward[]
   testimonials?: {
     text: string
     author: string
@@ -325,6 +330,8 @@ export default function Minimal({ content, credit = true, creditHref = 'https://
             </div>
           </section>
         )}
+
+        <AwardsSection awards={content.awards} sectionClass="w-full border-b border-gray-100 px-6 sm:px-10 lg:px-16 py-14 sm:py-20 text-gray-700" headingClass="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-6" />
 
         {/* Contact */}
         <section id="contact" className={`w-full ${fadeIn('contact')}`}>

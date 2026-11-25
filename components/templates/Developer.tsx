@@ -5,6 +5,7 @@ import { contactItems } from '@/lib/contact/items'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
+import AwardsSection from './AwardsSection'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
 const css = `
@@ -528,6 +529,8 @@ export default function Developer({ content, credit = true, creditHref = 'https:
               </div>
             </section>
           )}
+
+          <AwardsSection awards={content.awards} sectionClass="dv-section" headingClass="dv-section-label" />
 
           {/* Contact */}
           {!!content.testimonials?.length && (

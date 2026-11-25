@@ -9,7 +9,7 @@ For each row: did the assistant call the expected tool, did an approval link app
 | 2 | "I just got AWS Certified Cloud Practitioner. Add it." | portfolio_add_certification | No | new certification appears | | |
 | 3 | "Fix the typo in my degree name: it should say 'Computer Science'." | portfolio_update_education | No | corrected degree; other entries untouched; reply names the entry it changed | | |
 | 4 | "My second certification should read 'AZ-900 (Azure Fundamentals)'." | portfolio_update_certification | No | corrected text, same position | | |
-| 5 | "Add a testimonial from Amara Eze, Head of Product at Acme: 'She ships.'" | portfolio_add_testimonial | No | the page shows ONE testimonial; the assistant should warn that only the first is shown | | |
+| 5 | "Add a testimonial from Amara Eze, Head of Product at Acme: 'She ships.'" | portfolio_add_testimonial | No | the page shows the testimonial (all of them on a computer; a phone shows 3 and a "Show N more" button); no warning is expected | | |
 | 6 | "Remove the Security skills group." | portfolio_remove_skill_group | YES | group gone only after you approve; then say 'approved' and it confirms | | |
 | 7 | "Rename my 'Tools' group to 'Tooling' and remove Git from it." | portfolio_rename_skill_group, portfolio_remove_skill_from_group | No | renamed group, Git gone, other skills untouched | | |
 | 8 | "Move my newest certification to the top." | portfolio_reorder (certifications) | No | order changed, nothing else | | |

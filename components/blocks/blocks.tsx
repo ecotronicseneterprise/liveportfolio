@@ -336,6 +336,29 @@ const credentials: Record<string, Render> = {
   ) : null,
 }
 
+// ── awards ───────────────────────────────────────────────────────────────────────────────────────────────
+const awards: Record<string, Render> = {
+  list: (d, c) => d.awards.length ? (
+    <section className="b b-awards b-anchor" id={id(c, 'awards')}>
+      <div className="wrap">
+        <h2>{t('portfolio.awards')}</h2>
+        <Fold uid={id(c, 'awards-more')} total={d.awards.length} keep={PHONE_KEEP.awards} more={showMore(d.awards.length - PHONE_KEEP.awards)} less={t('portfolio.showFewer')}>
+          <ul>
+            {d.awards.map((a, i) => (
+              <li key={i} className={foldClass(i, PHONE_KEEP.awards)}>
+                <strong>{a.title}</strong>
+                <span className="amore">{[a.issuer, a.year].filter(Boolean).join(', ')}</span>
+                {a.description && <span className="adesc">{a.description}</span>}
+                {a.url && <a className="alink" href={a.url} rel="noopener noreferrer">{t('portfolio.awardLink')}<span className="sr-only"> {a.title}</span></a>}
+              </li>
+            ))}
+          </ul>
+        </Fold>
+      </div>
+    </section>
+  ) : null,
+}
+
 // ── quote ────────────────────────────────────────────────────────────────────────────────────────────────
 const quoteBlock = (variant: 'pull' | 'band'): Render => (d, c) => d.quotes.length ? (
   <section className={`b b-quote b-quote--${variant}`}>
@@ -377,7 +400,7 @@ const contact: Record<string, Render> = {
 }
 
 const REGISTRY: Record<string, Record<string, Render>> = {
-  hero, about, projects, experience, skills, credentials, quote, 'social-links': social, contact,
+  hero, about, projects, experience, skills, credentials, awards, quote, 'social-links': social, contact,
 }
 
 /** One section. An unknown block or variant renders nothing (a layout is validated before it gets here). */

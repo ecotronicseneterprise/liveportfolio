@@ -26,6 +26,20 @@ export function withEducation(current: unknown, e: Edu): Result<Edu[]> {
   return { ok: true, value: [...cur, { degree: e.degree.trim(), institution: e.institution.trim(), year: e.year ?? '', ...(e.period ? { period: e.period } : {}), ...(e.grade ? { grade: e.grade } : {}) }] }
 }
 
+// ── awards (prizes and placings; additive, duplicate-safe) ───────────────────────────────────────────────────
+export interface Award { title: string; issuer: string; year?: string; description?: string; url?: string }
+export const AWARD_MAX = 20
+export const sameAward = (a: Award, b: Award) => norm(a.title) === norm(b.title) && norm(a.issuer) === norm(b.issuer) && norm(a.year) === norm(b.year)
+export function withAward(current: Award[], a: Award): Result<Award[]> {
+  const title = a.title.trim(), issuer = a.issuer.trim()
+  if (!title) return fail('invalid_input', 'An award needs a title, for example "2nd Place (National)".')
+  if (!issuer) return fail('invalid_input', 'An award needs an issuer, for example the competition or organisation.')
+  const next: Award = { title, issuer, ...(a.year?.trim() ? { year: a.year.trim() } : {}), ...(a.description?.trim() ? { description: a.description.trim() } : {}), ...(a.url?.trim() ? { url: a.url.trim() } : {}) }
+  if (current.some((x) => sameAward(x, next))) return fail('duplicate', `"${title}" from ${issuer} is already on the portfolio.`)
+  if (current.length >= AWARD_MAX) return fail('limit', `At most ${AWARD_MAX} awards. Ask the person which one to replace.`)
+  return { ok: true, value: [...current, next] }
+}
+
 // ── text edits that never rewrite what they were not asked to touch ──────────────────────────────────────────
 export function appendText(current: unknown, text: string, where: 'start' | 'end', joiner: string): string {
   const cur = String(current ?? '').trim()
@@ -104,6 +118,7 @@ const urlSet = (c: Json): Set<string> => {
   const out = new Set<string>()
   for (const k of ['github_url', 'linkedin_url', 'twitter_url', 'instagram_url', 'facebook_url', 'youtube_url', 'tiktok_url', 'website_url']) if (typeof c[k] === 'string' && c[k]) out.add(String(c[k]))
   for (const p of list(c, 'projects')) for (const k of ['url', 'github_url', 'embed_url']) if (typeof p[k] === 'string' && p[k]) out.add(String(p[k]))
+  for (const a of list(c, 'awards')) if (typeof a.url === 'string' && a.url) out.add(String(a.url))
   return out
 }
 
@@ -117,7 +132,7 @@ export function approvalReason(before: Json, template: string, ops: unknown): st
     const b = String(before[k] ?? '').trim().length, a = String(after[k] ?? '').trim().length
     if (b >= 120 && a < b * 0.4) return `This would cut the ${k} from ${b} to ${a} characters.`
   }
-  for (const k of ['skills', 'projects', 'experience', 'education', 'certifications', 'testimonials']) {
+  for (const k of ['skills', 'projects', 'experience', 'education', 'certifications', 'awards', 'testimonials']) {
     const b = list(before, k).length, a = list(after, k).length
     if (b >= 4 && a < b * 0.5) return `This would cut ${k} from ${b} items to ${a}.`
   }
@@ -138,6 +153,6 @@ export function auditHealth(c: Json): string[] {
     if (!p.image_url) out.push(`Project ${i + 1} (${String(p.title ?? '')}) has no picture.`)
   })
   if (!c.avatar_url) out.push('There is no profile photo.')
-  if (!list(c, 'certifications').length) out.push('No certifications are listed (skip if the person has none).')
+  if (!list(c, 'certifications').length && !list(c, 'awards').length) out.push('No certifications or awards are listed (skip if the person has none).')
   return out
 }

@@ -5,6 +5,7 @@ import { contactItems } from '@/lib/contact/items'
 import { useId, useState } from 'react'
 import Image from 'next/image'
 import type { PortfolioContent } from './Minimal'
+import AwardsSection from './AwardsSection'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
 const css = `
@@ -354,6 +355,8 @@ export default function Cybersecurity({ content }: { content: PortfolioContent }
             </div>
           </section>
         )}
+
+        <AwardsSection awards={content.awards} sectionClass="cy-section" headingClass="cy-section-label" />
 
         {/* Skills */}
         {hasSkills && (

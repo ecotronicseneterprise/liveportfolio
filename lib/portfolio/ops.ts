@@ -9,6 +9,8 @@ import { z } from 'zod'
 import { httpUrl, isGithubAvatarUrl, powerBiEmbedUrl, projectImageUrl } from '@/lib/connectors/safe-url'
 import { LayoutSettings, parseLayout } from '@/lib/blocks/settings'
 import { PRO_TEMPLATES } from '@/lib/plans'
+import { AWARD_LIMITS } from '@/lib/portfolio/award-limits'
+export { AWARD_LIMITS }
 import { ProDesignsSchema, withProDesign } from '@/lib/portfolio/presentation'
 
 export type Json = Record<string, unknown>
@@ -33,11 +35,11 @@ export const LINK_FIELDS = ['github_url', 'linkedin_url', 'twitter_url', 'instag
 export const CONTENT_KEYS = [
   'name', 'role', 'about', 'headline', 'location', 'email', 'phone', 'whatsapp', 'github_url', 'linkedin_url', 'avatar_url',
   'twitter_url', 'instagram_url', 'facebook_url', 'youtube_url', 'tiktok_url', 'website_url', // more ways to be contacted, shown as icons
-  'skills', 'skills_grouped', 'skills_narrative', 'projects', 'experience', 'education', 'certifications', 'testimonials',
+  'skills', 'skills_grouped', 'skills_narrative', 'projects', 'experience', 'education', 'certifications', 'awards', 'testimonials',
   'layout', // the look: an arrangement and a few presentation choices, validated by lib/blocks/settings.ts (never words)
   'pro_designs', // explicit per-Pro-template opt-ins, independent of the free-template layout
 ] as const
-const ARRAY_KEYS = new Set(['skills', 'skills_grouped', 'projects', 'experience', 'education', 'certifications', 'testimonials'])
+const ARRAY_KEYS = new Set(['skills', 'skills_grouped', 'projects', 'experience', 'education', 'certifications', 'awards', 'testimonials'])
 const MAX_ITEMS = 50
 
 export const MAX_PROJECTS_ADD = MAX_ITEMS // the same bound as every other list: nobody should be stopped at 6 projects
@@ -83,6 +85,8 @@ const ExperiencePatch = z
   .object({ company: str(120).optional(), role: str(120).optional(), period: str(60).optional(), bullets: z.array(str(400)).max(12).optional() })
   .strict()
 const EducationInput = z.object({ degree: str(160), institution: str(160), year: str(20).default(''), period: str(60).optional(), grade: str(60).optional() }).strict()
+/** A prize or placing, for example "2nd Place (National)" from "CODET National Engineering Competition". The link, when given, must be https. */
+const AwardInput = z.object({ title: str(AWARD_LIMITS.title), issuer: str(AWARD_LIMITS.issuer), year: str(AWARD_LIMITS.year).default(''), description: str(AWARD_LIMITS.description).default(''), url: str(AWARD_LIMITS.url).optional() }).strict()
 const TestimonialInput = z.object({ text: str(600), author: str(100), role: str(160).default(''), company: str(120).default('') }).strict()
 const Group = z.object({ category: str(60), items: z.array(str(60)).max(20) }).strict()
 
@@ -103,6 +107,7 @@ export const Op = z.discriminatedUnion('op', [
   z.object({ op: z.literal('move_experience'), from: idx, to: idx }).strict(),
   z.object({ op: z.literal('set_education'), education: z.array(EducationInput).max(MAX_ITEMS) }).strict(),
   z.object({ op: z.literal('set_certifications'), certifications: z.array(str(160)).max(12) }).strict(),
+  z.object({ op: z.literal('set_awards'), awards: z.array(AwardInput).max(AWARD_LIMITS.max) }).strict(),
   z.object({ op: z.literal('set_testimonials'), testimonials: z.array(TestimonialInput).max(10) }).strict(),
   // The dashboard's "Save" sends whole sections; this is that, validated for shape. The assistant is not given this op.
   z.object({ op: z.literal('replace_content'), content: z.record(z.string(), z.unknown()) }).strict(),
@@ -196,6 +201,17 @@ function cleanContentPatch(raw: Record<string, unknown>, i: number): Json {
       // an explicit null clears optional links only
       if (k.endsWith('_url')) out[k] = ''
     } else throw new OpError('invalid_op', `${k} must be text`, i)
+  }
+  if (Array.isArray(out.awards)) {
+    // a whole-section save from the dashboard: keep only well-formed entries, cut to the limits, https links only
+    out.awards = (out.awards as unknown[])
+      .filter((a): a is Json => !!a && typeof a === 'object' && !Array.isArray(a))
+      .map((a) => {
+        const s = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
+        const url = s(a.url, AWARD_LIMITS.url)
+        return { title: s(a.title, AWARD_LIMITS.title), issuer: s(a.issuer, AWARD_LIMITS.issuer), ...(s(a.year, AWARD_LIMITS.year) ? { year: s(a.year, AWARD_LIMITS.year) } : {}), ...(s(a.description, AWARD_LIMITS.description) ? { description: s(a.description, AWARD_LIMITS.description) } : {}), ...(url.startsWith('https://') && httpUrl(url) ? { url: httpUrl(url) } : {}) }
+      })
+      .filter((a) => a.title && a.issuer)
   }
   if (Array.isArray(out.experience)) {
     out.experience = (out.experience as Array<{ bullets?: unknown[] }>).map((e) => ({
@@ -328,6 +344,20 @@ export function applyOps(input: PortfolioState, rawOps: unknown): ApplyResult {
       case 'set_certifications': {
         const v = op.certifications.map(trim).filter(Boolean)
         if (!same(c.certifications, v)) { c.certifications = v; note('Changed certifications') }
+        break
+      }
+      case 'set_awards': {
+        const stored = new Set(list(c, 'awards').map((a) => (typeof a.url === 'string' ? a.url : '')).filter(Boolean))
+        const v = op.awards
+          .map((a, k) => {
+            const url = (a.url ?? '').trim()
+            // https only; a link already stored is accepted unchanged so saving other edits never fails on old data
+            const ok = !url || stored.has(url) || (url.startsWith('https://') && !!httpUrl(url))
+            if (!ok) throw new OpError('invalid_op', `awards[${k}].url must be an https link`, i)
+            return { title: trim(a.title), issuer: trim(a.issuer), ...(trim(a.year) ? { year: trim(a.year) } : {}), ...(trim(a.description) ? { description: trim(a.description) } : {}), ...(url ? { url: stored.has(url) ? url : httpUrl(url) || url } : {}) }
+          })
+          .filter((a) => a.title && a.issuer)
+        if (!same(c.awards, v)) { c.awards = v; note('Changed awards') }
         break
       }
       case 'set_testimonials': {

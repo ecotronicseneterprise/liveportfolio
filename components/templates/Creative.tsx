@@ -4,6 +4,7 @@ import ContactIcons from '@/components/contact/ContactIcons'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import type { PortfolioContent } from './Minimal'
+import AwardsSection from './AwardsSection'
 import './template-fonts.css' // self-hosted fonts (no request to Google Fonts)
 
 const css = `
@@ -621,6 +622,8 @@ export default function Creative({ content }: { content: PortfolioContent }) {
           </div>
         </section>
       )}
+
+      <AwardsSection awards={content.awards} sectionClass="nt-section nt-fade" headingClass="nt-section-title" />
 
       {/* Contact */}
       <div className="nt-contact nt-fade" id="contact">

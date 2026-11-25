@@ -23,6 +23,7 @@ export function proContent(input: unknown): PortfolioContent {
     experience: objects(c.experience).map((e) => ({ company: string(e.company), role: string(e.role), period: string(e.period), bullets: strings(e.bullets) })),
     education: objects(c.education).map((e) => ({ degree: string(e.degree), institution: string(e.institution), year: string(e.year), period: string(e.period), grade: string(e.grade) })),
     certifications: strings(c.certifications),
+    awards: objects(c.awards).map((a) => ({ title: string(a.title), issuer: string(a.issuer), year: string(a.year), description: string(a.description), url: string(a.url) })).filter((a) => a.title && a.issuer),
     testimonials: objects(c.testimonials).map((q) => ({ text: string(q.text), author: string(q.author), role: string(q.role), company: string(q.company) })),
     pro_designs: c.pro_designs,
   }
