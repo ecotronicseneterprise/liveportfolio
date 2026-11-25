@@ -21,7 +21,7 @@ const s = (block: BlockName, variant: string): SectionSpec => ({ block, variant 
 export const ARRANGEMENT_SECTIONS: Record<Arrangement, SectionSpec[]> = {
   proof: [s('hero', 'statement'), s('projects', 'proof'), s('about', 'short'), s('experience', 'timeline'), s('skills', 'groups'), s('credentials', 'inline'), s('quote', 'pull'), s('social-links', 'inline'), s('contact', 'band')],
   profile: [s('hero', 'split'), s('about', 'prose'), s('projects', 'rows'), s('experience', 'timeline'), s('skills', 'groups'), s('credentials', 'list'), s('quote', 'pull'), s('contact', 'plain')],
-  index: [s('hero', 'compact'), s('projects', 'index'), s('experience', 'table'), s('about', 'columns'), s('skills', 'inline'), s('credentials', 'inline'), s('social-links', 'inline'), s('contact', 'plain')],
+  index: [s('hero', 'compact'), s('projects', 'index'), s('experience', 'table'), s('about', 'columns'), s('skills', 'inline'), s('credentials', 'inline'), s('quote', 'pull'), s('social-links', 'inline'), s('contact', 'plain')],
   showcase: [s('hero', 'statement'), s('projects', 'grid'), s('about', 'columns'), s('skills', 'inline'), s('experience', 'timeline'), s('credentials', 'inline'), s('quote', 'band'), s('social-links', 'stacked'), s('contact', 'band')],
 }
 

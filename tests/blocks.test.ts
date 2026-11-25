@@ -121,7 +121,7 @@ describe('adapter: stored content is untrusted and may be anything', () => {
     const d = toBlockData({ ...SPARSE, about: 'One.\n\nTwo.\n\n\nThree.', skills: ['Go', 'SQL'], skills_grouped: [], testimonials: [{ text: '', author: 'x', role: '' }, { text: 'Great', author: 'Ada', role: 'CTO', company: 'Acme' }], projects: [{ title: '', problem: 'x', solution: '', outcome: '', stack: [] }] })
     expect(d.about).toEqual(['One.', 'Two.', 'Three.'])
     expect(d.skillGroups).toEqual([{ category: t('portfolio.skills'), items: ['Go', 'SQL'] }])
-    expect(d.quote).toEqual({ text: 'Great', author: 'Ada', role: 'CTO, Acme' })
+    expect(d.quotes).toEqual([{ text: 'Great', author: 'Ada', role: 'CTO, Acme' }])
     expect(d.projects).toEqual([])
   })
 })
@@ -218,11 +218,11 @@ describe('what is drawn: every theme x arrangement x fixture', () => {
     expect(out).not.toContain('photo-monogram')
     expect(out).not.toContain('>undefined<')
   })
-  it('the bio can be shortened to the first paragraph without touching the text', () => {
+  it('the "short bio" setting no longer hides paragraphs: every paragraph is drawn (display-all)', () => {
     const c = { ...SAMPLE_PEOPLE.engineer }
     const full = renderToStaticMarkup(createElement(Look, { template: 'minimal', content: c, layout: { ...defaultLayout('profile'), bio: 'long' } } as never))
     const short = renderToStaticMarkup(createElement(Look, { template: 'minimal', content: c, layout: { ...defaultLayout('profile'), bio: 'short' } } as never))
-    expect(full).toContain('unglamorous'); expect(short).not.toContain('unglamorous'); expect(short).toContain('Five years')
+    expect(full).toContain('unglamorous'); expect(short).toContain('unglamorous'); expect(short).toContain('Five years')
     expect(c.about).toContain('unglamorous')
   })
   it('accent and density become CSS variables on the root, nothing else', () => {

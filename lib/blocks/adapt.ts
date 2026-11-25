@@ -6,6 +6,7 @@ import { t } from '@/lib/onboarding/t'
 import { powerBiEmbedUrl } from '@/lib/connectors/safe-url'
 
 export interface BlockProject { title: string; problem: string; solution: string; outcome: string; stack: string[]; url?: string; sourceUrl?: string; imageUrl?: string; embedUrl?: string }
+export interface BlockQuote { text: string; author: string; role: string }
 export interface BlockRole { company: string; role: string; period: string; bullets: string[] }
 export interface BlockData {
   name: string
@@ -20,11 +21,16 @@ export interface BlockData {
   skillGroups: Array<{ category: string; items: string[] }>
   education: string[]
   certifications: string[]
-  quote?: { text: string; author: string; role: string }
+  /** Every testimonial that has text and an author, in the person's order. */
+  quotes: BlockQuote[]
   links: Array<{ label: string; url: string }>
   /** Every way to reach the person (e-mail, phone, WhatsApp, social networks), drawn as icons by the contact section. */
   contact: ContactItem[]
 }
+
+/** The editor and the assistant allow this many characters per project text field and per testimonial; the page must draw all of them. */
+export const PROJECT_TEXT_MAX = 1500
+export const TESTIMONIAL_TEXT_MAX = 600
 
 const str = (v: unknown, max = 2000): string => (typeof v === 'string' ? v.trim().slice(0, max) : '')
 const strs = (v: unknown, max = 200, cap = 50): string[] => (Array.isArray(v) ? v.map((x) => str(x, max)).filter(Boolean).slice(0, cap) : [])
@@ -55,9 +61,9 @@ export function toBlockData(c: Partial<PortfolioContent> | null | undefined): Bl
   const projects: BlockProject[] = (Array.isArray(content.projects) ? content.projects : [])
     .map((p) => ({
       title: str(p?.title, 160),
-      problem: str(p?.problem, 800),
-      solution: str(p?.solution, 800),
-      outcome: str(p?.outcome, 800),
+      problem: str(p?.problem, PROJECT_TEXT_MAX),
+      solution: str(p?.solution, PROJECT_TEXT_MAX),
+      outcome: str(p?.outcome, PROJECT_TEXT_MAX),
       stack: strs(p?.stack, 40, 12),
       url: safeUrl(p?.url),
       sourceUrl: safeUrl(p?.github_url),
@@ -82,14 +88,19 @@ export function toBlockData(c: Partial<PortfolioContent> | null | undefined): Bl
     .map((e) => {
       const head = [str(e?.degree, 160), str(e?.institution, 160)].filter(Boolean).join(', ')
       if (!head) return ''
-      const tail = [str(e?.year, 20)].filter(Boolean).join('')
+      const year = str(e?.year, 20)
+      const period = str((e as { period?: unknown })?.period, 60)
+      // The period (for example "2014 - 2018") is shown when the person gave one; the year is added only when the period does not already contain it.
+      const tail = [period, year && !period.includes(year) ? year : ''].filter(Boolean).join(', ')
       const grade = str(e?.grade, 60)
       return `${head}${tail ? `, ${tail}` : ''}${grade ? ` (${grade})` : ''}`
     })
     .filter(Boolean)
 
-  const q = Array.isArray(content.testimonials) ? content.testimonials.find((x) => str(x?.text) && str(x?.author)) : undefined
-  const quote = q ? { text: str(q.text, 500), author: str(q.author, 100), role: [str(q.role, 100), str(q.company, 100)].filter(Boolean).join(', ') } : undefined
+  const quotes: BlockQuote[] = (Array.isArray(content.testimonials) ? content.testimonials : [])
+    .filter((x) => str(x?.text) && str(x?.author))
+    .map((q) => ({ text: str(q.text, TESTIMONIAL_TEXT_MAX), author: str(q.author, 100), role: [str(q.role, 160), str(q.company, 120)].filter(Boolean).join(', ') }))
+    .slice(0, 10)
 
   const links: Array<{ label: string; url: string }> = []
   const gh = safeUrl(content.github_url)
@@ -111,7 +122,7 @@ export function toBlockData(c: Partial<PortfolioContent> | null | undefined): Bl
     skillGroups,
     education,
     certifications: strs(content.certifications, 160, 12),
-    quote,
+    quotes,
     links,
     contact: contactItems(content as Record<string, unknown>),
   }

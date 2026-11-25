@@ -63,9 +63,9 @@ describe('approval before/after and display warnings', () => {
     expect(c[0]).toEqual({ label: 'About', before: 'Old', after: 'New' })
     expect(JSON.stringify(c)).not.toContain('@')
   })
-  it('warns about a stack longer than the page shows and an outcome equal to the solution', () => {
+  it('no longer warns about a long stack (the page draws all of it) but still warns about an outcome equal to the solution', () => {
     const w = displayWarnings({ projects: [{ title: 'A', stack: ['1', '2', '3', '4', '5', '6', '7'], solution: 'same', outcome: 'same' }] })
-    expect(w.join(' ')).toMatch(/first 5 of its 7/)
+    expect(w.join(' ')).not.toMatch(/stack/)
     expect(w.join(' ')).toMatch(/outcome is identical/)
   })
 })

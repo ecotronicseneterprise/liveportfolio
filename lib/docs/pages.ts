@@ -95,7 +95,7 @@ export const DOC_PAGES: DocPage[] = [
         'Removing things, replacing whole lists, links, large cuts, batches and restoring old versions need you to approve on liveportfolio.site. The assistant only gets a link; it cannot approve for you. A request expires after 30 minutes and is refused if your portfolio changed in the meantime.',
         'Your email, phone and WhatsApp are hidden from the assistant unless you allow them.',
         'You can connect read-only.',
-        'Limits: 30 skills, 1500 characters per project text, 60 changes in one batch. Some things are saved but not shown on the page (the first 5 stack items of a project, the first testimonial, and skills that are not in a group when you have groups); your assistant tells you when that happens.',
+        'Limits: 30 skills, 1500 characters per project text, 60 changes in one batch. One thing is saved but not shown: skills that are not in a group when you have groups (the page shows the groups). Your assistant tells you when that happens.',
         'Disconnect at any time (see Manage and disconnect). The next request from that app is refused.',
         'Pictures are checked and re-encoded. Upload links work once, for 10 minutes, and only while you are signed in.',
       ] },

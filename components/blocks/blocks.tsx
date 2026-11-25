@@ -39,7 +39,7 @@ function ProjectLinks({ p }: { p: BlockProject }) {
 function ProjectStack({ p }: { p: BlockProject }) {
   return p.stack.length ? (
     <ul className="pstack" aria-label={t('portfolio.projectStack')}>
-      {p.stack.slice(0, 5).map((item, i) => <li key={`${item}-${i}`}>{item}</li>)}
+      {p.stack.map((item, i) => <li key={`${item}-${i}`}>{item}</li>)}
     </ul>
   ) : null
 }
@@ -138,7 +138,8 @@ const hero: Record<string, Render> = {
 }
 
 // ── about ────────────────────────────────────────────────────────────────────────────────────────────────
-const paras = (d: BlockData, c: BlockCtx) => (c.bioShort ? d.about.slice(0, 1) : d.about)
+// Every paragraph the person wrote is drawn, whatever the layout's bio setting says.
+const paras = (d: BlockData, _c: BlockCtx) => d.about
 const about: Record<string, Render> = {
   prose: (d, c) => d.about.length ? (
     <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap"><h2>{t('portfolio.about')}</h2><div className="prose">{paras(d, c).map((p, i) => <p key={i}>{p}</p>)}</div></div></section>
@@ -147,7 +148,7 @@ const about: Record<string, Render> = {
     <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap two"><h2>{t('portfolio.about')}</h2><div className="prose">{paras(d, c).map((p, i) => <p key={i}>{p}</p>)}</div></div></section>
   ) : null,
   short: (d, c) => d.about.length ? (
-    <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap"><h2>{t('portfolio.about')}</h2><div className="prose"><p>{d.about[0]}</p></div></div></section>
+    <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap"><h2>{t('portfolio.about')}</h2><div className="prose">{d.about.map((p, i) => <p key={i}>{p}</p>)}</div></div></section>
   ) : null,
 }
 
@@ -178,6 +179,7 @@ const projects: Record<string, Render> = {
               <Picture p={p} />
               <h3>{p.title}</h3>
               {(p.outcome || p.solution) && <p className="res">{p.outcome || p.solution}</p>}
+              {p.outcome && p.solution && <p className="sub">{p.solution}</p>}
               {p.problem && <p className="sub">{p.problem}</p>}
               <ProjectStack p={p} />
               <ProjectLinks p={p} />
@@ -256,7 +258,7 @@ const experience: Record<string, Render> = {
             <p className="when">{e.period}</p>
             <h3>{e.role || e.company}</h3>
             <p className="org">{e.role ? e.company : ''}</p>
-            <p className="what">{e.bullets[0] ?? ''}</p>
+            <div className="what">{e.bullets.length > 0 && <ul>{e.bullets.map((b, k) => <li key={k}>{b}</li>)}</ul>}</div>
           </article>
         ))}
       </div>
@@ -298,13 +300,15 @@ const credentials: Record<string, Render> = {
 }
 
 // ── quote ────────────────────────────────────────────────────────────────────────────────────────────────
-const quoteBlock = (variant: 'pull' | 'band'): Render => (d) => d.quote ? (
+const quoteBlock = (variant: 'pull' | 'band'): Render => (d) => d.quotes.length ? (
   <section className={`b b-quote b-quote--${variant}`}>
     <div className="wrap">
-      <figure>
-        <blockquote><p>“{d.quote.text}”</p></blockquote>
-        <figcaption>{[d.quote.author, d.quote.role].filter(Boolean).join(', ')}</figcaption>
-      </figure>
+      {d.quotes.map((q, i) => (
+        <figure key={i}>
+          <blockquote><p>“{q.text}”</p></blockquote>
+          <figcaption>{[q.author, q.role].filter(Boolean).join(', ')}</figcaption>
+        </figure>
+      ))}
     </div>
   </section>
 ) : null
