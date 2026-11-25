@@ -83,7 +83,8 @@
 .pro-developer .pro-section h2 { font-size:27px; }
 .pro-developer .pro-project { border:0; border-top:2px solid var(--accent); }
 .pro-developer .pro-project h3 { font-size:30px; }
-.pro-developer .pro-contact { grid-column:1/-1; }
+/* The contact block sits in the right-hand column under the content. Spanning both columns put it under the sticky left rail, which then overlapped it. */
+.pro-developer .pro-contact { grid-column:2; border-left:1px solid var(--line); padding-left:36px; }
 .pro-developer .pro-timeline>li { grid-template-columns:1fr; gap:12px; }
 .pro-developer .pro-credentials,.pro-developer .pro-skill-groups { grid-template-columns:1fr; }
 
@@ -181,6 +182,7 @@
   .pro-developer .pro-main { grid-template-columns:1fr; }
   .pro-developer .pro-hero { position:static; display:grid; grid-template-columns:minmax(0,1fr) auto; }
   .pro-developer .pro-content { border:0; padding:0; }
+  .pro-developer .pro-contact { grid-column:1; border:0; padding-left:0; }
   .pro-product-manager .pro-project-story { grid-template-columns:1fr; }
   .pro-finance .pro-section,.pro-data-scientist .pro-section { grid-template-columns:1fr; gap:0; }
   .pro-finance .pro-section-heading,.pro-data-scientist .pro-section-heading { flex-direction:row; align-items:baseline; }
