@@ -43,3 +43,21 @@ export function deriveSeo(content: Record<string, unknown>): { seo_title: string
     seo_description: cutAtWord(description, 155),
   }
 }
+/**
+ * The person's own search keywords: their name, role, place and skills (skill groups first, then the flat list), each once, at most 12.
+ * A portfolio page must never carry LivePortfolio's own marketing terms; these come only from what the person wrote.
+ */
+export function deriveKeywords(content: Record<string, unknown>): string[] {
+  const out = new Map<string, string>()
+  const add = (v: unknown) => {
+    if (typeof v !== 'string') return
+    const t = v.trim().replace(/\s+/g, ' ')
+    if (!t || t.length > 40) return
+    const k = t.toLowerCase()
+    if (!out.has(k)) out.set(k, t)
+  }
+  add(content.name); add(content.role); add(content.location)
+  for (const g of Array.isArray(content.skills_grouped) ? (content.skills_grouped as Array<{ items?: unknown }>) : []) for (const i of Array.isArray(g?.items) ? g.items : []) add(i)
+  for (const s of Array.isArray(content.skills) ? content.skills : []) add(s)
+  return [...out.values()].slice(0, 12)
+}

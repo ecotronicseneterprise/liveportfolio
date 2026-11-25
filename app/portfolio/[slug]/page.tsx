@@ -1,4 +1,4 @@
-import { deriveSeo } from '@/lib/portfolio/derive'
+import { deriveKeywords, deriveSeo } from '@/lib/portfolio/derive'
 import React from 'react'
 import { safeJsonLd } from '@/lib/json-ld'
 import { notFound } from 'next/navigation'
@@ -61,6 +61,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: portfolio.seo_title,
     description: portfolio.seo_description,
+    // this person's own keywords, never the platform's (the site-wide ones are only for the LivePortfolio pages themselves)
+    keywords: portfolio.content ? deriveKeywords(portfolio.content) : [],
     alternates: {
       canonical: canonicalUrl,
     },
