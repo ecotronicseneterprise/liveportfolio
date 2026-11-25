@@ -19,6 +19,8 @@ import ProDesignPicker from '@/components/dashboard/ProDesignPicker'
 import { isProTemplateId, withProDesign, type ProTemplateId } from '@/lib/portfolio/presentation'
 import { removeSkill } from '@/lib/portfolio/editor'
 import FreeSplit from '@/components/dashboard/FreeSplit'
+import { BulletCount, DisplayNotice, FieldCount } from '@/components/dashboard/FieldCount'
+import { PROJECT_TEXT_MAX } from '@/lib/blocks/adapt'
 import FreePreview from '@/components/dashboard/FreePreview'
 import ProOverview from '@/components/dashboard/ProOverview'
 import AssistantCard from '@/components/dashboard/AssistantCard'
@@ -1933,6 +1935,7 @@ export default function DashboardPage() {
                 </div>)}
                 <button type="button" disabled={(editContent.certifications?.length ?? 0) >= 50} className="min-h-[44px] text-sm font-medium text-blue-700" onClick={() => setEditContent((prev) => ({ ...prev, certifications: [...(prev.certifications ?? []), ''] }))}>Add certification</button>
               </fieldset>
+              <DisplayNotice content={editContent} template={portfolio.template} />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">About / Bio</label>
                 <textarea
@@ -1942,6 +1945,7 @@ export default function DashboardPage() {
                   rows={5}
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }}
                 />
+                <FieldCount value={editContent.about} limit={6000} />
               </div>
             </div>
 
@@ -2152,6 +2156,7 @@ export default function DashboardPage() {
                       }}
                       rows={4}
                       className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }} />
+                    <BulletCount lines={exp.bullets} />
                   </div>
                 ))}
               </div>
@@ -2261,6 +2266,7 @@ export default function DashboardPage() {
                         }}
                         rows={2}
                         className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }} />
+                      <FieldCount value={proj.problem} limit={PROJECT_TEXT_MAX} />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">What you built</label>
@@ -2272,6 +2278,7 @@ export default function DashboardPage() {
                         }}
                         rows={2}
                         className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }} />
+                      <FieldCount value={proj.solution} limit={PROJECT_TEXT_MAX} />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Outcome / impact</label>
@@ -2283,6 +2290,7 @@ export default function DashboardPage() {
                         }}
                         rows={2}
                         className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none" style={{ fontSize: '16px' }} />
+                      <FieldCount value={proj.outcome} limit={PROJECT_TEXT_MAX} />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Tech stack (comma-separated)</label>

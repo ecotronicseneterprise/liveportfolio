@@ -500,3 +500,30 @@ describe('pictures', () => {
     expect((await call(b.id, 'portfolio_check_image_upload', { upload_id: link.upload_id })).error).toBe('not_found') // another user cannot see it
   })
 })
+
+describe('display awareness (portfolio_get, portfolio_preview_changes)', () => {
+  it('portfolio_get returns display_report and text_usage (characters used, limit, remaining, words)', async () => {
+    const u = seed('pro', BASE())
+    const r = await call(u.id, 'portfolio_get', {})
+    expect(Array.isArray(r.display_report)).toBe(true)
+    expect(r.text_usage.about).toMatchObject({ limit: 6000 })
+    expect(r.text_usage.about.remaining).toBe(6000 - r.text_usage.about.length)
+    expect(r.text_usage.about.words).toBeGreaterThan(0)
+    expect(JSON.stringify(r.text_usage)).not.toMatch(/@/)
+  })
+  it('portfolio_preview_changes says before saving whether everything would show, and saves nothing', async () => {
+    const u = seed('pro', BASE())
+    const v = versionOf(u.id)
+    const before = contentOf(u.id)
+    const bullets = Array.from({ length: 6 }, (_, i) => `Did thing number ${i + 1} with 20% more reach`)
+    const r = await call(u.id, 'portfolio_preview_changes', { operations: [{ op: 'add_experience', experience: { company: 'Zed', role: 'Lead', period: '2024', bullets } }] })
+    expect(r.saved).toBe(false)
+    const row = r.would_display.find((x: any) => x.section === 'experience bullets')
+    expect(row.shown).toBe(row.total)
+    expect(row.truncated).toBe(false)
+    expect(row.folded_on_phone).toBeGreaterThanOrEqual(3)
+    expect(r.needs_attention.some((x: any) => x.section === 'experience bullets')).toBe(true)
+    expect(contentOf(u.id)).toEqual(before)
+    expect(versionOf(u.id)).toBe(v)
+  })
+})

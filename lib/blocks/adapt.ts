@@ -32,6 +32,9 @@ export interface BlockData {
 export const PROJECT_TEXT_MAX = 1500
 export const TESTIMONIAL_TEXT_MAX = 600
 
+/** How many of a long list a phone shows before a labelled "Show N more" control. Desktop, tablets and print always show everything. */
+export const PHONE_KEEP = { bullets: 3, quotes: 3, stack: 5, about: 1 } as const
+
 const str = (v: unknown, max = 2000): string => (typeof v === 'string' ? v.trim().slice(0, max) : '')
 const strs = (v: unknown, max = 200, cap = 50): string[] => (Array.isArray(v) ? v.map((x) => str(x, max)).filter(Boolean).slice(0, cap) : [])
 

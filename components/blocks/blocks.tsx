@@ -4,7 +4,7 @@
 import ContactIcons from '@/components/contact/ContactIcons'
 import type { ReactNode } from 'react'
 import { t } from '@/lib/onboarding/t'
-import type { BlockData, BlockProject } from '@/lib/blocks/adapt'
+import { PHONE_KEEP, type BlockData, type BlockProject } from '@/lib/blocks/adapt'
 import type { SectionSpec } from '@/lib/blocks/presets'
 
 export interface BlockCtx {
@@ -26,8 +26,6 @@ export function Figures({ text }: { text: string }): ReactNode {
 const id = (c: BlockCtx, name: string) => `${c.idp}-${name}`
 const mailto = (e: string) => `mailto:${e}`
 
-/** How many of a long list a phone shows before a labelled "Show N more" control. Desktop and print always show everything. */
-export const PHONE_KEEP = { bullets: 3, quotes: 3, stack: 5, about: 1 } as const
 
 /** Items past `keep` get this class: hidden by CSS on a phone until the control is used, never removed from the HTML. */
 const foldClass = (i: number, keep: number): string | undefined => (i >= keep ? 'fold-x' : undefined)
