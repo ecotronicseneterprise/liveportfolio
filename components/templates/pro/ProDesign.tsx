@@ -86,7 +86,7 @@ export default function ProDesign({ content, template, idPrefix }: { content: Po
           {!has.projects && hasContact && <Links c={c} />}
         </div>
         <Picture src={c.avatar_url} alt={`Portrait of ${c.name}`} portrait />
-        <div className="pro-hero-rule" aria-hidden="true"><span>{design.label}</span><span>01 — {String(sections.length + 1).padStart(2, '0')}</span></div>
+        <div className="pro-hero-rule" aria-hidden="true"><span>{design.label}</span>{sections.length > 0 && <span>01 — {ordinal(sections.length - 1)}</span>}</div>
       </div>
       <div className="pro-content">{sections.map((s, index) => <Section key={s} id={id(s)} number={index} title={titles[s]} className={`pro-section-${s}`}>{body[s]}</Section>)}</div>
       {hasContact && <section className="pro-contact" id={id('contact')} aria-labelledby={id('contact-heading')}><p className="pro-eyebrow">Continue the conversation</p><h2 id={id('contact-heading')}>Let’s connect.</h2><Links c={c} /></section>}

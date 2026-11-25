@@ -3,11 +3,14 @@ import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { callLLM, LlmError } from '@/lib/llm'
+import { createHash } from 'node:crypto'
 import { entitlements } from '@/lib/entitlements'
 
 export const dynamic = 'force-dynamic'
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
+// After an edit the advice is refreshed, at most once a day, so the model is not called on every save.
+const REFRESH_AFTER_EDIT_MS = 24 * 60 * 60 * 1000
 
 const insightSchema = z.object({
   score: z.number().int().min(0).max(100),
@@ -82,8 +85,13 @@ export async function GET(req: NextRequest) {
       .limit(1)
       .single()
 
-    if (cached && Date.now() - new Date(cached.scored_at).getTime() < SEVEN_DAYS_MS) {
-      const cachedBreakdown = (cached.breakdown ?? {}) as Record<string, unknown>
+    // The advice is reused for 7 days, but refreshed (at most once a day) when the portfolio changed since it was written, so it never
+    // talks about content that is no longer there. Older rows carry no hash, so they refresh once.
+    const contentHash = createHash('sha256').update(JSON.stringify(portfolio.content ?? {})).digest('hex').slice(0, 16)
+    const cachedBreakdown = ((cached?.breakdown ?? {}) as Record<string, unknown>)
+    const age = cached ? Date.now() - new Date(cached.scored_at).getTime() : Infinity
+    const stale = cachedBreakdown.content_hash !== contentHash && age >= REFRESH_AFTER_EDIT_MS
+    if (cached && age < SEVEN_DAYS_MS && !stale) {
       return NextResponse.json({
         score: cached.score,
         breakdown: cachedBreakdown,
@@ -103,7 +111,7 @@ export async function GET(req: NextRequest) {
     }
 
     const c = portfolio.content as {
-      name?: string; role?: string; about?: string; skills?: string[]; skills_narrative?: string;
+      name?: string; role?: string; about?: string; skills?: string[]; skills_grouped?: { category?: string; items?: string[] }[]; skills_narrative?: string; awards?: { title?: string }[];
       projects?: { title: string; outcome?: string; stack?: string[]; url?: string; github_url?: string; image_url?: string }[];
       experience?: { company: string; role: string; period: string; bullets?: string[] }[];
       education?: { degree?: string; institution?: string; year?: string }[];
@@ -113,7 +121,12 @@ export async function GET(req: NextRequest) {
 
     const projects = Array.isArray(c.projects) ? c.projects : []
     const experience = Array.isArray(c.experience) ? c.experience : []
-    const skills = Array.isArray(c.skills) ? c.skills : []
+    // every skill the portfolio shows: the flat list and the skill groups, each counted once (the page draws the groups)
+    const skills = [...new Map([...(Array.isArray(c.skills) ? c.skills : []), ...(Array.isArray(c.skills_grouped) ? c.skills_grouped : []).flatMap((g) => (Array.isArray(g?.items) ? g.items : []))]
+      .filter((x): x is string => typeof x === 'string' && !!x.trim())
+      .map((x) => [x.trim().toLowerCase(), x.trim()] as const)).values()]
+    const skillGroups = (Array.isArray(c.skills_grouped) ? c.skills_grouped : []).filter((g) => Array.isArray(g?.items) && g.items.length)
+    const awardsCount = (Array.isArray(c.awards) ? c.awards : []).filter((a) => a?.title).length
     const education = Array.isArray(c.education) ? c.education : []
     const certifications = Array.isArray(c.certifications) ? c.certifications : []
     const missing: string[] = []
@@ -140,7 +153,8 @@ Portfolio facts:
 - LinkedIn present: ${c.linkedin_url ? 'yes' : 'no'}
 - GitHub present: ${c.github_url ? 'yes' : 'no'}
 - About length: ${(c.about || '').split(/\s+/).filter(Boolean).length} words
-- Skills count: ${skills.length}
+- Skills count: ${skills.length} (flat list and skill groups combined, each counted once)
+- Skill groups: ${skillGroups.length}
 - Skills: ${skills.join(', ') || 'none'}
 - Skills summary present: ${c.skills_narrative ? 'yes' : 'no'}
 - Projects count: ${projects.length}
@@ -150,15 +164,19 @@ Portfolio facts:
 - Projects with images: ${projects.filter((p) => p?.image_url).length}
 - Experience count: ${experience.length}
 - Experience entries with at least 2 bullets: ${experience.filter((e) => Array.isArray(e?.bullets) && e.bullets.filter((b) => b?.trim()).length >= 2).length}
-- Education count: ${education.length}
+- Education entries listed: ${education.length}
+- Education entries with a degree and an institution: ${education.filter((e) => e?.degree?.trim() && e?.institution?.trim()).length}
+- Awards listed: ${awardsCount}
 - Certifications count: ${certifications.length}
 - Missing elements: ${missing.join(', ') || 'none'}
 
 Project details:
-${projects.map((p, i) => `${i + 1}. ${p.title || 'Untitled'} | outcome: ${p.outcome || 'none'} | stack: ${(p.stack || []).join(', ') || 'none'} | link: ${p.url || p.github_url ? 'yes' : 'no'}`).join('\n') || 'none'}
+${projects.map((p, i) => `${i + 1}. ${p.title || 'Untitled'} | outcome: ${p.outcome || 'none'} | stack: ${(p.stack || []).join(', ') || 'none'} | figure in outcome: ${hasMetric(p.outcome) ? 'yes' : 'no'} | link: ${p.url || p.github_url ? 'yes' : 'no'}`).join('\n') || 'none'}
 
 Experience details:
 ${experience.map((e, i) => `${i + 1}. ${e.role || 'Unknown role'} at ${e.company || 'Unknown company'} (${e.period || 'no period'}) | bullets: ${(e.bullets || []).filter(Boolean).length}`).join('\n') || 'none'}
+
+Only recommend something that the facts above show is missing or weak. If education entries are listed, do not ask the person to add education. If projects have quantified outcomes, name that as a strength and only suggest figures for a project that has none. Use the skills count exactly as given above.
 
 Return structured JSON only. Keep every string concise and specific. Portfolio actions must be things the user can improve inside this portfolio. Career actions must be broader professional moves outside the portfolio. Prioritize the highest-leverage gaps first.`
 
@@ -192,6 +210,7 @@ Return structured JSON only. Keep every string concise and specific. Portfolio a
     const careerActions = parsed.career_actions || []
     const storedBreakdown = {
       ...breakdown,
+      content_hash: contentHash,
       top_strength: topStrength,
       top_gap: topGap,
       portfolio_actions: portfolioActions,

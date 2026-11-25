@@ -65,6 +65,7 @@ function seed(plan: 'free' | 'pro' = 'pro', content: Record<string, unknown> = B
   h.tokens[assistant] = { id, email }
   return { id, email, browser, assistant, pfId: `pf-${n}` }
 }
+const portfolioSlug = (uid: string): string => rows('users').find((x) => x.id === uid).slug
 const portfolioOf = (uid: string) => rows('portfolios').find((p) => p.user_id === uid)
 const contentOf = (uid: string) => clone(portfolioOf(uid).content)
 const versionOf = (uid: string): number => portfolioOf(uid).edit_count ?? 0
@@ -508,6 +509,12 @@ describe('pictures', () => {
 })
 
 describe('display awareness (portfolio_get, portfolio_preview_changes)', () => {
+  it('live_url is the address the dashboard shares (name on the main domain), not the wildcard subdomain', async () => {
+    const u = seed('pro', BASE())
+    const r = await call(u.id, 'portfolio_get', {})
+    expect(r.live_url).toBe('https://liveportfolio.site/' + portfolioSlug(u.id))
+    expect(r.live_url).not.toMatch(/^https:\/\/[^/]+\.liveportfolio\.site/)
+  })
   it('portfolio_get returns display_report and text_usage (characters used, limit, remaining, words)', async () => {
     const u = seed('pro', BASE())
     const r = await call(u.id, 'portfolio_get', {})

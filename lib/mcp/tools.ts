@@ -70,7 +70,8 @@ async function userRow(userId: string) {
   const plan = await getUserPlan(userId)
   return { slug: (data as { slug?: string | null } | null)?.slug ?? null, published: plan !== 'free' }
 }
-const liveUrl = (slug?: string | null, published?: boolean) => (slug && published ? `https://${slug}.${ROOT}` : null)
+// The address the dashboard shares (it works on every network); the name.domain form depends on wildcard DNS.
+const liveUrl = (slug?: string | null, published?: boolean) => (slug && published ? `https://${ROOT}/${slug}` : null)
 
 function fromApplied(a: Applied, slugInfo: { slug?: string | null; published?: boolean }) {
   if (!a.ok) throw new ToolError(a.code, a.message)
