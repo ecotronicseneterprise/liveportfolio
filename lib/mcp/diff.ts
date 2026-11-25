@@ -42,11 +42,11 @@ export function describeChanges(before: Json, after: Json, templateBefore?: stri
   return out.slice(0, 12)
 }
 
-/** What the public page shows. Verified in components/blocks/blocks.tsx: the free designs draw every stack item, bullet, testimonial and paragraph. */
+/** What the public page shows. Verified in components/blocks/blocks.tsx: the free designs draw every stack item, bullet, testimonial and paragraph; on a phone (640px and below) long lists are folded behind a labelled control, never removed. */
 export const DISPLAY_LIMITS = {
-  project_stack_items_shown: 'all',
-  role_bullets_shown: 'all',
-  testimonials_shown: 'all',
+  project_stack_items_shown: 'all (on a phone the first 5, then a "+N more" control)',
+  role_bullets_shown: 'all (on a phone the first 3, then a "Show N more" control)',
+  testimonials_shown: 'all (on a phone the first 3, then a "Show N more" control)',
   project_dashboard_embed: 'an interactive Power BI report is shown under the project picture on the free designs only; the Pro designs show the picture',
   skills_shown: 'the skill groups when there are any; otherwise the flat skills list',
 } as const

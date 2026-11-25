@@ -26,6 +26,28 @@ export function Figures({ text }: { text: string }): ReactNode {
 const id = (c: BlockCtx, name: string) => `${c.idp}-${name}`
 const mailto = (e: string) => `mailto:${e}`
 
+/** How many of a long list a phone shows before a labelled "Show N more" control. Desktop and print always show everything. */
+export const PHONE_KEEP = { bullets: 3, quotes: 3, stack: 5, about: 1 } as const
+
+/** Items past `keep` get this class: hidden by CSS on a phone until the control is used, never removed from the HTML. */
+const foldClass = (i: number, keep: number): string | undefined => (i >= keep ? 'fold-x' : undefined)
+
+/**
+ * A phone-only fold with no JavaScript: a visually hidden checkbox (keyboard and screen-reader operable) and a label that is the button.
+ * Everything is in the HTML, so search engines, desktop and print see all of it; the stylesheet hides the extras only on a narrow screen.
+ */
+function Fold({ uid, total, keep, more, less, chip, children }: { uid: string; total: number; keep: number; more: string; less: string; chip?: boolean; children: ReactNode }) {
+  if (total <= keep) return <>{children}</>
+  return (
+    <div className={chip ? 'fold fold--chip' : 'fold'}>
+      <input type="checkbox" id={uid} className="fold-t" />
+      {children}
+      <label htmlFor={uid} className="fold-btn"><span className="fold-more">{more}</span><span className="fold-less">{less}</span></label>
+    </div>
+  )
+}
+const showMore = (n: number) => t('portfolio.showMore', { n })
+
 function ProjectLinks({ p }: { p: BlockProject }) {
   if (!p.url && !p.sourceUrl) return null
   return (
@@ -36,11 +58,13 @@ function ProjectLinks({ p }: { p: BlockProject }) {
   )
 }
 
-function ProjectStack({ p }: { p: BlockProject }) {
+function ProjectStack({ p, uid }: { p: BlockProject; uid: string }) {
   return p.stack.length ? (
-    <ul className="pstack" aria-label={t('portfolio.projectStack')}>
-      {p.stack.map((item, i) => <li key={`${item}-${i}`}>{item}</li>)}
-    </ul>
+    <Fold uid={uid} total={p.stack.length} keep={PHONE_KEEP.stack} more={t('portfolio.stackMore', { n: p.stack.length - PHONE_KEEP.stack })} less={t('portfolio.showFewer')} chip>
+      <ul className="pstack" aria-label={t('portfolio.projectStack')}>
+        {p.stack.map((item, i) => <li key={`${item}-${i}`} className={foldClass(i, PHONE_KEEP.stack)}>{item}</li>)}
+      </ul>
+    </Fold>
   ) : null
 }
 
@@ -138,17 +162,24 @@ const hero: Record<string, Render> = {
 }
 
 // ── about ────────────────────────────────────────────────────────────────────────────────────────────────
-// Every paragraph the person wrote is drawn, whatever the layout's bio setting says.
-const paras = (d: BlockData, _c: BlockCtx) => d.about
+// Every paragraph the person wrote is in the page. The short-bio setting (and the Proof arrangement) fold the rest behind a control on a phone only.
+function AboutText({ d, c, fold }: { d: BlockData; c: BlockCtx; fold: boolean }) {
+  const keep = fold ? PHONE_KEEP.about : d.about.length
+  return (
+    <Fold uid={id(c, 'about-more')} total={d.about.length} keep={keep} more={t('portfolio.readMore')} less={t('portfolio.readLess')}>
+      {d.about.map((p, i) => <p key={i} className={foldClass(i, keep)}>{p}</p>)}
+    </Fold>
+  )
+}
 const about: Record<string, Render> = {
   prose: (d, c) => d.about.length ? (
-    <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap"><h2>{t('portfolio.about')}</h2><div className="prose">{paras(d, c).map((p, i) => <p key={i}>{p}</p>)}</div></div></section>
+    <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap"><h2>{t('portfolio.about')}</h2><div className="prose"><AboutText d={d} c={c} fold={c.bioShort} /></div></div></section>
   ) : null,
   columns: (d, c) => d.about.length ? (
-    <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap two"><h2>{t('portfolio.about')}</h2><div className="prose">{paras(d, c).map((p, i) => <p key={i}>{p}</p>)}</div></div></section>
+    <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap two"><h2>{t('portfolio.about')}</h2><div className="prose"><AboutText d={d} c={c} fold={c.bioShort} /></div></div></section>
   ) : null,
   short: (d, c) => d.about.length ? (
-    <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap"><h2>{t('portfolio.about')}</h2><div className="prose">{d.about.map((p, i) => <p key={i}>{p}</p>)}</div></div></section>
+    <section className="b b-about b-anchor" id={id(c, 'about')}><div className="wrap"><h2>{t('portfolio.about')}</h2><div className="prose"><AboutText d={d} c={c} fold /></div></div></section>
   ) : null,
 }
 
@@ -162,7 +193,7 @@ const projects: Record<string, Render> = {
         {list(d, c).map((p, i) => (
           <article className="prow" key={i}>
             <span className="yr" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-              <div className="main"><h3>{p.title}</h3>{p.problem && <p>{p.problem}</p>}{p.solution && <p className="project-solution">{p.solution}</p>}<ProjectStack p={p} /><ProjectLinks p={p} /></div>
+              <div className="main"><h3>{p.title}</h3>{p.problem && <p>{p.problem}</p>}{p.solution && <p className="project-solution">{p.solution}</p>}<ProjectStack p={p} uid={id(c, `st${i}`)} /><ProjectLinks p={p} /></div>
               <div className="project-result"><Picture p={p} />{p.outcome && <p className="res"><Figures text={p.outcome} /></p>}</div>
           </article>
         ))}
@@ -181,7 +212,7 @@ const projects: Record<string, Render> = {
               {(p.outcome || p.solution) && <p className="res">{p.outcome || p.solution}</p>}
               {p.outcome && p.solution && <p className="sub">{p.solution}</p>}
               {p.problem && <p className="sub">{p.problem}</p>}
-              <ProjectStack p={p} />
+              <ProjectStack p={p} uid={id(c, `st${i}`)} />
               <ProjectLinks p={p} />
             </article>
           ))}
@@ -200,7 +231,7 @@ const projects: Record<string, Render> = {
               <p className="big">{p.outcome ? <Figures text={p.outcome} /> : p.solution || p.problem}</p>
               <h3>{p.title}</h3>
               {(p.problem || p.solution) && <p className="sub">{[p.problem, p.solution].filter(Boolean).join(' ')}</p>}
-              <ProjectStack p={p} />
+              <ProjectStack p={p} uid={id(c, `st${i}`)} />
               <ProjectLinks p={p} />
             </article>
           ))}
@@ -220,7 +251,7 @@ const projects: Record<string, Render> = {
               {p.solution && <div><dt>{t('portfolio.didWhat')}</dt><dd>{p.solution}</dd></div>}
               {p.outcome && <div><dt>{t('portfolio.result')}</dt><dd className="res"><Figures text={p.outcome} /></dd></div>}
             </dl>
-            <ProjectStack p={p} />
+            <ProjectStack p={p} uid={id(c, `st${i}`)} />
             <Picture p={p} />
             <ProjectLinks p={p} />
           </article>
@@ -231,6 +262,14 @@ const projects: Record<string, Render> = {
 }
 
 // ── experience ───────────────────────────────────────────────────────────────────────────────────────────
+function Bullets({ uid, items }: { uid: string; items: string[] }) {
+  return (
+    <Fold uid={uid} total={items.length} keep={PHONE_KEEP.bullets} more={showMore(items.length - PHONE_KEEP.bullets)} less={t('portfolio.showFewer')}>
+      <ul>{items.map((b, k) => <li key={k} className={foldClass(k, PHONE_KEEP.bullets)}>{b}</li>)}</ul>
+    </Fold>
+  )
+}
+
 const experience: Record<string, Render> = {
   timeline: (d, c) => d.experience.length ? (
     <section className="b b-exp b-anchor" id={id(c, 'experience')}>
@@ -242,7 +281,7 @@ const experience: Record<string, Render> = {
             <div>
               <h3>{e.role || e.company}</h3>
               {e.role && e.company && <p className="org">{e.company}</p>}
-              {e.bullets.length > 0 && <ul>{e.bullets.map((b, k) => <li key={k}>{b}</li>)}</ul>}
+              {e.bullets.length > 0 && <Bullets uid={id(c, `b${i}`)} items={e.bullets} />}
             </div>
           </article>
         ))}
@@ -258,7 +297,7 @@ const experience: Record<string, Render> = {
             <p className="when">{e.period}</p>
             <h3>{e.role || e.company}</h3>
             <p className="org">{e.role ? e.company : ''}</p>
-            <div className="what">{e.bullets.length > 0 && <ul>{e.bullets.map((b, k) => <li key={k}>{b}</li>)}</ul>}</div>
+            <div className="what">{e.bullets.length > 0 && <Bullets uid={id(c, `b${i}`)} items={e.bullets} />}</div>
           </article>
         ))}
       </div>
@@ -300,15 +339,17 @@ const credentials: Record<string, Render> = {
 }
 
 // ── quote ────────────────────────────────────────────────────────────────────────────────────────────────
-const quoteBlock = (variant: 'pull' | 'band'): Render => (d) => d.quotes.length ? (
+const quoteBlock = (variant: 'pull' | 'band'): Render => (d, c) => d.quotes.length ? (
   <section className={`b b-quote b-quote--${variant}`}>
     <div className="wrap">
+      <Fold uid={id(c, 'quotes-more')} total={d.quotes.length} keep={PHONE_KEEP.quotes} more={showMore(d.quotes.length - PHONE_KEEP.quotes)} less={t('portfolio.showFewer')}>
       {d.quotes.map((q, i) => (
-        <figure key={i}>
+        <figure key={i} className={foldClass(i, PHONE_KEEP.quotes)}>
           <blockquote><p>“{q.text}”</p></blockquote>
           <figcaption>{[q.author, q.role].filter(Boolean).join(', ')}</figcaption>
         </figure>
       ))}
+      </Fold>
     </div>
   </section>
 ) : null

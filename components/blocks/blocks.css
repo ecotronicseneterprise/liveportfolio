@@ -282,3 +282,18 @@
 .lpb .pembed iframe { display: block; width: 100%; height: 520px; margin-top: 12px; border: 1px solid rgba(0,0,0,.12); border-radius: 12px; background: #fff; }
 .lpb .pembed a { display: inline-block; margin-top: 8px; font-size: 14px; }
 @media (max-width: 640px) { .lpb .pembed iframe { height: 420px; } }
+
+/* Phone-only fold ("Show N more"). Every item is in the HTML; only a narrow screen hides the extras, and a labelled control brings them back.
+   Desktop, tablets above 640px and print are untouched. The checkbox is visually hidden but stays focusable. */
+.lpb .fold { position: relative; }
+.lpb .fold-t { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.lpb .fold-btn { display: none; }
+@media screen and (max-width: 640px) {
+  .lpb .fold-t:not(:checked) ~ * .fold-x, .lpb .fold-t:not(:checked) ~ .fold-x { display: none; }
+  .lpb .fold-btn { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; padding: 6px 14px; border: 1px solid var(--rule); border-radius: 999px; color: var(--accent, var(--ink)); font: 600 14px/1.3 var(--label); cursor: pointer; }
+  .lpb .fold--chip .fold-btn { min-height: 32px; margin-top: 8px; padding: 4px 11px; font-size: 13px; }
+  .lpb .fold-less { display: none; }
+  .lpb .fold-t:checked ~ .fold-btn .fold-more { display: none; }
+  .lpb .fold-t:checked ~ .fold-btn .fold-less { display: inline; }
+  .lpb .fold-t:focus-visible ~ .fold-btn { outline: 2px solid var(--accent, currentColor); outline-offset: 2px; }
+}

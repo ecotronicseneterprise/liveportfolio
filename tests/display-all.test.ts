@@ -1,6 +1,8 @@
 // Invariant: everything a person stores (up to the limits the editor and the assistant allow) is drawn on the public page by the three free
 // designs, in every arrangement. This is the guard that would have caught the 800-character cut, the first-bullet-only index table and the
 // missing testimonials on the index arrangement. Text is made of plain letters so HTML escaping cannot hide a miss.
+import fs from 'node:fs'
+import path from 'node:path'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -61,6 +63,36 @@ describe('free designs draw everything the person stored', () => {
       })
     }
   }
+
+  it('phone fold: every folded item sits inside a fold with a labelled control that points at its checkbox; nothing is hidden by CSS outside the phone query', () => {
+    const css = fs.readFileSync(path.resolve(__dirname, '../components/blocks/blocks.css'), 'utf8')
+    // the only rule that hides a folded item is inside the 640px screen query
+    const hidingRules = css.split('\n').filter((l) => /\.fold-x/.test(l) && /display:\s*none/.test(l))
+    expect(hidingRules.length).toBeGreaterThan(0)
+    const phoneBlock = css.slice(css.indexOf('@media screen and (max-width: 640px)'))
+    for (const r of hidingRules) expect(phoneBlock, r).toContain(r.trim())
+    for (const template of FREE_TEMPLATES) {
+      for (const arrangement of ARRANGEMENTS) {
+        const html = render(template, arrangement)
+        const labelFor = [...html.matchAll(/<label for="([^"]+)" class="fold-btn">/g)].map((m) => m[1])
+        const boxes = [...html.matchAll(/<input type="checkbox" id="([^"]+)" class="fold-t"\/>/g)].map((m) => m[1])
+        expect(boxes.length, `${template}/${arrangement} has folds`).toBeGreaterThan(0)
+        expect(labelFor.sort(), `${template}/${arrangement} every checkbox has its label`).toEqual(boxes.sort())
+        expect(new Set(boxes).size, 'ids are unique').toBe(boxes.length)
+        // counts: 12 bullets keep 3 (9 folded) per role, 10 testimonials keep 3 (7 folded), 12 stack chips keep 5 (7 folded)
+        expect(html).toContain('Show 9 more')
+        expect(html).toContain('+7 more')
+        expect(html).toContain('Show 7 more')
+      }
+    }
+  })
+
+  it('short lists get no fold at all', () => {
+    const small = { ...content, experience: [{ company: 'A', role: 'B', period: '2020', bullets: ['one', 'two', 'three'] }], testimonials: [{ text: 'x', author: 'y' }], projects: [{ title: 'P', problem: '', solution: 'S', outcome: 'O', stack: ['a', 'b', 'c', 'd', 'e'] }], about: 'one' }
+    const html = renderToStaticMarkup(createElement(Look, { template: 'minimal', content: small, layout: defaultLayout('profile'), page: true, idPrefix: 'x' } as never))
+    expect(html).not.toContain('fold-t')
+    expect(html).not.toContain('fold-x')
+  })
 
   it('problem, solution and outcome are all drawn in full where the arrangement shows them (proof, rows, index, grid)', () => {
     for (const template of FREE_TEMPLATES) {
