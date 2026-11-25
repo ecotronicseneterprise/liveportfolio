@@ -108,7 +108,9 @@ export function middleware(req: NextRequest) {
     const slug = hostname.replace(`.${ROOT_DOMAIN}`, '').toLowerCase()
 
     // Don't rewrite internal Next.js paths
-    if (pathname.startsWith('/_next') || pathname.startsWith('/api') || pathname === '/favicon.ico') {
+    // robots.txt and sitemap.xml are the site's own files, not pages of this portfolio: they are served on every host, so a crawler that
+    // reads name.liveportfolio.site/robots.txt gets the real rules (and the one sitemap, which lists only liveportfolio.site/name).
+    if (pathname.startsWith('/_next') || pathname.startsWith('/api') || pathname === '/favicon.ico' || pathname === '/robots.txt' || pathname === '/sitemap.xml') {
       return NextResponse.next()
     }
 
