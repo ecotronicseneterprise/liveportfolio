@@ -22,6 +22,7 @@ export default function UploadPage() {
   const [token, setToken] = useState('')
   const [state, setState] = useState<'ready' | 'working' | 'done' | 'error'>('ready')
   const [message, setMessage] = useState('')
+  const [closeFailed, setCloseFailed] = useState(false)
 
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get('t') ?? ''
@@ -51,6 +52,9 @@ export default function UploadPage() {
     }
   }
 
+  // Same as the approval page: close this tab, and say so if the browser refuses (a tab the person opened themselves can usually be closed).
+  const closeTab = () => { window.close(); setTimeout(() => setCloseFailed(true), 300) }
+
   return (
     <main className="min-h-screen bg-white text-neutral-900 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
@@ -58,7 +62,11 @@ export default function UploadPage() {
         <h1 className="mt-2 text-2xl font-semibold">Add your picture</h1>
         <p className="mt-2 text-neutral-600">Choose the picture your assistant asked for. It is added to your portfolio straight away and you can undo it from History.</p>
         {state === 'done' ? (
-          <p role="status" className="mt-6 rounded-xl border border-green-200 bg-green-50 p-4 text-green-900">{message}</p>
+          <>
+            <p role="status" className="mt-6 rounded-xl border border-green-200 bg-green-50 p-4 text-green-900">{message}</p>
+            <button onClick={closeTab} className="mt-5 min-h-[48px] w-full rounded-full border border-neutral-300 px-5 font-medium">Close this tab</button>
+            {closeFailed && <p className="mt-2 text-sm text-neutral-600">You can close this tab.</p>}
+          </>
         ) : (
           <>
             {state === 'error' && <p role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">{message}</p>}
