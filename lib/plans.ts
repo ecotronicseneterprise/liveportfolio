@@ -85,9 +85,18 @@ export interface Entitlements {
   weeklyScore: boolean
   /** A published page carries a small "Built with LivePortfolio" badge unless the plan removes it. */
   noBadge: boolean
+  /** CV download as a PDF: every plan. */
+  cvPdf: boolean
+  /** CV download as an editable Word document: Pro. */
+  cvDocx: boolean
 }
 
-const has = (plan: PlanId, id: FeatureId) => FEATURES.some((f) => f.id === id && f.status === 'available' && f.plans.includes(plan))
+// The CV export is deliberately NOT in FEATURES yet: the pricing page, the checkout modal and the landing page render FEATURES, and nothing
+// may be advertised before the export has been verified on production (docs/cv-export-plan.md, rollout step 3). When it is announced, add
+// `cv_pdf` and `cv_docx` to FEATURES and derive these two from them like the others.
+const CV_PLANS: Record<'cvPdf' | 'cvDocx', readonly PlanId[]> = { cvPdf: ['free', 'basic', 'pro'], cvDocx: ['pro'] }
+
+const has =(plan: PlanId, id: FeatureId) => FEATURES.some((f) => f.id === id && f.status === 'available' && f.plans.includes(plan))
 
 export function entitlementsFor(plan: PlanId): Entitlements {
   return {
@@ -99,6 +108,8 @@ export function entitlementsFor(plan: PlanId): Entitlements {
     qr: has(plan, 'qr'),
     weeklyScore: has(plan, 'weekly_score'),
     noBadge: has(plan, 'no_badge'),
+    cvPdf: CV_PLANS.cvPdf.includes(plan),
+    cvDocx: CV_PLANS.cvDocx.includes(plan),
   }
 }
 

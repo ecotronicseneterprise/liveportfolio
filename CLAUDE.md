@@ -385,6 +385,16 @@ Everything in Production is live money (Paystack has no test mode here; Preview 
 - Prices are shown in Naira everywhere; outside Nigeria a dollar figure is only a labelled estimate (`components/PriceTag.tsx`). All customer-facing billing wording lives in `lib/billing/copy.ts` and `app/terms/page.tsx`; keep them in step. Do not promise reminder e-mails until part 2.6 of `docs/payment-redesign.md` ships.
 - Manual grant for a bank-transfer payer: dry run, grant and rollback SQL in `docs/payment-redesign.md` 2.7, with a reference like `manual-YYYYMMDD-<initials>`. Never reuse a Paystack reference (especially an abandoned one).
 
+## CV export (PDF and Word)
+
+Owner decision 2026-11-25: a CV generated from the portfolio is IN scope (the old "no resume PDF" rule is gone). Plan: `docs/cv-export-plan.md`.
+- `GET /api/cv?format=pdf|docx[&contact=0]` and `GET /api/cv?report=1`: Bearer-authenticated, rendered on request from `portfolios.content`, never stored, `no-store`. PDF for every plan, Word (`cvDocx`) for Pro, enforced in the route through `entitlements()`.
+- Built from `toBlockData` (the page's own normaliser) in `lib/cv/model.ts`; renderers `lib/cv/pdf.ts` (pdfkit, embedded Noto Sans) and `lib/cv/docx.ts` (docx, Calibri, named styles, real lists). No AI, no `lib/llm`.
+- Completeness rule: everything stored is printed or listed in `report.omitted` with one reason from the closed set in `lib/cv/model.ts`. `tests/cv-export.test.ts` checks this on the real files (pdf.js text extraction, unzipped DOCX).
+- Do not "clean up" in `lib/cv/pdf.ts`: the font stays embedded (built-in PDF fonts cannot print ẹ ọ ṣ) and `ccmp` stays off (otherwise the text layer reads "Expẹriẹncẹ").
+- Not advertised yet: `cvPdf`/`cvDocx` are deliberately not in `FEATURES` (that list feeds the pricing page, checkout and landing). Add them only after the export is verified on production.
+- Rate limit is the in-process one (a backstop). A database-backed counter needs `cv_export` added to the `usage_events` kind check (a migration the owner decides on).
+
 ## Rate Limits
 
 | Endpoint | Limit | Method |
@@ -923,7 +933,6 @@ Every template must pass: screenshot looks like Framer showcase, iPhone SE
 ## What Does NOT Exist in v1 (do not build)
 
 - Drag-and-drop editor
-- Resume PDF generation
 - AI regeneration after initial generation
 - Subscription pricing
 - LinkedIn OAuth import

@@ -42,9 +42,9 @@ const PLANS: PlanId[] = ['free', 'basic', 'pro']
 
 describe('the plan matrix (lib/plans.ts)', () => {
   it('Free / Basic / Pro entitlements', () => {
-    expect(entitlementsFor('free')).toEqual({ plan: 'free', canEdit: true, canPublish: false, templates: 'free', analytics: false, qr: false, weeklyScore: false, noBadge: false })
-    expect(entitlementsFor('basic')).toEqual({ plan: 'basic', canEdit: true, canPublish: true, templates: 'free', analytics: false, qr: false, weeklyScore: false, noBadge: false })
-    expect(entitlementsFor('pro')).toEqual({ plan: 'pro', canEdit: true, canPublish: true, templates: 'all', analytics: true, qr: true, weeklyScore: true, noBadge: true })
+    expect(entitlementsFor('free')).toEqual({ plan: 'free', canEdit: true, canPublish: false, templates: 'free', analytics: false, qr: false, weeklyScore: false, noBadge: false, cvPdf: true, cvDocx: false })
+    expect(entitlementsFor('basic')).toEqual({ plan: 'basic', canEdit: true, canPublish: true, templates: 'free', analytics: false, qr: false, weeklyScore: false, noBadge: false, cvPdf: true, cvDocx: false })
+    expect(entitlementsFor('pro')).toEqual({ plan: 'pro', canEdit: true, canPublish: true, templates: 'all', analytics: true, qr: true, weeklyScore: true, noBadge: true, cvPdf: true, cvDocx: true })
   })
   it('three free templates, seven Pro, ten in total (the number the code actually has)', () => {
     expect(FREE_TEMPLATES).toHaveLength(3)

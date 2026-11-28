@@ -21,6 +21,7 @@ import { removeSkill } from '@/lib/portfolio/editor'
 import FreeSplit from '@/components/dashboard/FreeSplit'
 import { BulletCount, DisplayNotice, FieldCount } from '@/components/dashboard/FieldCount'
 import AwardsEditor from '@/components/dashboard/AwardsEditor'
+import CvCard from '@/components/dashboard/CvCard'
 import { PROJECT_TEXT_MAX } from '@/lib/blocks/adapt'
 import FreePreview from '@/components/dashboard/FreePreview'
 import ProOverview from '@/components/dashboard/ProOverview'
@@ -1619,6 +1620,11 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Your CV — every plan (a CV does not need a published page); Word is Pro */}
+            {accessToken && portfolio?.id && (
+              <CvCard accessToken={accessToken} isPro={isPro} refreshKey={portfolio.edit_count} onUpgrade={() => setShowUpgradeModal(true)} />
             )}
 
             {/* Portfolio progress */}

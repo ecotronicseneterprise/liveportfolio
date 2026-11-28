@@ -24,6 +24,10 @@ function supabasePattern() {
 const nextConfig: NextConfig = {
   // Optional local validation output: do not race an existing dev server in .next.
   distDir: process.env.NEXT_BUILD_DIR || '.next',
+  // pdfkit reads its own data files from disk, so it must stay a plain Node dependency (not bundled); the CV fonts are read at run time
+  // and must be copied into the serverless function.
+  serverExternalPackages: ['pdfkit'],
+  outputFileTracingIncludes: { '/api/cv': ['./lib/cv/fonts/**'] },
   images: {
     remotePatterns: [
       ...supabasePattern(),
